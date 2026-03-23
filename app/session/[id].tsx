@@ -1,10 +1,13 @@
 import { supabase } from '@/lib/supabase'
+import { insertNotification } from '@/lib/notifications'
+import * as Linking from 'expo-linking'
 import { router, useLocalSearchParams } from 'expo-router'
 import { useEffect, useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
   ScrollView,
+  Share,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -31,7 +34,7 @@ type SessionRecord = {
 type RequestStatus = 'none' | 'pending' | 'approved' | 'rejected'
 
 export default function SessionDetail() {
-  const { id } = useLocalSearchParams<{ id: string }>()
+  const { id, created } = useLocalSearchParams<{ id: string; created?: string }>()
   const [session, setSession] = useState<SessionRecord | null>(null)
   const [loading, setLoading] = useState(true)
   const [joining, setJoining] = useState(false)
@@ -139,7 +142,32 @@ export default function SessionDetail() {
 
     if (!session) return
 
+    // ELO gate
     setJoining(true)
+    const { data: myPlayer } = await supabase
+      .from('players')
+      .select('elo')
+      .eq('id', myId)
+      .maybeSingle()
+
+    if (myPlayer?.elo != null) {
+      if (myPlayer.elo < session.elo_min || myPlayer.elo > session.elo_max) {
+        setJoining(false)
+        Alert.alert(
+          'Không đủ trình độ',
+          `Kèo này yêu cầu ELO ${session.elo_min}–${session.elo_max}.\nELO của bạn: ${myPlayer.elo}`,
+        )
+        return
+      }
+    }
+
+    // If host requires approval, route through the request flow instead
+    if (session.require_approval) {
+      setJoining(false)
+      await sendRequest()
+      return
+    }
+
     const { error } = await supabase.from('session_players').insert({
       session_id: session.id,
       player_id: myId,
@@ -182,25 +210,98 @@ export default function SessionDetail() {
 
     setRequestStatus('pending')
     Alert.alert('Đã gửi yêu cầu', 'Chờ host duyệt nhé.')
+
+    // Notify host
+    const { data: myData } = await supabase
+      .from('players')
+      .select('name, elo')
+      .eq('id', myId)
+      .maybeSingle()
+    if (myData) {
+      const slotTime = new Date(session.slot.start_time)
+        .toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+      await insertNotification(
+        session.host.id,
+        'Có người muốn join kèo!',
+        `${myData.name} (Elo ${myData.elo}) xin tham gia kèo lúc ${slotTime}`,
+        'join_request',
+        `/session/${session.id}`,
+      )
+    }
   }
 
   async function approveRequest(requestId: string, playerId: string) {
     if (!session) return
 
-    await supabase.from('session_requests').update({ status: 'approved' }).eq('id', requestId)
-    await supabase.from('session_players').insert({
+    const { error: reqErr } = await supabase
+      .from('session_requests')
+      .update({ status: 'approved' })
+      .eq('id', requestId)
+    if (reqErr) {
+      console.warn('[approveRequest] update session_requests failed:', reqErr.message)
+      Alert.alert('Lỗi', reqErr.message)
+      return
+    }
+
+    const { error: playerErr } = await supabase.from('session_players').insert({
       session_id: session.id,
       player_id: playerId,
       status: 'confirmed',
     })
+    if (playerErr) {
+      console.warn('[approveRequest] insert session_players failed:', playerErr.message)
+      Alert.alert('Lỗi', playerErr.message)
+      return
+    }
+
+    // Optimistically remove from pending list immediately
+    setPendingRequests((prev) => prev.filter((r) => r.id !== requestId))
 
     Alert.alert('Đã duyệt', 'Người chơi đã được thêm vào kèo.')
+
+    console.log('[approveRequest] sending notification to player:', playerId)
+    const slotTime = new Date(session.slot.start_time)
+      .toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+    await insertNotification(
+      playerId,
+      'Được duyệt!',
+      `Bạn đã được chấp nhận vào kèo lúc ${slotTime}`,
+      'join_approved',
+      `/session/${session.id}`,
+    )
+    console.log('[approveRequest] notification sent')
+
     await fetchSession(myId)
   }
 
-  async function rejectRequest(requestId: string) {
-    await supabase.from('session_requests').update({ status: 'rejected' }).eq('id', requestId)
+  async function rejectRequest(requestId: string, playerId: string) {
+    if (!session) return
+
+    const { error } = await supabase
+      .from('session_requests')
+      .update({ status: 'rejected' })
+      .eq('id', requestId)
+    if (error) {
+      console.warn('[rejectRequest] failed:', error.message)
+      Alert.alert('Lỗi', error.message)
+      return
+    }
+
+    // Optimistically remove from pending list immediately
+    setPendingRequests((prev) => prev.filter((r) => r.id !== requestId))
+
     Alert.alert('Đã từ chối.')
+
+    console.log('[rejectRequest] sending notification to player:', playerId)
+    await insertNotification(
+      playerId,
+      'Chưa phù hợp',
+      'Host đã từ chối yêu cầu tham gia',
+      'join_rejected',
+      `/session/${session.id}`,
+    )
+    console.log('[rejectRequest] notification sent')
+
     await fetchSession(myId)
   }
 
@@ -351,9 +452,26 @@ export default function SessionDetail() {
       style={styles.container}
       contentContainerStyle={{ paddingBottom: 48 }}
     >
-      <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-        <Text style={styles.backText}>← Quay lại</Text>
-      </TouchableOpacity>
+      <View style={styles.topRow}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <Text style={styles.backText}>← Quay lại</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.shareBtn}
+          onPress={() => {
+            const url = Linking.createURL(`/session/${id}`)
+            Share.share({ message: `Tham gia kèo pickleball này nhé! ${url}` })
+          }}
+        >
+          <Text style={styles.shareBtnText}>Chia sẻ 🔗</Text>
+        </TouchableOpacity>
+      </View>
+
+      {created === '1' && (
+        <View style={styles.successBanner}>
+          <Text style={styles.successBannerText}>🎉 Kèo đã được đăng! Chia sẻ link để mời người chơi.</Text>
+        </View>
+      )}
 
       <Text style={styles.courtName}>{court?.name}</Text>
       <Text style={styles.address}>📍 {court?.address} · {court?.city}</Text>
@@ -460,7 +578,7 @@ export default function SessionDetail() {
                   <TouchableOpacity style={styles.approveBtn} onPress={() => approveRequest(req.id, req.player_id)}>
                     <Text style={styles.approveBtnText}>✓</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.rejectBtn} onPress={() => rejectRequest(req.id)}>
+                  <TouchableOpacity style={styles.rejectBtn} onPress={() => rejectRequest(req.id, req.player_id)}>
                     <Text style={styles.rejectBtnText}>✕</Text>
                   </TouchableOpacity>
                 </View>
@@ -553,7 +671,7 @@ export default function SessionDetail() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff', paddingTop: 60, paddingHorizontal: 20 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  backBtn: { marginBottom: 20 },
+  backBtn: { },
   backText: { fontSize: 14, color: '#16a34a', fontWeight: '600' },
   courtName: { fontSize: 24, fontWeight: '700', color: '#111', marginBottom: 6 },
   address: { fontSize: 14, color: '#666', marginBottom: 12 },
@@ -694,4 +812,10 @@ const styles = StyleSheet.create({
   },
   cancelBtnDisabled: { borderColor: '#fca5a5', opacity: 0.6 },
   cancelBtnText: { color: '#dc2626', fontSize: 16, fontWeight: '600' },
+
+  topRow:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  shareBtn:      { borderWidth: 1.5, borderColor: '#16a34a', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 6 },
+  shareBtnText:  { fontSize: 13, color: '#16a34a', fontWeight: '600' },
+  successBanner: { backgroundColor: '#f0fdf4', borderRadius: 12, padding: 14, marginBottom: 16 },
+  successBannerText: { fontSize: 13, color: '#166534', fontWeight: '600', textAlign: 'center' },
 })

@@ -3,7 +3,7 @@ import { router } from 'expo-router'
 import { useState } from 'react'
 import {
   Alert, KeyboardAvoidingView, Platform,
-  StyleSheet,
+  ScrollView, StyleSheet,
   Text, TextInput, TouchableOpacity,
   View
 } from 'react-native'
@@ -13,6 +13,26 @@ export default function LoginScreen() {
   const [otp, setOtp] = useState('')
   const [step, setStep] = useState<'phone' | 'otp'>('phone')
   const [loading, setLoading] = useState(false)
+
+  // ── Dev-only email/password login ────────────────────────────────────────────
+  const [devEmail, setDevEmail]       = useState('')
+  const [devPassword, setDevPassword] = useState('')
+  const [devLoading, setDevLoading]   = useState(false)
+
+  async function devSignIn() {
+    if (!devEmail || !devPassword) return
+    setDevLoading(true)
+    const { error } = await supabase.auth.signInWithPassword({ email: devEmail, password: devPassword })
+    setDevLoading(false)
+    if (error) { Alert.alert('Dev login lỗi', error.message); return }
+    const { data: { user } } = await supabase.auth.getUser()
+    console.log('=== LOAD PROFILE (DEV) ===')
+    console.log('looking for player id:', user?.id)
+    const { data: player, error: playerErr } = await supabase.from('players').select('*').eq('id', user?.id).single()
+    console.log('profile data:', JSON.stringify(player))
+    console.log('profile error:', JSON.stringify(playerErr))
+    router.replace(player ? '/(tabs)' : '/profile-setup')
+  }
 
   async function sendOTP() {
     if (!phone || phone.length < 9) {
@@ -49,11 +69,15 @@ export default function LoginScreen() {
     } else {
   // Check xem đã có profile chưa
   const { data: { user } } = await supabase.auth.getUser()
-  const { data: player } = await supabase
+  console.log('=== LOAD PROFILE (OTP) ===')
+  console.log('looking for player id:', user?.id)
+  const { data: player, error: playerErr } = await supabase
     .from('players')
-    .select('id')
+    .select('*')
     .eq('id', user?.id)
     .single()
+  console.log('profile data:', JSON.stringify(player))
+  console.log('profile error:', JSON.stringify(playerErr))
 
   if (player) {
     router.replace('/(tabs)') // Đã có profile → vào app
@@ -65,62 +89,100 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <Text style={styles.logo}>🏓 PickleMatch</Text>
-      <Text style={styles.subtitle}>Tìm kèo pickleball dễ dàng</Text>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Text style={styles.logo}>🏓 PickleMatch</Text>
+        <Text style={styles.subtitle}>Tìm kèo pickleball dễ dàng</Text>
 
-      {step === 'phone' ? (
-        <>
-          <Text style={styles.label}>Số điện thoại</Text>
-          <View style={styles.phoneRow}>
-            <Text style={styles.prefix}>+84</Text>
+        {step === 'phone' ? (
+          <>
+            <Text style={styles.label}>Số điện thoại</Text>
+            <View style={styles.phoneRow}>
+              <Text style={styles.prefix}>+84</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="909 123 456"
+                keyboardType="phone-pad"
+                value={phone}
+                onChangeText={setPhone}
+                maxLength={10}
+              />
+            </View>
+            <TouchableOpacity
+              style={[styles.button, loading && styles.buttonDisabled]}
+              onPress={sendOTP}
+              disabled={loading}
+            >
+              <Text style={styles.buttonText}>
+                {loading ? 'Đang gửi...' : 'Nhận mã OTP'}
+              </Text>
+            </TouchableOpacity>
+          </>
+        ) : (
+          <>
+            <Text style={styles.label}>Nhập mã OTP từ SMS</Text>
             <TextInput
-              style={styles.input}
-              placeholder="909 123 456"
-              keyboardType="phone-pad"
-              value={phone}
-              onChangeText={setPhone}
-              maxLength={10}
+              style={styles.inputOtp}
+              placeholder="• • • • • •"
+              keyboardType="number-pad"
+              value={otp}
+              onChangeText={setOtp}
+              maxLength={6}
+              textAlign="center"
             />
+            <TouchableOpacity
+              style={[styles.button, loading && styles.buttonDisabled]}
+              onPress={verifyOTP}
+              disabled={loading}
+            >
+              <Text style={styles.buttonText}>
+                {loading ? 'Đang xác nhận...' : 'Xác nhận'}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setStep('phone')}>
+              <Text style={styles.back}>← Đổi số điện thoại</Text>
+            </TouchableOpacity>
+          </>
+        )}
+
+        {/* ── Dev-only login — not shown in production ── */}
+        {__DEV__ && (
+          <View style={styles.devBox}>
+            <Text style={styles.devLabel}>🛠 Đăng nhập dev only</Text>
+            <TextInput
+              style={styles.devInput}
+              placeholder="Email"
+              placeholderTextColor="#aaa"
+              autoCapitalize="none"
+              keyboardType="email-address"
+              value={devEmail}
+              onChangeText={setDevEmail}
+            />
+            <TextInput
+              style={styles.devInput}
+              placeholder="Password"
+              placeholderTextColor="#aaa"
+              secureTextEntry
+              value={devPassword}
+              onChangeText={setDevPassword}
+            />
+            <TouchableOpacity
+              style={[styles.devBtn, devLoading && styles.buttonDisabled]}
+              onPress={devSignIn}
+              disabled={devLoading}
+            >
+              <Text style={styles.devBtnText}>
+                {devLoading ? 'Đang đăng nhập...' : 'Đăng nhập (dev)'}
+              </Text>
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={sendOTP}
-            disabled={loading}
-          >
-            <Text style={styles.buttonText}>
-              {loading ? 'Đang gửi...' : 'Nhận mã OTP'}
-            </Text>
-          </TouchableOpacity>
-        </>
-      ) : (
-        <>
-          <Text style={styles.label}>Nhập mã OTP từ SMS</Text>
-          <TextInput
-            style={styles.inputOtp}
-            placeholder="• • • • • •"
-            keyboardType="number-pad"
-            value={otp}
-            onChangeText={setOtp}
-            maxLength={6}
-            textAlign="center"
-          />
-          <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={verifyOTP}
-            disabled={loading}
-          >
-            <Text style={styles.buttonText}>
-              {loading ? 'Đang xác nhận...' : 'Xác nhận'}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setStep('phone')}>
-            <Text style={styles.back}>← Đổi số điện thoại</Text>
-          </TouchableOpacity>
-        </>
-      )}
+        )}
+      </ScrollView>
     </KeyboardAvoidingView>
   )
 }
@@ -178,4 +240,11 @@ const styles = StyleSheet.create({
   buttonDisabled: { backgroundColor: '#86efac' },
   buttonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
   back: { color: '#16a34a', fontSize: 14, marginTop: 8 },
+
+  // Dev-only styles
+  devBox:     { width: '100%', marginTop: 40, padding: 16, backgroundColor: '#fef9c3', borderRadius: 12, borderWidth: 1, borderColor: '#fde68a' },
+  devLabel:   { fontSize: 13, fontWeight: '700', color: '#92400e', marginBottom: 12 },
+  devInput:   { backgroundColor: '#fff', borderWidth: 1, borderColor: '#d97706', borderRadius: 8, paddingHorizontal: 12, height: 44, fontSize: 14, color: '#111', marginBottom: 8 },
+  devBtn:     { backgroundColor: '#d97706', borderRadius: 8, height: 44, alignItems: 'center', justifyContent: 'center', marginTop: 4 },
+  devBtnText: { color: '#fff', fontSize: 14, fontWeight: '700' },
 })

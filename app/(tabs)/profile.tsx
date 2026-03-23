@@ -188,6 +188,15 @@ export default function ProfileScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 48 }}>
 
+      {__DEV__ && (
+        <TouchableOpacity
+          onPress={() => supabase.auth.signOut()}
+          style={{ position: 'absolute', top: 50, right: 16, zIndex: 999 }}
+        >
+          <Text style={{ color: 'red', fontSize: 12 }}>DEV: Logout</Text>
+        </TouchableOpacity>
+      )}
+
       {/* Avatar + tên */}
       <View style={styles.heroSection}>
         <View style={styles.avatar}>

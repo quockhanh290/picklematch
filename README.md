@@ -1,50 +1,125 @@
-# Welcome to your Expo app 👋
+# PickleMatch VN
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A mobile platform for Vietnam's pickleball community to find, create, and join matches. Built with React Native (Expo) and Supabase.
 
-## Get started
+## Features
 
-1. Install dependencies
+- **Browse Sessions** — View open pickleball sessions with filters for skill level, location, price, and available slots
+- **Find Sessions** — Search by city, skill level, date range, and availability
+- **Create Session** — Multi-step wizard to book a court slot and configure match details (skill range, max players, approval requirement)
+- **My Sessions** — Track sessions you've hosted or joined
+- **Player Profiles** — View stats, ELO rating, and session history
+- **OTP Authentication** — Phone number login via Supabase
+- **Skill-based Matching** — ELO-based filtering to match players of similar ability
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | React Native + Expo 54 |
+| Language | TypeScript 5.9 |
+| Routing | Expo Router (file-based) |
+| Backend / DB | Supabase (PostgreSQL) |
+| Auth | Supabase Phone OTP |
+| State | React Hooks |
+| Animations | React Native Reanimated |
+
+## Prerequisites
+
+- [Node.js](https://nodejs.org/) 18+
+- Expo Go app on your phone (for development), or Android/iOS simulator
+- A Supabase project with the required schema (see [Database Schema](#database-schema))
+
+## Getting Started
+
+1. **Clone the repo**
+
+   ```bash
+   git clone <repo-url>
+   cd picklematch-vn
+   ```
+
+2. **Install dependencies**
 
    ```bash
    npm install
    ```
 
-2. Start the app
+3. **Configure Supabase**
 
-   ```bash
-   npx expo start
+   Open [lib/supabase.ts](lib/supabase.ts) and set your project URL and anon key:
+
+   ```ts
+   const supabaseUrl = 'https://<your-project>.supabase.co'
+   const supabaseAnonKey = '<your-anon-key>'
    ```
 
-In the output, you'll find options to open the app in a
+4. **Start the development server**
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+   ```bash
+   npm start
+   ```
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+   Scan the QR code with Expo Go, or press `a` for Android / `i` for iOS simulator.
 
-## Get a fresh project
+## Scripts
 
-When you're ready, run:
+| Command | Description |
+|---|---|
+| `npm start` | Start Expo dev server |
+| `npm run android` | Run on Android emulator |
+| `npm run ios` | Run on iOS simulator |
+| `npm run web` | Run in browser |
+| `npm run lint` | Run ESLint |
+| `npm run reset-project` | Reset to blank Expo starter |
 
-```bash
-npm run reset-project
+## Project Structure
+
+```
+picklematch-vn/
+├── app/                    # File-based routes (Expo Router)
+│   ├── (tabs)/             # Bottom tab screens
+│   │   ├── index.tsx       # Home — browse sessions
+│   │   ├── find-session.tsx
+│   │   ├── my-sessions.tsx
+│   │   └── profile.tsx
+│   ├── session/[id].tsx    # Session detail
+│   ├── player/[id].tsx     # Player profile
+│   ├── create-session.tsx
+│   ├── edit-profile.tsx
+│   ├── login.tsx
+│   └── profile-setup.tsx
+├── lib/
+│   ├── supabase.ts         # Supabase client
+│   └── useAuth.ts          # Auth hook
+├── components/             # Reusable UI components
+├── constants/
+│   └── theme.ts            # Design tokens
+├── hooks/                  # Custom React hooks
+└── assets/                 # Images and icons
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Database Schema
 
-## Learn more
+The app expects the following tables in your Supabase project:
 
-To learn more about developing your project with Expo, look at the following resources:
+| Table | Key Columns |
+|---|---|
+| `players` | `id`, `name`, `phone`, `city`, `elo`, `no_show_count` |
+| `sessions` | `id`, `host_id`, `slot_id`, `status`, `elo_min`, `elo_max`, `max_players` |
+| `session_players` | `session_id`, `player_id` |
+| `courts` | `id`, `name`, `address`, `city` |
+| `court_slots` | `id`, `court_id`, `start_time`, `end_time`, `price`, `status` |
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Skill Levels (ELO)
 
-## Join the community
+| Level | ELO Range |
+|---|---|
+| Beginner | < 1000 |
+| Intermediate | 1000 – 1199 |
+| Advanced | 1200 – 1399 |
+| Expert | 1400+ |
 
-Join our community of developers creating universal apps.
+## License
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+MIT

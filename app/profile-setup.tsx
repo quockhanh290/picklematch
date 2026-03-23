@@ -31,14 +31,21 @@ export default function ProfileSetup() {
     const { data: { user } } = await supabase.auth.getUser()
     const selectedSkill = SKILL_LEVELS.find(s => s.value === skill)
 
-    const { error } = await supabase.from('players').upsert({
+    console.log('=== PROFILE SETUP ===')
+    console.log('user id:', user?.id)
+    console.log('user phone:', user?.phone)
+    console.log('user email:', user?.email)
+
+    const { data, error } = await supabase.from('players').upsert({
       id: user?.id,
-      phone: user?.phone,
+      phone: user?.phone || null,
       name,
       city,
       skill_label: skill,
       elo: selectedSkill?.elo || 1000,
-    })
+    }).select()
+    console.log('insert data:', JSON.stringify(data))
+    console.log('insert error:', JSON.stringify(error))
 
     setLoading(false)
     if (error) {
