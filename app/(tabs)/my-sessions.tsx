@@ -2,8 +2,9 @@ import { FeedMatchCard } from '@/components/session/FeedMatchCard'
 import { getSkillLevelFromEloRange } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
 import { router, useFocusEffect } from 'expo-router'
+import { CalendarDays } from 'lucide-react-native'
 import { useCallback, useState } from 'react'
-import { ActivityIndicator, FlatList, RefreshControl, Text, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, FlatList, RefreshControl, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 type MySession = {
@@ -33,10 +34,13 @@ export default function MySessions() {
 
   const fetchMySessions = useCallback(async (userId: string) => {
     setLoading(true)
+    await supabase.rpc('process_pending_session_completions')
+    await supabase.rpc('process_overdue_session_closures')
 
-    const { data: hostSessions } = await supabase
+    const { data: hostSessions, error: hostError } = await supabase
       .from('sessions')
-      .select(`
+      .select(
+        `
         id,
         status,
         court_booking_status,
@@ -51,9 +55,14 @@ export default function MySessions() {
           court:court_id ( name, city, address )
         ),
         session_players ( player_id )
-      `)
+      `,
+      )
       .eq('host_id', userId)
       .order('created_at', { ascending: false })
+
+    if (hostError) {
+      console.warn('[MySessions] hostSessions query failed:', hostError.message)
+    }
 
     const hostList: MySession[] = (hostSessions ?? []).map((session: any) => ({
       id: session.id,
@@ -74,9 +83,10 @@ export default function MySessions() {
       elo_max: session.elo_max,
     }))
 
-    const { data: playerSessions } = await supabase
+    const { data: playerSessions, error: playerError } = await supabase
       .from('session_players')
-      .select(`
+      .select(
+        `
         session:session_id (
           id,
           status,
@@ -93,9 +103,13 @@ export default function MySessions() {
           ),
           session_players ( player_id )
         )
-      `)
+      `,
+      )
       .eq('player_id', userId)
-      .order('created_at', { ascending: false })
+
+    if (playerError) {
+      console.warn('[MySessions] playerSessions query failed:', playerError.message)
+    }
 
     const joinedList: MySession[] = (playerSessions ?? [])
       .map((row: any) => {
@@ -124,11 +138,12 @@ export default function MySessions() {
       .filter(Boolean) as MySession[]
 
     const deduped = [...hostList, ...joinedList].filter(
-      (session, index, arr) => arr.findIndex((candidate) => candidate.id === session.id) === index
+      (session, index, arr) => arr.findIndex((candidate) => candidate.id === session.id) === index,
     )
 
     deduped.sort((a, b) => {
-      const bookingWeight = Number(b.court_booking_status === 'confirmed') - Number(a.court_booking_status === 'confirmed')
+      const bookingWeight =
+        Number(b.court_booking_status === 'confirmed') - Number(a.court_booking_status === 'confirmed')
       if (bookingWeight !== 0) return bookingWeight
       return new Date(b.start_time).getTime() - new Date(a.start_time).getTime()
     })
@@ -156,7 +171,7 @@ export default function MySessions() {
   useFocusEffect(
     useCallback(() => {
       init()
-    }, [init])
+    }, [init]),
   )
 
   const onRefresh = useCallback(async () => {
@@ -172,26 +187,23 @@ export default function MySessions() {
     const pad = (value: number) => value.toString().padStart(2, '0')
 
     return {
-      time: `${pad(startDate.getHours())}:${pad(startDate.getMinutes())} → ${pad(endDate.getHours())}:${pad(endDate.getMinutes())}`,
+      time: `${pad(startDate.getHours())}:${pad(startDate.getMinutes())} - ${pad(endDate.getHours())}:${pad(
+        endDate.getMinutes(),
+      )}`,
       date: `${pad(startDate.getDate())}/${pad(startDate.getMonth() + 1)}`,
     }
   }
 
-  function sessionStatusLabel(status: string, role: 'host' | 'player') {
-    if (status === 'cancelled') return '❌ Đã hủy'
-    if (status === 'done') return '✅ Đã xong'
-    return role === 'host' ? '👑 Bạn là host' : '👤 Đã tham gia'
+  function matchTypeLabel(status: string, role: 'host' | 'player') {
+    if (status === 'pending_completion') return 'Chờ xác nhận'
+    if (status === 'cancelled') return 'Đã huỷ'
+    if (status === 'done') return 'Đã hoàn tất'
+    return role === 'host' ? 'Bạn là host' : 'Đã tham gia'
   }
 
   const renderSession = useCallback(({ item }: { item: MySession }) => {
     const formatted = formatTime(item.start_time, item.end_time)
     const isFull = item.player_count >= item.max_players
-    const availabilityLabel =
-      item.status === 'open'
-        ? isFull
-          ? `👥 ${item.player_count}/${item.max_players} Đầy`
-          : `👥 ${Math.max(item.max_players - item.player_count, 0)}/${item.max_players} Còn chỗ`
-        : `👥 ${item.player_count}/${item.max_players} Người`
 
     return (
       <FeedMatchCard
@@ -201,53 +213,60 @@ export default function MySessions() {
         dateLabel={formatted.date}
         bookingStatus={item.court_booking_status}
         skillLabel={getSkillLevelFromEloRange(item.elo_min, item.elo_max).title}
-        matchTypeLabel={sessionStatusLabel(item.status, item.role)}
+        matchTypeLabel={matchTypeLabel(item.status, item.role)}
         hostName={item.host_name}
         isProvisional={item.host_is_provisional}
         priceLabel={`${item.price.toLocaleString('vi-VN')}đ/người`}
-        availabilityLabel={availabilityLabel}
+        availabilityLabel={isFull ? 'Đầy' : `${item.player_count}/${item.max_players}`}
         onPress={() => router.push({ pathname: '/session/[id]' as any, params: { id: item.id } })}
       />
     )
   }, [])
 
-  if (loading) {
-    return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-gray-50" edges={['top']}>
-        <ActivityIndicator size="large" color="#16a34a" />
-      </SafeAreaView>
-    )
-  }
+  const header = (
+    <View className="bg-gray-50">
+      <View className="px-5 pb-4 pt-4">
+        <View className="flex-row items-center">
+          <CalendarDays size={16} color="#6b7280" />
+          <Text className="ml-2 text-sm font-medium text-gray-500">Lịch chơi của bạn</Text>
+        </View>
+        <Text className="mt-2 text-3xl font-black text-gray-950">Kèo của tôi</Text>
+        <Text className="mt-2 text-sm leading-6 text-gray-500">
+          Theo dõi những kèo bạn đang host hoặc đã tham gia, ưu tiên các kèo đã chốt sân ở phía trên.
+        </Text>
+      </View>
+    </View>
+  )
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
-      <View className="px-5 pb-4 pt-4">
-        <Text className="text-3xl font-bold text-gray-950">Kèo của tôi ({sessions.length})</Text>
-      </View>
-
-      {sessions.length === 0 ? (
-        <View className="flex-1 items-center justify-center px-10">
-          <Text className="mb-4 text-6xl">🏓</Text>
-          <Text className="mb-2 text-center text-xl font-bold text-gray-950">Chưa có kèo nào</Text>
-          <Text className="mb-6 text-center text-base leading-6 text-gray-500">
-            Tạo kèo đầu tiên hoặc tham gia một kèo phù hợp để bắt đầu lịch sử chơi của bạn.
-          </Text>
-          <TouchableOpacity
-            className="rounded-2xl bg-green-600 px-6 py-4"
-            activeOpacity={0.9}
-            onPress={() => router.push('/create-session' as any)}
-          >
-            <Text className="text-base font-bold text-white">Tạo kèo mới</Text>
-          </TouchableOpacity>
-        </View>
+      {loading ? (
+        <>
+          {header}
+          <ActivityIndicator size="large" color="#059669" style={{ marginTop: 40 }} />
+        </>
+      ) : sessions.length === 0 ? (
+        <>
+          {header}
+          <View className="px-5 pt-6">
+            <View className="rounded-3xl border border-gray-100 bg-white px-6 py-8 shadow-sm">
+              <Text className="text-xs font-extrabold uppercase tracking-[1.4px] text-gray-400">Bắt đầu</Text>
+              <Text className="mt-3 text-2xl font-black text-gray-950">Bạn chưa có kèo nào</Text>
+              <Text className="mt-2 text-sm leading-6 text-gray-500">
+                Tạo kèo đầu tiên hoặc tham gia một trận phù hợp để bắt đầu lịch sử chơi của bạn.
+              </Text>
+            </View>
+          </View>
+        </>
       ) : (
         <FlatList
           data={sessions}
           renderItem={renderSession}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={{ paddingBottom: 32 }}
+          ListHeaderComponent={header}
+          contentContainerStyle={{ paddingBottom: 32, paddingTop: 8 }}
           showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#16a34a" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#059669" />}
         />
       )}
     </SafeAreaView>

@@ -1,17 +1,7 @@
+import { AppButton, AppInput, EmptyState, ScreenHeader, SectionCard, StatusBadge } from '@/components/design'
 import { router } from 'expo-router'
 import { useEffect, useRef, useState } from 'react'
-import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native'
+import { ActivityIndicator, Alert, FlatList, ScrollView, Switch, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { SKILL_ASSESSMENT_LEVELS, type SkillAssessmentLevel } from '@/lib/skillAssessment'
@@ -102,8 +92,7 @@ export default function EditProfile() {
       setCity(data.city ?? '')
 
       const levelId =
-        (data.self_assessed_level as SkillAssessmentLevel['id'] | null) ??
-        inferLevelIdFromLegacySkill(data.skill_label)
+        (data.self_assessed_level as SkillAssessmentLevel['id'] | null) ?? inferLevelIdFromLegacySkill(data.skill_label)
 
       setSelectedLevelId(levelId)
       setOriginalLevelId(levelId)
@@ -113,10 +102,7 @@ export default function EditProfile() {
       setFavCourtIds(ids)
 
       if (ids.length > 0) {
-        const { data: courtData } = await supabase
-          .from('courts')
-          .select('id, name, address, city')
-          .in('id', ids)
+        const { data: courtData } = await supabase.from('courts').select('id, name, address, city').in('id', ids)
         setFavCourts(courtData ?? [])
       }
     }
@@ -217,420 +203,171 @@ export default function EditProfile() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.center} edges={['top']}>
+      <SafeAreaView className="flex-1 items-center justify-center bg-stone-100" edges={['top']}>
         <ActivityIndicator size="large" color="#16a34a" />
       </SafeAreaView>
     )
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-    <ScrollView contentContainerStyle={styles.content}>
-      <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-        <Text style={styles.backText}>← Quay lại</Text>
-      </TouchableOpacity>
+    <SafeAreaView className="flex-1 bg-stone-100" edges={['top']}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 48 }}>
+        <ScreenHeader
+          eyebrow="Cá nhân hoá"
+          title="Chỉnh sửa hồ sơ"
+          subtitle="Cập nhật thông tin cá nhân, level tự đánh giá và các sân bạn hay chơi để ghép kèo chuẩn hơn."
+        />
 
-      <Text style={styles.title}>Chỉnh sửa hồ sơ</Text>
+        <View className="px-5">
+          <SectionCard title="Thông tin cơ bản" className="mb-4">
+            <View className="gap-4">
+              <AppInput label="Tên hiển thị" value={name} onChangeText={setName} placeholder="Nhập tên của bạn" maxLength={30} />
 
-      <Text style={styles.label}>Tên hiển thị</Text>
-      <TextInput
-        style={styles.input}
-        value={name}
-        onChangeText={setName}
-        placeholder="Nhập tên của bạn"
-        maxLength={30}
-      />
-
-      <Text style={styles.label}>Thành phố</Text>
-      <View style={styles.optionRow}>
-        {CITIES.map((item) => (
-          <TouchableOpacity
-            key={item}
-            style={[styles.optionBtn, city === item && styles.optionBtnActive]}
-            onPress={() => setCity(item)}
-          >
-            <Text style={[styles.optionText, city === item && styles.optionTextActive]}>{item}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      <Text style={styles.label}>Trình độ tự đánh giá</Text>
-      <Text style={styles.helperText}>
-        Nếu bạn đổi mức trình độ, tài khoản sẽ bị reset về placement mode. App sẽ hỏi xác nhận trước khi áp dụng thay đổi này.
-      </Text>
-
-      <View style={styles.skillList}>
-        {SKILL_ASSESSMENT_LEVELS.map((level) => {
-          const isSelected = selectedLevelId === level.id
-
-          return (
-            <TouchableOpacity
-              key={level.id}
-              style={[styles.skillCard, isSelected && styles.skillCardActive]}
-              onPress={() => handleSelectLevel(level.id)}
-            >
-              <View style={styles.skillCardHeader}>
-                <Text style={[styles.skillTitle, isSelected && styles.skillTitleActive]}>{level.title}</Text>
-                <View style={[styles.skillBadge, isSelected && styles.skillBadgeActive]}>
-                  <Text style={[styles.skillBadgeText, isSelected && styles.skillBadgeTextActive]}>{level.dupr}</Text>
+              <View>
+                <Text className="mb-2 text-sm font-bold text-slate-900">Thành phố</Text>
+                <View className="flex-row flex-wrap gap-2">
+                  {CITIES.map((item) => {
+                    const isActive = city === item
+                    return (
+                      <TouchableOpacity
+                        key={item}
+                        activeOpacity={0.88}
+                        className={`rounded-full border px-4 py-2 ${isActive ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 bg-white'}`}
+                        onPress={() => setCity(item)}
+                      >
+                        <Text className={`text-sm font-semibold ${isActive ? 'text-emerald-700' : 'text-slate-600'}`}>{item}</Text>
+                      </TouchableOpacity>
+                    )
+                  })}
                 </View>
               </View>
-
-              <Text style={styles.skillMeta}>
-                {level.subtitle} · Elo {level.starting_elo}
-              </Text>
-              <Text style={styles.skillDescription}>{level.description}</Text>
-            </TouchableOpacity>
-          )
-        })}
-      </View>
-
-      <Text style={styles.label}>Tự động duyệt người cùng trình</Text>
-      <View style={styles.toggleCard}>
-        <View style={styles.toggleCopy}>
-          <Text style={styles.toggleTitle}>Auto-accept cho Smart Join</Text>
-          <Text style={styles.toggleDescription}>
-            Khi bật, người chơi được hệ thống đánh giá là phù hợp sẽ vào kèo ngay thay vì phải xin duyệt thủ công.
-          </Text>
-        </View>
-        <Switch value={autoAccept} onValueChange={setAutoAccept} trackColor={{ false: '#d1d5db', true: '#86efac' }} thumbColor={autoAccept ? '#16a34a' : '#f8fafc'} />
-      </View>
-
-      <Text style={styles.label}>
-        Sân ưa thích <Text style={styles.labelHint}>(tối đa 5)</Text>
-      </Text>
-
-      {favCourts.length > 0 && (
-        <View style={styles.favList}>
-          {favCourts.map((court) => (
-            <View key={court.id} style={styles.favItem}>
-              <View style={styles.flexOne}>
-                <Text style={styles.favName}>{court.name}</Text>
-                <Text style={styles.favAddress}>📍 {court.address} · {court.city}</Text>
-              </View>
-              <TouchableOpacity onPress={() => removeFavCourt(court.id)} style={styles.removeBtn}>
-                <Text style={styles.removeBtnText}>✕</Text>
-              </TouchableOpacity>
             </View>
-          ))}
-        </View>
-      )}
+          </SectionCard>
 
-      {favCourtIds.length < 5 && (
-        <>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="🔍 Tìm sân để thêm..."
-            value={keyword}
-            onChangeText={setKeyword}
-          />
+          <SectionCard
+            title="Trình độ tự đánh giá"
+            subtitle="Nếu bạn đổi mức trình độ, tài khoản sẽ bị reset về placement mode. App sẽ hỏi xác nhận trước khi áp dụng thay đổi."
+            className="mb-4"
+          >
+            <View className="gap-3">
+              {SKILL_ASSESSMENT_LEVELS.map((level) => {
+                const isSelected = selectedLevelId === level.id
 
-          {searching && <ActivityIndicator color="#16a34a" style={styles.searchingIndicator} />}
+                return (
+                  <TouchableOpacity
+                    key={level.id}
+                    activeOpacity={0.9}
+                    className={`rounded-[24px] border p-4 ${isSelected ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 bg-white'}`}
+                    onPress={() => handleSelectLevel(level.id)}
+                  >
+                    <View className="flex-row items-start justify-between">
+                      <Text className={`flex-1 pr-3 text-base font-extrabold ${isSelected ? 'text-emerald-800' : 'text-slate-900'}`}>
+                        {level.title}
+                      </Text>
+                      <StatusBadge label={level.dupr} tone={isSelected ? 'success' : 'neutral'} />
+                    </View>
+                    <Text className="mt-2 text-sm font-semibold text-slate-500">
+                      {level.subtitle} · Elo {level.starting_elo}
+                    </Text>
+                    <Text className="mt-3 text-sm leading-6 text-slate-500">{level.description}</Text>
+                  </TouchableOpacity>
+                )
+              })}
+            </View>
+          </SectionCard>
 
-          {!searching && keyword.length > 0 && courts.length === 0 && (
-            <Text style={styles.noResult}>Không tìm thấy sân nào</Text>
-          )}
+          <SectionCard title="Smart Join" subtitle="Thiết lập cách hệ thống xử lý người chơi phù hợp trình độ khi họ muốn vào kèo của bạn." className="mb-4">
+            <View className="flex-row items-center gap-3 rounded-[24px] bg-emerald-50 p-4">
+              <View className="flex-1">
+                <Text className="text-sm font-extrabold text-emerald-800">Auto-accept cho Smart Join</Text>
+                <Text className="mt-2 text-sm leading-6 text-emerald-700">
+                  Khi bật, người chơi được hệ thống đánh giá là phù hợp sẽ vào kèo ngay thay vì phải xin duyệt thủ công.
+                </Text>
+              </View>
+              <Switch
+                value={autoAccept}
+                onValueChange={setAutoAccept}
+                trackColor={{ false: '#d1d5db', true: '#86efac' }}
+                thumbColor={autoAccept ? '#16a34a' : '#f8fafc'}
+              />
+            </View>
+          </SectionCard>
 
-          <FlatList
-            data={courts}
-            keyExtractor={(court) => court.id}
-            scrollEnabled={false}
-            renderItem={({ item }) => {
-              const alreadyAdded = favCourtIds.includes(item.id)
-
-              return (
-                <TouchableOpacity
-                  style={[styles.courtItem, alreadyAdded && styles.courtItemAdded]}
-                  onPress={() => addFavCourt(item)}
-                  disabled={alreadyAdded}
-                >
-                  <View style={styles.flexOne}>
-                    <Text style={styles.courtItemName}>{item.name}</Text>
-                    <Text style={styles.courtItemAddress}>📍 {item.address} · {item.city}</Text>
+          <SectionCard title="Sân ưa thích" subtitle="Chọn tối đa 5 sân để app ưu tiên gợi ý các kèo gần gu của bạn." className="mb-4">
+            {favCourts.length > 0 ? (
+              <View className="mb-4 gap-3">
+                {favCourts.map((court) => (
+                  <View key={court.id} className="flex-row items-center rounded-[22px] bg-slate-50 p-4">
+                    <View className="flex-1">
+                      <Text className="text-sm font-extrabold text-slate-900">{court.name}</Text>
+                      <Text className="mt-1 text-sm text-slate-500">📍 {court.address} · {court.city}</Text>
+                    </View>
+                    <TouchableOpacity
+                      activeOpacity={0.88}
+                      className="h-8 w-8 items-center justify-center rounded-full bg-rose-100"
+                      onPress={() => removeFavCourt(court.id)}
+                    >
+                      <Text className="text-sm font-black text-rose-700">×</Text>
+                    </TouchableOpacity>
                   </View>
-                  <Text style={alreadyAdded ? styles.addedText : styles.addText}>
-                    {alreadyAdded ? '✓ Đã thêm' : '+ Thêm'}
-                  </Text>
-                </TouchableOpacity>
-              )
-            }}
-          />
-        </>
-      )}
+                ))}
+              </View>
+            ) : (
+              <EmptyState icon="🏟️" title="Chưa có sân ưa thích" description="Thêm vài sân bạn hay chơi để app gợi ý kèo sát nhu cầu hơn." />
+            )}
 
-      <TouchableOpacity style={[styles.saveBtn, saving && styles.saveBtnDisabled]} onPress={save} disabled={saving}>
-        <Text style={styles.saveBtnText}>{saving ? 'Đang lưu...' : 'Lưu thay đổi'}</Text>
-      </TouchableOpacity>
-    </ScrollView>
+            {favCourtIds.length < 5 ? (
+              <>
+                <AppInput
+                  label="Tìm sân để thêm"
+                  value={keyword}
+                  onChangeText={setKeyword}
+                  placeholder="Nhập tên sân bạn muốn tìm"
+                />
+
+                {searching ? <ActivityIndicator color="#16a34a" style={{ marginTop: 12 }} /> : null}
+
+                {!searching && keyword.length > 0 && courts.length === 0 ? (
+                  <Text className="mt-3 text-sm text-slate-400">Không tìm thấy sân nào</Text>
+                ) : null}
+
+                <FlatList
+                  className="mt-3"
+                  data={courts}
+                  keyExtractor={(court) => court.id}
+                  scrollEnabled={false}
+                  renderItem={({ item }) => {
+                    const alreadyAdded = favCourtIds.includes(item.id)
+
+                    return (
+                      <TouchableOpacity
+                        activeOpacity={0.88}
+                        className={`mb-3 flex-row items-center rounded-[22px] border p-4 ${
+                          alreadyAdded ? 'border-slate-200 bg-slate-100 opacity-60' : 'border-slate-200 bg-white'
+                        }`}
+                        onPress={() => addFavCourt(item)}
+                        disabled={alreadyAdded}
+                      >
+                        <View className="flex-1">
+                          <Text className="text-sm font-extrabold text-slate-900">{item.name}</Text>
+                          <Text className="mt-1 text-sm text-slate-500">📍 {item.address} · {item.city}</Text>
+                        </View>
+                        <StatusBadge label={alreadyAdded ? 'Đã thêm' : 'Thêm'} tone={alreadyAdded ? 'neutral' : 'success'} />
+                      </TouchableOpacity>
+                    )
+                  }}
+                />
+              </>
+            ) : (
+              <View className="mt-4 rounded-[22px] bg-amber-50 px-4 py-3">
+                <Text className="text-sm leading-6 text-amber-700">Bạn đã chọn đủ 5 sân. Xóa bớt một sân nếu muốn thêm sân mới.</Text>
+              </View>
+            )}
+          </SectionCard>
+
+          <AppButton label="Lưu thay đổi" onPress={save} loading={saving} />
+        </View>
+      </ScrollView>
     </SafeAreaView>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  content: {
-    paddingTop: 20,
-    paddingHorizontal: 20,
-    paddingBottom: 48,
-  },
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  backBtn: {
-    marginBottom: 8,
-  },
-  backText: {
-    fontSize: 14,
-    color: '#16a34a',
-    fontWeight: '600',
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: '#111',
-    marginBottom: 28,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
-    marginTop: 20,
-    marginBottom: 10,
-  },
-  labelHint: {
-    fontSize: 12,
-    color: '#aaa',
-    fontWeight: '400',
-  },
-  helperText: {
-    fontSize: 13,
-    lineHeight: 20,
-    color: '#6b7280',
-    marginBottom: 10,
-  },
-  input: {
-    borderWidth: 1.5,
-    borderColor: '#ddd',
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    height: 52,
-    fontSize: 16,
-    color: '#333',
-  },
-  optionRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  optionBtn: {
-    borderWidth: 1.5,
-    borderColor: '#ddd',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  optionBtnActive: {
-    borderColor: '#16a34a',
-    backgroundColor: '#f0fdf4',
-  },
-  optionText: {
-    fontSize: 13,
-    color: '#555',
-  },
-  optionTextActive: {
-    color: '#16a34a',
-    fontWeight: '600',
-  },
-  skillList: {
-    gap: 10,
-  },
-  skillCard: {
-    borderWidth: 1.5,
-    borderColor: '#e5e7eb',
-    borderRadius: 16,
-    padding: 14,
-    backgroundColor: '#fff',
-  },
-  skillCardActive: {
-    borderColor: '#16a34a',
-    backgroundColor: '#f0fdf4',
-  },
-  skillCardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    gap: 10,
-    marginBottom: 8,
-  },
-  skillTitle: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#111827',
-  },
-  skillTitleActive: {
-    color: '#166534',
-  },
-  skillBadge: {
-    backgroundColor: '#ecfdf5',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 999,
-  },
-  skillBadgeActive: {
-    backgroundColor: '#166534',
-  },
-  skillBadgeText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#166534',
-  },
-  skillBadgeTextActive: {
-    color: '#fff',
-  },
-  skillMeta: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#4b5563',
-    marginBottom: 6,
-  },
-  skillDescription: {
-    fontSize: 13,
-    lineHeight: 20,
-    color: '#4b5563',
-  },
-  toggleCard: {
-    marginTop: 6,
-    marginBottom: 4,
-    borderWidth: 1.5,
-    borderColor: '#dcfce7',
-    borderRadius: 16,
-    backgroundColor: '#f0fdf4',
-    padding: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  toggleCopy: {
-    flex: 1,
-  },
-  toggleTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#166534',
-    marginBottom: 4,
-  },
-  toggleDescription: {
-    fontSize: 12,
-    lineHeight: 18,
-    color: '#15803d',
-  },
-  favList: {
-    borderWidth: 1.5,
-    borderColor: '#f0f0f0',
-    borderRadius: 14,
-    marginBottom: 12,
-    overflow: 'hidden',
-  },
-  favItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  flexOne: {
-    flex: 1,
-  },
-  favName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#111',
-    marginBottom: 2,
-  },
-  favAddress: {
-    fontSize: 12,
-    color: '#888',
-  },
-  removeBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#fef2f2',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  removeBtnText: {
-    fontSize: 13,
-    color: '#dc2626',
-    fontWeight: '700',
-  },
-  searchInput: {
-    borderWidth: 1.5,
-    borderColor: '#ddd',
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    height: 48,
-    fontSize: 15,
-    color: '#333',
-  },
-  searchingIndicator: {
-    marginTop: 8,
-  },
-  noResult: {
-    fontSize: 13,
-    color: '#aaa',
-    marginTop: 8,
-  },
-  courtItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f5f5f5',
-  },
-  courtItemAdded: {
-    opacity: 0.5,
-  },
-  courtItemName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#111',
-    marginBottom: 2,
-  },
-  courtItemAddress: {
-    fontSize: 12,
-    color: '#888',
-  },
-  addText: {
-    fontSize: 13,
-    color: '#16a34a',
-    fontWeight: '700',
-  },
-  addedText: {
-    fontSize: 13,
-    color: '#aaa',
-    fontWeight: '600',
-  },
-  saveBtn: {
-    backgroundColor: '#16a34a',
-    borderRadius: 14,
-    height: 54,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 36,
-  },
-  saveBtnDisabled: {
-    backgroundColor: '#86efac',
-  },
-  saveBtnText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-})

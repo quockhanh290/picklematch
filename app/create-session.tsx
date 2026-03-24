@@ -1,9 +1,11 @@
-import DateTimePicker from '@react-native-community/datetimepicker'
 import { SKILL_ASSESSMENT_LEVELS } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
 import { type NearByCourt, useNearbyCourts } from '@/lib/useNearbyCourts'
+import DateTimePicker from '@react-native-community/datetimepicker'
 import * as Linking from 'expo-linking'
 import { router } from 'expo-router'
+import { ArrowLeft, CalendarDays, CheckCircle2, Clock3, MapPin, ShieldCheck, Users, Wallet } from 'lucide-react-native'
+import type { ReactNode } from 'react'
 import { useCallback, useEffect, useState } from 'react'
 import {
   ActivityIndicator, Alert, FlatList, Keyboard, ScrollView,
@@ -75,6 +77,25 @@ function fmtDuration(start: Date, end: Date): string {
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
+
+function WizardHeader({ title, subtitle }: { title: string; subtitle: string }) {
+  return (
+    <View style={s.headerWrap}>
+      <Text style={s.headerEyebrow}>Create Session</Text>
+      <Text style={s.headerTitle}>{title}</Text>
+      <Text style={s.headerSubtitle}>{subtitle}</Text>
+    </View>
+  )
+}
+
+function BackLink({ label, onPress }: { label: string; onPress: () => void }) {
+  return (
+    <TouchableOpacity onPress={onPress} style={s.backLink}>
+      <ArrowLeft size={16} color="#059669" />
+      <Text style={s.backLinkText}>{label}</Text>
+    </TouchableOpacity>
+  )
+}
 
 export default function CreateSession() {
   const [step, setStep] = useState<1 | 2 | 3>(1)
@@ -385,11 +406,8 @@ export default function CreateSession() {
 
   if (step === 1) return (
     <SafeAreaView style={s.container} edges={['top']}>
-      <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
-        <Text style={s.backText}>← Quay lại</Text>
-      </TouchableOpacity>
-      <Text style={s.title}>Tạo kèo mới 🏓</Text>
-      <Text style={s.stepLabel}>Bước 1/3 — Chọn sân & giờ</Text>
+      <BackLink label="Quay lại" onPress={() => router.back()} />
+      <WizardHeader title="Tạo kèo mới" subtitle="Bước 1/3 · Chọn sân và khung giờ phù hợp để bắt đầu tạo trận." />
 
       {/* ── Court list or time picker ── */}
       {!selectedCourt ? (
@@ -397,7 +415,7 @@ export default function CreateSession() {
           <>
             <TextInput
               style={s.searchInput}
-              placeholder="🔍 Tìm tên sân..."
+              placeholder="Tìm tên sân..."
               placeholderTextColor="#aaa"
               value={keyword}
               onChangeText={setKeyword}
@@ -578,18 +596,19 @@ export default function CreateSession() {
   if (step === 2) return (
     <SafeAreaView style={s.container} edges={['top']}>
     <ScrollView contentContainerStyle={{ paddingBottom: 48 }} keyboardShouldPersistTaps="handled">
-      <TouchableOpacity onPress={() => setStep(1)} style={s.backBtn}>
-        <Text style={s.backText}>← Đổi sân/giờ</Text>
-      </TouchableOpacity>
-      <Text style={s.title}>Tạo kèo mới 🏓</Text>
-      <Text style={s.stepLabel}>Bước 2/3 — Cấu hình kèo</Text>
+      <BackLink label="Đổi sân / giờ" onPress={() => setStep(1)} />
+      <WizardHeader title="Cấu hình kèo" subtitle="Bước 2/3 · Thiết lập số người, trình độ, deadline và trạng thái sân." />
 
       <View style={s.selectedCard}>
         <Text style={s.selectedCardName}>{selectedCourt!.name}</Text>
-        <Text style={s.selectedCardSub}>
-          🗓 {fmtDateFull(selectedDate!)} · {fmtTime(startTime!)} → {fmtTime(endTime!)}
-        </Text>
-        <Text style={s.selectedCardSub}>⏱ {duration}</Text>
+        <View style={s.inlineMetaRow}>
+          <CalendarDays size={14} color="#6b7280" />
+          <Text style={s.selectedCardSub}>{fmtDateFull(selectedDate!)} · {fmtTime(startTime!)} → {fmtTime(endTime!)}</Text>
+        </View>
+        <View style={[s.inlineMetaRow, { marginTop: 6 }]}>
+          <Clock3 size={14} color="#6b7280" />
+          <Text style={s.selectedCardSub}>{duration}</Text>
+        </View>
       </View>
 
       {/* Số người */}
@@ -601,7 +620,7 @@ export default function CreateSession() {
             style={[s.playerBtn, maxPlayers === n && s.optActive]}
             onPress={() => setMaxPlayers(n)}
           >
-            <Text style={[s.playerTxt, maxPlayers === n && s.optTxtActive]}>👥 {n} người</Text>
+            <Text style={[s.playerTxt, maxPlayers === n && s.optTxtActive]}>{n} người</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -679,7 +698,7 @@ export default function CreateSession() {
       />
       {costPerPerson > 0 && (
         <Text style={s.costPreview}>
-          👥 {maxPlayers} người ={' '}
+          {maxPlayers} người ={' '}
           <Text style={s.costPerPerson}>{costPerPerson.toLocaleString('vi-VN')}đ/người</Text>
         </Text>
       )}
@@ -796,28 +815,25 @@ export default function CreateSession() {
   return (
     <SafeAreaView style={s.container} edges={['top']}>
     <ScrollView contentContainerStyle={{ paddingBottom: 48 }}>
-      <TouchableOpacity onPress={() => setStep(2)} style={s.backBtn}>
-        <Text style={s.backText}>← Chỉnh lại</Text>
-      </TouchableOpacity>
-      <Text style={s.title}>Tạo kèo mới 🏓</Text>
-      <Text style={s.stepLabel}>Bước 3/3 — Xác nhận & đăng kèo</Text>
+      <BackLink label="Chỉnh lại" onPress={() => setStep(2)} />
+      <WizardHeader title="Xác nhận & đăng kèo" subtitle="Bước 3/3 · Kiểm tra lại toàn bộ thông tin trước khi publish." />
 
       <View style={s.reviewCard}>
-        <ReviewRow icon="🏟" label="Sân"      value={selectedCourt!.name} />
-        <ReviewRow icon="📍" label="Địa chỉ"  value={`${selectedCourt!.address} · ${selectedCourt!.city}`} />
-        <ReviewRow icon="📅" label="Ngày"      value={fmtDateFull(selectedDate!)} />
-        <ReviewRow icon="🕐" label="Giờ"       value={`${fmtTime(startTime!)} → ${fmtTime(endTime!)}`} />
-        <ReviewRow icon="⏱" label="Thời lượng" value={duration ?? ''} />
-        <ReviewRow icon="👥" label="Số người"  value={`${maxPlayers} người`} />
-        <ReviewRow icon="⚡" label="Trình độ" value={`${eloLabel(eloMin)} → ${eloLabel(eloMax)}`} />
+        <ReviewRow icon={<ShieldCheck size={18} color="#059669" />} label="Sân" value={selectedCourt!.name} />
+        <ReviewRow icon={<MapPin size={18} color="#6b7280" />} label="Địa chỉ" value={`${selectedCourt!.address} · ${selectedCourt!.city}`} />
+        <ReviewRow icon={<CalendarDays size={18} color="#4f46e5" />} label="Ngày" value={fmtDateFull(selectedDate!)} />
+        <ReviewRow icon={<Clock3 size={18} color="#4f46e5" />} label="Giờ" value={`${fmtTime(startTime!)} → ${fmtTime(endTime!)}`} />
+        <ReviewRow icon={<Clock3 size={18} color="#6b7280" />} label="Thời lượng" value={duration ?? ''} />
+        <ReviewRow icon={<Users size={18} color="#059669" />} label="Số người" value={`${maxPlayers} người`} />
+        <ReviewRow icon={<ShieldCheck size={18} color="#111827" />} label="Trình độ" value={`${eloLabel(eloMin)} → ${eloLabel(eloMax)}`} />
         {costPerPerson > 0 && (
-          <ReviewRow icon="💰" label="Chi phí" value={`${costPerPerson.toLocaleString('vi-VN')}đ/người`} />
+          <ReviewRow icon={<Wallet size={18} color="#111827" />} label="Chi phí" value={`${costPerPerson.toLocaleString('vi-VN')}đ/người`} />
         )}
-        <ReviewRow icon="⏰" label="Deadline" value={deadlinePreview()} />
-        <ReviewRow icon="📋" label="Tình trạng sân" value={bookingStatusLabel()} />
+        <ReviewRow icon={<Clock3 size={18} color="#c2410c" />} label="Deadline" value={deadlinePreview()} />
+        <ReviewRow icon={<CheckCircle2 size={18} color="#059669" />} label="Tình trạng sân" value={bookingStatusLabel()} />
         {hasBookingInfo() && (
           <ReviewRow
-            icon="🧾"
+            icon={<CheckCircle2 size={18} color="#111827" />}
             label="Booking"
             value={[bookingReference, bookingName, bookingPhone].filter((value) => value.trim().length > 0).join(' · ') || bookingNotes}
           />
@@ -840,11 +856,14 @@ export default function CreateSession() {
 
 function CourtItem({ item, onPress }: { item: NearByCourt; onPress: (c: NearByCourt) => void }) {
   return (
-    <TouchableOpacity style={s.courtItem} onPress={() => onPress(item)}>
+    <TouchableOpacity style={s.courtItem} onPress={() => onPress(item)} activeOpacity={0.92}>
       <View style={s.courtRow}>
         <View style={{ flex: 1 }}>
           <Text style={s.courtName}>{item.name}</Text>
-          <Text style={s.courtAddr}>📍 {item.address} · {item.city}</Text>
+          <View style={s.inlineMetaRow}>
+            <MapPin size={14} color="#6b7280" />
+            <Text style={s.courtAddr}>{item.address} · {item.city}</Text>
+          </View>
         </View>
         <View style={s.courtMeta}>
           {item.distance !== undefined && (
@@ -865,10 +884,10 @@ function CourtItem({ item, onPress }: { item: NearByCourt; onPress: (c: NearByCo
   )
 }
 
-function ReviewRow({ icon, label, value }: { icon: string; label: string; value: string }) {
+function ReviewRow({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
   return (
     <View style={s.reviewRow}>
-      <Text style={s.reviewIcon}>{icon}</Text>
+      <View style={s.reviewIconWrap}>{icon}</View>
       <View style={{ flex: 1 }}>
         <Text style={s.reviewLabel}>{label}</Text>
         <Text style={s.reviewValue}>{value}</Text>
@@ -880,24 +899,31 @@ function ReviewRow({ icon, label, value }: { icon: string; label: string; value:
 // ── Styles ────────────────────────────────────────────────────────────────────
 
 const s = StyleSheet.create({
-  container:   { flex: 1, backgroundColor: '#fff', paddingHorizontal: 20 },
+  container:   { flex: 1, backgroundColor: '#f5f5f4', paddingHorizontal: 20 },
   center:      { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
-  loadingText: { fontSize: 14, color: '#888', marginTop: 8 },
+  loadingText: { fontSize: 14, color: '#64748b', marginTop: 8 },
   backBtn:     { marginBottom: 8 },
   backText:    { fontSize: 14, color: '#16a34a', fontWeight: '600' },
-  title:       { fontSize: 26, fontWeight: '700', color: '#111', marginBottom: 4 },
-  stepLabel:   { fontSize: 13, color: '#888', marginBottom: 24 },
+  title:       { fontSize: 30, fontWeight: '900', color: '#020617', marginBottom: 6 },
+  stepLabel:   { fontSize: 13, color: '#64748b', marginBottom: 24, fontWeight: '600' },
+  headerWrap: { marginBottom: 20 },
+  headerEyebrow: { fontSize: 12, fontWeight: '800', letterSpacing: 1.2, textTransform: 'uppercase', color: '#6b7280', marginBottom: 8 },
+  headerTitle: { fontSize: 30, fontWeight: '900', color: '#020617', marginBottom: 8 },
+  headerSubtitle: { fontSize: 14, lineHeight: 21, color: '#64748b' },
+  backLink: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
+  backLinkText: { fontSize: 14, color: '#059669', fontWeight: '700' },
   label:       { fontSize: 14, fontWeight: '600', color: '#333', marginTop: 20, marginBottom: 10 },
   noResult:    { fontSize: 14, color: '#888', textAlign: 'center', marginTop: 32 },
+  inlineMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
 
   // Search (fallback)
-  searchInput: { borderWidth: 1.5, borderColor: '#ddd', borderRadius: 14, paddingHorizontal: 16, height: 52, fontSize: 16, color: '#333', marginBottom: 12 },
+  searchInput: { borderWidth: 1.5, borderColor: '#cbd5e1', borderRadius: 18, paddingHorizontal: 16, height: 52, fontSize: 16, color: '#334155', marginBottom: 12, backgroundColor: '#fff' },
 
   // Court list
-  courtItem:  { paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
+  courtItem:  { paddingVertical: 16, paddingHorizontal: 16, borderRadius: 24, marginBottom: 12, backgroundColor: '#fff', shadowColor: '#0f172a', shadowOpacity: 0.04, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 1 },
   courtRow:   { flexDirection: 'row', alignItems: 'flex-start' },
   courtName:  { fontSize: 15, fontWeight: '600', color: '#111', marginBottom: 2 },
-  courtAddr:  { fontSize: 13, color: '#888' },
+  courtAddr:  { fontSize: 13, color: '#6b7280', flexShrink: 1 },
   courtMeta:  { alignItems: 'flex-end', gap: 6 },
   distText:   { fontSize: 12, color: '#555', fontWeight: '500' },
   badge:      { borderRadius: 20, paddingHorizontal: 8, paddingVertical: 3 },
@@ -908,7 +934,7 @@ const s = StyleSheet.create({
   badgeTxtClosed: { color: '#9ca3af' },
 
   // Selected court card
-  selectedCard:      { backgroundColor: '#f0fdf4', borderRadius: 14, padding: 16, marginBottom: 8 },
+  selectedCard:      { backgroundColor: '#ffffff', borderRadius: 24, padding: 18, marginBottom: 12, shadowColor: '#0f172a', shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 2 },
   selectedCardRow:   { flexDirection: 'row', alignItems: 'flex-start' },
   selectedCardLabel: { fontSize: 12, color: '#16a34a', fontWeight: '600', marginBottom: 4 },
   selectedCardName:  { fontSize: 16, fontWeight: '700', color: '#111', marginBottom: 4 },
@@ -926,13 +952,13 @@ const s = StyleSheet.create({
   timeArrow:        { fontSize: 18, color: '#888', marginTop: 20 },
   timeBlock:        { flex: 1 },
   timeBlockLabel:   { fontSize: 12, color: '#888', fontWeight: '600', marginBottom: 6 },
-  timeBtn:          { backgroundColor: '#F5F5F5', borderWidth: 1, borderColor: '#E0E0E0', borderRadius: 12, padding: 16, alignItems: 'center' },
+  timeBtn:          { backgroundColor: '#ffffff', borderWidth: 1.5, borderColor: '#cbd5e1', borderRadius: 18, padding: 16, alignItems: 'center' },
   timeBtnDisabled:  { backgroundColor: '#fafafa', borderColor: '#f0f0f0' },
   timeBtnTxt:       { fontSize: 24, fontWeight: 'bold', color: '#111' },
   timeBtnPlaceholder: { fontSize: 24, fontWeight: 'bold', color: '#AAAAAA' },
   durationTxt:      { fontSize: 13, color: '#16a34a', fontWeight: '600', marginTop: 4 },
   timeError:        { fontSize: 13, color: '#dc2626', marginTop: 6 },
-  courtNote:        { backgroundColor: '#fffbeb', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, marginTop: 16 },
+  courtNote:        { backgroundColor: '#fffbeb', borderRadius: 18, paddingHorizontal: 14, paddingVertical: 10, marginTop: 16 },
   courtNoteTxt:     { fontSize: 13, color: '#92400e' },
 
   // Inline time picker
@@ -944,19 +970,19 @@ const s = StyleSheet.create({
 
   // Shared option buttons
   optRow:      { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  optBtn:      { borderWidth: 1.5, borderColor: '#ddd', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8 },
+  optBtn:      { borderWidth: 1.5, borderColor: '#cbd5e1', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: '#fff' },
   optActive:   { borderColor: '#16a34a', backgroundColor: '#f0fdf4' },
   optTxt:      { fontSize: 13, color: '#555' },
   optTxtActive:{ color: '#16a34a', fontWeight: '600' },
 
   // Player count
   playerRow: { flexDirection: 'row', gap: 12 },
-  playerBtn: { flex: 1, borderWidth: 1.5, borderColor: '#ddd', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
+  playerBtn: { flex: 1, borderWidth: 1.5, borderColor: '#cbd5e1', borderRadius: 18, paddingVertical: 14, alignItems: 'center', backgroundColor: '#fff' },
   playerTxt: { fontSize: 14, fontWeight: '600', color: '#555' },
 
   // Deadline
   deadlineRow:     { flexDirection: 'row', gap: 8 },
-  deadlineBtn:     { flex: 1, borderWidth: 1.5, borderColor: '#ddd', borderRadius: 12, paddingVertical: 12, alignItems: 'center' },
+  deadlineBtn:     { flex: 1, borderWidth: 1.5, borderColor: '#cbd5e1', borderRadius: 18, paddingVertical: 12, alignItems: 'center', backgroundColor: '#fff' },
   deadlineTxt:     { fontSize: 13, fontWeight: '600', color: '#555' },
   deadlinePreview: { fontSize: 12, color: '#888', marginTop: 8 },
   approvalRow:   { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, borderTopWidth: 1, borderTopColor: '#f0f0f0', marginTop: 8 },
@@ -964,11 +990,11 @@ const s = StyleSheet.create({
   approvalSub:   { fontSize: 12, color: '#888' },
 
   // Cost
-  costInput:     { borderWidth: 1.5, borderColor: '#ddd', borderRadius: 14, paddingHorizontal: 16, height: 52, fontSize: 16, color: '#333' },
+  costInput:     { borderWidth: 1.5, borderColor: '#cbd5e1', borderRadius: 18, paddingHorizontal: 16, height: 52, fontSize: 16, color: '#334155', backgroundColor: '#fff' },
   costPreview:   { fontSize: 13, color: '#555', marginTop: 8 },
   costPerPerson: { fontWeight: '700', color: '#16a34a' },
-  bookingCard: { backgroundColor: '#f9fafb', borderRadius: 14, padding: 14, marginTop: 12, gap: 12 },
-  bookingOption: { borderWidth: 1.5, borderColor: '#e5e7eb', borderRadius: 12, padding: 14, backgroundColor: '#fff' },
+  bookingCard: { backgroundColor: '#ffffff', borderRadius: 24, padding: 16, marginTop: 12, gap: 12, shadowColor: '#0f172a', shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 2 },
+  bookingOption: { borderWidth: 1.5, borderColor: '#e2e8f0', borderRadius: 18, padding: 14, backgroundColor: '#fff' },
   bookingOptionActive: { borderColor: '#16a34a', backgroundColor: '#f0fdf4' },
   bookingOptionTitle: { fontSize: 15, fontWeight: '700', color: '#111', marginBottom: 4 },
   bookingOptionTitleActive: { color: '#166534' },
@@ -976,13 +1002,13 @@ const s = StyleSheet.create({
   bookingFollowup: { gap: 12 },
   bookingQuestion: { fontSize: 14, fontWeight: '600', color: '#111' },
   bookingChoiceRow: { flexDirection: 'row', gap: 10 },
-  bookingMiniBtn: { flex: 1, borderWidth: 1.5, borderColor: '#d1d5db', borderRadius: 12, paddingVertical: 12, alignItems: 'center', backgroundColor: '#fff' },
+  bookingMiniBtn: { flex: 1, borderWidth: 1.5, borderColor: '#d1d5db', borderRadius: 18, paddingVertical: 12, alignItems: 'center', backgroundColor: '#fff' },
   bookingMiniBtnActive: { borderColor: '#16a34a', backgroundColor: '#f0fdf4' },
   bookingMiniBtnText: { fontSize: 14, fontWeight: '600', color: '#4b5563' },
   bookingMiniBtnTextActive: { color: '#166534' },
-  bookingHelpBox: { backgroundColor: '#fffbeb', borderRadius: 12, padding: 12, gap: 10 },
+  bookingHelpBox: { backgroundColor: '#fffbeb', borderRadius: 18, padding: 12, gap: 10 },
   bookingHelpText: { fontSize: 13, color: '#92400e', lineHeight: 18 },
-  bookingLinkBtn: { backgroundColor: '#16a34a', borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
+  bookingLinkBtn: { backgroundColor: '#16a34a', borderRadius: 16, paddingVertical: 12, alignItems: 'center' },
   bookingLinkBtnText: { color: '#fff', fontSize: 14, fontWeight: '700' },
   bookingFields: { gap: 10 },
   bookingFieldTitle: { fontSize: 14, fontWeight: '700', color: '#111' },
@@ -990,18 +1016,19 @@ const s = StyleSheet.create({
   bookingFootnote: { fontSize: 12, color: '#6b7280' },
 
   // Next button
-  nextBtn:    { backgroundColor: '#16a34a', borderRadius: 14, height: 54, alignItems: 'center', justifyContent: 'center', marginTop: 24 },
+  nextBtn:    { backgroundColor: '#16a34a', borderRadius: 18, height: 56, alignItems: 'center', justifyContent: 'center', marginTop: 24 },
   nextBtnTxt: { color: '#fff', fontSize: 16, fontWeight: '700' },
 
   // Review card
-  reviewCard:  { backgroundColor: '#f9fafb', borderRadius: 16, padding: 20, gap: 16, marginBottom: 24 },
+  reviewCard:  { backgroundColor: '#ffffff', borderRadius: 28, padding: 20, gap: 16, marginBottom: 24, shadowColor: '#0f172a', shadowOpacity: 0.05, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: 2 },
   reviewRow:   { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
   reviewIcon:  { fontSize: 18, marginTop: 1 },
+  reviewIconWrap: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#f8fafc', alignItems: 'center', justifyContent: 'center' },
   reviewLabel: { fontSize: 12, color: '#888', marginBottom: 2 },
   reviewValue: { fontSize: 14, fontWeight: '600', color: '#111' },
 
   // Submit
-  submitBtn:         { backgroundColor: '#16a34a', borderRadius: 14, height: 56, alignItems: 'center', justifyContent: 'center' },
+  submitBtn:         { backgroundColor: '#16a34a', borderRadius: 18, height: 56, alignItems: 'center', justifyContent: 'center' },
   submitBtnDisabled: { backgroundColor: '#86efac' },
   submitTxt:         { color: '#fff', fontSize: 17, fontWeight: '700' },
 })

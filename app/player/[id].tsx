@@ -1,18 +1,16 @@
-import { getSkillLevelFromPlayer } from '@/lib/skillAssessment'
+import { AppButton, AppStatCard, EmptyState, ScreenHeader, SectionCard, StatusBadge } from '@/components/design'
+import { getSkillLevelFromElo, getSkillLevelFromPlayer } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
 import { router, useLocalSearchParams } from 'expo-router'
 import { useCallback, useEffect, useState } from 'react'
-import {
-  ActivityIndicator, ScrollView,
-  StyleSheet, Text, TouchableOpacity, View,
-} from 'react-native'
+import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 const BADGE_META: Record<string, { emoji: string; label: string }> = {
   fair_play: { emoji: '🏅', label: 'Chơi đẹp' },
-  on_time:   { emoji: '⚡', label: 'Đúng giờ' },
-  friendly:  { emoji: '🤝', label: 'Thân thiện' },
-  skilled:   { emoji: '🎯', label: 'Kỹ thuật tốt' },
+  on_time: { emoji: '⚡', label: 'Đúng giờ' },
+  friendly: { emoji: '🤝', label: 'Thân thiện' },
+  skilled: { emoji: '🎯', label: 'Kỹ thuật tốt' },
 }
 
 type Player = {
@@ -48,19 +46,21 @@ type HostStats = {
 
 export default function PlayerProfile() {
   const { id } = useLocalSearchParams<{ id: string }>()
-  const [player, setPlayer]         = useState<Player | null>(null)
-  const [loading, setLoading]       = useState(true)
+  const [player, setPlayer] = useState<Player | null>(null)
+  const [loading, setLoading] = useState(true)
   const [ratingTags, setRatingTags] = useState<Record<string, number>>({})
-  const [history, setHistory]       = useState<SessionHistory[]>([])
-  const [favCourts, setFavCourts]   = useState<Court[]>([])
-  const [hostStats, setHostStats]   = useState<HostStats>({ total: 0, badCancels: 0 })
-  const [isMe, setIsMe]             = useState(false)
+  const [history, setHistory] = useState<SessionHistory[]>([])
+  const [favCourts, setFavCourts] = useState<Court[]>([])
+  const [hostStats, setHostStats] = useState<HostStats>({ total: 0, badCancels: 0 })
+  const [isMe, setIsMe] = useState(false)
 
   const fetchRatingTags = useCallback(async (playerId: string) => {
+    const nowIso = new Date().toISOString()
     const { data } = await supabase
       .from('ratings')
-      .select('tags')
+      .select('tags, is_hidden, reveal_at')
       .eq('rated_id', playerId)
+      .or(`is_hidden.eq.false,reveal_at.lte.${nowIso}`)
 
     if (data) {
       const counts: Record<string, number> = {}
@@ -86,46 +86,43 @@ export default function PlayerProfile() {
         )
       `)
       .eq('player_id', playerId)
-      .order('created_at', { ascending: false })
       .limit(5)
 
     if (data) {
-      setHistory(data.map((d: any) => ({
-        id: d.session.id,
-        status: d.session.status,
-        is_host: d.session.host_id === playerId,
-        slot: d.session.slot,
-      })))
+      setHistory(
+        data
+          .map((d: any) => ({
+          id: d.session.id,
+          status: d.session.status,
+          is_host: d.session.host_id === playerId,
+          slot: d.session.slot,
+          }))
+          .sort((a: SessionHistory, b: SessionHistory) => new Date(b.slot.start_time).getTime() - new Date(a.slot.start_time).getTime()),
+      )
     }
   }, [])
 
   const fetchFavCourts = useCallback(async (ids: string[]) => {
     if (!ids.length) return
-    const { data } = await supabase
-      .from('courts')
-      .select('id, name, city')
-      .in('id', ids)
+    const { data } = await supabase.from('courts').select('id, name, city').in('id', ids)
     setFavCourts(data ?? [])
   }, [])
 
   const fetchHostStats = useCallback(async (playerId: string) => {
-    const { data } = await supabase
-      .from('sessions')
-      .select('status, was_full_when_cancelled')
-      .eq('host_id', playerId)
+    const { data } = await supabase.from('sessions').select('status, was_full_when_cancelled').eq('host_id', playerId)
 
     if (data) {
       const total = data.length
-      const badCancels = data.filter((s: any) =>
-        s.status === 'cancelled' && s.was_full_when_cancelled
-      ).length
+      const badCancels = data.filter((s: any) => s.status === 'cancelled' && s.was_full_when_cancelled).length
       setHostStats({ total, badCancels })
     }
   }, [])
 
   const fetchAll = useCallback(async () => {
     setLoading(true)
-    const { data: { user } } = await supabase.auth.getUser()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
     setIsMe(user?.id === id)
 
     const { data } = await supabase
@@ -155,332 +152,213 @@ export default function PlayerProfile() {
     return Math.round(((joined - noShow) / joined) * 100)
   }
 
-  function reliabilityStyle(score: number | null) {
-    if (score === null) return styles.reliabilityNeutral
-    if (score >= 90) return styles.reliabilityHigh
-    if (score >= 70) return styles.reliabilityMid
-    return styles.reliabilityLow
+  function reliabilityValueClass(score: number | null) {
+    if (score === null) return 'text-slate-700'
+    if (score >= 90) return 'text-emerald-700'
+    if (score >= 70) return 'text-amber-700'
+    return 'text-rose-700'
   }
 
-  function reliabilityColor(score: number | null) {
-    if (score === null) return '#6b7280'
-    if (score >= 90) return '#16a34a'
-    if (score >= 70) return '#d97706'
-    return '#dc2626'
-  }
-
-  function cancelRateColor(bad: number, total: number) {
-    if (total === 0) return '#9ca3af'
+  function cancelRateValueClass(bad: number, total: number) {
+    if (total === 0) return 'text-slate-700'
     const rate = bad / total
-    if (rate === 0) return '#16a34a'
-    if (rate <= 0.2) return '#d97706'
-    return '#dc2626'
+    if (rate === 0) return 'text-emerald-700'
+    if (rate <= 0.2) return 'text-amber-700'
+    return 'text-rose-700'
   }
 
   function formatTime(start: string) {
     const s = new Date(start)
-    const weekday = ['CN','T2','T3','T4','T5','T6','T7'][s.getDay()]
-    const day = `${s.getDate().toString().padStart(2,'0')}/${(s.getMonth()+1).toString().padStart(2,'0')}`
-    const hh = s.getHours().toString().padStart(2,'0')
-    const mm = s.getMinutes().toString().padStart(2,'0')
+    const weekday = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][s.getDay()]
+    const day = `${s.getDate().toString().padStart(2, '0')}/${(s.getMonth() + 1).toString().padStart(2, '0')}`
+    const hh = s.getHours().toString().padStart(2, '0')
+    const mm = s.getMinutes().toString().padStart(2, '0')
     return `${weekday} ${day} · ${hh}:${mm}`
   }
 
   function sessionStatusConfig(status: string) {
     switch (status) {
-      case 'open':      return { bg: '#f0fdf4', text: '#16a34a', label: '🟢 Đang mở' }
-      case 'cancelled': return { bg: '#fef2f2', text: '#dc2626', label: '❌ Đã huỷ'  }
-      default:          return { bg: '#f3f4f6', text: '#888',    label: '✅ Kết thúc' }
+      case 'open':
+        return { tone: 'success' as const, label: 'Đang mở' }
+      case 'cancelled':
+        return { tone: 'danger' as const, label: 'Đã huỷ' }
+      default:
+        return { tone: 'neutral' as const, label: 'Kết thúc' }
     }
   }
 
-  if (loading) return (
-    <SafeAreaView style={styles.center} edges={['top']}>
-      <ActivityIndicator size="large" color="#16a34a" />
-    </SafeAreaView>
-  )
+  if (loading) {
+    return (
+      <SafeAreaView className="flex-1 items-center justify-center bg-stone-100" edges={['top']}>
+        <ActivityIndicator size="large" color="#16a34a" />
+      </SafeAreaView>
+    )
+  }
 
-  if (!player) return (
-    <SafeAreaView style={styles.center} edges={['top']}>
-      <Text style={{ color: '#888' }}>Không tìm thấy người chơi 😕</Text>
-    </SafeAreaView>
-  )
+  if (!player) {
+    return (
+      <SafeAreaView className="flex-1 bg-stone-100" edges={['top']}>
+        <EmptyState icon="😕" title="Không tìm thấy người chơi" description="Thử tải lại hoặc quay về trang trước để kiểm tra danh sách." />
+      </SafeAreaView>
+    )
+  }
 
-  const reliability    = reliabilityScore(player.sessions_joined ?? 0, player.no_show_count ?? 0)
-  const sortedTags     = Object.entries(ratingTags).sort((a, b) => b[1] - a[1])
-  const hostedCount    = history.filter(h => h.is_host).length
-  const cancelColor    = cancelRateColor(hostStats.badCancels, hostStats.total)
-  const skill = getSkillLevelFromPlayer(player)
+  const reliability = reliabilityScore(player.sessions_joined ?? 0, player.no_show_count ?? 0)
+  const sortedTags = Object.entries(ratingTags).sort((a, b) => b[1] - a[1])
+  const hostedCount = history.filter((h) => h.is_host).length
+  const effectiveElo = player.current_elo ?? player.elo
+  const calibratedSkill = getSkillLevelFromElo(effectiveElo)
+  const fallbackSkill = getSkillLevelFromPlayer(player)
+  const skill = calibratedSkill ?? fallbackSkill
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-    <ScrollView contentContainerStyle={{ paddingBottom: 48 }}>
+    <SafeAreaView className="flex-1 bg-stone-100" edges={['top']}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 48 }}>
+        <ScreenHeader
+          eyebrow="Người chơi"
+          title={player.name}
+          subtitle="Xem nhanh phong cách chơi, độ tin cậy và lịch sử tham gia kèo của người chơi này."
+          rightSlot={isMe ? <StatusBadge label="Đây là bạn" tone="info" /> : null}
+        />
 
-      {/* Back */}
-      <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-        <Text style={styles.backText}>← Quay lại</Text>
-      </TouchableOpacity>
+        <View className="px-5">
+          <SectionCard className="mb-4">
+            <View className="flex-row items-center">
+              <View className="mr-4 h-20 w-20 items-center justify-center rounded-[28px] bg-emerald-100">
+                <Text className="text-3xl font-black text-emerald-700">{player.name?.[0]?.toUpperCase() ?? '?'}</Text>
+              </View>
+              <View className="flex-1">
+                <Text className="text-2xl font-black text-slate-950">{player.name}</Text>
+                <Text className="mt-1 text-sm text-slate-500">📍 {player.city}</Text>
+                <Text className="mt-3 text-sm font-semibold text-slate-500">Elo {effectiveElo}</Text>
+              </View>
+            </View>
+            {isMe ? (
+              <View className="mt-4">
+                <AppButton label="Chỉnh sửa hồ sơ" onPress={() => router.push('/edit-profile' as any)} variant="secondary" />
+              </View>
+            ) : null}
+          </SectionCard>
 
-      {/* Avatar + tên */}
-      <View style={styles.heroSection}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>
-            {player.name?.[0]?.toUpperCase() ?? '?'}
-          </Text>
-        </View>
-        <Text style={styles.name}>{player.name}</Text>
-        <Text style={styles.city}>📍 {player.city}</Text>
-        {isMe && (
-          <TouchableOpacity
-            style={styles.editBtn}
-            onPress={() => router.push('/edit-profile' as any)}
+          <View className="mb-3 flex-row gap-3">
+            <AppStatCard value={player.elo ?? '—'} label="ELO" />
+            <AppStatCard value={player.sessions_joined ?? 0} label="Đã chơi" />
+          </View>
+          <View className="mb-4 flex-row gap-3">
+            <AppStatCard value={hostedCount} label="Đã host" />
+            <AppStatCard
+              value={reliability === null ? 'Mới' : `${reliability}%`}
+              label="Tin cậy"
+              valueClassName={reliabilityValueClass(reliability)}
+            />
+          </View>
+
+          <SectionCard
+            title={skill.title}
+            subtitle={`Elo ${effectiveElo} · ${skill.subtitle}`}
+            className="mb-4"
+            rightSlot={<StatusBadge label={skill.dupr} tone="info" />}
           >
-            <Text style={styles.editBtnText}>✏️ Chỉnh sửa hồ sơ</Text>
-          </TouchableOpacity>
-        )}
-      </View>
+            <Text className="text-sm leading-6 text-slate-500">{skill.description}</Text>
+          </SectionCard>
 
-      {/* Stats row */}
-      <View style={styles.statsRow}>
-        <View style={styles.statCard}>
-          <Text style={styles.statValue}>{player.elo ?? '—'}</Text>
-          <Text style={styles.statLabel}>ELO</Text>
-        </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statValue}>{player.sessions_joined ?? 0}</Text>
-          <Text style={styles.statLabel}>Đã chơi</Text>
-        </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statValue}>{hostedCount}</Text>
-          <Text style={styles.statLabel}>Đã host</Text>
-        </View>
-      </View>
+          <View className="mb-4 flex-row gap-3">
+            <SectionCard title="Độ tin cậy" className="flex-1">
+              <Text className="text-sm text-slate-500">{player.no_show_count ?? 0} no-show / {player.sessions_joined ?? 0} kèo</Text>
+              <Text className={`mt-3 text-2xl font-black ${reliabilityValueClass(reliability)}`}>
+                {reliability === null ? 'Mới' : `${reliability}%`}
+              </Text>
+            </SectionCard>
 
-      {/* Trình độ */}
-      <View style={styles.skillBanner}>
-        <Text style={styles.skillBannerText}>{skill.title}</Text>
-        <Text style={styles.skillBannerSub}>
-          Elo {player.current_elo ?? player.elo} · {skill.subtitle}
-        </Text>
-      </View>
-
-      {/* Reliability + Cancel rate */}
-      <View style={styles.metricsRow}>
-        {/* Độ tin cậy */}
-        <View style={[styles.metricCard, { flex: 1 }]}>
-          <Text style={styles.metricTitle}>Độ tin cậy</Text>
-          <Text style={styles.metricSub}>
-            {player.no_show_count ?? 0} no-show / {player.sessions_joined ?? 0} kèo
-          </Text>
-          <View style={[styles.metricBadge, reliabilityStyle(reliability)]}>
-            <Text style={[styles.metricScore, { color: reliabilityColor(reliability) }]}>
-              {reliability === null ? 'Mới' : `${reliability}%`}
-            </Text>
+            <SectionCard title="Tỷ lệ huỷ kèo" className="flex-1">
+              <Text className="text-sm text-slate-500">{hostStats.badCancels} huỷ xấu / {hostStats.total} kèo host</Text>
+              <Text className={`mt-3 text-2xl font-black ${cancelRateValueClass(hostStats.badCancels, hostStats.total)}`}>
+                {hostStats.total === 0 ? 'Chưa host' : hostStats.badCancels === 0 ? 'Tốt' : `${hostStats.badCancels}/${hostStats.total}`}
+              </Text>
+            </SectionCard>
           </View>
-        </View>
 
-        {/* Tỷ lệ huỷ kèo */}
-        <View style={[styles.metricCard, { flex: 1 }]}>
-          <Text style={styles.metricTitle}>Tỷ lệ huỷ kèo</Text>
-          <Text style={styles.metricSub}>
-            {hostStats.badCancels} huỷ xấu / {hostStats.total} kèo host
-          </Text>
-          <View style={[styles.metricBadge, {
-            backgroundColor: hostStats.badCancels === 0 ? '#f0fdf4'
-              : hostStats.badCancels / Math.max(hostStats.total, 1) <= 0.2 ? '#fefce8'
-              : '#fef2f2'
-          }]}>
-            <Text style={[styles.metricScore, { color: cancelColor }]}>
-              {hostStats.total === 0
-                ? 'Chưa host'
-                : hostStats.badCancels === 0
-                  ? '✅ Tốt'
-                  : `${hostStats.badCancels}/${hostStats.total}`
-              }
-            </Text>
+          {favCourts.length > 0 ? (
+            <SectionCard title="Sân hay chơi" subtitle="Những sân người chơi này thường chọn hoặc ghé đến." className="mb-4">
+              <View className="gap-3">
+                {favCourts.map((court) => (
+                  <View key={court.id} className="rounded-[22px] bg-slate-50 px-4 py-4">
+                    <Text className="text-sm font-extrabold text-slate-900">{court.name}</Text>
+                    <Text className="mt-1 text-sm text-slate-500">📍 {court.city}</Text>
+                  </View>
+                ))}
+              </View>
+            </SectionCard>
+          ) : null}
+
+          <View className="mb-3 px-1">
+            <Text className="text-lg font-extrabold text-slate-900">Kèo gần đây</Text>
+            <Text className="mt-1 text-sm text-slate-500">Lịch sử gần nhất để bạn hình dung tần suất và vai trò tham gia của người chơi này.</Text>
           </View>
-        </View>
-      </View>
-
-      {/* Sân ưa thích */}
-      {favCourts.length > 0 && (
-        <>
-          <Text style={styles.sectionTitle}>Sân hay chơi 🏟</Text>
-          <View style={styles.favCourtList}>
-            {favCourts.map(court => (
-              <View key={court.id} style={styles.favCourtItem}>
-                <Text style={styles.favCourtName}>{court.name}</Text>
-                <Text style={styles.favCourtCity}>📍 {court.city}</Text>
-              </View>
-            ))}
-          </View>
-        </>
-      )}
-
-      {/* Lịch sử kèo */}
-      <Text style={styles.sectionTitle}>Kèo gần đây 🏓</Text>
-      {history.length === 0 ? (
-        <View style={styles.emptyCard}>
-          <Text style={styles.emptyText}>Chưa tham gia kèo nào</Text>
-        </View>
-      ) : (
-        history.map(item => {
-          const cfg = sessionStatusConfig(item.status)
-          return (
-            <TouchableOpacity
-              key={item.id}
-              style={styles.historyCard}
-              onPress={() => router.push({ pathname: '/session/[id]', params: { id: item.id } })}
-            >
-              <View style={{ flex: 1 }}>
-                <View style={styles.historyHeader}>
-                  <Text style={styles.historyCourtName}>{item.slot?.court?.name ?? '—'}</Text>
-                  {item.is_host && (
-                    <View style={styles.hostChip}>
-                      <Text style={styles.hostChipText}>Host</Text>
-                    </View>
-                  )}
-                </View>
-                <Text style={styles.historyTime}>{formatTime(item.slot?.start_time)}</Text>
-                <Text style={styles.historyCity}>📍 {item.slot?.court?.city}</Text>
-              </View>
-              <View style={[styles.statusBadge, { backgroundColor: cfg.bg }]}>
-                <Text style={[styles.statusText, { color: cfg.text }]}>{cfg.label}</Text>
-              </View>
-            </TouchableOpacity>
-          )
-        })
-      )}
-
-      {/* Badges */}
-      {sortedTags.length > 0 && (
-        <>
-          <Text style={styles.sectionTitle}>Đánh giá từ cộng đồng ⭐</Text>
-          <View style={styles.badgeGrid}>
-            {sortedTags.map(([tag, count]) => {
-              const meta = BADGE_META[tag]
-              if (!meta) return null
+          {history.length === 0 ? (
+            <EmptyState icon="🗓️" title="Chưa tham gia kèo nào" description="Khi người chơi tham gia hoặc host kèo, lịch sử sẽ hiện ở đây." />
+          ) : (
+            history.map((item) => {
+              const cfg = sessionStatusConfig(item.status)
               return (
-                <View key={tag} style={styles.badgeCard}>
-                  <Text style={styles.badgeEmoji}>{meta.emoji}</Text>
-                  <Text style={styles.badgeLabel}>{meta.label}</Text>
-                  <Text style={styles.badgeCount}>{count} lượt</Text>
-                </View>
+                <TouchableOpacity
+                  key={item.id}
+                  className="mb-3"
+                  onPress={() => router.push({ pathname: '/session/[id]', params: { id: item.id } })}
+                  activeOpacity={0.86}
+                >
+                  <SectionCard rightSlot={<StatusBadge label={cfg.label} tone={cfg.tone} />}>
+                    <Text className="text-sm font-semibold uppercase tracking-[1px] text-slate-400">{formatTime(item.slot?.start_time)}</Text>
+                    <Text className="mt-2 text-lg font-extrabold text-slate-950">{item.slot?.court?.name ?? '—'}</Text>
+                    <View className="mt-2 flex-row items-center justify-between">
+                      <Text className="text-sm text-slate-500">📍 {item.slot?.court?.city}</Text>
+                      {item.is_host ? <StatusBadge label="Host" tone="info" /> : null}
+                    </View>
+                  </SectionCard>
+                </TouchableOpacity>
               )
-            })}
+            })
+          )}
+
+          <View className="mb-3 mt-2 px-1">
+            <Text className="text-lg font-extrabold text-slate-900">Đánh giá từ cộng đồng</Text>
+            <Text className="mt-1 text-sm text-slate-500">Những điểm nổi bật mà người chơi khác thường nhắc đến sau trận.</Text>
           </View>
-        </>
-      )}
+          {sortedTags.length > 0 ? (
+            <View className="mb-4 flex-row flex-wrap gap-3">
+              {sortedTags.map(([tag, count]) => {
+                const meta =
+                  BADGE_META[tag] ??
+                  {
+                    toxic: { emoji: '😡', label: 'Thái độ Toxic' },
+                    late: { emoji: '⏰', label: 'Đi muộn' },
+                    dishonest: { emoji: '❌', label: 'Gian lận điểm' },
+                    good_description: { emoji: '📋', label: 'Đúng mô tả kèo' },
+                    well_organized: { emoji: '🗂️', label: 'Tổ chức tốt' },
+                    fair_pairing: { emoji: '⚖️', label: 'Xếp cặp công bằng' },
+                    court_mismatch: { emoji: '🏟️', label: 'Sân sai mô tả' },
+                    poor_organization: { emoji: '⚠️', label: 'Tổ chức kém' },
+                  }[tag]
+                if (!meta) return null
 
-      {sortedTags.length === 0 && (
-        <View style={styles.emptyCard}>
-          <Text style={styles.emptyText}>Chưa có đánh giá nào 🏓</Text>
+                return (
+                  <View key={tag} className="w-[48%] rounded-[24px] bg-white px-4 py-5 shadow-sm">
+                    <Text className="text-3xl">{meta.emoji}</Text>
+                    <Text className="mt-3 text-base font-extrabold text-slate-900">{meta.label}</Text>
+                    <Text className="mt-1 text-sm text-slate-500">{count} lượt nhắc đến</Text>
+                  </View>
+                )
+              })}
+            </View>
+          ) : (
+            <EmptyState icon="⭐" title="Chưa có đánh giá nào" description="Sau khi chơi thêm vài kèo, phản hồi từ cộng đồng sẽ xuất hiện ở đây." />
+          )}
+
+          <Text className="mt-6 text-center text-sm text-slate-400">
+            Tham gia từ {new Date(player.created_at).toLocaleDateString('vi-VN')}
+          </Text>
         </View>
-      )}
-
-      <Text style={styles.joinedAt}>
-        Tham gia từ {new Date(player.created_at).toLocaleDateString('vi-VN')}
-      </Text>
-    </ScrollView>
+      </ScrollView>
     </SafeAreaView>
   )
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb', paddingHorizontal: 20 },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  backBtn: { marginBottom: 20 },
-  backText: { fontSize: 14, color: '#16a34a', fontWeight: '600' },
-
-  heroSection: { alignItems: 'center', marginBottom: 24 },
-  avatar: {
-    width: 88, height: 88, borderRadius: 44,
-    backgroundColor: '#f0fdf4', justifyContent: 'center',
-    alignItems: 'center', marginBottom: 12,
-  },
-  avatarText: { fontSize: 36, fontWeight: '700', color: '#16a34a' },
-  name: { fontSize: 24, fontWeight: '700', color: '#111', marginBottom: 4 },
-  city: { fontSize: 14, color: '#888', marginBottom: 12 },
-  editBtn: {
-    borderWidth: 1.5, borderColor: '#16a34a',
-    borderRadius: 20, paddingHorizontal: 20, paddingVertical: 6,
-  },
-  editBtnText: { fontSize: 13, color: '#16a34a', fontWeight: '600' },
-
-  statsRow: { flexDirection: 'row', gap: 12, marginBottom: 16 },
-  statCard: {
-    flex: 1, backgroundColor: '#fff', borderRadius: 14,
-    padding: 14, alignItems: 'center',
-    shadowColor: '#000', shadowOpacity: 0.04,
-    shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 1,
-  },
-  statValue: { fontSize: 15, fontWeight: '700', color: '#111', marginBottom: 4 },
-  statLabel: { fontSize: 11, color: '#888' },
-
-  skillBanner: {
-    backgroundColor: '#f0fdf4', borderRadius: 14,
-    padding: 14, alignItems: 'center', marginBottom: 16,
-  },
-  skillBannerText: { fontSize: 18, fontWeight: '700', color: '#16a34a', marginBottom: 2 },
-  skillBannerSub: { fontSize: 13, color: '#555' },
-
-  // Metrics row
-  metricsRow: { flexDirection: 'row', gap: 12, marginBottom: 28 },
-  metricCard: {
-    backgroundColor: '#fff', borderRadius: 14, padding: 14,
-    shadowColor: '#000', shadowOpacity: 0.04,
-    shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 1,
-  },
-  metricTitle: { fontSize: 13, fontWeight: '700', color: '#111', marginBottom: 4 },
-  metricSub: { fontSize: 11, color: '#888', marginBottom: 10 },
-  metricBadge: { borderRadius: 12, paddingHorizontal: 12, paddingVertical: 6, alignSelf: 'flex-start' },
-  metricScore: { fontSize: 15, fontWeight: '700' },
-  reliabilityHigh:    { backgroundColor: '#f0fdf4' },
-  reliabilityMid:     { backgroundColor: '#fefce8' },
-  reliabilityLow:     { backgroundColor: '#fef2f2' },
-  reliabilityNeutral: { backgroundColor: '#f3f4f6' },
-
-  sectionTitle: { fontSize: 16, fontWeight: '700', color: '#111', marginBottom: 12 },
-
-  favCourtList: {
-    backgroundColor: '#fff', borderRadius: 14, marginBottom: 28, overflow: 'hidden',
-    shadowColor: '#000', shadowOpacity: 0.04,
-    shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 1,
-  },
-  favCourtItem: { padding: 14, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
-  favCourtName: { fontSize: 14, fontWeight: '600', color: '#111', marginBottom: 2 },
-  favCourtCity: { fontSize: 12, color: '#888' },
-
-  historyCard: {
-    backgroundColor: '#fff', borderRadius: 14, marginBottom: 10, padding: 14,
-    flexDirection: 'row', alignItems: 'center',
-    shadowColor: '#000', shadowOpacity: 0.04,
-    shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 1,
-  },
-  historyHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
-  historyCourtName: { fontSize: 14, fontWeight: '600', color: '#111' },
-  historyTime: { fontSize: 13, color: '#888', marginBottom: 2 },
-  historyCity: { fontSize: 12, color: '#aaa' },
-  hostChip: { backgroundColor: '#f0fdf4', borderRadius: 20, paddingHorizontal: 8, paddingVertical: 2 },
-  hostChipText: { fontSize: 11, color: '#16a34a', fontWeight: '600' },
-  statusBadge: { borderRadius: 20, paddingHorizontal: 10, paddingVertical: 5, marginLeft: 8 },
-  statusText: { fontSize: 12, fontWeight: '600' },
-
-  badgeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 28 },
-  badgeCard: {
-    backgroundColor: '#fff', borderRadius: 14, padding: 14,
-    alignItems: 'center', width: '47%',
-    shadowColor: '#000', shadowOpacity: 0.04,
-    shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 1,
-  },
-  badgeEmoji: { fontSize: 28, marginBottom: 6 },
-  badgeLabel: { fontSize: 14, fontWeight: '600', color: '#111', marginBottom: 2 },
-  badgeCount: { fontSize: 12, color: '#888' },
-
-  emptyCard: {
-    backgroundColor: '#fff', borderRadius: 14,
-    padding: 24, alignItems: 'center', marginBottom: 24,
-  },
-  emptyText: { fontSize: 14, color: '#aaa' },
-  joinedAt: { fontSize: 13, color: '#bbb', textAlign: 'center', marginTop: 8 },
-})

@@ -1,4 +1,5 @@
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native'
+import { AlertCircle, Clock3, Send, UserPlus, Users } from 'lucide-react-native'
 
 import type { MatchStatus } from '@/lib/matchmaking'
 
@@ -19,12 +20,19 @@ export function SmartJoinButton({
 }: Props) {
   if (requestStatus === 'pending') {
     return (
-      <View className="mt-8 rounded-2xl bg-amber-50 px-4 py-4">
-        <Text className="text-center text-sm font-semibold text-amber-800">Đang chờ host phản hồi yêu cầu của bạn</Text>
+      <View className="mt-8 rounded-3xl border border-amber-200 bg-amber-50 px-5 py-4">
+        <View className="flex-row items-center">
+          <Clock3 size={16} color="#b45309" />
+          <Text className="ml-2 text-sm font-bold text-amber-800">Đang chờ host phản hồi</Text>
+        </View>
+        <Text className="mt-2 text-sm leading-6 text-amber-700">
+          Yêu cầu tham gia của bạn đã được gửi. Host sẽ xem và phản hồi sớm.
+        </Text>
         {hostResponseTemplate ? (
-          <Text className="mt-2 text-center text-xs leading-5 text-amber-700">
-            Phản hồi gần nhất từ host: {hostResponseTemplate}
-          </Text>
+          <View className="mt-3 rounded-2xl bg-white/70 px-4 py-3">
+            <Text className="text-[11px] font-extrabold uppercase tracking-[1px] text-amber-700">Tin nhắn gần nhất</Text>
+            <Text className="mt-2 text-sm leading-6 text-amber-800">{hostResponseTemplate}</Text>
+          </View>
         ) : null}
       </View>
     )
@@ -32,12 +40,16 @@ export function SmartJoinButton({
 
   if (requestStatus === 'rejected') {
     return (
-      <View className="mt-8 rounded-2xl bg-rose-50 px-4 py-4">
-        <Text className="text-center text-sm font-semibold text-rose-700">Yêu cầu trước đó đã bị từ chối</Text>
+      <View className="mt-8 rounded-3xl border border-rose-200 bg-rose-50 px-5 py-4">
+        <View className="flex-row items-center">
+          <AlertCircle size={16} color="#be123c" />
+          <Text className="ml-2 text-sm font-bold text-rose-700">Yêu cầu trước đó đã bị từ chối</Text>
+        </View>
         {hostResponseTemplate ? (
-          <Text className="mt-2 text-center text-xs leading-5 text-rose-600">
-            Lời nhắn từ host: {hostResponseTemplate}
-          </Text>
+          <View className="mt-3 rounded-2xl bg-white/80 px-4 py-3">
+            <Text className="text-[11px] font-extrabold uppercase tracking-[1px] text-rose-600">Phản hồi từ host</Text>
+            <Text className="mt-2 text-sm leading-6 text-rose-700">{hostResponseTemplate}</Text>
+          </View>
         ) : null}
       </View>
     )
@@ -45,17 +57,33 @@ export function SmartJoinButton({
 
   const palette =
     matchStatus === 'MATCHED'
-      ? { bg: 'bg-emerald-600', text: 'text-white', label: 'Tham gia ngay' }
+      ? {
+          bg: 'bg-emerald-600',
+          label: 'Tham gia ngay',
+          Icon: UserPlus,
+        }
       : matchStatus === 'LOWER_SKILL'
-        ? { bg: 'bg-orange-500', text: 'text-white', label: 'Xin vào kèo' }
-        : { bg: 'bg-sky-600', text: 'text-white', label: 'Đăng ký dự bị' }
+        ? {
+            bg: 'bg-orange-500',
+            label: 'Xin vào kèo',
+            Icon: Send,
+          }
+        : {
+            bg: 'bg-sky-600',
+            label: 'Đăng ký dự bị',
+            Icon: Users,
+          }
+
+  const ActionIcon = palette.Icon
 
   return (
     <TouchableOpacity
-      activeOpacity={0.92}
+      activeOpacity={0.94}
       onPress={onPress}
       disabled={loading}
-      className={`mt-8 h-14 items-center justify-center rounded-2xl ${palette.bg} ${loading ? 'opacity-70' : ''}`}
+      className={`mt-8 h-14 flex-row items-center justify-center rounded-2xl ${palette.bg} ${
+        loading ? 'opacity-70' : ''
+      }`}
     >
       {loading ? (
         <View className="flex-row items-center gap-3">
@@ -63,7 +91,10 @@ export function SmartJoinButton({
           <Text className="text-base font-extrabold text-white">Đang xử lý...</Text>
         </View>
       ) : (
-        <Text className={`text-base font-extrabold ${palette.text}`}>{palette.label}</Text>
+        <>
+          <ActionIcon size={18} color="#fff" />
+          <Text className="ml-2 text-base font-extrabold text-white">{palette.label}</Text>
+        </>
       )}
     </TouchableOpacity>
   )

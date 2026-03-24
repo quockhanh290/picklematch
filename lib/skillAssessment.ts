@@ -91,6 +91,15 @@ export function getSkillLevelFromPlayer(
   )
 }
 
+export function getSkillLevelFromElo(elo?: number | null) {
+  if (elo == null) return null
+  if (elo < 900) return SKILL_ASSESSMENT_LEVELS[0]
+  if (elo < 1075) return SKILL_ASSESSMENT_LEVELS[1]
+  if (elo < 1250) return SKILL_ASSESSMENT_LEVELS[2]
+  if (elo < 1450) return SKILL_ASSESSMENT_LEVELS[3]
+  return SKILL_ASSESSMENT_LEVELS[4]
+}
+
 export function getSkillLevelFromEloRange(eloMin: number, eloMax: number) {
   if (eloMax <= 850) return SKILL_ASSESSMENT_LEVELS[0]
   if (eloMax <= 1050) return SKILL_ASSESSMENT_LEVELS[1]

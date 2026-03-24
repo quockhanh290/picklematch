@@ -1,11 +1,10 @@
-import { getSkillLevelFromPlayer } from '@/lib/skillAssessment'
+import { AppButton, AppStatCard, EmptyState, ScreenHeader, SectionCard, StatusBadge } from '@/components/design'
+import TrophyRoomSection from '@/components/profile/TrophyRoom'
+import { getSkillLevelFromElo, getSkillLevelFromPlayer } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
 import { router, useFocusEffect } from 'expo-router'
 import { useCallback, useState } from 'react'
-import {
-  ActivityIndicator, Alert, ScrollView,
-  StyleSheet, Text, TouchableOpacity, View,
-} from 'react-native'
+import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 type Player = {
@@ -38,18 +37,17 @@ type SessionHistory = {
 export default function ProfileScreen() {
   const [checking, setChecking] = useState(true)
   const [loggedIn, setLoggedIn] = useState(false)
-  const [player, setPlayer]     = useState<Player | null>(null)
-  const [history, setHistory]   = useState<SessionHistory[]>([])
-  const [loading, setLoading]   = useState(false)
+  const [player, setPlayer] = useState<Player | null>(null)
+  const [history, setHistory] = useState<SessionHistory[]>([])
+  const [loading, setLoading] = useState(false)
 
   const fetchPlayer = useCallback(async (userId: string) => {
-    const { data } = await supabase
-      .from('players').select('*').eq('id', userId).single()
+    const { data } = await supabase.from('players').select('*').eq('id', userId).single()
     if (data) setPlayer(data)
   }, [])
 
   const fetchHistory = useCallback(async (userId: string) => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('session_players')
       .select(`
         status,
@@ -62,26 +60,37 @@ export default function ProfileScreen() {
         )
       `)
       .eq('player_id', userId)
-      .order('created_at', { ascending: false })
       .limit(20)
 
+    if (error) {
+      console.warn('[Profile] session history query failed:', error.message)
+      return
+    }
+
     if (data) {
-      setHistory(data.map((d: any) => ({
-        id: d.session.id,
-        status: d.session.status,
-        is_host: d.session.host_id === userId,
-        slot: d.session.slot,
-      })))
+      const mapped = data.map((d: any) => ({
+          id: d.session.id,
+          status: d.session.status,
+          is_host: d.session.host_id === userId,
+          slot: d.session.slot,
+        }))
+        .sort((a: SessionHistory, b: SessionHistory) => new Date(b.slot.start_time).getTime() - new Date(a.slot.start_time).getTime())
+
+      setHistory(mapped)
     }
   }, [])
 
   const init = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
     if (!user) {
       setLoggedIn(false)
       setChecking(false)
       return
     }
+
     setLoggedIn(true)
     setLoading(true)
     await Promise.all([fetchPlayer(user.id), fetchHistory(user.id)])
@@ -92,31 +101,32 @@ export default function ProfileScreen() {
   useFocusEffect(
     useCallback(() => {
       init()
-    }, [init])
+    }, [init]),
   )
 
   async function logout() {
     Alert.alert('Đăng xuất?', 'Bạn chắc muốn đăng xuất không?', [
       { text: 'Huỷ', style: 'cancel' },
       {
-        text: 'Đăng xuất', style: 'destructive',
+        text: 'Đăng xuất',
+        style: 'destructive',
         onPress: async () => {
           await supabase.auth.signOut()
           setLoggedIn(false)
           setPlayer(null)
           setHistory([])
           router.replace('/(tabs)')
-        }
-      }
+        },
+      },
     ])
   }
 
   function formatTime(start: string) {
     const s = new Date(start)
-    const weekday = ['CN','T2','T3','T4','T5','T6','T7'][s.getDay()]
-    const day = `${s.getDate().toString().padStart(2,'0')}/${(s.getMonth()+1).toString().padStart(2,'0')}`
-    const hh = s.getHours().toString().padStart(2,'0')
-    const mm = s.getMinutes().toString().padStart(2,'0')
+    const weekday = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][s.getDay()]
+    const day = `${s.getDate().toString().padStart(2, '0')}/${(s.getMonth() + 1).toString().padStart(2, '0')}`
+    const hh = s.getHours().toString().padStart(2, '0')
+    const mm = s.getMinutes().toString().padStart(2, '0')
     return `${weekday} ${day} · ${hh}:${mm}`
   }
 
@@ -125,349 +135,203 @@ export default function ProfileScreen() {
     return Math.round(((player.sessions_joined - player.no_show_count) / player.sessions_joined) * 100)
   }
 
-  function reliabilityColor(score: number | null) {
-    if (score === null) return '#9ca3af'
-    if (score >= 90) return '#16a34a'
-    if (score >= 70) return '#d97706'
-    return '#dc2626'
+  function reliabilityValueClass(score: number | null) {
+    if (score === null) return 'text-slate-700'
+    if (score >= 90) return 'text-emerald-700'
+    if (score >= 70) return 'text-amber-700'
+    return 'text-rose-700'
   }
 
   function sessionStatusConfig(status: string) {
     switch (status) {
-      case 'open':      return { bg: '#f0fdf4', text: '#16a34a', label: '🟢 Đang mở' }
-      case 'cancelled': return { bg: '#fef2f2', text: '#dc2626', label: '❌ Đã huỷ'  }
-      default:          return { bg: '#f3f4f6', text: '#888',    label: '✅ Kết thúc' }
+      case 'open':
+        return { tone: 'success' as const, label: 'Đang mở' }
+      case 'cancelled':
+        return { tone: 'danger' as const, label: 'Đã huỷ' }
+      default:
+        return { tone: 'neutral' as const, label: 'Kết thúc' }
     }
   }
 
-  if (checking) return (
-    <SafeAreaView style={styles.center} edges={['top']}>
-      <ActivityIndicator size="large" color="#16a34a" />
-    </SafeAreaView>
-  )
+  if (checking) {
+    return (
+      <SafeAreaView className="flex-1 items-center justify-center bg-stone-100" edges={['top']}>
+        <ActivityIndicator size="large" color="#16a34a" />
+      </SafeAreaView>
+    )
+  }
 
-  if (!loggedIn) return (
-    <SafeAreaView style={styles.center} edges={['top']}>
-      <Text style={styles.guestEmoji}>🏓</Text>
-      <Text style={styles.guestTitle}>Đăng nhập để xem hồ sơ</Text>
-      <Text style={styles.guestSubtitle}>
-        Quản lý thông tin cá nhân{'\n'}và lịch sử kèo của bạn
-      </Text>
-      <TouchableOpacity style={styles.loginBtn} onPress={() => router.push('/login' as any)}>
-        <Text style={styles.loginBtnText}>Đăng nhập</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.backBtn} onPress={() => router.replace('/(tabs)')}>
-        <Text style={styles.backBtnText}>← Về trang chủ</Text>
-      </TouchableOpacity>
-    </SafeAreaView>
-  )
+  if (!loggedIn) {
+    return (
+      <SafeAreaView className="flex-1 bg-stone-100" edges={['top']}>
+        <ScreenHeader
+          eyebrow="Hồ sơ"
+          title="Tài khoản của bạn"
+          subtitle="Đăng nhập để xem lịch sử kèo, độ tin cậy và tiến trình placement."
+        />
+        <EmptyState
+          icon="🏓"
+          title="Đăng nhập để xem hồ sơ"
+          description="Quản lý thông tin cá nhân và lịch sử tham gia kèo của bạn ở một nơi gọn gàng hơn."
+        />
+        <View className="mt-6 gap-3 px-5">
+          <AppButton label="Đăng nhập" onPress={() => router.push('/login' as any)} />
+          <AppButton label="Về trang chủ" onPress={() => router.replace('/(tabs)')} variant="secondary" />
+        </View>
+      </SafeAreaView>
+    )
+  }
 
-  if (loading) return (
-    <SafeAreaView style={styles.center} edges={['top']}>
-      <ActivityIndicator size="large" color="#16a34a" />
-    </SafeAreaView>
-  )
+  if (loading) {
+    return (
+      <SafeAreaView className="flex-1 items-center justify-center bg-stone-100" edges={['top']}>
+        <ActivityIndicator size="large" color="#16a34a" />
+      </SafeAreaView>
+    )
+  }
 
-  if (!player) return (
-    <SafeAreaView style={styles.center} edges={['top']}>
-      <Text style={{ color: '#888' }}>Không tìm thấy hồ sơ 😕</Text>
-    </SafeAreaView>
-  )
+  if (!player) {
+    return (
+      <SafeAreaView className="flex-1 bg-stone-100" edges={['top']}>
+        <EmptyState icon="😕" title="Không tìm thấy hồ sơ" description="Thử tải lại hoặc đăng nhập lại để tiếp tục." />
+      </SafeAreaView>
+    )
+  }
 
-  const skill = getSkillLevelFromPlayer(player)
+  const effectiveElo = player.current_elo ?? player.elo
+  const calibratedSkill = getSkillLevelFromElo(effectiveElo)
+  const fallbackSkill = getSkillLevelFromPlayer(player)
+  const skill = calibratedSkill ?? fallbackSkill
   const reliability = reliabilityScore()
-  const rColor      = reliabilityColor(reliability)
-  const hostedCount = history.filter(h => h.is_host).length
+  const hostedCount = history.filter((h) => h.is_host).length
   const placementPlayed = player.placement_matches_played ?? 0
   const placementLeft = Math.max(0, 5 - placementPlayed)
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-    <ScrollView contentContainerStyle={{ paddingBottom: 48 }}>
+    <SafeAreaView className="flex-1 bg-stone-100" edges={['top']}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 48 }}>
+        {__DEV__ ? (
+          <TouchableOpacity onPress={() => supabase.auth.signOut()} style={{ position: 'absolute', top: 50, right: 16, zIndex: 999 }}>
+            <Text style={{ color: 'red', fontSize: 12 }}>DEV: Logout</Text>
+          </TouchableOpacity>
+        ) : null}
 
-      {__DEV__ && (
-        <TouchableOpacity
-          onPress={() => supabase.auth.signOut()}
-          style={{ position: 'absolute', top: 50, right: 16, zIndex: 999 }}
-        >
-          <Text style={{ color: 'red', fontSize: 12 }}>DEV: Logout</Text>
-        </TouchableOpacity>
-      )}
+        <ScreenHeader
+          eyebrow="Hồ sơ cá nhân"
+          title={player.name}
+          subtitle="Theo dõi trình độ, mức độ tin cậy và lịch sử tham gia kèo của bạn."
+          rightSlot={<StatusBadge label={player.is_provisional ? 'Placement' : 'Ổn định'} tone={player.is_provisional ? 'warning' : 'success'} />}
+        />
 
-      {/* Avatar + tên */}
-      <View style={styles.heroSection}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{player.name?.[0]?.toUpperCase() ?? '?'}</Text>
-        </View>
-        <Text style={styles.name}>{player.name}</Text>
-        <Text style={styles.city}>📍 {player.city}</Text>
+        <View className="px-5">
+          <SectionCard className="mb-4">
+            <View className="flex-row items-center">
+              <View className="mr-4 h-20 w-20 items-center justify-center rounded-[28px] bg-emerald-100">
+                <Text className="text-3xl font-black text-emerald-700">{player.name?.[0]?.toUpperCase() ?? '?'}</Text>
+              </View>
+              <View className="flex-1">
+                <Text className="text-2xl font-black text-slate-950">{player.name}</Text>
+                <Text className="mt-1 text-sm text-slate-500">📍 {player.city}</Text>
+                <Text className="mt-3 text-sm font-semibold text-slate-500">Elo {effectiveElo}</Text>
+              </View>
+            </View>
+            <View className="mt-4 flex-row gap-3">
+              <View className="flex-1">
+                <AppButton label="Chỉnh sửa hồ sơ" onPress={() => router.push('/edit-profile' as any)} variant="secondary" />
+              </View>
+              <View className="flex-1">
+                <AppButton label="Đăng xuất" onPress={logout} variant="ghost" />
+              </View>
+            </View>
+          </SectionCard>
 
-        {/* ── MỚI: Nút edit ── */}
-        <TouchableOpacity
-          style={styles.editBtn}
-          onPress={() => router.push('/edit-profile' as any)}
-        >
-          <Text style={styles.editBtnText}>✏️ Chỉnh sửa hồ sơ</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Stats */}
-      <View style={styles.statsRow}>
-        <View style={styles.statCard}>
-          <Text style={styles.statValue}>{player.elo}</Text>
-          <Text style={styles.statLabel}>ELO</Text>
-        </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statValue}>{history.length}</Text>
-          <Text style={styles.statLabel}>Đã chơi</Text>
-        </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statValue}>{hostedCount}</Text>
-          <Text style={styles.statLabel}>Đã host</Text>
-        </View>
-        <View style={styles.statCard}>
-          <Text style={[styles.statValue, { color: rColor }]}>
-            {reliability === null ? 'Mới' : `${reliability}%`}
-          </Text>
-          <Text style={styles.statLabel}>Tin cậy</Text>
-        </View>
-      </View>
-
-      {/* Trình độ */}
-      <View style={styles.skillBanner}>
-        <Text style={styles.skillBannerText}>{skill?.title ?? 'Chiến thần cọ xát'}</Text>
-        <Text style={styles.skillBannerSub}>
-          Elo {player.current_elo ?? player.elo} · {skill?.subtitle ?? 'Lower Intermediate'}
-        </Text>
-      </View>
-
-      {player.is_provisional && (
-        <View style={styles.provisionalCard}>
-          <Text style={styles.provisionalEyebrow}>Placement Mode</Text>
-          <Text style={styles.provisionalTitle}>Tài khoản của bạn đang ở giai đoạn provisional</Text>
-          <Text style={styles.provisionalText}>
-            Đã chơi {placementPlayed}/5 trận placement. Còn {placementLeft} trận để hệ thống ổn định Elo tốt hơn.
-          </Text>
-          <View style={styles.progressTrack}>
-            <View style={[styles.progressFill, { width: `${Math.min(100, (placementPlayed / 5) * 100)}%` }]} />
+          <View className="mb-3 flex-row gap-3">
+            <AppStatCard value={player.elo} label="ELO" />
+            <AppStatCard value={history.length} label="Đã chơi" />
           </View>
-        </View>
-      )}
+          <View className="mb-4 flex-row gap-3">
+            <AppStatCard value={hostedCount} label="Đã host" />
+            <AppStatCard
+              value={reliability === null ? 'Mới' : `${reliability}%`}
+              label="Tin cậy"
+              valueClassName={reliabilityValueClass(reliability)}
+            />
+          </View>
 
-      {/* Thông tin */}
-      <Text style={styles.sectionTitle}>Thông tin</Text>
-      <View style={styles.infoBox}>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Số điện thoại</Text>
-          <Text style={styles.infoValue}>{player.phone}</Text>
-        </View>
-        <View style={styles.divider} />
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Thành phố</Text>
-          <Text style={styles.infoValue}>{player.city}</Text>
-        </View>
-        <View style={styles.divider} />
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>No-show</Text>
-          <Text style={[styles.infoValue, player.no_show_count > 0 && { color: '#dc2626' }]}>
-            {player.no_show_count > 0 ? `${player.no_show_count} lần ⚠️` : '0 lần ✅'}
-          </Text>
-        </View>
-        <View style={styles.divider} />
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Tham gia từ</Text>
-          <Text style={styles.infoValue}>
-            {new Date(player.created_at).toLocaleDateString('vi-VN')}
-          </Text>
-        </View>
-      </View>
+          <SectionCard
+            title={skill?.title ?? 'Chiến thần cọ xát'}
+            subtitle={`Elo ${effectiveElo} · ${skill?.subtitle ?? 'Lower Intermediate'}`}
+            className="mb-4"
+            rightSlot={<StatusBadge label={skill?.dupr ?? 'DUPR'} tone="info" />}
+          >
+            <Text className="text-sm leading-6 text-slate-500">{skill?.description}</Text>
+          </SectionCard>
 
-      {/* Lịch sử kèo */}
-      <Text style={styles.sectionTitle}>Lịch sử kèo</Text>
-      {history.length === 0 ? (
-        <View style={styles.emptyHistory}>
-          <Text style={styles.emptyText}>Chưa tham gia kèo nào 🏓</Text>
-        </View>
-      ) : (
-        history.map(item => {
-          const cfg = sessionStatusConfig(item.status)
-          return (
-            <TouchableOpacity
-              key={item.id}
-              style={styles.historyCard}
-              onPress={() => router.push({ pathname: '/session/[id]', params: { id: item.id } })}
-            >
-              <View style={{ flex: 1 }}>
-                <View style={styles.historyCardHeader}>
-                  <Text style={styles.historyCourtName}>{item.slot?.court?.name ?? '—'}</Text>
-                  {item.is_host && (
-                    <View style={styles.hostChip}>
-                      <Text style={styles.hostChipText}>Host</Text>
+          {player.is_provisional ? (
+            <SectionCard title="Placement Mode" subtitle="Tài khoản của bạn đang ở giai đoạn đánh giá ban đầu." className="mb-4">
+              <Text className="text-sm leading-6 text-slate-500">
+                Đã chơi {placementPlayed}/5 trận placement. Còn {placementLeft} trận để hệ thống ổn định Elo chính xác hơn.
+              </Text>
+              <View className="mt-4 h-3 rounded-full bg-amber-100">
+                <View className="h-3 rounded-full bg-amber-500" style={{ width: `${Math.min(100, (placementPlayed / 5) * 100)}%` }} />
+              </View>
+            </SectionCard>
+          ) : null}
+
+          <SectionCard title="Thông tin" className="mb-4">
+            <View className="gap-4">
+              <View className="flex-row items-center justify-between">
+                <Text className="text-sm font-semibold text-slate-400">Số điện thoại</Text>
+                <Text className="text-sm font-semibold text-slate-900">{player.phone || 'Chưa cập nhật'}</Text>
+              </View>
+              <View className="flex-row items-center justify-between">
+                <Text className="text-sm font-semibold text-slate-400">No-show</Text>
+                <Text className="text-sm font-semibold text-slate-900">{player.no_show_count}</Text>
+              </View>
+              <View className="flex-row items-center justify-between">
+                <Text className="text-sm font-semibold text-slate-400">Tham gia từ</Text>
+                <Text className="text-sm font-semibold text-slate-900">{new Date(player.created_at).toLocaleDateString('vi-VN')}</Text>
+              </View>
+            </View>
+          </SectionCard>
+
+          <View className="mb-4">
+            <TrophyRoomSection />
+          </View>
+
+          <View className="mb-3 px-1">
+            <Text className="text-lg font-extrabold text-slate-900">Lịch sử kèo</Text>
+            <Text className="mt-1 text-sm text-slate-500">Các kèo gần nhất bạn đã host hoặc tham gia.</Text>
+          </View>
+
+          {history.length === 0 ? (
+            <EmptyState icon="🗓️" title="Chưa có kèo nào" description="Khi bạn tham gia hoặc tạo kèo, lịch sử sẽ hiện ở đây." />
+          ) : (
+            history.map((item) => {
+              const cfg = sessionStatusConfig(item.status)
+              return (
+                <TouchableOpacity
+                  key={item.id}
+                  className="mb-3"
+                  onPress={() => router.push({ pathname: '/session/[id]', params: { id: item.id } })}
+                  activeOpacity={0.86}
+                >
+                  <SectionCard rightSlot={<StatusBadge label={cfg.label} tone={cfg.tone} />}>
+                    <Text className="text-sm font-semibold uppercase tracking-[1px] text-slate-400">
+                      {formatTime(item.slot.start_time)}
+                    </Text>
+                    <Text className="mt-2 text-lg font-extrabold text-slate-950">{item.slot.court.name}</Text>
+                    <View className="mt-2 flex-row items-center justify-between">
+                      <Text className="text-sm text-slate-500">📍 {item.slot.court.city}</Text>
+                      {item.is_host ? <StatusBadge label="Host" tone="info" /> : null}
                     </View>
-                  )}
-                </View>
-                <Text style={styles.historyTime}>{formatTime(item.slot?.start_time)}</Text>
-                <Text style={styles.historyCity}>📍 {item.slot?.court?.city}</Text>
-              </View>
-              <View style={[styles.statusBadge, { backgroundColor: cfg.bg }]}>
-                <Text style={[styles.statusText, { color: cfg.text }]}>{cfg.label}</Text>
-              </View>
-            </TouchableOpacity>
-          )
-        })
-      )}
-
-      {/* Đăng xuất */}
-      <TouchableOpacity style={styles.logoutBtn} onPress={logout}>
-        <Text style={styles.logoutText}>Đăng xuất</Text>
-      </TouchableOpacity>
-
-    </ScrollView>
+                  </SectionCard>
+                </TouchableOpacity>
+              )
+            })
+          )}
+        </View>
+      </ScrollView>
     </SafeAreaView>
   )
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
-  center: {
-    flex: 1, justifyContent: 'center', alignItems: 'center',
-    backgroundColor: '#fff', padding: 32,
-  },
-
-  // Guest
-  guestEmoji: { fontSize: 56, marginBottom: 16 },
-  guestTitle: { fontSize: 22, fontWeight: '700', color: '#111', marginBottom: 8, textAlign: 'center' },
-  guestSubtitle: { fontSize: 14, color: '#888', marginBottom: 32, textAlign: 'center', lineHeight: 22 },
-  loginBtn: {
-    backgroundColor: '#16a34a', borderRadius: 14,
-    paddingHorizontal: 48, paddingVertical: 14, marginBottom: 16,
-  },
-  loginBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  backBtn: { marginTop: 4 },
-  backBtnText: { fontSize: 14, color: '#888' },
-
-  // Hero
-  heroSection: { alignItems: 'center', paddingHorizontal: 20, marginBottom: 24 },
-  avatar: {
-    width: 80, height: 80, borderRadius: 40,
-    backgroundColor: '#f0fdf4', justifyContent: 'center',
-    alignItems: 'center', marginBottom: 12,
-  },
-  avatarText: { fontSize: 32, fontWeight: '700', color: '#16a34a' },
-  name: { fontSize: 24, fontWeight: '700', color: '#111', marginBottom: 4 },
-  city: { fontSize: 14, color: '#888', marginBottom: 12 },
-
-  // ── MỚI ──
-  editBtn: {
-    borderWidth: 1.5, borderColor: '#16a34a',
-    borderRadius: 20, paddingHorizontal: 20, paddingVertical: 6,
-  },
-  editBtnText: { fontSize: 13, color: '#16a34a', fontWeight: '600' },
-
-  // Stats
-  statsRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 20, marginBottom: 16 },
-  statCard: {
-    flex: 1, backgroundColor: '#fff', borderRadius: 14,
-    padding: 12, alignItems: 'center',
-    shadowColor: '#000', shadowOpacity: 0.04,
-    shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 1,
-  },
-  statValue: { fontSize: 15, fontWeight: '700', color: '#111', marginBottom: 4 },
-  statLabel: { fontSize: 10, color: '#888' },
-
-  // Skill banner
-  skillBanner: {
-    backgroundColor: '#f0fdf4', borderRadius: 14, marginHorizontal: 20,
-    padding: 14, alignItems: 'center', marginBottom: 24,
-  },
-  skillBannerText: { fontSize: 18, fontWeight: '700', color: '#16a34a', marginBottom: 2 },
-  skillBannerSub: { fontSize: 13, color: '#555' },
-  provisionalCard: {
-    marginHorizontal: 20,
-    marginBottom: 24,
-    backgroundColor: '#fffbeb',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#fde68a',
-  },
-  provisionalEyebrow: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#fef3c7',
-    color: '#92400e',
-    fontSize: 11,
-    fontWeight: '800',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 999,
-    marginBottom: 10,
-  },
-  provisionalTitle: { fontSize: 15, fontWeight: '700', color: '#78350f', marginBottom: 6 },
-  provisionalText: { fontSize: 13, color: '#92400e', lineHeight: 19, marginBottom: 12 },
-  progressTrack: {
-    height: 10,
-    borderRadius: 999,
-    backgroundColor: '#fde68a',
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 999,
-    backgroundColor: '#d97706',
-  },
-
-  sectionTitle: {
-    fontSize: 16, fontWeight: '700', color: '#111',
-    paddingHorizontal: 20, marginBottom: 12,
-  },
-
-  // Info
-  infoBox: {
-    backgroundColor: '#fff', borderRadius: 16,
-    marginHorizontal: 20, marginBottom: 28, paddingHorizontal: 16,
-    shadowColor: '#000', shadowOpacity: 0.04,
-    shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 1,
-  },
-  infoRow: {
-    flexDirection: 'row', justifyContent: 'space-between',
-    alignItems: 'center', paddingVertical: 14,
-  },
-  infoLabel: { fontSize: 14, color: '#888' },
-  infoValue: { fontSize: 14, fontWeight: '600', color: '#111' },
-  divider: { height: 1, backgroundColor: '#f0f0f0' },
-
-  // History
-  emptyHistory: {
-    alignItems: 'center', paddingVertical: 32,
-    marginHorizontal: 20, backgroundColor: '#fff',
-    borderRadius: 16, marginBottom: 24,
-  },
-  emptyText: { fontSize: 14, color: '#aaa' },
-  historyCard: {
-    backgroundColor: '#fff', borderRadius: 14,
-    marginHorizontal: 20, marginBottom: 10,
-    padding: 14, flexDirection: 'row', alignItems: 'center',
-    shadowColor: '#000', shadowOpacity: 0.04,
-    shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 1,
-  },
-  historyCardHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
-  historyCourtName: { fontSize: 14, fontWeight: '600', color: '#111' },
-  historyTime: { fontSize: 13, color: '#888', marginBottom: 2 },
-  historyCity: { fontSize: 12, color: '#aaa' },
-  hostChip: {
-    backgroundColor: '#f0fdf4', borderRadius: 20,
-    paddingHorizontal: 8, paddingVertical: 2,
-  },
-  hostChipText: { fontSize: 11, color: '#16a34a', fontWeight: '600' },
-  statusBadge: { borderRadius: 20, paddingHorizontal: 10, paddingVertical: 5, marginLeft: 8 },
-  statusText: { fontSize: 12, fontWeight: '600' },
-
-  // Logout
-  logoutBtn: {
-    marginHorizontal: 20, marginTop: 12,
-    borderWidth: 1.5, borderColor: '#fca5a5',
-    borderRadius: 14, height: 52,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  logoutText: { fontSize: 15, fontWeight: '600', color: '#dc2626' },
-})

@@ -1,13 +1,8 @@
-import { router } from 'expo-router'
-import {
-  FlatList,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native'
+import { AppButton, EmptyState, ScreenHeader, SectionCard } from '@/components/design'
 import { useNotificationsContext } from '@/lib/NotificationsContext'
 import type { Notification } from '@/hooks/useNotifications'
+import { router } from 'expo-router'
+import { FlatList, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 function timeAgo(dateStr: string) {
@@ -41,98 +36,68 @@ export default function NotificationsScreen() {
   }
 
   return (
-    <SafeAreaView style={s.container} edges={['top']}>
-      <View style={s.header}>
-        <Text style={s.title}>Thông báo</Text>
-        {unreadCount > 0 && (
-          <TouchableOpacity onPress={markAllAsRead}>
-            <Text style={s.markAll}>Đọc tất cả</Text>
-          </TouchableOpacity>
-        )}
-      </View>
+    <SafeAreaView className="flex-1 bg-stone-100" edges={['top']}>
+      <ScreenHeader
+        eyebrow="Hộp thư"
+        title="Thông báo"
+        subtitle="Theo dõi các cập nhật mới nhất về kèo, phản hồi từ host và thay đổi trạng thái tham gia."
+        rightSlot={
+          unreadCount > 0 ? (
+            <View className="min-w-[36px] items-center rounded-full bg-emerald-100 px-3 py-1.5">
+              <Text className="text-xs font-extrabold text-emerald-700">{unreadCount}</Text>
+            </View>
+          ) : null
+        }
+      />
+
+      {unreadCount > 0 ? (
+        <View className="px-5 pb-4">
+          <AppButton label="Đọc tất cả" onPress={markAllAsRead} variant="secondary" />
+        </View>
+      ) : null}
 
       <FlatList
         data={notifications}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={notifications.length === 0 ? s.emptyContainer : { paddingBottom: 32 }}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }}
         ListEmptyComponent={
-          <View style={s.empty}>
-            <Text style={s.emptyIcon}>🔕</Text>
-            <Text style={s.emptyText}>Chưa có thông báo nào</Text>
-          </View>
+          <EmptyState
+            icon="🔔"
+            title="Chưa có thông báo nào"
+            description="Khi có yêu cầu tham gia, thay đổi kèo hoặc phản hồi mới, bạn sẽ thấy chúng ở đây."
+          />
         }
         renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[s.item, !item.is_read && s.itemUnread]}
-            onPress={() => handleTap(item)}
-            activeOpacity={0.7}
-          >
-            <View style={s.iconWrap}>
-              <Text style={s.icon}>{typeIcon(item.type)}</Text>
-            </View>
-            <View style={s.content}>
-              <Text style={[s.itemTitle, !item.is_read && s.itemTitleUnread]}>
-                {item.title}
-              </Text>
-              <Text style={s.body} numberOfLines={2}>{item.body}</Text>
-              <Text style={s.time}>{timeAgo(item.created_at)}</Text>
-            </View>
-            {!item.is_read && <View style={s.dot} />}
+          <TouchableOpacity onPress={() => handleTap(item)} activeOpacity={0.86} className="mb-3">
+            <SectionCard className={item.is_read ? '' : 'border border-emerald-100 bg-emerald-50/60'}>
+              <View className="flex-row items-start">
+                <View className="mr-3 h-12 w-12 items-center justify-center rounded-2xl bg-slate-100">
+                  <Text className="text-xl">{typeIcon(item.type)}</Text>
+                </View>
+                <View className="flex-1">
+                  <View className="flex-row items-start justify-between">
+                    <Text
+                      className={`flex-1 pr-3 text-base ${
+                        item.is_read ? 'font-semibold text-slate-800' : 'font-extrabold text-slate-950'
+                      }`}
+                    >
+                      {item.title}
+                    </Text>
+                    {!item.is_read ? <View className="mt-1 h-2.5 w-2.5 rounded-full bg-emerald-500" /> : null}
+                  </View>
+                  <Text className="mt-2 text-sm leading-6 text-slate-500" numberOfLines={3}>
+                    {item.body}
+                  </Text>
+                  <Text className="mt-3 text-xs font-semibold uppercase tracking-[1px] text-slate-400">
+                    {timeAgo(item.created_at)}
+                  </Text>
+                </View>
+              </View>
+            </SectionCard>
           </TouchableOpacity>
         )}
       />
     </SafeAreaView>
   )
 }
-
-const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#e5e7eb',
-  },
-  title: { fontSize: 22, fontWeight: '700', color: '#111' },
-  markAll: { fontSize: 14, color: '#16a34a', fontWeight: '600' },
-  emptyContainer: { flex: 1 },
-  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 120 },
-  emptyIcon: { fontSize: 48, marginBottom: 12 },
-  emptyText: { fontSize: 16, color: '#9ca3af' },
-  item: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#f3f4f6',
-  },
-  itemUnread: { backgroundColor: '#f0fdf4' },
-  iconWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#f3f4f6',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-    marginTop: 2,
-  },
-  icon: { fontSize: 18 },
-  content: { flex: 1 },
-  itemTitle: { fontSize: 14, fontWeight: '500', color: '#374151', marginBottom: 2 },
-  itemTitleUnread: { fontWeight: '700', color: '#111' },
-  body: { fontSize: 13, color: '#6b7280', lineHeight: 18, marginBottom: 4 },
-  time: { fontSize: 12, color: '#9ca3af' },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#16a34a',
-    marginTop: 6,
-    marginLeft: 8,
-  },
-})
