@@ -18,9 +18,9 @@
 - RPC functions
 - RLS policies
 
-## 2. Cấu trúc codebase
+## 2. Codebase Structure
 
-Các thư mục chính:
+Main folders:
 
 - `app/`
 - `components/`
@@ -30,9 +30,9 @@ Các thư mục chính:
 - `supabase/functions/`
 - `scripts/`
 
-### Navigation
+## 3. Navigation Architecture
 
-Tab screens:
+### Tab screens
 
 - `app/(tabs)/index.tsx`
 - `app/(tabs)/find-session.tsx`
@@ -40,7 +40,7 @@ Tab screens:
 - `app/(tabs)/notifications.tsx`
 - `app/(tabs)/profile.tsx`
 
-Main non-tab screens:
+### Non-tab screens
 
 - `app/login.tsx`
 - `app/profile-setup.tsx`
@@ -51,9 +51,9 @@ Main non-tab screens:
 - `app/edit-profile.tsx`
 - `app/rate-session/[id].tsx`
 
-## 3. Shared UI layer
+## 4. Shared UI Layer
 
-Design system primitives:
+### Design primitives
 
 - `components/design/AppButton.tsx`
 - `components/design/AppChip.tsx`
@@ -65,18 +65,18 @@ Design system primitives:
 - `components/design/StatusBadge.tsx`
 - `lib/designSystem.ts`
 
-Session-specific components:
+### Session components
 
 - `components/session/FeedMatchCard.tsx`
 - `components/session/SmartJoinButton.tsx`
 - `components/session/JoinRequestModal.tsx`
 - `components/session/HostRequestReview.tsx`
 
-Profile-specific component:
+### Profile components
 
 - `components/profile/TrophyRoom.tsx`
 
-## 4. Core data model
+## 5. Core Data Model
 
 ### Main tables
 
@@ -93,18 +93,18 @@ Profile-specific component:
 
 ### `players`
 
-Vai trò:
+Responsibilities:
 
-- thông tin public profile
+- public profile
 - self-assessed level
 - current Elo
 - reliability
 - host reputation
 - provisional state
 - placement progress
-- earned badges mirror
+- earned badge mirror
 
-Một số cột quan trọng:
+Important fields:
 
 - `self_assessed_level`
 - `skill_label`
@@ -118,14 +118,15 @@ Một số cột quan trọng:
 
 ### `sessions`
 
-Vai trò:
+Responsibilities:
 
 - host ownership
-- cấu hình kèo
+- session configuration
 - booking state
+- post-match state
 - result confirmation state
 
-Một số cột quan trọng:
+Important fields:
 
 - `host_id`
 - `slot_id`
@@ -138,18 +139,23 @@ Một số cột quan trọng:
 - `results_status`
 - `results_submitted_at`
 - `results_confirmation_deadline`
+- `pending_completion_marked_at`
+- `completion_reminder_sent_at`
+- `auto_closed_at`
+- `auto_closed_reason`
 
 ### `session_players`
 
-Vai trò:
+Responsibilities:
 
-- membership của session
-- join status
+- session membership
+- confirmed / pending participation
 - match result
 - proposed result
-- confirmation/dispute state
+- confirmation / dispute state
+- host reporting metadata
 
-Một số cột quan trọng:
+Important fields:
 
 - `session_id`
 - `player_id`
@@ -160,10 +166,12 @@ Một số cột quan trọng:
 - `result_confirmed_at`
 - `result_disputed_at`
 - `result_dispute_note`
+- `host_unprofessional_reported_at`
+- `host_unprofessional_report_note`
 
 ### `join_requests`
 
-Vai trò:
+Responsibilities:
 
 - approval-based join flow
 - intro note
@@ -171,26 +179,24 @@ Vai trò:
 
 ### `ratings`
 
-Vai trò:
+Responsibilities:
 
 - player conduct
 - host quality
-- skill validation
-- hidden/double-blind reveal
-- reliability update
-- Elo calibration input
+- hidden reveal flow
+- peer review signal for calibration
 
 ### `notifications`
 
-Vai trò:
+Responsibilities:
 
-- inbox trong app
+- inbox
 - unread badge
-- deep link
+- deep link routing
 
 ### `player_stats`
 
-Vai trò:
+Responsibilities:
 
 - total matches
 - total wins
@@ -201,69 +207,65 @@ Vai trò:
 
 ### `player_achievements`
 
-Vai trò:
+Responsibilities:
 
-- lưu badge unlock thật
+- persisted unlocked achievements
 - earned date
 - category
 - icon
 - metadata
 
-## 5. Business logic ownership
+## 6. Frontend Ownership
 
-### Frontend-heavy orchestration screens
-
-Các màn đang giữ nhiều orchestration logic nhất:
+Screens with the most orchestration logic:
 
 - `app/create-session.tsx`
 - `app/session/[id].tsx`
 - `app/rate-session/[id].tsx`
 - `app/(tabs)/profile.tsx`
 
-### Core helpers
-
-Các helper quan trọng:
+Core helpers:
 
 - `lib/skillAssessment.ts`
 - `lib/matchmaking.ts`
 - `lib/notifications.ts`
 - `lib/supabase.ts`
 
-## 6. Matchmaking architecture
+## 7. Matchmaking Architecture
 
-Smart join hiện dùng:
+Smart join currently uses:
 
 - self-assessed level mapping
 - Elo range mapping
-- số chỗ còn lại
+- available spots
 - auto-accept / require approval
 
-Current match statuses:
+Current statuses:
 
 - `MATCHED`
 - `LOWER_SKILL`
 - `WAITLIST`
 
-Logic này được dùng chủ yếu ở `app/session/[id].tsx`.
+Primary orchestration lives in `app/session/[id].tsx`.
 
-## 7. Skill calibration architecture
+## 8. Skill Calibration Architecture
 
 ### Frontend input
 
-`app/rate-session/[id].tsx` gửi `skill_validation` với 3 trạng thái:
+`app/rate-session/[id].tsx` submits:
 
-- `weaker`
-- `matched`
-- `outclass`
+- `skill_validation = weaker`
+- `skill_validation = matched`
+- `skill_validation = outclass`
 
 ### Backend source of truth
 
-Migration chính:
+Main migrations:
 
 - `20260324_upgrade_rating_system.sql`
 - `20260324_update_skill_calibration_engine.sql`
 
-Các function chính:
+Main functions:
 
 - `process_final_ratings(uuid)`
 - `apply_session_skill_calibration(uuid, uuid)`
@@ -271,198 +273,161 @@ Các function chính:
 
 ### Current behavior
 
-- rating sau trận tạo dữ liệu peer review
-- kết quả trận đã finalize cung cấp `match_result`
-- backend dùng cả hai tín hiệu để hiệu chỉnh Elo
-- nếu player còn provisional và chưa đủ 5 trận:
-  - dùng placement multiplier mạnh hơn
-  - tăng `placement_matches_played`
-  - tự tắt `is_provisional` khi đủ ngưỡng
-- `skill_label` được sync lại theo Elo
+- ratings create peer review data
+- finalized match result provides the technical outcome
+- backend uses both signals to update Elo
+- provisional players get stronger calibration in their first 5 placement matches
+- `skill_label` is synced from current Elo
 
-### UI rendering
-
-Hiện `Profile` và `Player Profile` ưu tiên đọc level theo Elo thực tế.
-
-## 8. Rating pipeline
+## 9. Rating Pipeline
 
 ### Frontend
 
 `app/rate-session/[id].tsx`:
 
-- load danh sách người có thể rate
-- thu positive / negative tags
-- hỗ trợ no-show
-- hỗ trợ skill validation
-- submit hidden ratings
+- loads ratable players
+- collects positive / negative tags
+- supports no-show
+- supports skill validation
+- submits hidden ratings
 
 ### Backend
 
 `process_final_ratings(...)`:
 
-- set `reveal_at`
-- mở rating khi đủ điều kiện
-- update reliability
-- update host reputation
-- apply calibration cho từng player
-- update badge mirror
+- assigns `reveal_at`
+- reveals ratings when conditions are met
+- updates reliability
+- updates host reputation
+- applies skill calibration
+- updates badge mirror
 
 ### Reveal model
 
 - hidden on insert
-- visible khi rate hai chiều hoặc sau 24 giờ
+- visible on mutual rating or after the reveal window
 
 ### Deferred item
 
-Auto-processing bằng cron đã chuẩn bị nhưng chưa rollout:
+Cron-based background processing exists in preparation but is still not rolled out:
 
 - `supabase/functions/process-pending-ratings/index.ts`
 - `supabase/migrations/20260324_add_pending_ratings_processor.sql`
 
-## 9. Result confirmation pipeline
+## 10. Result Confirmation Pipeline
 
 ### Purpose
 
-Ngăn host tự chốt kết quả một chiều.
+Prevent one-sided host result finalization.
 
-### Flow
+### Core functions
 
-1. Host submit proposed results.
-2. Player confirm hoặc dispute.
-3. Backend chỉ finalize khi:
-   - tất cả player confirm
-   - hoặc hết deadline mà không có dispute
-4. Achievement và calibration chỉ chạy sau khi finalize.
-
-### Backend functions
-
-Trong `20260324_add_result_confirmation_flow.sql`:
+From `20260324_add_result_confirmation_flow.sql`:
 
 - `submit_session_results(uuid, jsonb)`
 - `respond_to_session_result(uuid, text, text)`
 - `finalize_session_results(uuid)`
 
-### Frontend
+### Current flow
+
+1. Host submits proposed results.
+2. Players confirm or dispute.
+3. Only finalized results become official.
+4. Achievement and calibration run after finalization.
+
+### Frontend orchestration
 
 `app/session/[id].tsx`:
 
-- host submit proposed results
-- player confirm/dispute
-- có fallback query để màn không chết nếu DB schema local chưa theo kịp
+- host submits proposed results
+- players confirm or dispute
+- fallback query path protects the screen when local DB schema lags behind
 
-## 10. Achievement pipeline
+## 11. Post-Match Lifecycle Pipeline
 
-### Backend
+### Pending completion
 
-Trong `20260324_add_achievement_system.sql`:
+From `20260324_add_pending_completion_flow.sql`:
+
+- session moves from `open` to `pending_completion`
+- trigger condition is effectively `end_time + buffer`
+- host gets a reminder notification
+
+Main function:
+
+- `process_pending_session_completions(uuid default null)`
+
+### Hard auto-close
+
+From `20260324_add_hard_auto_close_flow.sql`:
+
+- overdue sessions auto-close
+- fallback result becomes `draw`
+- host gets a light penalty
+- players are notified that the session is ready for post-match actions
+
+Main function:
+
+- `process_overdue_session_closures(uuid default null)`
+
+### Host professionalism reporting
+
+From `20260324_simplify_post_match_reporting.sql`:
+
+- players no longer report final match outcomes
+- players can only report host unprofessional behavior
+- host reputation receives a light penalty
+
+Main function:
+
+- `report_host_unprofessional(uuid, text)`
+
+Deprecated safeguard kept intentionally:
+
+- `report_session_outcome(...)` now raises an exception to block stale flows
+
+## 12. Achievement Pipeline
+
+### Main migration
+
+- `20260324_add_achievement_system.sql`
+
+### Main functions
 
 - `recompute_player_stats(uuid)`
 - `award_achievement(...)`
 - `check_achievements(uuid)`
-- `send_push_notification(...)`
 
-### Trigger points
+### Behavior
 
-- session completion
-- result finalization
-- stats recomputation
+- recomputes player stats
+- applies streak decay
+- awards achievements idempotently
+- creates achievement notifications
 
-### Streak decay
+## 13. Notification Architecture
 
-Nếu `last_match_at` cũ hơn 14 ngày:
+Notifications are stored in `notifications` and used as the in-app inbox.
 
-- `current_win_streak = 0`
-- fire inactive
-- fire level reset
-
-### Frontend
-
-`components/profile/TrophyRoom.tsx`
-
-Hiện tại đã mount lên profile nhưng vẫn đang mock-driven.
-
-## 11. Booking pipeline
-
-Booking là first-class domain concept.
-
-### Create Session
-
-Host phải khai báo trạng thái booking sân.
-
-### Session Detail
-
-Host có thể:
-
-- confirm booking sau
-- mở booking link
-- lưu booking info
-
-### Edit constraints
-
-Nếu sân đã confirmed:
-
-- date/time editing bị khóa
-
-## 12. Notification pipeline
-
-Nguồn notification hiện tại gồm:
-
-- app-driven inserts qua `lib/notifications.ts`
-- backend-triggered inserts qua SQL functions như achievement unlock
-
-Một số loại notification:
+Common types include:
 
 - `join_request`
 - `join_approved`
 - `join_rejected`
-- `join_request_reply`
 - `player_left`
 - `session_cancelled`
 - `session_updated`
+- `session_pending_completion`
+- `session_auto_closed`
+- `host_unprofessional_reported`
 - `achievement_unlocked`
-- `session_results_submitted`
-- `session_results_disputed`
 
-## 13. Security model
+## 14. Current Technical Notes
 
-App dựa trên:
-
-- RLS policies
-- ownership checks
-- `security definer` RPCs cho logic đa bảng
-
-Các khu nhạy cảm:
-
-- join requests
-- host update sessions/slots
-- achievements
-- result confirmation
-- ratings processing
-
-## 14. Migration notes
-
-Các migration quan trọng hiện có:
-
-- `20260323_add_skill_assessment_fields.sql`
-- `20260323_add_court_booking_status.sql`
-- `20260323_add_smart_join_flow.sql`
-- `20260324_upgrade_rating_system.sql`
-- `20260324_add_achievement_system.sql`
-- `20260324_add_result_confirmation_flow.sql`
-- `20260324_update_skill_calibration_engine.sql`
-
-## 15. Testing support
-
-Seed và test support:
-
-- `scripts/seed-dummy-data.mjs`
-- `scripts/DUMMY_DATA.md`
-- `TEST_CHECKLIST.md`
-- `SKILL_CALIBRATION_TEST.md`
-
-## 16. Current technical caveats
-
-- `app/session/[id].tsx` vẫn là màn orchestration nặng nhất.
-- `TrophyRoom` chưa nối data thật 100%.
-- Cron auto-finalize rating vẫn đang hold.
-- Một số màn có fallback query để tránh runtime breakage khi code local đi trước DB schema.
+- `app/session/[id].tsx` remains the heaviest orchestration screen in the app.
+- Schema-aware fallback logic is already in place for session detail fetches.
+- The post-match system is now intentionally simpler:
+  - host submits results
+  - players confirm / dispute
+  - system auto-closes with `draw` if needed
+  - players may report host behavior, but do not finalize outcomes themselves

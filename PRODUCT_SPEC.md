@@ -1,279 +1,303 @@
 # PickleMatch VN Product Spec
 
-## 1. Product positioning
+## 1. Product Positioning
 
-PickleMatch VN là ứng dụng giúp cộng đồng pickleball tại Việt Nam:
+PickleMatch VN la ung dung mobile giup cong dong pickleball tai Viet Nam:
 
-- tìm đúng kèo
-- ghép đúng người
-- chơi đúng trình
-- giảm no-show
-- tăng niềm tin cộng đồng
-- tạo động lực quay lại bằng progression và gamification
+- tim keo dung lich, dung san, dung trinh do
+- quan ly keo ro rang hon cho host
+- giam no-show va giam lech trinh
+- tao long tin cong dong bang booking, result confirmation va rating
+- giu nguoi dung quay lai bang Elo, streak, badge va achievement
 
-## 2. Core value proposition
+San pham khong chi la noi dang keo, ma la he thong van hanh mot tran pickleball phong trao tu luc tao keo den sau tran.
 
-### Với player
+## 2. Core Value Proposition
 
-- tìm kèo nhanh hơn
-- thấy rõ sân, giờ, trình độ và trạng thái booking
-- tránh vào nhầm kèo lệch trình
-- có profile, streak và danh hiệu để theo dõi tiến bộ
+### Doi voi player
 
-### Với host
+- tim keo nhanh hon
+- thay ro tinh trang san va booking
+- tranh vao nham keo lech trinh
+- co profile, Elo, streak va danh hieu de theo doi tien bo
 
-- tạo kèo nhanh
-- quản lý join request tốt hơn
-- có flow booking sân rõ ràng
-- có notification khi session thay đổi
-- có lớp xác nhận kết quả để tăng độ tin cậy
+### Doi voi host
 
-## 3. Product pillars
+- tao keo nhanh
+- quan ly join request tot hon
+- booking san ro rang hon
+- co notification khi session thay doi
+- co flow nhac dong keo va xac nhan ket qua sau tran
 
-### Pillar 1: Matchmaking theo độ phù hợp
+## 3. Product Pillars
 
-- self-assessment 5 mức
+### Pillar 1: Matchmaking dung trinh
+
+- self-assessment 5 muc
 - starting Elo
 - placement mode
 - smart join flow
+- peer review sau tran
 
 ### Pillar 2: Community trust
 
-- reliability score
-- no-show tracking
 - hidden rating
-- dispute-aware result confirmation
+- reliability score
+- host reputation
+- no-show tracking
+- result confirmation / dispute
 
 ### Pillar 3: Host operation quality
 
-- host reputation
-- booking confirmation
-- join approval tools
+- booking confirmed / unconfirmed
+- host approval tools
 - session update notifications
+- pending completion reminder
+- auto-close fallback
 
-### Pillar 4: Retention through progression
+### Pillar 4: Progression and retention
 
-- achievements
-- streak
-- trophy room
-- profile identity
-
-## 4. Main features
-
-### Login và onboarding
-
-- OTP login
-- profile setup
-- 5-level skill assessment
-- auto route completion nếu onboarding chưa đủ
-
-### Profile và progression
-
-- player identity
-- Elo
-- reliability
+- current Elo
 - placement progress
-- session history
-- achievements và streak
+- win streak
+- achievements
+- trophy room
+
+## 4. Main User Flows
+
+### Onboarding
+
+1. Dang nhap
+2. Profile setup
+3. Skill assessment
+4. Vao Home
+
+Neu user chua hoan tat profile hoac chua chon skill, app tu dieu huong den buoc con thieu.
 
 ### Session discovery
 
-- Home feed
+Nguoi choi tim keo qua:
+
+- Home
 - Find Session
-- filters
-- ưu tiên kèo đã chốt sân
+- My Sessions
+
+Home va Find Session la discovery surfaces. My Sessions la noi quan ly tat ca keo dang host, dang tham gia va da tham gia.
 
 ### Session creation
 
-- chọn sân và giờ
-- cấu hình số người và dải trình độ
-- chọn approval mode
-- khai báo booking state
-- publish session
+Host tao keo qua flow nhieu buoc:
 
-### Smart join
+1. chon san
+2. chon ngay va gio
+3. chon so nguoi
+4. chon dai trinh do
+5. bat / tat approval
+6. khai bao booking status
+7. review va publish
 
-- instant join
-- request join
-- waitlist
-- intro note
-- host reply template
+### Joining a session
 
-### Session operations
+Smart join flow hien co 3 trang thai:
 
-- host review requests
-- player leave session
-- host cancel session
-- host edit session
-- session update notifications
+- `MATCHED`
+- `LOWER_SKILL`
+- `WAITLIST`
 
-### Match closure
+Tuong ung voi:
 
-- rate players
-- rate host quality
-- validate perceived skill
-- report no-show
+- vao thang
+- xin vao keo
+- dang ky du bi
 
-### Result confirmation
+### Post-match flow
 
-- host submit proposed results
-- players confirm/dispute
-- only finalized results become official
+Sau tran, vai tro duoc chot ro:
 
-### Achievement system
+- host la nguoi nhap ket qua
+- player la nguoi confirm hoac dispute
+- neu host khong xu ly dung han, he thong auto-close session voi `draw`
+- player co the bao host khong chuyen nghiep neu host van hanh kem
 
-- match-count achievements
-- performance achievements
-- streak achievements
-- conduct achievements
+Flow hien tai:
 
-## 5. Skill model
+1. Session qua gio vao `pending_completion`
+2. Host nhan notification nhac dong keo
+3. Host gui ket qua
+4. Player confirm hoac dispute
+5. Neu host khong xu ly qua moc quy dinh, he thong tu dong close session voi `draw`
 
-App hiện dùng 5 mức tự đánh giá:
+## 5. Skill Model
 
-1. Mới bóc tem
-2. Biết điều bóng
-3. Chiến thần cọ xát
-4. Tay vợt phong trào
-5. Thợ săn giải thưởng
+App dung 5 muc skill:
 
-Model này được dùng để:
+1. Moi boc tem
+2. Biet dieu bong
+3. Chien than co xat
+4. Tay vot phong trao
+5. Tho san giai thuong
+
+Model nay dung de:
 
 - seed starting Elo
-- đưa user vào provisional mode
-- hỗ trợ matchmaking bước đầu
+- dua user vao provisional mode
+- ho tro matchmaking buoc dau
 
-## 6. Placement model
+## 6. Placement and Skill Calibration
 
-Người chơi mới vào `placement mode`.
+### Placement mode
 
-Hệ thống theo dõi:
+Nguoi choi moi vao app se o trang thai:
 
-- `placement_matches_played`
-- `is_provisional`
-
-Placement ảnh hưởng đến:
-
-- thông điệp trên profile
-- độ tin cậy của Elo đầu vào
-- tốc độ calibration trong 5 trận đầu
-
-## 7. Skill calibration model
+- `is_provisional = true`
+- `placement_matches_played = 0`
 
 ### Peer review
 
-Sau trận, người chơi đánh giá đối thủ:
+Sau tran, nguoi choi danh gia doi thu:
 
-- yếu hơn mác
-- đúng trình
-- out trình
+- `weaker`
+- `matched`
+- `outclass`
 
-### Placement K-factor
+### Placement multiplier
 
-Trong 5 trận đầu:
+Trong 5 tran placement dau:
 
-- Elo biến động mạnh hơn
-- hệ thống dùng cả match result và peer review để đưa user nhanh về đúng trình
+- Elo bien dong manh hon
+- peer review co trong so lon hon
+- he thong co gang dua user nhanh ve dung trinh thuc te
 
 ### Label sync
 
-Nhãn trình độ hiển thị trên profile được sync theo Elo hiện tại, không chỉ dựa vào self-assessment ban đầu.
+Skill label hien thi tren profile duoc dong bo theo `current_elo`, khong chi dua vao self-assessment ban dau.
 
-## 8. Session lifecycle
+## 7. Session Lifecycle
 
-### Main states
+### Main session states
 
 - `open`
+- `pending_completion`
 - `done`
 - `cancelled`
 
-### Related operational states
+### Result states
 
-- booking confirmed / unconfirmed
-- approval required / direct join
-- results not submitted / pending confirmation / disputed / finalized
+- `not_submitted`
+- `pending_confirmation`
+- `disputed`
+- `finalized`
+- `void`
 
-## 9. Booking logic
+### Operational rules
 
-Booking được làm rõ ngay từ lúc tạo kèo vì đây là yếu tố quan trọng với trải nghiệm thực tế.
+- session qua `end_time + buffer` se vao `pending_completion`
+- host duoc nhac dong keo
+- neu host submit ket qua, player confirm / dispute
+- neu host khong xu ly den moc hard timeout, he thong auto-close voi `draw`
 
-App hỏi host:
+## 8. Booking Logic
 
-- sân đã đặt chưa
-- nếu chưa, có muốn đặt luôn không
+Booking la mot trust signal quan trong.
 
-Mục tiêu:
+Session co 2 booking states:
 
-- tăng niềm tin vào session
-- giảm mơ hồ cho player
-- giúp feed ưu tiên kèo chắc chắn hơn
+- `confirmed`
+- `unconfirmed`
 
-## 10. Community trust logic
+Booking info co the gom:
+
+- booking reference
+- booking name
+- booking phone
+- booking notes
+- booking confirmed at
+
+Neu san da chot:
+
+- mot so truong trong flow sua keo bi khoa
+- feed va card UI uu tien hien thi session chac chan hon
+
+## 9. Community Trust Logic
 
 ### Reliability
 
-Người chơi bắt đầu với trust cao và có thể bị trừ bởi:
+Nguoi choi co the bi tru reliability boi:
 
 - no-show
 - late
 - toxic behavior
-- dishonest scoring behavior
+- dishonest behavior
 
 ### Host reputation
 
-Host được cộng hoặc trừ qua feedback:
+Host reputation bi anh huong boi:
 
-- đúng mô tả
-- tổ chức tốt
-- xếp cặp công bằng
-- sân sai mô tả
-- tổ chức kém
+- feedback sau tran
+- quality cua booking va to chuc
+- viec chot ket qua dung han
+- bao cao host van hanh kem
 
-## 11. Rating visibility logic
+Neu host de he thong auto-close session:
 
-Rating không hiển thị ngay lập tức.
+- host bi tru nhe uy tin
 
-Chúng chỉ hiển thị khi:
+Neu player bao host khong chuyen nghiep:
 
-- cả hai bên đều đã rate
-- hoặc sau 24 giờ
+- he thong ghi nhan report
+- host nhan notification
+- host reputation bi tru nhe
 
-Lý do:
+## 10. Rating Logic
 
-- giảm revenge rating
-- giảm áp lực xã hội
-- tăng tính trung thực
+### Hidden rating
 
-## 12. Anti-abuse logic cho kết quả trận
+Rating sau tran khong mo ngay lap tuc.
 
-App không tin hoàn toàn vào kết quả host nhập.
+Rating chi duoc reveal khi:
 
-Rule hiện tại:
+- hai ben da rate lan nhau
+- hoac da qua moc reveal
 
-- host chỉ được submit proposed results
-- player phải confirm hoặc dispute
-- chỉ khi finalized thì kết quả mới ảnh hưởng:
-  - streak
-  - achievements
-  - Elo calibration
+### Rating inputs
 
-Lý do:
+Rating hien tai co the tac dong den:
 
-- ngăn host tự tăng win
-- ngăn fake streak
-- giữ giá trị danh hiệu đáng tin
+- reliability
+- host reputation
+- no-show count
+- peer review input cho calibration
 
-## 13. Achievement categories
+## 11. Result Confirmation Logic
+
+He thong khong tin hoan toan vao ket qua host nhap.
+
+Rule hien tai:
+
+- host submit proposed results
+- player confirm hoac dispute
+- chi khi ket qua duoc finalize thi moi tac dong den streak, achievement va calibration
+- neu host khong dong keo, fallback cuoi cung la auto `draw`
+
+Muc tieu:
+
+- ngan fake wins
+- ngan fake streak
+- tranh session treo vo han
+
+## 12. Achievement System
+
+He thong achievement gom 4 nhom:
 
 ### Progression
 
-- Hội viên tích cực
-- Chiến thần sân bãi
+- Hoi vien tich cuc
+- Chien than san bai
 
 ### Performance
 
 - Giant Slayer
-- Tốt nghiệp xuất sắc
+- Tot nghiep xuat sac
 
 ### Momentum
 
@@ -281,72 +305,54 @@ Lý do:
 
 ### Conduct
 
-- Đồng hồ Thụy Sĩ
-- Host Vàng
+- Dong ho Thuy Si
+- Host Vang
 
-## 14. Win streak product rule
+## 13. Win Streak Rule
 
-Streak chỉ có giá trị nếu còn “nóng”.
+Win streak chi co y nghia neu con "nong".
 
-Nếu người chơi không chơi quá 14 ngày:
+Neu nguoi choi khong choi qua 14 ngay:
 
 - current streak reset
-- fire icon tắt
+- fire icon tat
 
-Lý do:
+## 14. Key Notifications
 
-- giữ đúng cảm giác momentum hiện tại
-- tránh streak cũ làm profile “ảo”
-
-## 15. Key notifications
-
-Các event quan trọng đang được communicate qua notification:
+Nhung event chinh duoc communicate qua notifications:
 
 - join request
-- approval / rejection
+- join approved / rejected
 - player left
 - session cancelled
 - session updated
-- host reply
-- achievement unlocked
 - result submitted
 - result disputed
+- session pending completion
+- session auto-closed
+- host unprofessional reported
+- achievement unlocked
 
-## 16. UX tone
+## 15. Current Product Scope
 
-Hướng UX hiện tại:
+San pham hien da co:
 
-- hiện đại
-- card-based
-- sạch
-- thân thiện
-- có yếu tố gamified vừa phải
+- onboarding
+- discovery
+- create / join / manage session
+- booking status
+- post-match rating
+- Elo calibration
+- result confirmation
+- achievement system
+- trophy room
+- post-match lifecycle voi pending completion va auto-close
 
-Design direction gần đây:
+Hang muc dang hold:
 
-- premium nhưng dễ dùng
-- state communication rõ
-- hierarchy mạnh
-- badge mềm và dễ scan
+- cron / edge function auto-finalize hidden ratings
 
-## 17. Current product risks
+Lien quan den:
 
-- `Session Detail` là màn phức tạp nhất, dễ phát sinh state bug
-- Trophy Room hiện chưa nối data thật hoàn toàn
-- trust systems đã có nền tảng nhưng chưa có moderation tooling sâu
-- auto-finalize rating bằng cron vẫn đang hold
-
-## 18. Deferred / on hold
-
-Hạng mục đang chuẩn bị code nhưng chưa rollout:
-
-- cron-based auto-finalize cho hidden ratings sau 24 giờ
-
-Điều này vẫn đang intentionally deferred cho tới khi chốt build.
-
-## 19. Recommended next product steps
-
-1. Nối Trophy Room với dữ liệu thật.
-2. Làm checklist QA riêng cho achievement và calibration.
-3. Chốt có rollout cron auto-finalize rating hay không.
-4. Thêm dispute/admin tools mạnh hơn nếu cộng đồng tăng nhanh.
+- `supabase/functions/process-pending-ratings/index.ts`
+- `supabase/migrations/20260324_add_pending_ratings_processor.sql`

@@ -1,28 +1,23 @@
 # PickleMatch VN UI Context
 
-## Product Summary
+## 1. Product Summary
 
-PickleMatch VN is a mobile app for finding, creating, joining, approving, and managing pickleball sessions in Vietnam.
+PickleMatch VN is a mobile app for discovering, creating, joining, and operating pickleball sessions in Vietnam.
 
-Core stack:
+Core user goals:
 
-- React Native + Expo Router
-- Supabase Auth + Postgres
-- TypeScript
+- browse suitable sessions quickly
+- understand booking confidence before joining
+- join or request access with low friction
+- manage sessions clearly as host
+- complete post-match actions without confusion
+- track profile progress through Elo, streak, and achievements
 
-Primary user goals:
+## 2. Navigation Structure
 
-- Browse available sessions
-- Filter and find suitable sessions
-- Create a new session
-- Request to join or directly join a session
-- Approve or reject join requests as host
-- Track notifications
-- Manage player profile
+### Bottom tabs
 
-## Navigation Structure
-
-Bottom tabs live in [`app/(tabs)/_layout.tsx`](/c:/Users/quock/OneDrive/picklematch-vn/app/(tabs)/_layout.tsx):
+Defined in [`app/(tabs)/_layout.tsx`](/c:/Users/quock/OneDrive/picklematch-vn/app/(tabs)/_layout.tsx):
 
 - `Home` / [`app/(tabs)/index.tsx`](/c:/Users/quock/OneDrive/picklematch-vn/app/(tabs)/index.tsx)
 - `My Sessions` / [`app/(tabs)/my-sessions.tsx`](/c:/Users/quock/OneDrive/picklematch-vn/app/(tabs)/my-sessions.tsx)
@@ -30,7 +25,7 @@ Bottom tabs live in [`app/(tabs)/_layout.tsx`](/c:/Users/quock/OneDrive/picklema
 - `Notifications` / [`app/(tabs)/notifications.tsx`](/c:/Users/quock/OneDrive/picklematch-vn/app/(tabs)/notifications.tsx)
 - `Profile` / [`app/(tabs)/profile.tsx`](/c:/Users/quock/OneDrive/picklematch-vn/app/(tabs)/profile.tsx)
 
-Non-tab screens:
+### Non-tab screens
 
 - [`app/create-session.tsx`](/c:/Users/quock/OneDrive/picklematch-vn/app/create-session.tsx)
 - [`app/session/[id].tsx`](/c:/Users/quock/OneDrive/picklematch-vn/app/session/[id].tsx)
@@ -38,397 +33,297 @@ Non-tab screens:
 - [`app/rate-session/[id].tsx`](/c:/Users/quock/OneDrive/picklematch-vn/app/rate-session/[id].tsx)
 - [`app/login.tsx`](/c:/Users/quock/OneDrive/picklematch-vn/app/login.tsx)
 - [`app/profile-setup.tsx`](/c:/Users/quock/OneDrive/picklematch-vn/app/profile-setup.tsx)
+- [`app/skill-assessment.tsx`](/c:/Users/quock/OneDrive/picklematch-vn/app/skill-assessment.tsx)
 - [`app/edit-profile.tsx`](/c:/Users/quock/OneDrive/picklematch-vn/app/edit-profile.tsx)
 
-## Main Screens
+## 3. Current Visual Direction
 
-### 1. Home
+The current UI direction is:
 
-File: [`app/(tabs)/index.tsx`](/c:/Users/quock/OneDrive/picklematch-vn/app/(tabs)/index.tsx)
+- light background
+- clean white cards
+- clear hierarchy
+- structural use of borders and soft shadows
+- consistent iconography via `lucide-react-native`
 
-Purpose:
+The visual tone should feel:
 
-- Landing screen after login
-- Shows session cards with tabs:
-  - open
-  - full
-  - done
-  - all
+- modern
+- calm
+- premium but practical
+- optimized for fast scanning on mobile
 
-Current card content:
+## 4. Main Screens
 
-- court name
-- address + city
-- time range
-- session status
-- participation status
-- price
-- host name
-- court booking status:
-  - `Sân đã xác nhận`
-  - `Sân chưa xác nhận`
+### Home
 
-Tone:
+File:
 
-- functional
-- card-based
-- fast scanning
-
-### 2. Find Session
-
-File: [`app/(tabs)/find-session.tsx`](/c:/Users/quock/OneDrive/picklematch-vn/app/(tabs)/find-session.tsx)
+- [`app/(tabs)/index.tsx`](/c:/Users/quock/OneDrive/picklematch-vn/app/(tabs)/index.tsx)
 
 Purpose:
 
-- more advanced discovery screen
-- filterable session list
+- landing screen after login
+- quick discovery of active sessions
+- fast actions for creating a session or responding to urgent needs
 
-Current filters:
+Key UI patterns:
 
-- city
-- skill level
-- date
-- remaining spots only
+- compact greeting header
+- prominent CTA row
+- filter pills
+- premium session cards
 
-Current card content is similar to Home:
+### Find Session
 
-- court name
-- city
-- address
-- time
-- skill
-- player count
-- price
-- host
-- court booking status
+File:
 
-### 3. My Sessions
-
-File: [`app/(tabs)/my-sessions.tsx`](/c:/Users/quock/OneDrive/picklematch-vn/app/(tabs)/my-sessions.tsx)
+- [`app/(tabs)/find-session.tsx`](/c:/Users/quock/OneDrive/picklematch-vn/app/(tabs)/find-session.tsx)
 
 Purpose:
 
-- combines sessions where user is host and sessions where user joined
+- advanced discovery screen
+- filter-driven browsing
 
-Current card content:
+Key UI patterns:
 
-- court name
-- overall session status
-- time + city
-- role:
-  - host
-  - joined player
-- player count
-- court booking status
+- search / filter controls
+- same session card system as Home
+- emphasis on comparability and fast scanning
 
-### 4. Session Detail
+### My Sessions
 
-File: [`app/session/[id].tsx`](/c:/Users/quock/OneDrive/picklematch-vn/app/session/[id].tsx)
+File:
 
-This is the most important action screen.
+- [`app/(tabs)/my-sessions.tsx`](/c:/Users/quock/OneDrive/picklematch-vn/app/(tabs)/my-sessions.tsx)
 
-Current content:
+Purpose:
 
-- back button
-- share action
-- court name + address
-- manual approval badge if enabled
-- court booking status badge
-- booking info block if any exists
-- time
+- combine hosted sessions and joined sessions
+- let users track operational status quickly
+
+Key UI patterns:
+
+- same session card language as discovery surfaces
+- role cues for host vs participant
+- clear lifecycle state display
+
+### Session Detail
+
+File:
+
+- [`app/session/[id].tsx`](/c:/Users/quock/OneDrive/picklematch-vn/app/session/[id].tsx)
+
+This is the heaviest action screen in the app.
+
+Core content:
+
+- court identity
+- time and price
 - skill range
-- price
+- booking state
 - player list
-- pending join requests for host
+- pending join requests
+- post-match state
 
 Role-specific actions:
 
-- non-host:
-  - join session
+- player:
+  - join
   - request to join
-  - leave session
+  - leave
+  - rate after match
+  - confirm or dispute submitted results
+  - report host unprofessional behavior if host fails to close properly
 - host:
-  - approve request
-  - reject request
+  - approve or reject requests
+  - edit session
   - cancel session
-  - confirm court booking later by entering booking info
+  - confirm booking
+  - submit match results
 
-State-heavy areas:
+### Create Session
 
-- joined vs not joined
-- host vs player
-- open vs full vs done vs cancelled
-- approval required vs direct join
-- court confirmed vs unconfirmed
+File:
 
-### 5. Create Session
+- [`app/create-session.tsx`](/c:/Users/quock/OneDrive/picklematch-vn/app/create-session.tsx)
 
-File: [`app/create-session.tsx`](/c:/Users/quock/OneDrive/picklematch-vn/app/create-session.tsx)
+Current flow:
 
-3-step flow:
+1. choose court and time
+2. configure session rules
+3. review and publish
 
-#### Step 1: Choose court + time
+Key UI responsibilities:
 
-- nearby courts or fallback search
-- date picker
-- free-form start/end time
+- guide host step by step
+- make booking status explicit
+- reduce bad publishes by forcing clearer review
 
-#### Step 2: Configure session
+### Notifications
 
-- max players
-- elo min / max
-- fill deadline
-- approval requirement
-- total court cost
-- court booking confirmation flow
+File:
 
-New booking flow:
+- [`app/(tabs)/notifications.tsx`](/c:/Users/quock/OneDrive/picklematch-vn/app/(tabs)/notifications.tsx)
 
-- user must declare whether court is already booked/confirmed
-- if not confirmed, app asks whether they want to book now
-- if they book now, app can open court booking link
-- booking info fields:
-  - booking reference
-  - booking name
-  - booking phone
-  - booking notes
-- confirmed state requires booking info
-- unconfirmed state can still publish, but host must update later
+Purpose:
 
-#### Step 3: Review + publish
+- in-app inbox
+- action recovery
+- deep link entry back into sessions and profile
 
-- summary card
-- booking status summary
-- optional booking summary
-- submit CTA
-
-### 6. Notifications
-
-File: [`app/(tabs)/notifications.tsx`](/c:/Users/quock/OneDrive/picklematch-vn/app/(tabs)/notifications.tsx)
-
-Current notification types in app:
-
-- `join_request`
-- `join_approved`
-- `join_rejected`
-- `player_left`
-- `session_cancelled`
-
-Behavior:
-
-- unread count badge in tab bar
-- tapping a notification deep-links into the session
-
-### 7. Profile
+### Profile
 
 Files:
 
 - [`app/(tabs)/profile.tsx`](/c:/Users/quock/OneDrive/picklematch-vn/app/(tabs)/profile.tsx)
 - [`app/edit-profile.tsx`](/c:/Users/quock/OneDrive/picklematch-vn/app/edit-profile.tsx)
-- [`app/profile-setup.tsx`](/c:/Users/quock/OneDrive/picklematch-vn/app/profile-setup.tsx)
+- [`components/profile/TrophyRoom.tsx`](/c:/Users/quock/OneDrive/picklematch-vn/components/profile/TrophyRoom.tsx)
 
-Current profile areas:
+Purpose:
 
-- avatar initials
-- city
-- phone
-- ELO
-- reliability
-- hosted count
-- session history
-- favorite courts in edit profile
+- identity
+- trust
+- progression
+- achievements
 
-## Core Entities
+## 5. Session Card Design Context
 
-### Players
+The session card is the primary reusable content unit.
 
-Used for:
+It should clearly communicate:
 
-- profile
-- skill level / ELO
-- reliability / no-show tracking
-- notifications owner
+- court name
+- time
+- booking confidence
+- host
+- price
+- player count
+- skill band
 
-### Sessions
+Current structure:
 
-Important session fields already in use:
+1. top row:
+   - booking status badge
+   - time badge
+2. middle:
+   - court name
+   - address
+3. tag row:
+   - skill / type
+4. footer:
+   - host
+   - price
+   - occupancy
 
-- `host_id`
-- `slot_id`
-- `elo_min`
-- `elo_max`
-- `max_players`
-- `status`
-- `require_approval`
-- `fill_deadline`
-- `total_cost`
-- `court_booking_status`
-- `booking_reference`
-- `booking_name`
-- `booking_phone`
-- `booking_notes`
-- `booking_confirmed_at`
-
-### Courts
-
-Used for:
-
-- court discovery
-- address / city
-- hours open / close
-- pricing
-- booking link
-
-Relevant fields:
-
-- `name`
-- `address`
-- `city`
-- `hours_open`
-- `hours_close`
-- `price_per_hour`
-- `booking_url`
-- `google_maps_url`
-
-### Court Slots
-
-Used as the actual booked time range for a session.
-
-### Session Requests
-
-Used when host approval is required.
-
-States:
-
-- `pending`
-- `approved`
-- `rejected`
-
-### Notifications
-
-Used for in-app inbox and badge count.
-
-## Important Product States
-
-These states matter a lot for UI design:
+## 6. Important UI States
 
 ### Session lifecycle
 
+UI must distinguish:
+
 - `open`
+- `pending_completion`
 - `done`
 - `cancelled`
 
-### Join model
+### Booking lifecycle
 
-- direct join
+UI must distinguish:
+
+- court confirmed
+- court unconfirmed
+
+### Join lifecycle
+
+UI must distinguish:
+
+- can join directly
 - approval required
+- waitlist
+- already joined
+- request pending
 
-### User role inside a session
+### Post-match lifecycle
 
-- guest / not logged in
-- host
-- joined player
-- requested player
-- rejected player
+UI must distinguish:
 
-### Court booking state
+- results not submitted
+- pending confirmation
+- disputed
+- finalized
+- auto-closed
 
-- confirmed
-- unconfirmed
+## 7. Post-Match UI Rules
 
-This is now visible on:
+The post-match UX has been intentionally simplified.
 
-- session cards
-- session detail
-- create session review
+Current rule set:
 
-## Current UX Style
+- host enters results
+- players confirm or dispute
+- system auto-closes with `draw` if host fails to close on time
+- players do not finalize outcomes themselves
+- players may report host unprofessional behavior
 
-Current design language in the codebase:
+UI implication:
 
-- bright white background
-- green as primary accent
-- rounded cards
-- emoji-supported labels
-- straightforward utilitarian layout
-- mobile-first density
+- avoid multiple competing result entry paths for players
+- keep the player action surface narrow and clear
+- prefer fallback messaging over complex consensus controls
 
-Patterns already used:
+## 8. Profile and Progression UI
 
-- vertically stacked cards
-- pill badges
-- large CTA buttons
-- inline status chips
-- simple segmented filters
+Profile should expose:
 
-## UI Opportunities
+- current Elo
+- reliability
+- placement progress
+- streak
+- achievements
+- history
 
-If you are redesigning UI, the highest-value areas are:
+Important rule:
 
-### Session cards
+- displayed skill identity should align with current Elo, not only with the original self-assessment
 
-Opportunity:
+## 9. Notification UX Context
 
-- make scanability much stronger
-- visually separate match status from court booking status
-- improve hierarchy between court, time, and skill
+Important notification-driven flows:
 
-### Session detail
+- join request review
+- session updates
+- pending completion reminders
+- auto-closed sessions
+- result disputes
+- achievement unlocks
+- host unprofessional reports
 
-Opportunity:
+The notification surface should act as a recovery layer for missed actions.
 
-- this screen does too much right now
-- can be reorganized into:
-  - summary hero
-  - booking state
-  - players
-  - host actions
-  - join actions
+## 10. Design Constraints
 
-### Create session
+When updating UI, preserve these principles:
 
-Opportunity:
+- mobile-first spacing
+- strong visual hierarchy
+- avoid emoji-heavy communication
+- avoid noisy color usage
+- use icons consistently
+- keep role-based actions obvious
+- reduce ambiguity around booking and post-match state
 
-- step 2 is now more complex because of booking-state logic
-- likely needs better grouping and progressive disclosure
-- booking flow should feel trustworthy and low-friction
+## 11. Current UX Risk Areas
 
-### Notifications
+These flows still need extra care when changing UI:
 
-Opportunity:
+- `app/session/[id].tsx`
+- `app/create-session.tsx`
+- `app/rate-session/[id].tsx`
+- notification deep links
 
-- could be much more expressive
-- stronger grouping by event type
-- clearer CTA affordances
+Reason:
 
-## Constraints For UI Design
-
-- Must work well on mobile first
-- App is already using Expo Router file-based navigation
-- Existing flows are Supabase-driven and stateful
-- Host actions and player actions must remain clearly distinct
-- Booking confirmation is now a first-class product concept
-- Approval flow is important and should not be buried
-
-## Suggested Design Priorities
-
-If designing from highest impact first:
-
-1. Session card system
-2. Session detail information architecture
-3. Create session wizard redesign
-4. Profile polish
-5. Notifications polish
-
-## Useful Files To Review
-
-- [`app/(tabs)/index.tsx`](/c:/Users/quock/OneDrive/picklematch-vn/app/(tabs)/index.tsx)
-- [`app/(tabs)/find-session.tsx`](/c:/Users/quock/OneDrive/picklematch-vn/app/(tabs)/find-session.tsx)
-- [`app/(tabs)/my-sessions.tsx`](/c:/Users/quock/OneDrive/picklematch-vn/app/(tabs)/my-sessions.tsx)
-- [`app/session/[id].tsx`](/c:/Users/quock/OneDrive/picklematch-vn/app/session/[id].tsx)
-- [`app/create-session.tsx`](/c:/Users/quock/OneDrive/picklematch-vn/app/create-session.tsx)
-- [`app/(tabs)/notifications.tsx`](/c:/Users/quock/OneDrive/picklematch-vn/app/(tabs)/notifications.tsx)
-- [`app/(tabs)/profile.tsx`](/c:/Users/quock/OneDrive/picklematch-vn/app/(tabs)/profile.tsx)
-- [`lib/useNearbyCourts.ts`](/c:/Users/quock/OneDrive/picklematch-vn/lib/useNearbyCourts.ts)
-- [`lib/notifications.ts`](/c:/Users/quock/OneDrive/picklematch-vn/lib/notifications.ts)
-- [`supabase/migrations/20260323_add_court_booking_status.sql`](/c:/Users/quock/OneDrive/picklematch-vn/supabase/migrations/20260323_add_court_booking_status.sql)
+- they combine many states
+- they mix product logic with UI state
+- they are the most likely places for regression when changing copy or layout
