@@ -1,3 +1,4 @@
+import { getSkillLevelFromPlayer } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
 import { router, useFocusEffect } from 'expo-router'
 import { useCallback, useState } from 'react'
@@ -5,14 +6,7 @@ import {
   ActivityIndicator, Alert, ScrollView,
   StyleSheet, Text, TouchableOpacity, View,
 } from 'react-native'
-
-const SKILL_LEVELS = [
-  { label: '🌱 Mới bắt đầu', value: 'beginner',    elo: 800  },
-  { label: '🏃 Cơ bản',      value: 'basic',        elo: 900  },
-  { label: '⚡ Trung bình',  value: 'intermediate', elo: 1000 },
-  { label: '🔥 Khá',         value: 'advanced',     elo: 1150 },
-  { label: '🏆 Giỏi',        value: 'expert',       elo: 1300 },
-]
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 type Player = {
   id: string
@@ -21,6 +15,10 @@ type Player = {
   city: string
   skill_label: string
   elo: number
+  current_elo?: number | null
+  self_assessed_level?: string | null
+  is_provisional?: boolean | null
+  placement_matches_played?: number | null
   sessions_joined: number
   no_show_count: number
   created_at: string
@@ -43,34 +41,14 @@ export default function ProfileScreen() {
   const [player, setPlayer]     = useState<Player | null>(null)
   const [history, setHistory]   = useState<SessionHistory[]>([])
   const [loading, setLoading]   = useState(false)
-  const [myId, setMyId]         = useState<string | null>(null)
 
-  useFocusEffect(
-    useCallback(() => { init() }, [])
-  )
-
-  async function init() {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      setLoggedIn(false)
-      setChecking(false)
-      return
-    }
-    setMyId(user.id)
-    setLoggedIn(true)
-    setLoading(true)
-    await Promise.all([fetchPlayer(user.id), fetchHistory(user.id)])
-    setLoading(false)
-    setChecking(false)
-  }
-
-  async function fetchPlayer(userId: string) {
+  const fetchPlayer = useCallback(async (userId: string) => {
     const { data } = await supabase
       .from('players').select('*').eq('id', userId).single()
     if (data) setPlayer(data)
-  }
+  }, [])
 
-  async function fetchHistory(userId: string) {
+  const fetchHistory = useCallback(async (userId: string) => {
     const { data } = await supabase
       .from('session_players')
       .select(`
@@ -95,7 +73,27 @@ export default function ProfileScreen() {
         slot: d.session.slot,
       })))
     }
-  }
+  }, [])
+
+  const init = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      setLoggedIn(false)
+      setChecking(false)
+      return
+    }
+    setLoggedIn(true)
+    setLoading(true)
+    await Promise.all([fetchPlayer(user.id), fetchHistory(user.id)])
+    setLoading(false)
+    setChecking(false)
+  }, [fetchHistory, fetchPlayer])
+
+  useFocusEffect(
+    useCallback(() => {
+      init()
+    }, [init])
+  )
 
   async function logout() {
     Alert.alert('Đăng xuất?', 'Bạn chắc muốn đăng xuất không?', [
@@ -122,10 +120,6 @@ export default function ProfileScreen() {
     return `${weekday} ${day} · ${hh}:${mm}`
   }
 
-  function skillInfo(value: string) {
-    return SKILL_LEVELS.find(s => s.value === value) ?? SKILL_LEVELS[2]
-  }
-
   function reliabilityScore() {
     if (!player || !player.sessions_joined) return null
     return Math.round(((player.sessions_joined - player.no_show_count) / player.sessions_joined) * 100)
@@ -147,13 +141,13 @@ export default function ProfileScreen() {
   }
 
   if (checking) return (
-    <View style={styles.center}>
+    <SafeAreaView style={styles.center} edges={['top']}>
       <ActivityIndicator size="large" color="#16a34a" />
-    </View>
+    </SafeAreaView>
   )
 
   if (!loggedIn) return (
-    <View style={styles.center}>
+    <SafeAreaView style={styles.center} edges={['top']}>
       <Text style={styles.guestEmoji}>🏓</Text>
       <Text style={styles.guestTitle}>Đăng nhập để xem hồ sơ</Text>
       <Text style={styles.guestSubtitle}>
@@ -165,28 +159,31 @@ export default function ProfileScreen() {
       <TouchableOpacity style={styles.backBtn} onPress={() => router.replace('/(tabs)')}>
         <Text style={styles.backBtnText}>← Về trang chủ</Text>
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   )
 
   if (loading) return (
-    <View style={styles.center}>
+    <SafeAreaView style={styles.center} edges={['top']}>
       <ActivityIndicator size="large" color="#16a34a" />
-    </View>
+    </SafeAreaView>
   )
 
   if (!player) return (
-    <View style={styles.center}>
+    <SafeAreaView style={styles.center} edges={['top']}>
       <Text style={{ color: '#888' }}>Không tìm thấy hồ sơ 😕</Text>
-    </View>
+    </SafeAreaView>
   )
 
-  const skill       = skillInfo(player.skill_label)
+  const skill = getSkillLevelFromPlayer(player)
   const reliability = reliabilityScore()
   const rColor      = reliabilityColor(reliability)
   const hostedCount = history.filter(h => h.is_host).length
+  const placementPlayed = player.placement_matches_played ?? 0
+  const placementLeft = Math.max(0, 5 - placementPlayed)
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 48 }}>
+    <SafeAreaView style={styles.container} edges={['top']}>
+    <ScrollView contentContainerStyle={{ paddingBottom: 48 }}>
 
       {__DEV__ && (
         <TouchableOpacity
@@ -238,9 +235,24 @@ export default function ProfileScreen() {
 
       {/* Trình độ */}
       <View style={styles.skillBanner}>
-        <Text style={styles.skillBannerText}>{skill.label}</Text>
-        <Text style={styles.skillBannerSub}>ELO {player.elo} · {skill.label.split(' ').slice(1).join(' ')}</Text>
+        <Text style={styles.skillBannerText}>{skill?.title ?? 'Chiến thần cọ xát'}</Text>
+        <Text style={styles.skillBannerSub}>
+          Elo {player.current_elo ?? player.elo} · {skill?.subtitle ?? 'Lower Intermediate'}
+        </Text>
       </View>
+
+      {player.is_provisional && (
+        <View style={styles.provisionalCard}>
+          <Text style={styles.provisionalEyebrow}>Placement Mode</Text>
+          <Text style={styles.provisionalTitle}>Tài khoản của bạn đang ở giai đoạn provisional</Text>
+          <Text style={styles.provisionalText}>
+            Đã chơi {placementPlayed}/5 trận placement. Còn {placementLeft} trận để hệ thống ổn định Elo tốt hơn.
+          </Text>
+          <View style={styles.progressTrack}>
+            <View style={[styles.progressFill, { width: `${Math.min(100, (placementPlayed / 5) * 100)}%` }]} />
+          </View>
+        </View>
+      )}
 
       {/* Thông tin */}
       <Text style={styles.sectionTitle}>Thông tin</Text>
@@ -311,11 +323,12 @@ export default function ProfileScreen() {
       </TouchableOpacity>
 
     </ScrollView>
+    </SafeAreaView>
   )
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb', paddingTop: 60 },
+  container: { flex: 1, backgroundColor: '#f9fafb' },
   center: {
     flex: 1, justifyContent: 'center', alignItems: 'center',
     backgroundColor: '#fff', padding: 32,
@@ -369,6 +382,39 @@ const styles = StyleSheet.create({
   },
   skillBannerText: { fontSize: 18, fontWeight: '700', color: '#16a34a', marginBottom: 2 },
   skillBannerSub: { fontSize: 13, color: '#555' },
+  provisionalCard: {
+    marginHorizontal: 20,
+    marginBottom: 24,
+    backgroundColor: '#fffbeb',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#fde68a',
+  },
+  provisionalEyebrow: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#fef3c7',
+    color: '#92400e',
+    fontSize: 11,
+    fontWeight: '800',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 999,
+    marginBottom: 10,
+  },
+  provisionalTitle: { fontSize: 15, fontWeight: '700', color: '#78350f', marginBottom: 6 },
+  provisionalText: { fontSize: 13, color: '#92400e', lineHeight: 19, marginBottom: 12 },
+  progressTrack: {
+    height: 10,
+    borderRadius: 999,
+    backgroundColor: '#fde68a',
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 999,
+    backgroundColor: '#d97706',
+  },
 
   sectionTitle: {
     fontSize: 16, fontWeight: '700', color: '#111',

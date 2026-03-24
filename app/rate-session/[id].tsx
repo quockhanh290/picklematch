@@ -1,10 +1,11 @@
 import { supabase } from '@/lib/supabase'
 import { router, useLocalSearchParams } from 'expo-router'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
     ActivityIndicator, Alert, ScrollView,
     StyleSheet, Text, TouchableOpacity, View,
 } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 const PLAYER_TAGS = [
   { value: 'fair_play', label: '🏅 Chơi đẹp' },
@@ -34,15 +35,12 @@ export default function RateSession() {
   const [loading, setLoading]   = useState(true)
   const [saving, setSaving]     = useState(false)
   const [myId, setMyId]         = useState<string | null>(null)
-  const [isHost, setIsHost]     = useState(false)
   const [players, setPlayers]   = useState<PlayerInSession[]>([])
   const [sessionName, setSessionName] = useState('')
   const [ratings, setRatings]   = useState<Record<string, RatingEntry>>({})
   const [alreadyRated, setAlreadyRated] = useState(false)
 
-  useEffect(() => { init() }, [id])
-
-  async function init() {
+  const init = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.replace('/login' as any); return }
     setMyId(user.id)
@@ -87,7 +85,6 @@ export default function RateSession() {
     }
 
     const hostId = (session as any).host_id
-    setIsHost(user.id === hostId)
     setSessionName((session as any).slot?.court?.name ?? 'Kèo')
 
     // Danh sách người cần rate (trừ mình)
@@ -108,7 +105,11 @@ export default function RateSession() {
     })
     setRatings(init)
     setLoading(false)
-  }
+  }, [id])
+
+  useEffect(() => {
+    init()
+  }, [init])
 
   function toggleTag(playerId: string, tag: string) {
     setRatings(prev => {
@@ -169,34 +170,35 @@ export default function RateSession() {
   }
 
   if (loading) return (
-    <View style={styles.center}>
+    <SafeAreaView style={styles.center} edges={['top']}>
       <ActivityIndicator size="large" color="#16a34a" />
-    </View>
+    </SafeAreaView>
   )
 
   if (alreadyRated) return (
-    <View style={styles.center}>
+    <SafeAreaView style={styles.center} edges={['top']}>
       <Text style={styles.doneEmoji}>✅</Text>
       <Text style={styles.doneTitle}>Bạn đã đánh giá rồi!</Text>
       <Text style={styles.doneSub}>Cảm ơn bạn đã đóng góp cho cộng đồng.</Text>
       <TouchableOpacity style={styles.backHomeBtn} onPress={() => router.replace('/(tabs)' as any)}>
         <Text style={styles.backHomeBtnText}>Về trang chủ</Text>
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   )
 
   if (players.length === 0) return (
-    <View style={styles.center}>
+    <SafeAreaView style={styles.center} edges={['top']}>
       <Text style={styles.doneEmoji}>🏓</Text>
       <Text style={styles.doneTitle}>Không có ai để đánh giá</Text>
       <TouchableOpacity style={styles.backHomeBtn} onPress={() => router.replace('/(tabs)' as any)}>
         <Text style={styles.backHomeBtnText}>Về trang chủ</Text>
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   )
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 48 }}>
+    <SafeAreaView style={styles.container} edges={['top']}>
+    <ScrollView contentContainerStyle={{ paddingBottom: 48 }}>
       <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
         <Text style={styles.backText}>← Quay lại</Text>
       </TouchableOpacity>
@@ -274,11 +276,12 @@ export default function RateSession() {
         </Text>
       </TouchableOpacity>
     </ScrollView>
+    </SafeAreaView>
   )
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb', paddingTop: 60, paddingHorizontal: 20 },
+  container: { flex: 1, backgroundColor: '#f9fafb', paddingHorizontal: 20 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 },
 
   backBtn: { marginBottom: 8 },

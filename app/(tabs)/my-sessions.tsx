@@ -1,25 +1,28 @@
+import { FeedMatchCard } from '@/components/session/FeedMatchCard'
+import { getSkillLevelFromEloRange } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
 import { router, useFocusEffect } from 'expo-router'
 import { useCallback, useState } from 'react'
-import {
-    ActivityIndicator,
-    FlatList,
-    RefreshControl,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-} from 'react-native'
+import { ActivityIndicator, FlatList, RefreshControl, Text, TouchableOpacity, View } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 type MySession = {
   id: string
   status: string
+  court_booking_status: 'confirmed' | 'unconfirmed'
   role: 'host' | 'player'
   start_time: string
+  end_time: string
   court_name: string
   court_city: string
+  court_address: string
+  host_name: string
+  host_is_provisional: boolean
+  price: number
   player_count: number
   max_players: number
+  elo_min: number
+  elo_max: number
 }
 
 export default function MySessions() {
@@ -28,65 +31,65 @@ export default function MySessions() {
   const [refreshing, setRefreshing] = useState(false)
   const [myId, setMyId] = useState<string | null>(null)
 
-  useFocusEffect(
-    useCallback(() => {
-      init()
-    }, [])
-  )
-
-  async function init() {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      setMyId(null)
-      setSessions([])
-      setLoading(false)
-      return
-    }
-    setMyId(user.id)
-    await fetchMySessions(user.id)
-  }
-
-  async function fetchMySessions(userId: string) {
+  const fetchMySessions = useCallback(async (userId: string) => {
     setLoading(true)
 
-    // 1. Kèo host
     const { data: hostSessions } = await supabase
       .from('sessions')
       .select(`
         id,
         status,
+        court_booking_status,
         max_players,
+        elo_min,
+        elo_max,
+        host:host_id ( name, is_provisional ),
         slot:slot_id (
           start_time,
-          court:court_id ( name, city )
+          end_time,
+          price,
+          court:court_id ( name, city, address )
         ),
         session_players ( player_id )
       `)
       .eq('host_id', userId)
       .order('created_at', { ascending: false })
 
-    const hostList: MySession[] = (hostSessions ?? []).map((s: any) => ({
-      id: s.id,
-      status: s.status,
+    const hostList: MySession[] = (hostSessions ?? []).map((session: any) => ({
+      id: session.id,
+      status: session.status,
+      court_booking_status: session.court_booking_status,
       role: 'host',
-      start_time: s.slot?.start_time,
-      court_name: s.slot?.court?.name ?? '',
-      court_city: s.slot?.court?.city ?? '',
-      player_count: (s.session_players ?? []).length,
-      max_players: s.max_players,
+      start_time: session.slot?.start_time,
+      end_time: session.slot?.end_time,
+      court_name: session.slot?.court?.name ?? 'Kèo Pickleball',
+      court_city: session.slot?.court?.city ?? '',
+      court_address: session.slot?.court?.address ?? '',
+      host_name: session.host?.name ?? 'Bạn',
+      host_is_provisional: Boolean(session.host?.is_provisional),
+      price: session.slot?.price ?? 0,
+      player_count: (session.session_players ?? []).length,
+      max_players: session.max_players,
+      elo_min: session.elo_min,
+      elo_max: session.elo_max,
     }))
 
-    // 2. Kèo tham gia (session_players)
     const { data: playerSessions } = await supabase
       .from('session_players')
       .select(`
-        session:sessions (
+        session:session_id (
           id,
           status,
+          court_booking_status,
           max_players,
+          elo_min,
+          elo_max,
+          host:host_id ( name, is_provisional ),
           slot:slot_id (
             start_time,
-            court:court_id ( name, city )
+            end_time,
+            price,
+            court:court_id ( name, city, address )
           ),
           session_players ( player_id )
         )
@@ -94,234 +97,159 @@ export default function MySessions() {
       .eq('player_id', userId)
       .order('created_at', { ascending: false })
 
-    const joinedList: MySession[] = (playerSessions ?? []).map((row: any) => {
-      const s = row.session
-      if (!s) return null
-      return {
-        id: s.id,
-        status: s.status,
-        role: 'player' as const,
-        start_time: s.slot?.start_time,
-        court_name: s.slot?.court?.name ?? '',
-        court_city: s.slot?.court?.city ?? '',
-        player_count: (s.session_players ?? []).length,
-        max_players: s.max_players,
-      }
-    }).filter(Boolean) as MySession[]
+    const joinedList: MySession[] = (playerSessions ?? [])
+      .map((row: any) => {
+        const session = row.session
+        if (!session) return null
 
-    // Gộp & sort theo thời gian gần nhất
-    const all = [...hostList, ...joinedList].sort((a, b) =>
-      new Date(b.start_time).getTime() - new Date(a.start_time).getTime()
+        return {
+          id: session.id,
+          status: session.status,
+          court_booking_status: session.court_booking_status,
+          role: 'player' as const,
+          start_time: session.slot?.start_time,
+          end_time: session.slot?.end_time,
+          court_name: session.slot?.court?.name ?? 'Kèo Pickleball',
+          court_city: session.slot?.court?.city ?? '',
+          court_address: session.slot?.court?.address ?? '',
+          host_name: session.host?.name ?? 'Ẩn danh',
+          host_is_provisional: Boolean(session.host?.is_provisional),
+          price: session.slot?.price ?? 0,
+          player_count: (session.session_players ?? []).length,
+          max_players: session.max_players,
+          elo_min: session.elo_min,
+          elo_max: session.elo_max,
+        }
+      })
+      .filter(Boolean) as MySession[]
+
+    const deduped = [...hostList, ...joinedList].filter(
+      (session, index, arr) => arr.findIndex((candidate) => candidate.id === session.id) === index
     )
 
-    setSessions(all)
-    setLoading(false)
-  }
+    deduped.sort((a, b) => {
+      const bookingWeight = Number(b.court_booking_status === 'confirmed') - Number(a.court_booking_status === 'confirmed')
+      if (bookingWeight !== 0) return bookingWeight
+      return new Date(b.start_time).getTime() - new Date(a.start_time).getTime()
+    })
 
-  async function onRefresh() {
+    setSessions(deduped)
+    setLoading(false)
+  }, [])
+
+  const init = useCallback(async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      setMyId(null)
+      setSessions([])
+      setLoading(false)
+      return
+    }
+
+    setMyId(user.id)
+    await fetchMySessions(user.id)
+  }, [fetchMySessions])
+
+  useFocusEffect(
+    useCallback(() => {
+      init()
+    }, [init])
+  )
+
+  const onRefresh = useCallback(async () => {
     if (!myId) return
     setRefreshing(true)
     await fetchMySessions(myId)
     setRefreshing(false)
+  }, [fetchMySessions, myId])
+
+  function formatTime(start: string, end: string) {
+    const startDate = new Date(start)
+    const endDate = new Date(end)
+    const pad = (value: number) => value.toString().padStart(2, '0')
+
+    return {
+      time: `${pad(startDate.getHours())}:${pad(startDate.getMinutes())} → ${pad(endDate.getHours())}:${pad(endDate.getMinutes())}`,
+      date: `${pad(startDate.getDate())}/${pad(startDate.getMonth() + 1)}`,
+    }
   }
 
-  function formatTime(start: string) {
-    const s = new Date(start)
-    const weekday = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][s.getDay()]
-    const day = s.getDate().toString().padStart(2, '0')
-    const month = (s.getMonth() + 1).toString().padStart(2, '0')
-    const hh = s.getHours().toString().padStart(2, '0')
-    const mm = s.getMinutes().toString().padStart(2, '0')
-    return `${weekday} ${day}/${month} · ${hh}:${mm}`
+  function sessionStatusLabel(status: string, role: 'host' | 'player') {
+    if (status === 'cancelled') return '❌ Đã hủy'
+    if (status === 'done') return '✅ Đã xong'
+    return role === 'host' ? '👑 Bạn là host' : '👤 Đã tham gia'
   }
 
-  const renderSession = ({ item }: { item: MySession }) => {
-    const isOpen = item.status === 'open'
-    const isDone = item.status === 'done'
-    const isCancelled = item.status === 'cancelled'
+  const renderSession = useCallback(({ item }: { item: MySession }) => {
+    const formatted = formatTime(item.start_time, item.end_time)
+    const isFull = item.player_count >= item.max_players
+    const availabilityLabel =
+      item.status === 'open'
+        ? isFull
+          ? `👥 ${item.player_count}/${item.max_players} Đầy`
+          : `👥 ${Math.max(item.max_players - item.player_count, 0)}/${item.max_players} Còn chỗ`
+        : `👥 ${item.player_count}/${item.max_players} Người`
 
     return (
-      <TouchableOpacity
-        style={styles.card}
+      <FeedMatchCard
+        courtName={item.court_name}
+        address={`${item.court_address}${item.court_city ? `, ${item.court_city}` : ''}`}
+        timeLabel={formatted.time}
+        dateLabel={formatted.date}
+        bookingStatus={item.court_booking_status}
+        skillLabel={getSkillLevelFromEloRange(item.elo_min, item.elo_max).title}
+        matchTypeLabel={sessionStatusLabel(item.status, item.role)}
+        hostName={item.host_name}
+        isProvisional={item.host_is_provisional}
+        priceLabel={`${item.price.toLocaleString('vi-VN')}đ/người`}
+        availabilityLabel={availabilityLabel}
         onPress={() => router.push({ pathname: '/session/[id]' as any, params: { id: item.id } })}
-        activeOpacity={0.9}
-      >
-        <View style={styles.cardHeader}>
-          <Text style={styles.courtName} numberOfLines={1}>{item.court_name || 'Kèo Pickleball'}</Text>
-          <View style={[
-            styles.statusBadge,
-            isOpen && styles.statusOpen,
-            isDone && styles.statusDone,
-            isCancelled && styles.statusCancelled,
-          ]}>
-            <Text style={[
-              styles.statusText,
-              isOpen && styles.statusTextOpen,
-              isDone && styles.statusTextDone,
-              isCancelled && styles.statusTextCancelled,
-            ]}>
-              {isOpen && 'Đang mở'}
-              {isDone && 'Đã xong'}
-              {isCancelled && 'Đã huỷ'}
-            </Text>
-          </View>
-        </View>
-        <Text style={styles.time}>{formatTime(item.start_time)} · {item.court_city}</Text>
-        <View style={styles.footer}>
-          <Text style={styles.role}>{item.role === 'host' ? '👑 Host' : '👤 Tham gia'}</Text>
-          <Text style={styles.count}>{item.player_count}/{item.max_players} người</Text>
-        </View>
-      </TouchableOpacity>
+      />
     )
-  }
+  }, [])
 
   if (loading) {
     return (
-      <View style={styles.center}>
+      <SafeAreaView className="flex-1 items-center justify-center bg-gray-50" edges={['top']}>
         <ActivityIndicator size="large" color="#16a34a" />
-      </View>
+      </SafeAreaView>
     )
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Kèo của tôi ({sessions.length})</Text>
+    <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
+      <View className="px-5 pb-4 pt-4">
+        <Text className="text-3xl font-bold text-gray-950">Kèo của tôi ({sessions.length})</Text>
+      </View>
 
       {sessions.length === 0 ? (
-        <View style={styles.empty}>
-          <Text style={styles.emptyEmoji}>🏓</Text>
-          <Text style={styles.emptyTitle}>Chưa có kèo nào</Text>
-          <Text style={styles.emptyText}>Tạo kèo đầu tiên hoặc tham gia kèo bạn bè!</Text>
-          <TouchableOpacity style={styles.createBtn} onPress={() => router.push('/create-session' as any)}>
-            <Text style={styles.createBtnText}>Tạo kèo mới</Text>
+        <View className="flex-1 items-center justify-center px-10">
+          <Text className="mb-4 text-6xl">🏓</Text>
+          <Text className="mb-2 text-center text-xl font-bold text-gray-950">Chưa có kèo nào</Text>
+          <Text className="mb-6 text-center text-base leading-6 text-gray-500">
+            Tạo kèo đầu tiên hoặc tham gia một kèo phù hợp để bắt đầu lịch sử chơi của bạn.
+          </Text>
+          <TouchableOpacity
+            className="rounded-2xl bg-green-600 px-6 py-4"
+            activeOpacity={0.9}
+            onPress={() => router.push('/create-session' as any)}
+          >
+            <Text className="text-base font-bold text-white">Tạo kèo mới</Text>
           </TouchableOpacity>
         </View>
       ) : (
         <FlatList
           data={sessions}
           renderItem={renderSession}
-          keyExtractor={item => item.id}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#16a34a" />
-          }
-          contentContainerStyle={{ paddingBottom: 100 }}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={{ paddingBottom: 32 }}
           showsVerticalScrollIndicator={false}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#16a34a" />}
         />
       )}
-    </View>
+    </SafeAreaView>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f9fafb',
-    paddingTop: 60,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#111',
-    paddingHorizontal: 20,
-    marginBottom: 16,
-  },
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  empty: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 40,
-  },
-  emptyEmoji: {
-    fontSize: 64,
-    marginBottom: 16,
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#111',
-    marginBottom: 8,
-  },
-  emptyText: {
-    fontSize: 15,
-    color: '#666',
-    textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 22,
-  },
-  createBtn: {
-    backgroundColor: '#16a34a',
-    borderRadius: 14,
-    paddingHorizontal: 32,
-    paddingVertical: 14,
-  },
-  createBtnText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  card: {
-    backgroundColor: '#fff',
-    marginHorizontal: 20,
-    marginBottom: 12,
-    borderRadius: 16,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  courtName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#111',
-    flex: 1,
-    marginRight: 8,
-  },
-  statusBadge: {
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  statusOpen: { backgroundColor: '#f0fdf4' },
-  statusDone: { backgroundColor: '#eff6ff' },
-  statusCancelled: { backgroundColor: '#fef2f2' },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  statusTextOpen: { color: '#16a34a' },
-  statusTextDone: { color: '#2563eb' },
-  statusTextCancelled: { color: '#dc2626' },
-  time: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 8,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  role: {
-    fontSize: 13,
-    color: '#16a34a',
-    fontWeight: '600',
-  },
-  count: {
-    fontSize: 13,
-    color: '#888',
-    fontWeight: '500',
-  },
-})

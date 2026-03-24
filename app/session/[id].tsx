@@ -1,18 +1,28 @@
+import DateTimePicker, { DateTimePickerAndroid, type DateTimePickerEvent } from '@react-native-community/datetimepicker'
+import { HostRequestReview } from '@/components/session/HostRequestReview'
+import { JoinRequestModal } from '@/components/session/JoinRequestModal'
+import { SmartJoinButton } from '@/components/session/SmartJoinButton'
+import { getMatchStatus } from '@/lib/matchmaking'
+import { getSkillLevelFromEloRange, getSkillScoreFromEloRange, getSkillScoreFromPlayer } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
 import { insertNotification } from '@/lib/notifications'
 import * as Linking from 'expo-linking'
 import { router, useLocalSearchParams } from 'expo-router'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
+  Platform,
   ScrollView,
   Share,
   StyleSheet,
+  Switch,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 type SessionRecord = {
   id: string
@@ -21,17 +31,48 @@ type SessionRecord = {
   max_players: number
   status: string
   require_approval: boolean
-  host: { id: string; name: string }
+  court_booking_status: 'confirmed' | 'unconfirmed'
+  booking_reference: string | null
+  booking_name: string | null
+  booking_phone: string | null
+  booking_notes: string | null
+  booking_confirmed_at: string | null
+  host: { id: string; name: string; auto_accept?: boolean; is_provisional?: boolean; placement_matches_played?: number }
   slot: {
+    id?: string
     start_time: string
     end_time: string
     price: number
-    court: { name: string; address: string; city: string }
+    court: { name: string; address: string; city: string; booking_url?: string | null; google_maps_url?: string | null }
   }
   session_players: { player_id: string; status: string; player: { name: string } }[]
 }
 
-type RequestStatus = 'none' | 'pending' | 'approved' | 'rejected'
+type RequestStatus = 'none' | 'pending' | 'accepted' | 'rejected'
+type JoinRequestRecord = {
+  id: string
+  player_id: string
+  status: RequestStatus
+  intro_note?: string | null
+  host_response_template?: string | null
+  player: {
+    name: string
+    elo?: number | null
+    current_elo?: number | null
+    self_assessed_level?: string | null
+    skill_label?: string | null
+    sessions_joined?: number | null
+    no_show_count?: number | null
+  }
+}
+type MyPlayerRecord = {
+  id: string
+  name: string
+  elo: number
+  current_elo?: number | null
+  self_assessed_level?: string | null
+  skill_label?: string | null
+}
 
 export default function SessionDetail() {
   const { id, created } = useLocalSearchParams<{ id: string; created?: string }>()
@@ -42,33 +83,50 @@ export default function SessionDetail() {
   const [requesting, setRequesting] = useState(false)
   const [cancelling, setCancelling] = useState(false)
   const [myId, setMyId] = useState<string | null>(null)
+  const [myPlayer, setMyPlayer] = useState<MyPlayerRecord | null>(null)
   const [requestStatus, setRequestStatus] = useState<RequestStatus>('none')
+  const [myHostTemplate, setMyHostTemplate] = useState<string | null>(null)
   const [alreadyRated, setAlreadyRated] = useState(false)
-  const [pendingRequests, setPendingRequests] = useState<
-    { id: string; player_id: string; player: { name: string; elo: number; sessions_joined: number; no_show_count: number } }[]
-  >([])
+  const [bookingReference, setBookingReference] = useState('')
+  const [bookingName, setBookingName] = useState('')
+  const [bookingPhone, setBookingPhone] = useState('')
+  const [bookingNotes, setBookingNotes] = useState('')
+  const [savingBooking, setSavingBooking] = useState(false)
+  const [isEditingSession, setIsEditingSession] = useState(false)
+  const [savingSessionEdit, setSavingSessionEdit] = useState(false)
+  const [editStartTime, setEditStartTime] = useState('')
+  const [editEndTime, setEditEndTime] = useState('')
+  const [editMaxPlayers, setEditMaxPlayers] = useState('')
+  const [editPrice, setEditPrice] = useState('')
+  const [editRequireApproval, setEditRequireApproval] = useState(false)
+  const [showEditStartPicker, setShowEditStartPicker] = useState(false)
+  const [showEditEndPicker, setShowEditEndPicker] = useState(false)
+  const [pendingRequests, setPendingRequests] = useState<JoinRequestRecord[]>([])
+  const [joinModalVisible, setJoinModalVisible] = useState(false)
+  const [introNote, setIntroNote] = useState('')
   const [refreshKey, setRefreshKey] = useState(0)
 
-  useEffect(() => {
-    init()
-  }, [id])
+  const fetchMyPlayer = useCallback(async (userId: string) => {
+    const { data } = await supabase
+      .from('players')
+      .select('id, name, elo, current_elo, self_assessed_level, skill_label')
+      .eq('id', userId)
+      .maybeSingle()
 
-  async function init() {
-    const { data: { user } } = await supabase.auth.getUser()
-    setMyId(user?.id ?? null)
-    await fetchSession(user?.id ?? null)
-  }
+    setMyPlayer((data as MyPlayerRecord | null) ?? null)
+  }, [])
 
-  async function fetchSession(userId?: string | null) {
+  const fetchSession = useCallback(async (userId?: string | null) => {
     setLoading(true)
     const { data, error } = await supabase
       .from('sessions')
       .select(`
         id, elo_min, elo_max, max_players, status, require_approval,
-        host:host_id ( id, name ),
+        court_booking_status, booking_reference, booking_name, booking_phone, booking_notes, booking_confirmed_at,
+        host:host_id ( id, name, auto_accept, is_provisional, placement_matches_played ),
         slot:slot_id (
-          start_time, end_time, price,
-          court:court_id ( name, address, city )
+          id, start_time, end_time, price,
+          court:court_id ( name, address, city, booking_url, google_maps_url )
         ),
         session_players (
           player_id, status,
@@ -80,6 +138,15 @@ export default function SessionDetail() {
 
     if (!error && data) {
       setSession(data as any)
+      setBookingReference((data as any).booking_reference ?? '')
+      setBookingName((data as any).booking_name ?? '')
+      setBookingPhone((data as any).booking_phone ?? '')
+      setBookingNotes((data as any).booking_notes ?? '')
+      setEditStartTime(formatClockInput((data as any).slot?.start_time))
+      setEditEndTime(formatClockInput((data as any).slot?.end_time))
+      setEditMaxPlayers(String((data as any).max_players ?? ''))
+      setEditPrice(String((data as any).slot?.price ?? ''))
+      setEditRequireApproval(Boolean((data as any).require_approval))
       const uid = userId ?? myId
       if (uid) {
         const isEligibleForRating =
@@ -87,12 +154,14 @@ export default function SessionDetail() {
           (uid === (data.host as any)?.id || (data.session_players ?? []).some((p: any) => p.player_id === uid))
 
         const { data: reqData } = await supabase
-          .from('session_requests')
-          .select('status')
-          .eq('session_id', data.id)
+          .from('join_requests')
+          .select('status, host_response_template, intro_note')
+          .eq('match_id', data.id)
           .eq('player_id', uid)
           .maybeSingle()
         setRequestStatus((reqData?.status as RequestStatus) ?? 'none')
+        setMyHostTemplate(reqData?.host_response_template ?? null)
+        setIntroNote(reqData?.intro_note ?? '')
 
         if (isEligibleForRating) {
           const { data: ratingData } = await supabase
@@ -112,26 +181,317 @@ export default function SessionDetail() {
         }
       } else {
         setAlreadyRated(false)
+        setRequestStatus('none')
+        setMyHostTemplate(null)
       }
     }
 
     setLoading(false)
-  }
+  }, [id, myId])
+
+  useEffect(() => {
+    async function init() {
+      const { data: { user } } = await supabase.auth.getUser()
+      setMyId(user?.id ?? null)
+      if (user?.id) {
+        await fetchMyPlayer(user.id)
+      } else {
+        setMyPlayer(null)
+      }
+      await fetchSession(user?.id ?? null)
+    }
+
+    init()
+  }, [fetchMyPlayer, fetchSession])
 
   async function fetchPendingRequests(sessionId: string) {
     const { data } = await supabase
-      .from('session_requests')
+      .from('join_requests')
       .select(`
-        id, player_id,
-        player:player_id ( name, elo, sessions_joined, no_show_count )
+        id, player_id, status, intro_note, host_response_template,
+        player:player_id ( name, elo, current_elo, self_assessed_level, skill_label, sessions_joined, no_show_count )
       `)
-      .eq('session_id', sessionId)
+      .eq('match_id', sessionId)
       .eq('status', 'pending')
 
-    setPendingRequests((data as any) ?? [])
+    setPendingRequests((data as JoinRequestRecord[]) ?? [])
   }
 
-  async function joinSession() {
+  function formatClockInput(dateStr?: string | null) {
+    if (!dateStr) return ''
+    const date = new Date(dateStr)
+    const hh = date.getHours().toString().padStart(2, '0')
+    const mm = date.getMinutes().toString().padStart(2, '0')
+    return `${hh}:${mm}`
+  }
+
+  function applyClockToDate(dateStr: string, timeValue: string) {
+    const [hours, minutes] = timeValue.split(':').map((value) => parseInt(value, 10))
+    const date = new Date(dateStr)
+    date.setHours(hours || 0, minutes || 0, 0, 0)
+    return date
+  }
+
+  function pickerTimeValue(baseDate: string, timeValue: string) {
+    if (!timeValue || !isValidClockValue(timeValue)) return new Date(baseDate)
+    return applyClockToDate(baseDate, timeValue)
+  }
+
+  function isValidClockValue(value: string) {
+    return /^([01]\d|2[0-3]):([0-5]\d)$/.test(value)
+  }
+
+  function buildSessionUpdateSummary(changes: string[]) {
+    if (changes.length === 0) return 'Host vừa cập nhật một số thông tin của kèo.'
+    return `Host vừa cập nhật kèo: ${changes.join(', ')}. Vui lòng kiểm tra lại chi tiết kèo nhé.`
+  }
+
+  function hasBookingInfo() {
+    return [bookingReference, bookingName, bookingPhone, bookingNotes].some((value) => value.trim().length > 0)
+  }
+
+  function bookingStatusConfig(status: 'confirmed' | 'unconfirmed') {
+    if (status === 'confirmed') {
+      return {
+        bg: '#f0fdf4',
+        text: '#166534',
+        label: 'San da xac nhan',
+      }
+    }
+
+    return {
+      bg: '#fffbeb',
+      text: '#92400e',
+      label: 'San chua xac nhan',
+    }
+  }
+
+  async function openCourtBookingLink() {
+    const url = session?.slot?.court?.booking_url ?? session?.slot?.court?.google_maps_url
+    if (!url) {
+      Alert.alert('Chưa có link đặt sân', 'Sân này chưa có link booking. Bạn vẫn có thể tự đặt rồi nhập thông tin booking bên dưới.')
+      return
+    }
+
+    try {
+      await Linking.openURL(url)
+    } catch {
+      Alert.alert('Không mở được link', 'Vui lòng thử lại hoặc mở link booking của sân theo cách khác.')
+    }
+  }
+
+  async function confirmCourtBooking() {
+    if (!session || !myId || myId !== session.host.id) return
+    if (!hasBookingInfo()) {
+      Alert.alert('Thiếu thông tin booking', 'Hãy nhập ít nhất một thông tin booking để xác nhận sân.')
+      return
+    }
+
+    setSavingBooking(true)
+    const confirmedAt = new Date().toISOString()
+    const payload = {
+      court_booking_status: 'confirmed',
+      booking_reference: bookingReference.trim() || null,
+      booking_name: bookingName.trim() || null,
+      booking_phone: bookingPhone.trim() || null,
+      booking_notes: bookingNotes.trim() || null,
+      booking_confirmed_at: confirmedAt,
+    }
+
+    const { error } = await supabase
+      .from('sessions')
+      .update(payload)
+      .eq('id', session.id)
+
+    setSavingBooking(false)
+
+    if (error) {
+      Alert.alert('Lỗi', error.message)
+      return
+    }
+
+    setSession((prev) => (prev ? { ...prev, ...payload } : prev))
+    Alert.alert('Đã xác nhận sân', 'Thông tin booking đã được lưu cho kèo này.')
+  }
+
+  async function saveSessionEdits() {
+    if (!session || !isHost) return
+
+    if (!isValidClockValue(editStartTime) || !isValidClockValue(editEndTime)) {
+      Alert.alert('Giờ không hợp lệ', 'Vui lòng nhập giờ theo định dạng HH:MM.')
+      return
+    }
+
+    const nextMaxPlayers = parseInt(editMaxPlayers, 10)
+    const nextPrice = parseInt(editPrice.replace(/\D/g, ''), 10)
+
+    if (!nextMaxPlayers || nextMaxPlayers < session.session_players.length) {
+      Alert.alert('Số người không hợp lệ', 'Max players không được nhỏ hơn số người đang có trong kèo.')
+      return
+    }
+
+    const nextStart = applyClockToDate(session.slot.start_time, editStartTime)
+    const nextEnd = applyClockToDate(session.slot.end_time, editEndTime)
+
+    if (nextEnd <= nextStart) {
+      Alert.alert('Giờ kết thúc không hợp lệ', 'Giờ kết thúc phải sau giờ bắt đầu.')
+      return
+    }
+
+    const changedFields: string[] = []
+
+    if (editStartTime !== formatClockInput(session.slot.start_time) || editEndTime !== formatClockInput(session.slot.end_time)) {
+      changedFields.push(`giờ chơi ${editStartTime} → ${editEndTime}`)
+    }
+    if (nextMaxPlayers !== session.max_players) {
+      changedFields.push(`số chỗ ${session.max_players} → ${nextMaxPlayers}`)
+    }
+    if (nextPrice !== session.slot.price) {
+      changedFields.push(`giá ${(session.slot.price ?? 0).toLocaleString('vi-VN')}đ → ${nextPrice.toLocaleString('vi-VN')}đ`)
+    }
+    if (editRequireApproval !== session.require_approval) {
+      changedFields.push(editRequireApproval ? 'bật duyệt tay' : 'tắt duyệt tay')
+    }
+
+    if (changedFields.length === 0) {
+      setIsEditingSession(false)
+      Alert.alert('Không có thay đổi', 'Bạn chưa chỉnh sửa thông tin nào của kèo.')
+      return
+    }
+
+    setSavingSessionEdit(true)
+
+    const { data: updatedSlots, error: slotError } = await supabase
+      .from('court_slots')
+      .update({
+        start_time: nextStart.toISOString(),
+        end_time: nextEnd.toISOString(),
+        price: nextPrice,
+      })
+      .eq('id', (session as any).slot_id ?? (session as any).slot?.id)
+      .select('id, start_time, end_time, price')
+
+    if (slotError) {
+      setSavingSessionEdit(false)
+      Alert.alert('Lỗi', slotError.message)
+      return
+    }
+
+    if (!updatedSlots || updatedSlots.length === 0) {
+      setSavingSessionEdit(false)
+      Alert.alert('Không lưu được thay đổi', 'Host chưa có quyền cập nhật khung giờ của kèo này. Hãy chạy migration policy mới trong Supabase.')
+      return
+    }
+
+    const { data: updatedSessions, error: sessionError } = await supabase
+      .from('sessions')
+      .update({
+        max_players: nextMaxPlayers,
+        require_approval: editRequireApproval,
+        start_time: nextStart.toISOString(),
+        end_time: nextEnd.toISOString(),
+        total_cost: nextPrice,
+        cost_per_player: nextMaxPlayers > 0 ? Math.ceil(nextPrice / nextMaxPlayers) : null,
+      })
+      .eq('id', session.id)
+      .select('id, max_players, require_approval')
+
+    setSavingSessionEdit(false)
+
+    if (sessionError) {
+      Alert.alert('Lỗi', sessionError.message)
+      return
+    }
+
+    if (!updatedSessions || updatedSessions.length === 0) {
+      Alert.alert('Không lưu được thay đổi', 'Host chưa có quyền cập nhật thông tin kèo này. Hãy chạy migration policy mới trong Supabase.')
+      return
+    }
+
+    const playerIdsToNotify = session.session_players
+      .filter((player) => player.player_id !== session.host.id)
+      .map((player) => player.player_id)
+
+    await Promise.all(
+      playerIdsToNotify.map((playerId) =>
+        insertNotification(
+          playerId,
+          'Kèo vừa được cập nhật',
+          buildSessionUpdateSummary(changedFields),
+          'session_updated',
+          `/session/${session.id}`,
+        )
+      )
+    )
+
+    setSession((prev) =>
+      prev
+        ? {
+            ...prev,
+            max_players: nextMaxPlayers,
+            require_approval: editRequireApproval,
+            slot: {
+              ...prev.slot,
+              start_time: nextStart.toISOString(),
+              end_time: nextEnd.toISOString(),
+              price: nextPrice,
+            },
+          }
+        : prev
+    )
+    setEditStartTime(formatClockInput(nextStart.toISOString()))
+    setEditEndTime(formatClockInput(nextEnd.toISOString()))
+    setEditMaxPlayers(String(nextMaxPlayers))
+    setEditPrice(String(nextPrice))
+    setIsEditingSession(false)
+    Alert.alert('Đã cập nhật kèo', 'Những người đã join kèo đã được thông báo về thay đổi mới.')
+  }
+
+  function handleEditTimeChange(field: 'start' | 'end') {
+    return (event: DateTimePickerEvent, selectedDate?: Date) => {
+      if (field === 'start') {
+        setShowEditStartPicker(false)
+      } else {
+        setShowEditEndPicker(false)
+      }
+
+      if (event.type !== 'set' || !selectedDate) return
+
+      const nextValue = formatClockInput(selectedDate.toISOString())
+      if (field === 'start') {
+        setEditStartTime(nextValue)
+      } else {
+        setEditEndTime(nextValue)
+      }
+    }
+  }
+
+  function openEditTimePicker(field: 'start' | 'end') {
+    if (!session) return
+
+    const value =
+      field === 'start'
+        ? pickerTimeValue(session.slot.start_time, editStartTime)
+        : pickerTimeValue(session.slot.end_time, editEndTime)
+
+    if (Platform.OS === 'android') {
+      DateTimePickerAndroid.open({
+        value,
+        mode: 'time',
+        is24Hour: true,
+        onChange: handleEditTimeChange(field),
+      })
+      return
+    }
+
+    if (field === 'start') {
+      setShowEditStartPicker(true)
+    } else {
+      setShowEditEndPicker(true)
+    }
+  }
+
+  async function directJoinSession() {
     if (!myId) {
       Alert.alert('Cần đăng nhập', 'Bạn cần đăng nhập để tham gia kèo này', [
         { text: 'Huỷ', style: 'cancel' },
@@ -142,37 +502,21 @@ export default function SessionDetail() {
 
     if (!session) return
 
-    // ELO gate
     setJoining(true)
-    const { data: myPlayer } = await supabase
-      .from('players')
-      .select('elo')
-      .eq('id', myId)
-      .maybeSingle()
-
-    if (myPlayer?.elo != null) {
-      if (myPlayer.elo < session.elo_min || myPlayer.elo > session.elo_max) {
-        setJoining(false)
-        Alert.alert(
-          'Không đủ trình độ',
-          `Kèo này yêu cầu ELO ${session.elo_min}–${session.elo_max}.\nELO của bạn: ${myPlayer.elo}`,
-        )
-        return
-      }
-    }
-
-    // If host requires approval, route through the request flow instead
-    if (session.require_approval) {
-      setJoining(false)
-      await sendRequest()
-      return
-    }
-
     const { error } = await supabase.from('session_players').insert({
       session_id: session.id,
       player_id: myId,
       status: 'confirmed',
     })
+
+    if (!error) {
+      await supabase
+        .from('join_requests')
+        .update({ status: 'accepted' })
+        .eq('match_id', session.id)
+        .eq('player_id', myId)
+    }
+
     setJoining(false)
 
     if (error) {
@@ -181,10 +525,11 @@ export default function SessionDetail() {
     }
 
     Alert.alert('Tham gia thành công', 'Bạn đã vào kèo này rồi nhé.')
+    setRequestStatus('accepted')
     await fetchSession(myId)
   }
 
-  async function sendRequest() {
+  async function sendJoinRequest(mode: RequestStatus | 'waitlist', noteOverride?: string) {
     if (!myId) {
       Alert.alert('Cần đăng nhập', 'Bạn cần đăng nhập để gửi yêu cầu', [
         { text: 'Huỷ', style: 'cancel' },
@@ -196,11 +541,17 @@ export default function SessionDetail() {
     if (!session) return
 
     setRequesting(true)
-    const { error } = await supabase.from('session_requests').insert({
-      session_id: session.id,
-      player_id: myId,
-      status: 'pending',
-    })
+    const { error } = await supabase.from('join_requests').upsert(
+      {
+        match_id: session.id,
+        player_id: myId,
+        status: 'pending',
+        intro_note: noteOverride?.trim() || introNote.trim() || null,
+      },
+      {
+        onConflict: 'match_id,player_id',
+      }
+    )
     setRequesting(false)
 
     if (error) {
@@ -209,21 +560,21 @@ export default function SessionDetail() {
     }
 
     setRequestStatus('pending')
-    Alert.alert('Đã gửi yêu cầu', 'Chờ host duyệt nhé.')
+    setJoinModalVisible(false)
+    setMyHostTemplate(null)
+    Alert.alert(
+      mode === 'waitlist' ? 'Đã đăng ký dự bị' : 'Đã gửi yêu cầu',
+      mode === 'waitlist' ? 'Host sẽ thấy bạn trong danh sách dự bị nếu có slot trống.' : 'Chờ host duyệt nhé.'
+    )
 
     // Notify host
-    const { data: myData } = await supabase
-      .from('players')
-      .select('name, elo')
-      .eq('id', myId)
-      .maybeSingle()
-    if (myData) {
+    if (myPlayer) {
       const slotTime = new Date(session.slot.start_time)
         .toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
       await insertNotification(
         session.host.id,
-        'Có người muốn join kèo!',
-        `${myData.name} (Elo ${myData.elo}) xin tham gia kèo lúc ${slotTime}`,
+        mode === 'waitlist' ? 'Có người đăng ký dự bị' : 'Có người muốn join kèo!',
+        `${myPlayer.name} (Elo ${myPlayer.current_elo ?? myPlayer.elo}) gửi yêu cầu vào kèo lúc ${slotTime}`,
         'join_request',
         `/session/${session.id}`,
       )
@@ -234,11 +585,11 @@ export default function SessionDetail() {
     if (!session) return
 
     const { error: reqErr } = await supabase
-      .from('session_requests')
-      .update({ status: 'approved' })
+      .from('join_requests')
+      .update({ status: 'accepted' })
       .eq('id', requestId)
     if (reqErr) {
-      console.warn('[approveRequest] update session_requests failed:', reqErr.message)
+      console.warn('[approveRequest] update join_requests failed:', reqErr.message)
       Alert.alert('Lỗi', reqErr.message)
       return
     }
@@ -278,7 +629,7 @@ export default function SessionDetail() {
     if (!session) return
 
     const { error } = await supabase
-      .from('session_requests')
+      .from('join_requests')
       .update({ status: 'rejected' })
       .eq('id', requestId)
     if (error) {
@@ -305,6 +656,36 @@ export default function SessionDetail() {
     await fetchSession(myId)
   }
 
+  async function replyWithTemplate(requestId: string, playerId: string, template: string) {
+    if (!session) return
+
+    const { error } = await supabase
+      .from('join_requests')
+      .update({ host_response_template: template })
+      .eq('id', requestId)
+
+    if (error) {
+      Alert.alert('Lỗi', error.message)
+      return
+    }
+
+    setPendingRequests((prev) =>
+      prev.map((request) =>
+        request.id === requestId ? { ...request, host_response_template: template } : request
+      )
+    )
+
+    await insertNotification(
+      playerId,
+      'Host đã phản hồi yêu cầu',
+      template,
+      'join_request_reply',
+      `/session/${session.id}`,
+    )
+
+    Alert.alert('Đã gửi phản hồi', 'Template đã được lưu và gửi cho người chơi.')
+  }
+
   async function leaveSession() {
     if (!myId || !session) return
 
@@ -314,6 +695,10 @@ export default function SessionDetail() {
         text: 'Rời kèo',
         style: 'destructive',
         onPress: async () => {
+          const leavingPlayer = session.session_players.find((p) => p.player_id === myId)
+          const slotTime = new Date(session.slot.start_time)
+            .toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+
           setLeaving(true)
           const { error } = await supabase
             .from('session_players')
@@ -325,6 +710,22 @@ export default function SessionDetail() {
             setLeaving(false)
             Alert.alert('Lỗi', error.message)
             return
+          }
+
+          await supabase
+            .from('join_requests')
+            .delete()
+            .eq('match_id', session.id)
+            .eq('player_id', myId)
+
+          if (session.host.id !== myId) {
+            await insertNotification(
+              session.host.id,
+              'Người chơi đã rời kèo',
+              `${leavingPlayer?.player?.name ?? 'Một người chơi'} đã rời kèo lúc ${slotTime}.`,
+              'player_left',
+              `/session/${session.id}`,
+            )
           }
 
           setSession(prev =>
@@ -350,6 +751,11 @@ export default function SessionDetail() {
     if (!session) return
 
     const isFull = session.session_players.length >= session.max_players
+    const playerIdsToNotify = session.session_players
+      .filter((p) => p.player_id !== session.host.id)
+      .map((p) => p.player_id)
+    const slotTime = new Date(session.slot.start_time)
+      .toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
     const alertTitle = isFull ? 'Kèo đã đủ người' : 'Huỷ kèo?'
     const alertMessage = isFull
       ? 'Kèo đã đủ người chơi, huỷ kèo này sẽ ảnh hưởng đến tỷ lệ huỷ kèo của bạn. Bạn có chắc không?'
@@ -364,7 +770,7 @@ export default function SessionDetail() {
           setCancelling(true)
 
           await supabase.from('session_players').delete().eq('session_id', session.id)
-          await supabase.from('session_requests').delete().eq('session_id', session.id)
+          await supabase.from('join_requests').delete().eq('match_id', session.id)
 
           const { error } = await supabase
             .from('sessions')
@@ -381,24 +787,24 @@ export default function SessionDetail() {
             return
           }
 
+          await Promise.all(
+            playerIdsToNotify.map((playerId) =>
+              insertNotification(
+                playerId,
+                'Host đã huỷ kèo',
+                `Kèo lúc ${slotTime} đã bị host huỷ.`,
+                'session_cancelled',
+                `/session/${session.id}`,
+              )
+            )
+          )
+
           Alert.alert('Đã huỷ kèo', 'Kèo của bạn đã được huỷ.', [
             { text: 'OK', onPress: () => router.replace('/(tabs)' as any) },
           ])
         },
       },
     ])
-  }
-
-  function reliabilityScore(joined: number, noShow: number) {
-    if (!joined) return null
-    return Math.round(((joined - noShow) / joined) * 100)
-  }
-
-  function reliabilityColor(score: number | null) {
-    if (score === null) return '#9ca3af'
-    if (score >= 90) return '#16a34a'
-    if (score >= 70) return '#d97706'
-    return '#dc2626'
   }
 
   function formatTime(start: string, end: string) {
@@ -412,26 +818,22 @@ export default function SessionDetail() {
   }
 
   function skillLabel(eloMin: number, eloMax: number) {
-    if (eloMax <= 850) return 'Mới bắt đầu'
-    if (eloMax <= 950) return 'Cơ bản'
-    if (eloMax <= 1100) return 'Trung bình'
-    if (eloMax <= 1250) return 'Khá'
-    return 'Giỏi'
+    return getSkillLevelFromEloRange(eloMin, eloMax).title
   }
 
   if (loading) {
     return (
-      <View style={styles.center}>
+      <SafeAreaView style={styles.center} edges={['top']}>
         <ActivityIndicator size="large" color="#16a34a" />
-      </View>
+      </SafeAreaView>
     )
   }
 
   if (!session) {
     return (
-      <View style={styles.center}>
+      <SafeAreaView style={styles.center} edges={['top']}>
         <Text style={{ color: '#888' }}>Không tìm thấy kèo này</Text>
-      </View>
+      </SafeAreaView>
     )
   }
 
@@ -439,17 +841,32 @@ export default function SessionDetail() {
   const isHost = myId === (session.host as any)?.id
   const hasJoined = players.some(p => p.player_id === (myId ?? ''))
   const nonHostPlayers = players.filter(p => p.player_id !== (session.host as any)?.id)
-  const isFull = players.length >= session.max_players
   const court = session.slot?.court
   const spotsLeft = session.max_players - players.length
   const isDone = session.status === 'done'
   const isCancelled = session.status === 'cancelled'
   const canRateSession = session.status === 'done' && (hasJoined || isHost)
+  const bookingCfg = bookingStatusConfig(session.court_booking_status)
+  const matchTargetScore = getSkillScoreFromEloRange(session.elo_min, session.elo_max)
+  const mySkillScore = getSkillScoreFromPlayer(myPlayer)
+  const smartJoinStatus = mySkillScore == null
+    ? 'MATCHED'
+    : getMatchStatus(mySkillScore, matchTargetScore, players.length, session.max_players)
+  const matchTargetElo = Math.round((session.elo_min + session.elo_max) / 2)
+  const hostRequiresApproval = session.require_approval || !session.host.auto_accept
+
+  function handleSmartJoinPress() {
+    if (smartJoinStatus === 'MATCHED' && !hostRequiresApproval) {
+      void directJoinSession()
+      return
+    }
+    setJoinModalVisible(true)
+  }
 
   return (
+    <SafeAreaView style={styles.container} edges={['top']}>
     <ScrollView
       key={refreshKey}
-      style={styles.container}
       contentContainerStyle={{ paddingBottom: 48 }}
     >
       <View style={styles.topRow}>
@@ -482,6 +899,22 @@ export default function SessionDetail() {
         </View>
       )}
 
+      <View style={[styles.bookingBadge, { backgroundColor: bookingCfg.bg }]}>
+        <Text style={[styles.bookingBadgeText, { color: bookingCfg.text }]}>
+          {bookingCfg.label}
+        </Text>
+      </View>
+
+      {(session.booking_reference || session.booking_name || session.booking_phone || session.booking_notes) && (
+        <View style={styles.bookingInfoCard}>
+          <Text style={styles.bookingInfoTitle}>Thông tin booking</Text>
+          {session.booking_reference && <Text style={styles.bookingInfoText}>Mã booking: {session.booking_reference}</Text>}
+          {session.booking_name && <Text style={styles.bookingInfoText}>Người đặt: {session.booking_name}</Text>}
+          {session.booking_phone && <Text style={styles.bookingInfoText}>Số điện thoại: {session.booking_phone}</Text>}
+          {session.booking_notes && <Text style={styles.bookingInfoText}>Ghi chú: {session.booking_notes}</Text>}
+        </View>
+      )}
+
       <View style={styles.infoRow}>
         <View style={styles.infoCard}>
           <Text style={styles.infoLabel}>Thời gian</Text>
@@ -503,6 +936,7 @@ export default function SessionDetail() {
       <Text style={styles.sectionTitle}>
         Người chơi · {players.length}/{session.max_players}
         {session.status === 'open' && spotsLeft > 0 && <Text style={styles.spotsLeft}> · Còn {spotsLeft} chỗ</Text>}
+        {session.status === 'open' && spotsLeft <= 0 && <Text style={styles.spotsFull}> · Đã đủ người</Text>}
       </Text>
 
       <TouchableOpacity
@@ -518,6 +952,13 @@ export default function SessionDetail() {
         <View style={styles.hostBadge}>
           <Text style={styles.hostBadgeText}>Host</Text>
         </View>
+        {(session.host as any)?.is_provisional && (
+          <View style={styles.provisionalHostBadge}>
+            <Text style={styles.provisionalHostBadgeText}>
+              Placement {(session.host as any)?.placement_matches_played ?? 0}/5
+            </Text>
+          </View>
+        )}
       </TouchableOpacity>
 
       {nonHostPlayers.map(p => (
@@ -542,50 +983,15 @@ export default function SessionDetail() {
         </View>
       ))}
 
-      {isHost && pendingRequests.length > 0 && (
-        <>
-          <Text style={[styles.sectionTitle, { marginTop: 32 }]}>
-            Yêu cầu tham gia · {pendingRequests.length}
-          </Text>
-          {pendingRequests.map(req => {
-            const p = req.player as any
-            const reliability = reliabilityScore(p.sessions_joined ?? 0, p.no_show_count ?? 0)
-            const rColor = reliabilityColor(reliability)
-
-            return (
-              <View key={req.id} style={styles.requestCard}>
-                <TouchableOpacity
-                  style={styles.requestLeft}
-                  onPress={() => router.push({ pathname: '/player/[id]' as any, params: { id: req.player_id } })}
-                >
-                  <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>{p.name?.[0]?.toUpperCase() ?? '?'}</Text>
-                  </View>
-                  <View>
-                    <Text style={styles.requestName}>{p.name}</Text>
-                    <Text style={styles.requestMeta}>
-                      ELO {p.elo ?? '—'} ·{' '}
-                      <Text style={{ color: rColor, fontWeight: '600' }}>
-                        {reliability === null ? 'Mới' : `${reliability}% tin cậy`}
-                      </Text>
-                      {(p.no_show_count ?? 0) > 0 && (
-                        <Text style={{ color: '#dc2626' }}> · {p.no_show_count} no-show</Text>
-                      )}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-                <View style={styles.requestActions}>
-                  <TouchableOpacity style={styles.approveBtn} onPress={() => approveRequest(req.id, req.player_id)}>
-                    <Text style={styles.approveBtnText}>✓</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.rejectBtn} onPress={() => rejectRequest(req.id, req.player_id)}>
-                    <Text style={styles.rejectBtnText}>✕</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            )
-          })}
-        </>
+      {isHost && (
+        <HostRequestReview
+          requests={pendingRequests}
+          matchTargetElo={matchTargetElo}
+          onOpenPlayer={(playerId) => router.push({ pathname: '/player/[id]' as any, params: { id: playerId } })}
+          onAccept={approveRequest}
+          onReject={rejectRequest}
+          onReplyTemplate={replyWithTemplate}
+        />
       )}
 
       {canRateSession && alreadyRated ? (
@@ -619,33 +1025,156 @@ export default function SessionDetail() {
               <TouchableOpacity style={styles.leaveBtn} onPress={leaveSession} disabled={leaving}>
                 <Text style={styles.leaveBtnText}>{leaving ? 'Đang rời...' : 'Rời kèo'}</Text>
               </TouchableOpacity>
-            ) : isFull ? (
-              <View style={styles.fullBtn}>
-                <Text style={styles.fullBtnText}>Kèo đã đầy</Text>
-              </View>
-            ) : session.require_approval ? (
-              requestStatus === 'pending' ? (
-                <View style={styles.pendingBtn}>
-                  <Text style={styles.pendingBtnText}>Đang chờ host duyệt...</Text>
-                </View>
-              ) : requestStatus === 'rejected' ? (
-                <View style={styles.fullBtn}>
-                  <Text style={styles.fullBtnText}>Yêu cầu đã bị từ chối</Text>
-                </View>
-              ) : (
-                <TouchableOpacity style={styles.joinBtn} onPress={sendRequest} disabled={requesting}>
-                  <Text style={styles.joinBtnText}>{requesting ? 'Đang gửi...' : 'Gửi yêu cầu tham gia'}</Text>
-                </TouchableOpacity>
-              )
             ) : (
-              <TouchableOpacity style={styles.joinBtn} onPress={joinSession} disabled={joining}>
-                <Text style={styles.joinBtnText}>{joining ? 'Đang tham gia...' : 'Tham gia kèo'}</Text>
-              </TouchableOpacity>
+              <SmartJoinButton
+                matchStatus={smartJoinStatus}
+                requestStatus={requestStatus}
+                hostResponseTemplate={myHostTemplate}
+                loading={joining || requesting}
+                onPress={handleSmartJoinPress}
+              />
             )
           )}
 
           {isHost && (
             <>
+              <View style={styles.hostActionsCard}>
+                <View style={styles.hostActionsHeader}>
+                  <View style={styles.hostActionsCopy}>
+                    <Text style={styles.hostActionsTitle}>Chỉnh sửa kèo</Text>
+                    <Text style={styles.hostActionsSub}>
+                      Khi lưu thay đổi, người đã join kèo sẽ nhận được notification cập nhật.
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    style={styles.editToggleBtn}
+                    onPress={() => setIsEditingSession((prev) => !prev)}
+                  >
+                    <Text style={styles.editToggleBtnText}>{isEditingSession ? 'Đóng' : 'Sửa kèo'}</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {isEditingSession && (
+                  <View style={styles.editSessionForm}>
+                    <View style={styles.editRow}>
+                      <View style={styles.editField}>
+                        <Text style={styles.editFieldLabel}>Giờ bắt đầu</Text>
+                        <TouchableOpacity style={styles.timePickerBtn} onPress={() => openEditTimePicker('start')}>
+                          <Text style={styles.timePickerText}>{editStartTime || '11:00'}</Text>
+                        </TouchableOpacity>
+                      </View>
+                      <View style={styles.editField}>
+                        <Text style={styles.editFieldLabel}>Giờ kết thúc</Text>
+                        <TouchableOpacity style={styles.timePickerBtn} onPress={() => openEditTimePicker('end')}>
+                          <Text style={styles.timePickerText}>{editEndTime || '13:30'}</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+
+                    <View style={styles.editRow}>
+                      <View style={styles.editField}>
+                        <Text style={styles.editFieldLabel}>Số chỗ tối đa</Text>
+                        <TextInput
+                          style={styles.bookingInput}
+                          placeholder="4"
+                          placeholderTextColor="#aaa"
+                          keyboardType="number-pad"
+                          value={editMaxPlayers}
+                          onChangeText={setEditMaxPlayers}
+                        />
+                      </View>
+                      <View style={styles.editField}>
+                        <Text style={styles.editFieldLabel}>Giá / người</Text>
+                        <TextInput
+                          style={styles.bookingInput}
+                          placeholder="120000"
+                          placeholderTextColor="#aaa"
+                          keyboardType="number-pad"
+                          value={editPrice}
+                          onChangeText={setEditPrice}
+                        />
+                      </View>
+                    </View>
+
+                    <View style={styles.editSwitchRow}>
+                      <View style={styles.editSwitchCopy}>
+                        <Text style={styles.editFieldLabel}>Duyệt tay</Text>
+                        <Text style={styles.editSwitchSub}>
+                          Nếu bật, mọi yêu cầu mới sẽ cần host xét duyệt thay vì vào thẳng.
+                        </Text>
+                      </View>
+                      <Switch
+                        value={editRequireApproval}
+                        onValueChange={setEditRequireApproval}
+                        trackColor={{ false: '#d1d5db', true: '#86efac' }}
+                        thumbColor={editRequireApproval ? '#16a34a' : '#f8fafc'}
+                      />
+                    </View>
+
+                    <TouchableOpacity
+                      style={[styles.bookingConfirmBtn, savingSessionEdit && styles.bookingConfirmBtnDisabled]}
+                      onPress={saveSessionEdits}
+                      disabled={savingSessionEdit}
+                    >
+                      <Text style={styles.bookingConfirmBtnText}>
+                        {savingSessionEdit ? 'Đang lưu thay đổi...' : 'Lưu thay đổi kèo'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+
+              {session.court_booking_status !== 'confirmed' && (
+                <View style={styles.bookingEditorCard}>
+                  <Text style={styles.sectionTitle}>Xác nhận đặt sân</Text>
+                  <Text style={styles.bookingEditorText}>
+                    Cập nhật trạng thái sân thành đã xác nhận sau khi bạn có thông tin booking.
+                  </Text>
+                  <TouchableOpacity style={styles.bookingOpenBtn} onPress={openCourtBookingLink}>
+                    <Text style={styles.bookingOpenBtnText}>Mở link booking của sân</Text>
+                  </TouchableOpacity>
+                  <TextInput
+                    style={styles.bookingInput}
+                    placeholder="Mã booking / mã đặt sân"
+                    placeholderTextColor="#aaa"
+                    value={bookingReference}
+                    onChangeText={setBookingReference}
+                  />
+                  <TextInput
+                    style={styles.bookingInput}
+                    placeholder="Tên người đặt"
+                    placeholderTextColor="#aaa"
+                    value={bookingName}
+                    onChangeText={setBookingName}
+                  />
+                  <TextInput
+                    style={styles.bookingInput}
+                    placeholder="Số điện thoại booking"
+                    placeholderTextColor="#aaa"
+                    keyboardType="phone-pad"
+                    value={bookingPhone}
+                    onChangeText={setBookingPhone}
+                  />
+                  <TextInput
+                    style={[styles.bookingInput, styles.bookingNotesInput]}
+                    placeholder="Ghi chú booking"
+                    placeholderTextColor="#aaa"
+                    multiline
+                    value={bookingNotes}
+                    onChangeText={setBookingNotes}
+                  />
+                  <TouchableOpacity
+                    style={[styles.bookingConfirmBtn, savingBooking && styles.bookingConfirmBtnDisabled]}
+                    onPress={confirmCourtBooking}
+                    disabled={savingBooking}
+                  >
+                    <Text style={styles.bookingConfirmBtnText}>
+                      {savingBooking ? 'Đang lưu...' : 'Xác nhận đã đặt sân'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
               {pendingRequests.length === 0 && (
                 <View style={styles.hostNote}>
                   <Text style={styles.hostNoteText}>Bạn là host của kèo này</Text>
@@ -664,12 +1193,43 @@ export default function SessionDetail() {
           )}
         </>
       )}
+
+      <JoinRequestModal
+        visible={joinModalVisible}
+        mode={smartJoinStatus}
+        introNote={introNote}
+        setIntroNote={setIntroNote}
+        loading={requesting}
+        onClose={() => setJoinModalVisible(false)}
+        onSubmit={() => void sendJoinRequest(smartJoinStatus === 'WAITLIST' ? 'waitlist' : 'pending')}
+      />
+      {showEditStartPicker && session ? (
+        <DateTimePicker
+          value={pickerTimeValue(session.slot.start_time, editStartTime)}
+          mode="time"
+          is24Hour
+          display="spinner"
+          themeVariant="light"
+          onChange={handleEditTimeChange('start')}
+        />
+      ) : null}
+      {showEditEndPicker && session ? (
+        <DateTimePicker
+          value={pickerTimeValue(session.slot.end_time, editEndTime)}
+          mode="time"
+          is24Hour
+          display="spinner"
+          themeVariant="light"
+          onChange={handleEditTimeChange('end')}
+        />
+      ) : null}
     </ScrollView>
+    </SafeAreaView>
   )
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff', paddingTop: 60, paddingHorizontal: 20 },
+  container: { flex: 1, backgroundColor: '#fff', paddingHorizontal: 20 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   backBtn: { },
   backText: { fontSize: 14, color: '#16a34a', fontWeight: '600' },
@@ -684,12 +1244,29 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   approvalBadgeText: { fontSize: 13, color: '#92400e', fontWeight: '600' },
+  bookingBadge: {
+    alignSelf: 'flex-start',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    marginBottom: 16,
+  },
+  bookingBadgeText: { fontSize: 13, fontWeight: '700' },
+  bookingInfoCard: {
+    backgroundColor: '#f9fafb',
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 12,
+  },
+  bookingInfoTitle: { fontSize: 14, fontWeight: '700', color: '#111', marginBottom: 8 },
+  bookingInfoText: { fontSize: 13, color: '#4b5563', lineHeight: 19, marginBottom: 4 },
   infoRow: { flexDirection: 'row', gap: 12, marginBottom: 12 },
   infoCard: { backgroundColor: '#f9fafb', borderRadius: 14, padding: 14, flex: 1 },
   infoLabel: { fontSize: 12, color: '#888', marginBottom: 4 },
   infoValue: { fontSize: 14, fontWeight: '600', color: '#111' },
   sectionTitle: { fontSize: 16, fontWeight: '700', color: '#111', marginTop: 24, marginBottom: 16 },
   spotsLeft: { color: '#16a34a', fontWeight: '600' },
+  spotsFull: { color: '#dc2626', fontWeight: '700' },
   playerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
   avatar: {
     width: 40,
@@ -704,6 +1281,14 @@ const styles = StyleSheet.create({
   playerName: { fontSize: 15, color: '#333', flex: 1 },
   hostBadge: { backgroundColor: '#f0fdf4', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 3 },
   hostBadgeText: { fontSize: 12, color: '#16a34a', fontWeight: '600' },
+  provisionalHostBadge: {
+    backgroundColor: '#fffbeb',
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    marginLeft: 8,
+  },
+  provisionalHostBadgeText: { fontSize: 12, color: '#92400e', fontWeight: '700' },
   requestCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -793,6 +1378,125 @@ const styles = StyleSheet.create({
     marginTop: 32,
   },
   pendingBtnText: { color: '#92400e', fontSize: 15, fontWeight: '600' },
+  hostActionsCard: {
+    backgroundColor: '#f9fafb',
+    borderRadius: 14,
+    padding: 16,
+    marginTop: 24,
+    gap: 14,
+  },
+  hostActionsHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  hostActionsCopy: {
+    flex: 1,
+  },
+  hostActionsTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  hostActionsSub: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: '#6b7280',
+  },
+  editToggleBtn: {
+    borderWidth: 1.5,
+    borderColor: '#16a34a',
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    backgroundColor: '#fff',
+  },
+  editToggleBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#16a34a',
+  },
+  editSessionForm: {
+    gap: 12,
+  },
+  editRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  editField: {
+    flex: 1,
+  },
+  editFieldLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 6,
+  },
+  timePickerBtn: {
+    borderWidth: 1.5,
+    borderColor: '#d1d5db',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    height: 50,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+  },
+  timePickerText: {
+    fontSize: 14,
+    color: '#111',
+    fontWeight: '600',
+  },
+  editSwitchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  editSwitchCopy: {
+    flex: 1,
+  },
+  editSwitchSub: {
+    fontSize: 12,
+    lineHeight: 18,
+    color: '#6b7280',
+  },
+  bookingEditorCard: {
+    backgroundColor: '#f9fafb',
+    borderRadius: 14,
+    padding: 16,
+    marginTop: 24,
+    gap: 10,
+  },
+  bookingEditorText: { fontSize: 13, color: '#6b7280', lineHeight: 18 },
+  bookingOpenBtn: {
+    backgroundColor: '#16a34a',
+    borderRadius: 12,
+    height: 46,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bookingOpenBtnText: { color: '#fff', fontSize: 14, fontWeight: '700' },
+  bookingInput: {
+    borderWidth: 1.5,
+    borderColor: '#d1d5db',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    height: 50,
+    fontSize: 14,
+    color: '#111',
+    backgroundColor: '#fff',
+  },
+  bookingNotesInput: { height: 90, paddingTop: 14, textAlignVertical: 'top' },
+  bookingConfirmBtn: {
+    backgroundColor: '#111827',
+    borderRadius: 12,
+    height: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bookingConfirmBtnDisabled: { opacity: 0.65 },
+  bookingConfirmBtnText: { color: '#fff', fontSize: 15, fontWeight: '700' },
   hostNote: {
     backgroundColor: '#f0fdf4',
     borderRadius: 14,

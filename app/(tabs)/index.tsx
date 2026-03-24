@@ -1,16 +1,9 @@
 import { supabase } from '@/lib/supabase'
+import { getSkillLevelFromEloRange } from '@/lib/skillAssessment'
 import { router, useFocusEffect } from 'expo-router'
-import { useCallback, useState } from 'react'
-import {
-  ActivityIndicator,
-  FlatList,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native'
+import { useCallback, useMemo, useState } from 'react'
+import { ActivityIndicator, FlatList, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 type Session = {
   id: string
@@ -18,8 +11,9 @@ type Session = {
   elo_max: number
   max_players: number
   status: string
+  court_booking_status: 'confirmed' | 'unconfirmed'
   host_id: string
-  host: { name: string }
+  host: { name: string; is_provisional?: boolean; placement_matches_played?: number }
   slot: {
     start_time: string
     end_time: string
@@ -29,30 +23,38 @@ type Session = {
   player_count: number
 }
 
+type FilterId = 'open' | 'rescue' | 'confirmed' | 'fit' | 'social'
+
+const FILTERS: { id: FilterId; label: string }[] = [
+  { id: 'open', label: 'Đang mở 🔥' },
+  { id: 'rescue', label: '🔥 Cứu Net' },
+  { id: 'confirmed', label: '✅ Sân đã chốt' },
+  { id: 'fit', label: '🎯 Vừa miếng' },
+  { id: 'social', label: '🍻 Giao lưu' },
+]
+
 export default function HomeScreen() {
   const [playerName, setPlayerName] = useState('')
   const [sessions, setSessions] = useState<Session[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
-  const [tabIndex, setTabIndex] = useState(0) // 0=open, 1=full, 2=done, 3=all
+  const [activeFilter, setActiveFilter] = useState<FilterId>('open')
 
   useFocusEffect(
     useCallback(() => {
       fetchPlayer()
       fetchSessions()
-    }, [tabIndex])
+    }, [])
   )
 
   async function fetchPlayer() {
-    const { data: { user } } = await supabase.auth.getUser()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
     if (!user) return
 
-    const { data } = await supabase
-      .from('players')
-      .select('name')
-      .eq('id', user.id)
-      .single()
-
+    const { data } = await supabase.from('players').select('name').eq('id', user.id).single()
     if (data) setPlayerName(data.name)
   }
 
@@ -62,9 +64,9 @@ export default function HomeScreen() {
     const { data, error } = await supabase
       .from('sessions')
       .select(`
-        id, elo_min, elo_max, max_players, status,
+        id, elo_min, elo_max, max_players, status, court_booking_status,
         host_id,
-        host:host_id ( name ),
+        host:host_id ( name, is_provisional, placement_matches_played ),
         slot:slot_id (
           start_time, end_time, price,
           court:court_id ( name, address, city )
@@ -75,22 +77,17 @@ export default function HomeScreen() {
       .limit(50)
 
     if (!error && data) {
-      const mapped = data.map((s: any) => ({
-        ...s,
-        player_count: (s.session_players ?? []).length,
+      const mapped = data.map((session: any) => ({
+        ...session,
+        player_count: (session.session_players ?? []).length,
       }))
+      .sort((a: any, b: any) => {
+        const bookingWeight = Number(b.court_booking_status === 'confirmed') - Number(a.court_booking_status === 'confirmed')
+        if (bookingWeight !== 0) return bookingWeight
+        return new Date(a.slot?.start_time ?? 0).getTime() - new Date(b.slot?.start_time ?? 0).getTime()
+      })
 
-      let filtered = mapped
-
-      if (tabIndex === 0) {
-        filtered = mapped.filter(s => s.status === 'open' && s.player_count < s.max_players)
-      } else if (tabIndex === 1) {
-        filtered = mapped.filter(s => s.status === 'open' && s.player_count >= s.max_players)
-      } else if (tabIndex === 2) {
-        filtered = mapped.filter(s => s.status === 'done')
-      }
-
-      setSessions(filtered)
+      setSessions(mapped)
     }
 
     setLoading(false)
@@ -105,339 +102,189 @@ export default function HomeScreen() {
   function formatTime(start: string, end: string) {
     const s = new Date(start)
     const e = new Date(end)
-    const fmt = (d: Date) =>
-      `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
+    const fmt = (date: Date) =>
+      `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
     const day = `${s.getDate().toString().padStart(2, '0')}/${(s.getMonth() + 1).toString().padStart(2, '0')}`
-    return `${fmt(s)} → ${fmt(e)} · ${day}`
+    return {
+      time: `${fmt(s)} → ${fmt(e)}`,
+      date: day,
+    }
   }
 
   function skillLabel(eloMin: number, eloMax: number) {
-    if (eloMax <= 850) return '🌱 Mới bắt đầu'
-    if (eloMax <= 950) return '🏃 Cơ bản'
-    if (eloMax <= 1100) return '⚡ Trung bình'
-    if (eloMax <= 1250) return '🔥 Khá'
-    return '🏆 Giỏi'
+    return getSkillLevelFromEloRange(eloMin, eloMax).title
   }
 
-  function sessionStatusConfig(status: string, isFull: boolean) {
-    if (status === 'done') {
-      return { bg: '#fefce8', text: '#92400e', label: '✅ Đã kết thúc' }
-    }
-
-    if (status === 'cancelled') {
-      return { bg: '#f3f4f6', text: '#6b7280', label: '❌ Đã huỷ' }
-    }
-
-    if (status === 'open' && isFull) {
-      return { bg: '#eef2ff', text: '#4338ca', label: '👥 Đã đủ người' }
-    }
-
-    return { bg: '#f0fdf4', text: '#16a34a', label: '🟢 Đang mở' }
+  function matchTypeLabel(session: Session) {
+    return session.elo_max >= 1300 ? '⚔️ Tính điểm' : '🍻 Giao lưu'
   }
 
-  function participationConfig(status: string, playerCount: number, maxPlayers: number) {
-    const isFull = playerCount >= maxPlayers
+  const visibleSessions = useMemo(() => {
+    const openSessions = sessions.filter((session) => session.status === 'open' && session.player_count < session.max_players)
 
-    if (status !== 'open') return null
-
-    if (isFull) {
-      return {
-        bg: '#fef2f2',
-        text: '#dc2626',
-        label: `👥 ${playerCount}/${maxPlayers} · Đầy`,
-      }
-    }
-
-    return {
-      bg: '#f0fdf4',
-      text: '#16a34a',
-      label: `👥 ${playerCount}/${maxPlayers} · Còn chỗ`,
-    }
-  }
+    if (activeFilter === 'open') return openSessions
+    if (activeFilter === 'rescue') return openSessions.filter((session) => session.player_count >= Math.max(1, session.max_players - 2))
+    if (activeFilter === 'confirmed') return openSessions.filter((session) => session.court_booking_status === 'confirmed')
+    if (activeFilter === 'fit') return openSessions.filter((session) => session.elo_max <= 1300)
+    if (activeFilter === 'social') return openSessions.filter((session) => session.elo_max <= 1200 || !session.court_booking_status)
+    return openSessions
+  }, [sessions, activeFilter])
 
   function renderSession({ item }: { item: Session }) {
     const court = (item.slot as any)?.court
-    const isFull = item.player_count >= item.max_players
-    const statusCfg = sessionStatusConfig(item.status, isFull)
-    const participationCfg = participationConfig(item.status, item.player_count, item.max_players)
+    const isConfirmed = item.court_booking_status === 'confirmed'
+    const matchType = matchTypeLabel(item)
+    const isCompetitive = matchType.includes('Tính điểm')
+    const { time, date } = formatTime(item.slot?.start_time, item.slot?.end_time)
+    const spotsLeft = Math.max(item.max_players - item.player_count, 0)
 
     return (
       <TouchableOpacity
-        style={styles.card}
-        activeOpacity={0.85}
+        activeOpacity={0.92}
+        className={`mx-5 mb-4 rounded-[28px] border border-gray-100 bg-white p-4 ${
+          isConfirmed ? 'opacity-100 shadow-sm' : 'opacity-80'
+        }`}
         onPress={() => router.push({ pathname: '/session/[id]', params: { id: item.id } })}
       >
-        <View style={styles.cardHeader}>
-          <Text style={styles.courtName} numberOfLines={1}>
-            {court?.name ?? '—'}
+        <View className="flex-row items-start justify-between">
+          <Text className="mr-3 flex-1 text-lg font-bold text-black" numberOfLines={1}>
+            {court?.name ?? 'Chưa có tên sân'}
           </Text>
 
-          <View style={[styles.statusBadge, { backgroundColor: statusCfg.bg }]}>
-            <Text style={[styles.statusText, { color: statusCfg.text }]}>
-              {statusCfg.label}
+          <View className={`rounded-full px-3 py-1.5 ${isConfirmed ? 'bg-green-100' : 'bg-amber-100'}`}>
+            <Text className={`text-xs font-bold ${isConfirmed ? 'text-green-700' : 'text-amber-700'}`}>
+              {isConfirmed ? '✅ Sân đã chốt' : '⏳ Chờ xác nhận sân'}
             </Text>
           </View>
         </View>
 
-        <Text style={styles.address} numberOfLines={1}>
-          📍 {court?.address ?? '—'} · {court?.city}
-        </Text>
-
-        <Text style={styles.time}>
-          🕐 {formatTime(item.slot?.start_time, item.slot?.end_time)}
-        </Text>
-
-        <View style={styles.cardFooter}>
-          <Text style={styles.skill}>{skillLabel(item.elo_min, item.elo_max)}</Text>
-
-          {participationCfg ? (
-            <View style={[styles.slotBadge, { backgroundColor: participationCfg.bg }]}>
-              <Text style={[styles.slotText, { color: participationCfg.text }]}>
-                {participationCfg.label}
-              </Text>
-            </View>
-          ) : (
-            <View style={styles.endedBadge}>
-              <Text style={styles.endedText}>
-                {item.status === 'done' ? '✅ Đã kết thúc' : '❌ Đã huỷ'}
-              </Text>
-            </View>
-          )}
+        <View className="mt-3">
+          <Text className="text-sm text-gray-500" numberOfLines={1}>
+            📍 {court?.address ?? 'Chưa có địa chỉ'}
+          </Text>
+          <Text className="mt-1 text-sm text-gray-500">
+            🕒 {time} • {date}
+          </Text>
         </View>
 
-        <View style={styles.cardBottom}>
-          <Text style={styles.price}>
-            💰 {item.slot?.price?.toLocaleString('vi-VN')}đ/người
+        <View className="mt-3 flex-row items-center justify-between">
+          <Text className="mr-3 flex-1 text-sm font-medium text-gray-700">🏆 {skillLabel(item.elo_min, item.elo_max)}</Text>
+
+          <View className={`rounded-full px-3 py-1.5 ${isCompetitive ? 'bg-orange-100' : 'bg-sky-100'}`}>
+            <Text className={`text-xs font-bold ${isCompetitive ? 'text-orange-700' : 'text-sky-700'}`}>
+              {matchType}
+            </Text>
+          </View>
+        </View>
+
+        <View className="my-3 border-t border-gray-100" />
+
+        <View className="flex-row items-center justify-between">
+          <View className="flex-1 flex-row items-center">
+            <View className="h-6 w-6 items-center justify-center rounded-full bg-gray-900">
+              <Text className="text-[10px] font-bold text-white">
+                {((item.host as any)?.name ?? '?').slice(0, 1).toUpperCase()}
+              </Text>
+            </View>
+
+            <View className="ml-2 flex-row items-center">
+              <Text className="text-xs text-gray-500">bởi </Text>
+              <Text className="text-xs font-semibold text-gray-800">{(item.host as any)?.name ?? 'Ẩn danh'}</Text>
+              {(item.host as any)?.is_provisional ? <Text className="ml-1 text-xs">🛡️</Text> : null}
+            </View>
+          </View>
+
+          <Text className="mx-3 text-sm font-semibold text-gray-900">
+            💰 {(item.slot?.price ?? 0).toLocaleString('vi-VN')}đ/người
           </Text>
-          <Text style={styles.host}>bởi {(item.host as any)?.name ?? '—'}</Text>
+
+          <View className="rounded-full bg-green-50 px-3 py-1.5">
+            <Text className="text-xs font-bold text-green-700">👥 {spotsLeft}/{item.max_players} Còn chỗ</Text>
+          </View>
         </View>
       </TouchableOpacity>
     )
   }
 
-  const tabLabels = ['Đang mở 🔥', 'Đầy 👥', 'Done ⭐', 'Tất cả 🏓']
-  const tabShortLabels = ['Đang mở', 'Đầy', 'Done', 'Tất cả']
+  const header = (
+    <View className="px-5 pt-4">
+      <Text className="text-sm text-gray-500">Xin chào 👋</Text>
+      <Text className="mt-1 text-3xl font-bold text-black">{playerName || 'Player1'}</Text>
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.greeting}>Xin chào 👋</Text>
-          <Text style={styles.name}>{playerName || 'Khách'}</Text>
-        </View>
-      </View>
-
-      <View style={styles.actions}>
+      <View className="mt-5 flex-row gap-3">
         <TouchableOpacity
-          style={styles.actionBtn}
+          activeOpacity={0.9}
+          className="flex-1 rounded-2xl border border-green-500 bg-white px-4 py-4"
           onPress={() => router.push('/(tabs)/find-session' as any)}
         >
-          <Text style={styles.actionIcon}>🔍</Text>
-          <Text style={styles.actionText}>Tìm kèo</Text>
+          <Text className="text-center text-sm font-bold text-green-700">⚡ Cứu net quanh đây</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.actionBtn, styles.actionBtnPrimary]}
+          activeOpacity={0.9}
+          className="flex-1 rounded-2xl bg-green-600 px-4 py-4"
           onPress={() => router.push('/create-session' as any)}
         >
-          <Text style={styles.actionIcon}>➕</Text>
-          <Text style={[styles.actionText, styles.actionTextPrimary]}>Tạo kèo</Text>
+          <Text className="text-center text-sm font-bold text-white">+ Tạo kèo</Text>
         </TouchableOpacity>
       </View>
 
-      <View style={styles.toggleRow}>
-        <Text style={styles.sectionTitle}>{tabLabels[tabIndex]}</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingTop: 20, paddingBottom: 8 }}>
+        {FILTERS.map((filter) => {
+          const isActive = activeFilter === filter.id
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.tabScroll}
-          contentContainerStyle={styles.tabScrollContent}
-        >
-          {tabShortLabels.map((label, index) => (
+          return (
             <TouchableOpacity
-              key={label}
-              style={[styles.tabBtn, tabIndex === index && styles.tabBtnActive]}
-              onPress={() => setTabIndex(index)}
+              key={filter.id}
+              activeOpacity={0.9}
+              className={`mr-3 rounded-full px-4 py-2.5 ${isActive ? 'bg-green-600' : 'bg-gray-200'}`}
+              onPress={() => setActiveFilter(filter.id)}
             >
-              <Text style={[styles.tabText, tabIndex === index && styles.tabTextActive]}>
-                {label}
+              <Text className={`text-sm font-semibold ${isActive ? 'text-white' : 'text-gray-900'}`}>
+                {filter.label}
               </Text>
             </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-
-      {loading ? (
-        <ActivityIndicator color="#16a34a" style={{ marginTop: 40 }} />
-      ) : sessions.length === 0 ? (
-        <View style={styles.empty}>
-          <Text style={styles.emptyEmoji}>😴</Text>
-          <Text style={styles.emptyText}>
-            {tabIndex === 0 && 'Chưa có kèo nào đang mở'}
-            {tabIndex === 1 && 'Chưa có kèo nào đã đầy'}
-            {tabIndex === 2 && 'Chưa có kèo nào đã kết thúc'}
-            {tabIndex === 3 && 'Chưa có kèo nào'}
-          </Text>
-          <Text style={styles.emptyHint}>Thử tạo một kèo mới nhé.</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={sessions}
-          keyExtractor={item => item.id}
-          renderItem={renderSession}
-          contentContainerStyle={{ paddingBottom: 32 }}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor="#16a34a"
-            />
-          }
-        />
-      )}
+          )
+        })}
+      </ScrollView>
     </View>
   )
+
+  if (loading) {
+    return (
+      <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
+        {header}
+        <ActivityIndicator color="#16a34a" style={{ marginTop: 40 }} />
+      </SafeAreaView>
+    )
+  }
+
+  if (visibleSessions.length === 0) {
+    return (
+      <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
+        {header}
+        <View className="mt-16 items-center px-8">
+          <Text className="mb-3 text-5xl">🎾</Text>
+          <Text className="mb-1 text-center text-base font-semibold text-gray-900">Chưa có kèo phù hợp với bộ lọc này</Text>
+          <Text className="text-center text-sm leading-6 text-gray-500">
+            Thử chuyển filter khác hoặc tạo một kèo mới để kéo thêm người chơi vào sân.
+          </Text>
+        </View>
+      </SafeAreaView>
+    )
+  }
+
+  return (
+    <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
+      <FlatList
+        data={visibleSessions}
+        keyExtractor={(item) => item.id}
+        renderItem={renderSession}
+        ListHeaderComponent={header}
+        contentContainerStyle={{ paddingBottom: 28, paddingTop: 6 }}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#16a34a" />}
+      />
+    </SafeAreaView>
+  )
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb', paddingTop: 60 },
-
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 24,
-  },
-  greeting: { fontSize: 14, color: '#888' },
-  name: { fontSize: 22, fontWeight: '700', color: '#111' },
-
-  actions: {
-    flexDirection: 'row',
-    gap: 12,
-    paddingHorizontal: 20,
-    marginBottom: 28,
-  },
-  actionBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    borderWidth: 1.5,
-    borderColor: '#ddd',
-    borderRadius: 14,
-    paddingVertical: 14,
-    backgroundColor: '#fff',
-  },
-  actionBtnPrimary: { backgroundColor: '#16a34a', borderColor: '#16a34a' },
-  actionIcon: { fontSize: 18 },
-  actionText: { fontSize: 15, fontWeight: '600', color: '#333' },
-  actionTextPrimary: { color: '#fff' },
-
-  toggleRow: {
-    paddingHorizontal: 20,
-    marginBottom: 12,
-  },
-  sectionTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#111',
-    marginBottom: 10,
-  },
-  tabScroll: { maxHeight: 40 },
-  tabScrollContent: { paddingRight: 20 },
-  tabBtn: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginRight: 8,
-    backgroundColor: '#f0f0f0',
-  },
-  tabBtnActive: { backgroundColor: '#dcfce7' },
-  tabText: { fontSize: 13, color: '#666', fontWeight: '600' },
-  tabTextActive: { color: '#16a34a' },
-
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    marginHorizontal: 20,
-    marginBottom: 14,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  courtName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#111',
-    flex: 1,
-    marginRight: 8,
-  },
-  statusBadge: {
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  statusText: {
-    fontSize: 11,
-    fontWeight: '700',
-  },
-
-  address: { fontSize: 13, color: '#666', marginBottom: 6 },
-  time: { fontSize: 14, color: '#444', marginBottom: 10 },
-
-  cardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  skill: { fontSize: 13, color: '#555' },
-
-  slotBadge: {
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  slotText: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-
-  endedBadge: {
-    backgroundColor: '#f9fafb',
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  endedText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#6b7280',
-  },
-
-  cardBottom: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  price: { fontSize: 13, color: '#888' },
-  host: { fontSize: 12, color: '#aaa' },
-
-  empty: { alignItems: 'center', marginTop: 60 },
-  emptyEmoji: { fontSize: 48, marginBottom: 12 },
-  emptyText: { fontSize: 16, fontWeight: '600', color: '#333', marginBottom: 4 },
-  emptyHint: { fontSize: 14, color: '#888' },
-})

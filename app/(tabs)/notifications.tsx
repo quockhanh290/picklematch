@@ -8,6 +8,7 @@ import {
 } from 'react-native'
 import { useNotificationsContext } from '@/lib/NotificationsContext'
 import type { Notification } from '@/hooks/useNotifications'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime()
@@ -24,6 +25,10 @@ function typeIcon(type: string) {
   if (type === 'join_request') return '🙋'
   if (type === 'join_approved') return '✅'
   if (type === 'join_rejected') return '❌'
+  if (type === 'player_left') return '🚪'
+  if (type === 'session_cancelled') return '📣'
+  if (type === 'session_updated') return '🛠️'
+  if (type === 'join_request_reply') return '💬'
   return '🔔'
 }
 
@@ -36,7 +41,7 @@ export default function NotificationsScreen() {
   }
 
   return (
-    <View style={s.container}>
+    <SafeAreaView style={s.container} edges={['top']}>
       <View style={s.header}>
         <Text style={s.title}>Thông báo</Text>
         {unreadCount > 0 && (
@@ -76,7 +81,7 @@ export default function NotificationsScreen() {
           </TouchableOpacity>
         )}
       />
-    </View>
+    </SafeAreaView>
   )
 }
 
@@ -86,7 +91,6 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: 64,
     paddingHorizontal: 20,
     paddingBottom: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,

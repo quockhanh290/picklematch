@@ -1,22 +1,25 @@
 import DateTimePicker from '@react-native-community/datetimepicker'
+import { SKILL_ASSESSMENT_LEVELS } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
 import { type NearByCourt, useNearbyCourts } from '@/lib/useNearbyCourts'
+import * as Linking from 'expo-linking'
 import { router } from 'expo-router'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   ActivityIndicator, Alert, FlatList, Keyboard, ScrollView,
   StyleSheet, Switch, Text, TextInput, TouchableOpacity, View,
 } from 'react-native'
 import { Calendar } from 'react-native-calendars'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const ELO_LEVELS = [
-  { label: '🌱 Mới bắt đầu', elo: 800  },
-  { label: '🏃 Cơ bản',      elo: 900  },
-  { label: '⚡ Trung bình',  elo: 1000 },
-  { label: '🔥 Khá',         elo: 1150 },
-  { label: '🏆 Giỏi',        elo: 1300 },
+  { label: `🎾 ${SKILL_ASSESSMENT_LEVELS[0].title}`, elo: 800 },
+  { label: `🎾 ${SKILL_ASSESSMENT_LEVELS[1].title}`, elo: 1000 },
+  { label: `🎾 ${SKILL_ASSESSMENT_LEVELS[2].title}`, elo: 1150 },
+  { label: `🎾 ${SKILL_ASSESSMENT_LEVELS[3].title}`, elo: 1300 },
+  { label: `🎾 ${SKILL_ASSESSMENT_LEVELS[4].title}`, elo: 1500 },
 ]
 
 const PLAYER_OPTIONS = [2, 4, 6]
@@ -93,6 +96,13 @@ export default function CreateSession() {
   const [deadlineHours, setDeadlineHours]     = useState(4)
   const [requireApproval, setRequireApproval] = useState(false)
   const [totalCostStr, setTotalCostStr]       = useState('')
+  const [courtConfirmationChoice, setCourtConfirmationChoice] =
+    useState<'confirmed' | 'needs_booking' | null>(null)
+  const [bookNowChoice, setBookNowChoice] = useState<boolean | null>(null)
+  const [bookingReference, setBookingReference] = useState('')
+  const [bookingName, setBookingName] = useState('')
+  const [bookingPhone, setBookingPhone] = useState('')
+  const [bookingNotes, setBookingNotes] = useState('')
 
   const [submitting, setSubmitting] = useState(false)
 
@@ -118,7 +128,7 @@ export default function CreateSession() {
   }
 
   /** Validate start time against court hours + "not in the past" */
-  function validateStart(time: Date): string | null {
+  const validateStart = useCallback((time: Date): string | null => {
     const now       = new Date()
     const isToday   = selectedDate?.toDateString() === now.toDateString()
     const openMins  = toMins(selectedCourt?.hours_open  ?? '06:00')
@@ -129,10 +139,10 @@ export default function CreateSession() {
     if (tMins < openMins)        return `Sân mở cửa lúc ${selectedCourt?.hours_open ?? '06:00'}`
     if (tMins >= closeMins)      return `Sân đóng cửa lúc ${selectedCourt?.hours_close ?? '22:00'}`
     return null
-  }
+  }, [selectedCourt?.hours_close, selectedCourt?.hours_open, selectedDate])
 
   /** Validate end time against start + court close + 3h max */
-  function validateEnd(end: Date, start: Date): string | null {
+  const validateEnd = useCallback((end: Date, start: Date): string | null => {
     const closeMins = toMins(selectedCourt?.hours_close ?? '22:00')
     const endMins   = end.getHours() * 60 + end.getMinutes()
     const diffMins  = (end.getTime() - start.getTime()) / 60_000
@@ -141,7 +151,7 @@ export default function CreateSession() {
     if (diffMins > 180)        return 'Tối đa 3 tiếng mỗi kèo'
     if (endMins > closeMins)   return `Sân đóng cửa lúc ${selectedCourt?.hours_close ?? '22:00'}`
     return null
-  }
+  }, [selectedCourt?.hours_close])
 
   // ── Event handlers ────────────────────────────────────────────────────────────
 
@@ -150,6 +160,12 @@ export default function CreateSession() {
     setStartTime(null)
     setEndTime(null)
     setTimeError(null)
+    setCourtConfirmationChoice(null)
+    setBookNowChoice(null)
+    setBookingReference('')
+    setBookingName('')
+    setBookingPhone('')
+    setBookingNotes('')
   }
 
   function onDatePress(date: Date) {
@@ -167,7 +183,7 @@ export default function CreateSession() {
     if (startErr) { setTimeError(startErr); return }
     if (!endTime) { setTimeError(null); return }
     setTimeError(validateEnd(endTime, startTime))
-  }, [startTime, endTime])
+  }, [endTime, startTime, validateEnd, validateStart])
 
   // Auto-advance to step 2 once a valid endTime is set and the end picker is closed
   useEffect(() => {
@@ -175,11 +191,45 @@ export default function CreateSession() {
       const t = setTimeout(() => setStep(2), 300)
       return () => clearTimeout(t)
     }
-  }, [endTime, showEndPicker])
+  }, [endTime, showEndPicker, startTime, step, timeError])
 
   function goToStep2() {
     if (!selectedCourt || !selectedDate || !startTime || !endTime || timeError) return
     setStep(2)
+  }
+
+  function hasBookingInfo() {
+    return [bookingReference, bookingName, bookingPhone, bookingNotes].some((value) => value.trim().length > 0)
+  }
+
+  function resolvedCourtBookingStatus(): 'confirmed' | 'unconfirmed' {
+    if (courtConfirmationChoice === 'confirmed') return 'confirmed'
+    if (courtConfirmationChoice === 'needs_booking' && bookNowChoice) return 'confirmed'
+    return 'unconfirmed'
+  }
+
+  function bookingLink() {
+    return selectedCourt?.booking_url ?? selectedCourt?.google_maps_url ?? null
+  }
+
+  function bookingStatusLabel() {
+    if (resolvedCourtBookingStatus() === 'confirmed') return 'Đã xác nhận đặt sân'
+    if (courtConfirmationChoice === 'needs_booking' && bookNowChoice === false) return 'Sân chưa xác nhận'
+    return 'Đang chờ xác nhận sân'
+  }
+
+  async function openBookingLink() {
+    const url = bookingLink()
+    if (!url) {
+      Alert.alert('Chưa có link đặt sân', 'Sân này chưa có link booking. Bạn vẫn có thể tự đặt sân và nhập thông tin booking sau.')
+      return
+    }
+
+    try {
+      await Linking.openURL(url)
+    } catch {
+      Alert.alert('Không mở được link', 'Vui lòng thử lại hoặc mở link booking của sân theo cách khác.')
+    }
   }
 
   function goToStep3() {
@@ -187,6 +237,18 @@ export default function CreateSession() {
     const maxIdx = ELO_LEVELS.findIndex(l => l.elo === eloMax)
     if (minIdx > maxIdx) {
       Alert.alert('Lỗi', 'Trình độ tối thiểu không thể cao hơn tối đa')
+      return
+    }
+    if (!courtConfirmationChoice) {
+      Alert.alert('Thiếu thông tin', 'Bạn cần xác nhận tình trạng đặt sân trước khi đăng kèo.')
+      return
+    }
+    if (courtConfirmationChoice === 'needs_booking' && bookNowChoice === null) {
+      Alert.alert('Thiếu thông tin', 'Hãy chọn bạn có muốn đặt sân ngay lúc này hay không.')
+      return
+    }
+    if (resolvedCourtBookingStatus() === 'confirmed' && !hasBookingInfo()) {
+      Alert.alert('Thiếu thông tin booking', 'Hãy cung cấp thông tin booking để xác nhận đã đặt sân.')
       return
     }
     setStep(3)
@@ -241,6 +303,13 @@ export default function CreateSession() {
         fill_deadline:    fillDeadline.toISOString(),
         total_cost:       totalCost || null,
         require_approval: requireApproval,
+        court_booking_status: resolvedCourtBookingStatus(),
+        booking_reference: bookingReference.trim() || null,
+        booking_name: bookingName.trim() || null,
+        booking_phone: bookingPhone.trim() || null,
+        booking_notes: bookingNotes.trim() || null,
+        booking_confirmed_at:
+          resolvedCourtBookingStatus() === 'confirmed' ? new Date().toISOString() : null,
       })
       .select()
       .single()
@@ -315,7 +384,7 @@ export default function CreateSession() {
   // ────────────────────────────────────────────────────────────────────────────
 
   if (step === 1) return (
-    <View style={s.container}>
+    <SafeAreaView style={s.container} edges={['top']}>
       <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
         <Text style={s.backText}>← Quay lại</Text>
       </TouchableOpacity>
@@ -499,7 +568,7 @@ export default function CreateSession() {
           )}
         </ScrollView>
       )}
-    </View>
+    </SafeAreaView>
   )
 
   // ────────────────────────────────────────────────────────────────────────────
@@ -507,11 +576,8 @@ export default function CreateSession() {
   // ────────────────────────────────────────────────────────────────────────────
 
   if (step === 2) return (
-    <ScrollView
-      style={s.container}
-      contentContainerStyle={{ paddingBottom: 48 }}
-      keyboardShouldPersistTaps="handled"
-    >
+    <SafeAreaView style={s.container} edges={['top']}>
+    <ScrollView contentContainerStyle={{ paddingBottom: 48 }} keyboardShouldPersistTaps="handled">
       <TouchableOpacity onPress={() => setStep(1)} style={s.backBtn}>
         <Text style={s.backText}>← Đổi sân/giờ</Text>
       </TouchableOpacity>
@@ -618,10 +684,109 @@ export default function CreateSession() {
         </Text>
       )}
 
+      <Text style={s.label}>Tình trạng đặt sân</Text>
+      <View style={s.bookingCard}>
+        <TouchableOpacity
+          style={[s.bookingOption, courtConfirmationChoice === 'confirmed' && s.bookingOptionActive]}
+          onPress={() => {
+            setCourtConfirmationChoice('confirmed')
+            setBookNowChoice(null)
+          }}
+        >
+          <Text style={[s.bookingOptionTitle, courtConfirmationChoice === 'confirmed' && s.bookingOptionTitleActive]}>
+            Đã đặt và xác nhận sân
+          </Text>
+          <Text style={s.bookingOptionSub}>Bạn đã chốt sân và có thể cung cấp thông tin booking ngay.</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[s.bookingOption, courtConfirmationChoice === 'needs_booking' && s.bookingOptionActive]}
+          onPress={() => setCourtConfirmationChoice('needs_booking')}
+        >
+          <Text style={[s.bookingOptionTitle, courtConfirmationChoice === 'needs_booking' && s.bookingOptionTitleActive]}>
+            Chưa xác nhận sân
+          </Text>
+          <Text style={s.bookingOptionSub}>App sẽ hỏi bạn có muốn đặt sân ngay lúc này hay cập nhật sau.</Text>
+        </TouchableOpacity>
+
+        {courtConfirmationChoice === 'needs_booking' && (
+          <View style={s.bookingFollowup}>
+            <Text style={s.bookingQuestion}>Bạn có muốn đặt sân ngay bây giờ không?</Text>
+            <View style={s.bookingChoiceRow}>
+              <TouchableOpacity
+                style={[s.bookingMiniBtn, bookNowChoice === true && s.bookingMiniBtnActive]}
+                onPress={() => setBookNowChoice(true)}
+              >
+                <Text style={[s.bookingMiniBtnText, bookNowChoice === true && s.bookingMiniBtnTextActive]}>Có, đặt luôn</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[s.bookingMiniBtn, bookNowChoice === false && s.bookingMiniBtnActive]}
+                onPress={() => setBookNowChoice(false)}
+              >
+                <Text style={[s.bookingMiniBtnText, bookNowChoice === false && s.bookingMiniBtnTextActive]}>Để sau</Text>
+              </TouchableOpacity>
+            </View>
+
+            {bookNowChoice === true && (
+              <View style={s.bookingHelpBox}>
+                <Text style={s.bookingHelpText}>Mở link booking của sân, đặt sân xong rồi nhập thông tin booking bên dưới để xác nhận.</Text>
+                <TouchableOpacity style={s.bookingLinkBtn} onPress={openBookingLink}>
+                  <Text style={s.bookingLinkBtnText}>Mở link đặt sân</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {bookNowChoice === false && (
+              <View style={s.bookingHelpBox}>
+                <Text style={s.bookingHelpText}>Kèo sẽ được tạo với trạng thái sân chưa xác nhận. Bạn có thể cập nhật lại sau khi có booking.</Text>
+              </View>
+            )}
+          </View>
+        )}
+
+        {((courtConfirmationChoice === 'confirmed') || (courtConfirmationChoice === 'needs_booking' && bookNowChoice === true)) && (
+          <View style={s.bookingFields}>
+            <Text style={s.bookingFieldTitle}>Thông tin booking</Text>
+            <TextInput
+              style={s.costInput}
+              placeholder="Mã booking / mã đặt sân"
+              placeholderTextColor="#aaa"
+              value={bookingReference}
+              onChangeText={setBookingReference}
+            />
+            <TextInput
+              style={s.costInput}
+              placeholder="Tên người đặt"
+              placeholderTextColor="#aaa"
+              value={bookingName}
+              onChangeText={setBookingName}
+            />
+            <TextInput
+              style={s.costInput}
+              placeholder="Số điện thoại booking"
+              placeholderTextColor="#aaa"
+              keyboardType="phone-pad"
+              value={bookingPhone}
+              onChangeText={setBookingPhone}
+            />
+            <TextInput
+              style={[s.costInput, s.bookingNotesInput]}
+              placeholder="Ghi chú booking"
+              placeholderTextColor="#aaa"
+              multiline
+              value={bookingNotes}
+              onChangeText={setBookingNotes}
+            />
+            <Text style={s.bookingFootnote}>Cần ít nhất một thông tin booking để xác nhận sân.</Text>
+          </View>
+        )}
+      </View>
+
       <TouchableOpacity style={s.nextBtn} onPress={goToStep3}>
         <Text style={s.nextBtnTxt}>Xem lại kèo →</Text>
       </TouchableOpacity>
     </ScrollView>
+    </SafeAreaView>
   )
 
   // ────────────────────────────────────────────────────────────────────────────
@@ -629,7 +794,8 @@ export default function CreateSession() {
   // ────────────────────────────────────────────────────────────────────────────
 
   return (
-    <ScrollView style={s.container} contentContainerStyle={{ paddingBottom: 48 }}>
+    <SafeAreaView style={s.container} edges={['top']}>
+    <ScrollView contentContainerStyle={{ paddingBottom: 48 }}>
       <TouchableOpacity onPress={() => setStep(2)} style={s.backBtn}>
         <Text style={s.backText}>← Chỉnh lại</Text>
       </TouchableOpacity>
@@ -648,6 +814,14 @@ export default function CreateSession() {
           <ReviewRow icon="💰" label="Chi phí" value={`${costPerPerson.toLocaleString('vi-VN')}đ/người`} />
         )}
         <ReviewRow icon="⏰" label="Deadline" value={deadlinePreview()} />
+        <ReviewRow icon="📋" label="Tình trạng sân" value={bookingStatusLabel()} />
+        {hasBookingInfo() && (
+          <ReviewRow
+            icon="🧾"
+            label="Booking"
+            value={[bookingReference, bookingName, bookingPhone].filter((value) => value.trim().length > 0).join(' · ') || bookingNotes}
+          />
+        )}
       </View>
 
       <TouchableOpacity
@@ -658,6 +832,7 @@ export default function CreateSession() {
         <Text style={s.submitTxt}>{submitting ? 'Đang tạo kèo...' : '🏓 Tạo kèo'}</Text>
       </TouchableOpacity>
     </ScrollView>
+    </SafeAreaView>
   )
 }
 
@@ -705,7 +880,7 @@ function ReviewRow({ icon, label, value }: { icon: string; label: string; value:
 // ── Styles ────────────────────────────────────────────────────────────────────
 
 const s = StyleSheet.create({
-  container:   { flex: 1, backgroundColor: '#fff', paddingTop: 60, paddingHorizontal: 20 },
+  container:   { flex: 1, backgroundColor: '#fff', paddingHorizontal: 20 },
   center:      { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
   loadingText: { fontSize: 14, color: '#888', marginTop: 8 },
   backBtn:     { marginBottom: 8 },
@@ -792,6 +967,27 @@ const s = StyleSheet.create({
   costInput:     { borderWidth: 1.5, borderColor: '#ddd', borderRadius: 14, paddingHorizontal: 16, height: 52, fontSize: 16, color: '#333' },
   costPreview:   { fontSize: 13, color: '#555', marginTop: 8 },
   costPerPerson: { fontWeight: '700', color: '#16a34a' },
+  bookingCard: { backgroundColor: '#f9fafb', borderRadius: 14, padding: 14, marginTop: 12, gap: 12 },
+  bookingOption: { borderWidth: 1.5, borderColor: '#e5e7eb', borderRadius: 12, padding: 14, backgroundColor: '#fff' },
+  bookingOptionActive: { borderColor: '#16a34a', backgroundColor: '#f0fdf4' },
+  bookingOptionTitle: { fontSize: 15, fontWeight: '700', color: '#111', marginBottom: 4 },
+  bookingOptionTitleActive: { color: '#166534' },
+  bookingOptionSub: { fontSize: 13, color: '#6b7280', lineHeight: 18 },
+  bookingFollowup: { gap: 12 },
+  bookingQuestion: { fontSize: 14, fontWeight: '600', color: '#111' },
+  bookingChoiceRow: { flexDirection: 'row', gap: 10 },
+  bookingMiniBtn: { flex: 1, borderWidth: 1.5, borderColor: '#d1d5db', borderRadius: 12, paddingVertical: 12, alignItems: 'center', backgroundColor: '#fff' },
+  bookingMiniBtnActive: { borderColor: '#16a34a', backgroundColor: '#f0fdf4' },
+  bookingMiniBtnText: { fontSize: 14, fontWeight: '600', color: '#4b5563' },
+  bookingMiniBtnTextActive: { color: '#166534' },
+  bookingHelpBox: { backgroundColor: '#fffbeb', borderRadius: 12, padding: 12, gap: 10 },
+  bookingHelpText: { fontSize: 13, color: '#92400e', lineHeight: 18 },
+  bookingLinkBtn: { backgroundColor: '#16a34a', borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
+  bookingLinkBtnText: { color: '#fff', fontSize: 14, fontWeight: '700' },
+  bookingFields: { gap: 10 },
+  bookingFieldTitle: { fontSize: 14, fontWeight: '700', color: '#111' },
+  bookingNotesInput: { height: 92, paddingTop: 14, textAlignVertical: 'top' },
+  bookingFootnote: { fontSize: 12, color: '#6b7280' },
 
   // Next button
   nextBtn:    { backgroundColor: '#16a34a', borderRadius: 14, height: 54, alignItems: 'center', justifyContent: 'center', marginTop: 24 },

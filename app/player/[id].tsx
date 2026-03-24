@@ -1,10 +1,12 @@
+import { getSkillLevelFromPlayer } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
 import { router, useLocalSearchParams } from 'expo-router'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   ActivityIndicator, ScrollView,
   StyleSheet, Text, TouchableOpacity, View,
 } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 const BADGE_META: Record<string, { emoji: string; label: string }> = {
   fair_play: { emoji: '🏅', label: 'Chơi đẹp' },
@@ -13,20 +15,14 @@ const BADGE_META: Record<string, { emoji: string; label: string }> = {
   skilled:   { emoji: '🎯', label: 'Kỹ thuật tốt' },
 }
 
-const SKILL_LEVELS = [
-  { value: 'beginner',     label: '🌱 Mới bắt đầu' },
-  { value: 'basic',        label: '🏃 Cơ bản' },
-  { value: 'intermediate', label: '⚡ Trung bình' },
-  { value: 'advanced',     label: '🔥 Khá' },
-  { value: 'expert',       label: '🏆 Giỏi' },
-]
-
 type Player = {
   id: string
   name: string
   city: string
   skill_label: string
   elo: number
+  current_elo?: number | null
+  self_assessed_level?: string | null
   sessions_joined: number
   no_show_count: number
   created_at: string
@@ -60,32 +56,7 @@ export default function PlayerProfile() {
   const [hostStats, setHostStats]   = useState<HostStats>({ total: 0, badCancels: 0 })
   const [isMe, setIsMe]             = useState(false)
 
-  useEffect(() => { fetchAll() }, [id])
-
-  async function fetchAll() {
-    setLoading(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    setIsMe(user?.id === id)
-
-    const { data } = await supabase
-      .from('players')
-      .select('id, name, city, skill_label, elo, sessions_joined, no_show_count, created_at, favorite_court_ids')
-      .eq('id', id)
-      .single()
-
-    if (data) {
-      setPlayer(data)
-      await Promise.all([
-        fetchRatingTags(data.id),
-        fetchHistory(data.id),
-        fetchFavCourts(data.favorite_court_ids ?? []),
-        fetchHostStats(data.id),
-      ])
-    }
-    setLoading(false)
-  }
-
-  async function fetchRatingTags(playerId: string) {
+  const fetchRatingTags = useCallback(async (playerId: string) => {
     const { data } = await supabase
       .from('ratings')
       .select('tags')
@@ -100,9 +71,9 @@ export default function PlayerProfile() {
       })
       setRatingTags(counts)
     }
-  }
+  }, [])
 
-  async function fetchHistory(playerId: string) {
+  const fetchHistory = useCallback(async (playerId: string) => {
     const { data } = await supabase
       .from('session_players')
       .select(`
@@ -126,31 +97,58 @@ export default function PlayerProfile() {
         slot: d.session.slot,
       })))
     }
-  }
+  }, [])
 
-  async function fetchFavCourts(ids: string[]) {
+  const fetchFavCourts = useCallback(async (ids: string[]) => {
     if (!ids.length) return
     const { data } = await supabase
       .from('courts')
       .select('id, name, city')
       .in('id', ids)
     setFavCourts(data ?? [])
-  }
+  }, [])
 
-  async function fetchHostStats(playerId: string) {
+  const fetchHostStats = useCallback(async (playerId: string) => {
     const { data } = await supabase
       .from('sessions')
       .select('status, was_full_when_cancelled')
       .eq('host_id', playerId)
 
     if (data) {
-      const total      = data.length
+      const total = data.length
       const badCancels = data.filter((s: any) =>
         s.status === 'cancelled' && s.was_full_when_cancelled
       ).length
       setHostStats({ total, badCancels })
     }
-  }
+  }, [])
+
+  const fetchAll = useCallback(async () => {
+    setLoading(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    setIsMe(user?.id === id)
+
+    const { data } = await supabase
+      .from('players')
+      .select('id, name, city, skill_label, self_assessed_level, elo, current_elo, sessions_joined, no_show_count, created_at, favorite_court_ids')
+      .eq('id', id)
+      .single()
+
+    if (data) {
+      setPlayer(data)
+      await Promise.all([
+        fetchRatingTags(data.id),
+        fetchHistory(data.id),
+        fetchFavCourts(data.favorite_court_ids ?? []),
+        fetchHostStats(data.id),
+      ])
+    }
+    setLoading(false)
+  }, [fetchFavCourts, fetchHistory, fetchHostStats, fetchRatingTags, id])
+
+  useEffect(() => {
+    fetchAll()
+  }, [fetchAll])
 
   function reliabilityScore(joined: number, noShow: number) {
     if (!joined) return null
@@ -179,10 +177,6 @@ export default function PlayerProfile() {
     return '#dc2626'
   }
 
-  function skillLabel(value: string) {
-    return SKILL_LEVELS.find(s => s.value === value)?.label ?? '⚡ Trung bình'
-  }
-
   function formatTime(start: string) {
     const s = new Date(start)
     const weekday = ['CN','T2','T3','T4','T5','T6','T7'][s.getDay()]
@@ -201,24 +195,26 @@ export default function PlayerProfile() {
   }
 
   if (loading) return (
-    <View style={styles.center}>
+    <SafeAreaView style={styles.center} edges={['top']}>
       <ActivityIndicator size="large" color="#16a34a" />
-    </View>
+    </SafeAreaView>
   )
 
   if (!player) return (
-    <View style={styles.center}>
+    <SafeAreaView style={styles.center} edges={['top']}>
       <Text style={{ color: '#888' }}>Không tìm thấy người chơi 😕</Text>
-    </View>
+    </SafeAreaView>
   )
 
   const reliability    = reliabilityScore(player.sessions_joined ?? 0, player.no_show_count ?? 0)
   const sortedTags     = Object.entries(ratingTags).sort((a, b) => b[1] - a[1])
   const hostedCount    = history.filter(h => h.is_host).length
   const cancelColor    = cancelRateColor(hostStats.badCancels, hostStats.total)
+  const skill = getSkillLevelFromPlayer(player)
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 48 }}>
+    <SafeAreaView style={styles.container} edges={['top']}>
+    <ScrollView contentContainerStyle={{ paddingBottom: 48 }}>
 
       {/* Back */}
       <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
@@ -262,8 +258,10 @@ export default function PlayerProfile() {
 
       {/* Trình độ */}
       <View style={styles.skillBanner}>
-        <Text style={styles.skillBannerText}>{skillLabel(player.skill_label)}</Text>
-        <Text style={styles.skillBannerSub}>ELO {player.elo}</Text>
+        <Text style={styles.skillBannerText}>{skill.title}</Text>
+        <Text style={styles.skillBannerSub}>
+          Elo {player.current_elo ?? player.elo} · {skill.subtitle}
+        </Text>
       </View>
 
       {/* Reliability + Cancel rate */}
@@ -384,11 +382,12 @@ export default function PlayerProfile() {
         Tham gia từ {new Date(player.created_at).toLocaleDateString('vi-VN')}
       </Text>
     </ScrollView>
+    </SafeAreaView>
   )
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb', paddingTop: 60, paddingHorizontal: 20 },
+  container: { flex: 1, backgroundColor: '#f9fafb', paddingHorizontal: 20 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   backBtn: { marginBottom: 20 },
   backText: { fontSize: 14, color: '#16a34a', fontWeight: '600' },
