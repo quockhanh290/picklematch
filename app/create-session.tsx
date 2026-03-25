@@ -4,7 +4,7 @@ import { type NearByCourt, useNearbyCourts } from '@/lib/useNearbyCourts'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import * as Linking from 'expo-linking'
 import { router } from 'expo-router'
-import { ArrowLeft, CalendarDays, CheckCircle2, Clock3, MapPin, ShieldCheck, Users, Wallet } from 'lucide-react-native'
+import { AlertTriangle, ArrowLeft, CalendarDays, CheckCircle2, Clock3, MapPin, ShieldCheck, Users, Wallet } from 'lucide-react-native'
 import type { ReactNode } from 'react'
 import { useCallback, useEffect, useState } from 'react'
 import {
@@ -17,11 +17,11 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const ELO_LEVELS = [
-  { label: `🎾 ${SKILL_ASSESSMENT_LEVELS[0].title}`, elo: 800 },
-  { label: `🎾 ${SKILL_ASSESSMENT_LEVELS[1].title}`, elo: 1000 },
-  { label: `🎾 ${SKILL_ASSESSMENT_LEVELS[2].title}`, elo: 1150 },
-  { label: `🎾 ${SKILL_ASSESSMENT_LEVELS[3].title}`, elo: 1300 },
-  { label: `🎾 ${SKILL_ASSESSMENT_LEVELS[4].title}`, elo: 1500 },
+  { label: SKILL_ASSESSMENT_LEVELS[0].title, elo: 800 },
+  { label: SKILL_ASSESSMENT_LEVELS[1].title, elo: 1000 },
+  { label: SKILL_ASSESSMENT_LEVELS[2].title, elo: 1150 },
+  { label: SKILL_ASSESSMENT_LEVELS[3].title, elo: 1300 },
+  { label: SKILL_ASSESSMENT_LEVELS[4].title, elo: 1500 },
 ]
 
 const PLAYER_OPTIONS = [2, 4, 6]
@@ -425,7 +425,7 @@ export default function CreateSession() {
             {searching ? (
               <View style={s.center}><ActivityIndicator color="#16a34a" /></View>
             ) : keyword.length > 0 && courts.length === 0 ? (
-              <View style={s.center}><Text style={s.noResult}>Không tìm thấy sân nào 😕</Text></View>
+              <View style={s.center}><Text style={s.noResult}>Không tìm thấy sân nào</Text></View>
             ) : keyword.length === 0 ? (
               <View style={s.center}><Text style={s.noResult}>Nhập tên sân để tìm kiếm</Text></View>
             ) : (
@@ -444,7 +444,7 @@ export default function CreateSession() {
             <Text style={s.loadingText}>Đang tìm sân gần bạn...</Text>
           </View>
         ) : courts.length === 0 ? (
-          <View style={s.center}><Text style={s.noResult}>Không tìm thấy sân nào 😕</Text></View>
+          <View style={s.center}><Text style={s.noResult}>Không tìm thấy sân nào</Text></View>
         ) : (
           <FlatList
             data={courts}
@@ -464,11 +464,17 @@ export default function CreateSession() {
               <View style={{ flex: 1 }}>
                 <Text style={s.selectedCardLabel}>Sân đã chọn</Text>
                 <Text style={s.selectedCardName}>{selectedCourt.name}</Text>
-                <Text style={s.selectedCardSub}>📍 {selectedCourt.address} · {selectedCourt.city}</Text>
+                <View style={s.inlineMetaRow}>
+                  <MapPin size={14} color="#6b7280" />
+                  <Text style={s.selectedCardSub}>{selectedCourt.address} · {selectedCourt.city}</Text>
+                </View>
                 {(selectedCourt.hours_open || selectedCourt.hours_close) && (
-                  <Text style={s.selectedCardSub}>
-                    🕐 {selectedCourt.hours_open ?? '06:00'} – {selectedCourt.hours_close ?? '22:00'}
-                  </Text>
+                  <View style={s.inlineMetaRow}>
+                    <Clock3 size={14} color="#6b7280" />
+                    <Text style={s.selectedCardSub}>
+                      {selectedCourt.hours_open ?? '06:00'} – {selectedCourt.hours_close ?? '22:00'}
+                    </Text>
+                  </View>
                 )}
               </View>
               <TouchableOpacity
@@ -568,10 +574,16 @@ export default function CreateSession() {
 
           {/* Duration + error */}
           {duration && !timeError && (
-            <Text style={s.durationTxt}>⏱ {duration}</Text>
+            <View style={s.inlineMetaRow}>
+              <Clock3 size={14} color="#16a34a" />
+              <Text style={s.durationTxt}>{duration}</Text>
+            </View>
           )}
           {timeError && (
-            <Text style={s.timeError}>⚠️ {timeError}</Text>
+            <View style={s.inlineMetaRow}>
+              <AlertTriangle size={14} color="#dc2626" />
+              <Text style={s.timeError}>{timeError}</Text>
+            </View>
           )}
 
           {/* Booking note */}
@@ -845,7 +857,7 @@ export default function CreateSession() {
         onPress={submit}
         disabled={submitting}
       >
-        <Text style={s.submitTxt}>{submitting ? 'Đang tạo kèo...' : '🏓 Tạo kèo'}</Text>
+        <Text style={s.submitTxt}>{submitting ? 'Đang tạo kèo...' : 'Tạo kèo'}</Text>
       </TouchableOpacity>
     </ScrollView>
     </SafeAreaView>

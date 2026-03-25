@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { SKILL_ASSESSMENT_LEVELS, type SkillAssessmentLevel } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
+import { MapPin } from 'lucide-react-native'
 
 const CITIES = ['Hồ Chí Minh', 'Hà Nội', 'Đà Nẵng', 'Cần Thơ', 'Hải Phòng']
 
@@ -300,7 +301,10 @@ export default function EditProfile() {
                   <View key={court.id} className="flex-row items-center rounded-[22px] bg-slate-50 p-4">
                     <View className="flex-1">
                       <Text className="text-sm font-extrabold text-slate-900">{court.name}</Text>
-                      <Text className="mt-1 text-sm text-slate-500">📍 {court.address} · {court.city}</Text>
+                      <View className="mt-1 flex-row items-center">
+                        <MapPin size={13} color="#94a3b8" />
+                        <Text className="ml-1 text-sm text-slate-500">{court.address} · {court.city}</Text>
+                      </View>
                     </View>
                     <TouchableOpacity
                       activeOpacity={0.88}
@@ -313,7 +317,11 @@ export default function EditProfile() {
                 ))}
               </View>
             ) : (
-              <EmptyState icon="🏟️" title="Chưa có sân ưa thích" description="Thêm vài sân bạn hay chơi để app gợi ý kèo sát nhu cầu hơn." />
+              <EmptyState
+                icon={<MapPin size={28} color="#64748b" />}
+                title="Chưa có sân ưa thích"
+                description="Thêm vài sân bạn hay chơi để app gợi ý kèo sát nhu cầu hơn."
+              />
             )}
 
             {favCourtIds.length < 5 ? (
@@ -350,7 +358,10 @@ export default function EditProfile() {
                       >
                         <View className="flex-1">
                           <Text className="text-sm font-extrabold text-slate-900">{item.name}</Text>
-                          <Text className="mt-1 text-sm text-slate-500">📍 {item.address} · {item.city}</Text>
+                          <View className="mt-1 flex-row items-center">
+                            <MapPin size={13} color="#94a3b8" />
+                            <Text className="ml-1 text-sm text-slate-500">{item.address} · {item.city}</Text>
+                          </View>
                         </View>
                         <StatusBadge label={alreadyAdded ? 'Đã thêm' : 'Thêm'} tone={alreadyAdded ? 'neutral' : 'success'} />
                       </TouchableOpacity>

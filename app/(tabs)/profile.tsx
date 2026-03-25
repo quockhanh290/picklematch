@@ -1,8 +1,19 @@
-import { AppButton, AppStatCard, EmptyState, ScreenHeader, SectionCard, StatusBadge } from '@/components/design'
+import { EmptyState, ScreenHeader } from '@/components/design'
+import CommunityFeedbackPanel from '@/components/profile/CommunityFeedbackSection'
+import {
+  ProfileHistoryList,
+  ProfileIdentityCard,
+  ProfileInfoCard,
+  ProfilePlacementProgress,
+  ProfileSkillHero,
+  ProfileStatsGrid,
+  ProfileWinStreak,
+} from '@/components/profile/ProfileSections'
 import TrophyRoomSection from '@/components/profile/TrophyRoom'
 import { getSkillLevelFromElo, getSkillLevelFromPlayer } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
 import { router, useFocusEffect } from 'expo-router'
+import { CalendarDays, CircleAlert, UserCircle2 } from 'lucide-react-native'
 import { useCallback, useState } from 'react'
 import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -34,6 +45,12 @@ type SessionHistory = {
   }
 }
 
+const WIN_STREAK = {
+  current: 5,
+  max: 8,
+  active: true,
+}
+
 export default function ProfileScreen() {
   const [checking, setChecking] = useState(true)
   const [loggedIn, setLoggedIn] = useState(false)
@@ -49,7 +66,8 @@ export default function ProfileScreen() {
   const fetchHistory = useCallback(async (userId: string) => {
     const { data, error } = await supabase
       .from('session_players')
-      .select(`
+      .select(
+        `
         status,
         session:session_id (
           id, status, host_id,
@@ -58,7 +76,8 @@ export default function ProfileScreen() {
             court:court_id ( name, city )
           )
         )
-      `)
+      `,
+      )
       .eq('player_id', userId)
       .limit(20)
 
@@ -68,11 +87,12 @@ export default function ProfileScreen() {
     }
 
     if (data) {
-      const mapped = data.map((d: any) => ({
-          id: d.session.id,
-          status: d.session.status,
-          is_host: d.session.host_id === userId,
-          slot: d.session.slot,
+      const mapped = data
+        .map((item: any) => ({
+          id: item.session.id,
+          status: item.session.status,
+          is_host: item.session.host_id === userId,
+          slot: item.session.slot,
         }))
         .sort((a: SessionHistory, b: SessionHistory) => new Date(b.slot.start_time).getTime() - new Date(a.slot.start_time).getTime())
 
@@ -122,11 +142,11 @@ export default function ProfileScreen() {
   }
 
   function formatTime(start: string) {
-    const s = new Date(start)
-    const weekday = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][s.getDay()]
-    const day = `${s.getDate().toString().padStart(2, '0')}/${(s.getMonth() + 1).toString().padStart(2, '0')}`
-    const hh = s.getHours().toString().padStart(2, '0')
-    const mm = s.getMinutes().toString().padStart(2, '0')
+    const date = new Date(start)
+    const weekday = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][date.getDay()]
+    const day = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}`
+    const hh = date.getHours().toString().padStart(2, '0')
+    const mm = date.getMinutes().toString().padStart(2, '0')
     return `${weekday} ${day} · ${hh}:${mm}`
   }
 
@@ -135,22 +155,11 @@ export default function ProfileScreen() {
     return Math.round(((player.sessions_joined - player.no_show_count) / player.sessions_joined) * 100)
   }
 
-  function reliabilityValueClass(score: number | null) {
+  function reliabilityTone(score: number | null) {
     if (score === null) return 'text-slate-700'
     if (score >= 90) return 'text-emerald-700'
-    if (score >= 70) return 'text-amber-700'
-    return 'text-rose-700'
-  }
-
-  function sessionStatusConfig(status: string) {
-    switch (status) {
-      case 'open':
-        return { tone: 'success' as const, label: 'Đang mở' }
-      case 'cancelled':
-        return { tone: 'danger' as const, label: 'Đã huỷ' }
-      default:
-        return { tone: 'neutral' as const, label: 'Kết thúc' }
-    }
+    if (score >= 70) return 'text-amber-600'
+    return 'text-rose-600'
   }
 
   if (checking) {
@@ -170,13 +179,25 @@ export default function ProfileScreen() {
           subtitle="Đăng nhập để xem lịch sử kèo, độ tin cậy và tiến trình placement."
         />
         <EmptyState
-          icon="🏓"
+          icon={<UserCircle2 size={28} color="#64748b" />}
           title="Đăng nhập để xem hồ sơ"
           description="Quản lý thông tin cá nhân và lịch sử tham gia kèo của bạn ở một nơi gọn gàng hơn."
         />
         <View className="mt-6 gap-3 px-5">
-          <AppButton label="Đăng nhập" onPress={() => router.push('/login' as any)} />
-          <AppButton label="Về trang chủ" onPress={() => router.replace('/(tabs)')} variant="secondary" />
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={() => router.push('/login' as any)}
+            className="items-center justify-center rounded-[18px] bg-emerald-600 px-5 py-4"
+          >
+            <Text className="text-sm font-bold text-white">Đăng nhập</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={() => router.replace('/(tabs)')}
+            className="items-center justify-center rounded-[18px] border border-slate-200 bg-white px-5 py-4"
+          >
+            <Text className="text-sm font-bold text-slate-700">Về trang chủ</Text>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     )
@@ -193,7 +214,11 @@ export default function ProfileScreen() {
   if (!player) {
     return (
       <SafeAreaView className="flex-1 bg-stone-100" edges={['top']}>
-        <EmptyState icon="😕" title="Không tìm thấy hồ sơ" description="Thử tải lại hoặc đăng nhập lại để tiếp tục." />
+        <EmptyState
+          icon={<CircleAlert size={28} color="#64748b" />}
+          title="Không tìm thấy hồ sơ"
+          description="Thử tải lại hoặc đăng nhập lại để tiếp tục."
+        />
       </SafeAreaView>
     )
   }
@@ -203,132 +228,81 @@ export default function ProfileScreen() {
   const fallbackSkill = getSkillLevelFromPlayer(player)
   const skill = calibratedSkill ?? fallbackSkill
   const reliability = reliabilityScore()
-  const hostedCount = history.filter((h) => h.is_host).length
+  const hostedCount = history.filter((item) => item.is_host).length
   const placementPlayed = player.placement_matches_played ?? 0
-  const placementLeft = Math.max(0, 5 - placementPlayed)
 
   return (
     <SafeAreaView className="flex-1 bg-stone-100" edges={['top']}>
       <ScrollView contentContainerStyle={{ paddingBottom: 48 }}>
-        {__DEV__ ? (
-          <TouchableOpacity onPress={() => supabase.auth.signOut()} style={{ position: 'absolute', top: 50, right: 16, zIndex: 999 }}>
-            <Text style={{ color: 'red', fontSize: 12 }}>DEV: Logout</Text>
-          </TouchableOpacity>
-        ) : null}
-
         <ScreenHeader
           eyebrow="Hồ sơ cá nhân"
-          title={player.name}
-          subtitle="Theo dõi trình độ, mức độ tin cậy và lịch sử tham gia kèo của bạn."
-          rightSlot={<StatusBadge label={player.is_provisional ? 'Placement' : 'Ổn định'} tone={player.is_provisional ? 'warning' : 'success'} />}
+          title="Profile"
+          subtitle="Theo dõi trình độ, độ tin cậy và những tín hiệu cộng đồng quanh tài khoản của bạn."
         />
 
         <View className="px-5">
-          <SectionCard className="mb-4">
-            <View className="flex-row items-center">
-              <View className="mr-4 h-20 w-20 items-center justify-center rounded-[28px] bg-emerald-100">
-                <Text className="text-3xl font-black text-emerald-700">{player.name?.[0]?.toUpperCase() ?? '?'}</Text>
-              </View>
-              <View className="flex-1">
-                <Text className="text-2xl font-black text-slate-950">{player.name}</Text>
-                <Text className="mt-1 text-sm text-slate-500">📍 {player.city}</Text>
-                <Text className="mt-3 text-sm font-semibold text-slate-500">Elo {effectiveElo}</Text>
-              </View>
-            </View>
-            <View className="mt-4 flex-row gap-3">
-              <View className="flex-1">
-                <AppButton label="Chỉnh sửa hồ sơ" onPress={() => router.push('/edit-profile' as any)} variant="secondary" />
-              </View>
-              <View className="flex-1">
-                <AppButton label="Đăng xuất" onPress={logout} variant="ghost" />
-              </View>
-            </View>
-          </SectionCard>
+          <ProfileIdentityCard
+            name={player.name}
+            city={player.city}
+            badgeLabel={player.is_provisional ? 'Placement' : 'Stable'}
+            badgeTone={player.is_provisional ? 'warning' : 'success'}
+            actions={[
+              { label: 'Sửa hồ sơ', icon: 'edit', onPress: () => router.push('/edit-profile' as any) },
+              { label: 'Đăng xuất', icon: 'logout', onPress: logout },
+            ]}
+          />
 
-          <View className="mb-3 flex-row gap-3">
-            <AppStatCard value={player.elo} label="ELO" />
-            <AppStatCard value={history.length} label="Đã chơi" />
+          {player.is_provisional ? <ProfilePlacementProgress played={placementPlayed} /> : null}
+
+          <ProfileSkillHero
+            elo={effectiveElo}
+            title={skill?.title ?? 'Đang hiệu chỉnh'}
+            subtitle={skill?.subtitle ?? 'Dữ liệu trình độ sẽ rõ hơn sau thêm vài trận.'}
+            description={skill?.description ?? 'Hệ thống đang dùng Elo và tín hiệu sau trận để tinh chỉnh nhịp ghép kèo phù hợp hơn.'}
+          />
+
+          <ProfileWinStreak current={WIN_STREAK.current} max={WIN_STREAK.max} active={WIN_STREAK.active} />
+
+          <ProfileStatsGrid
+            reliability={reliability === null ? 'Mới' : `${reliability}%`}
+            reliabilityToneClass={reliabilityTone(reliability)}
+            reliabilityDescription="Độ tin cậy hiện tại dựa trên số trận đã chơi, no-show và tần suất hoàn tất kèo đúng nhịp."
+            played={history.length}
+            hosted={hostedCount}
+          />
+
+          <ProfileInfoCard
+            items={[
+              { label: 'Số điện thoại', value: player.phone || 'Chưa cập nhật' },
+              { label: 'No-show', value: String(player.no_show_count) },
+              { label: 'Tham gia từ', value: new Date(player.created_at).toLocaleDateString('vi-VN') },
+            ]}
+          />
+
+          <View className="mt-6">
+            <CommunityFeedbackPanel />
           </View>
-          <View className="mb-4 flex-row gap-3">
-            <AppStatCard value={hostedCount} label="Đã host" />
-            <AppStatCard
-              value={reliability === null ? 'Mới' : `${reliability}%`}
-              label="Tin cậy"
-              valueClassName={reliabilityValueClass(reliability)}
-            />
-          </View>
 
-          <SectionCard
-            title={skill?.title ?? 'Chiến thần cọ xát'}
-            subtitle={`Elo ${effectiveElo} · ${skill?.subtitle ?? 'Lower Intermediate'}`}
-            className="mb-4"
-            rightSlot={<StatusBadge label={skill?.dupr ?? 'DUPR'} tone="info" />}
-          >
-            <Text className="text-sm leading-6 text-slate-500">{skill?.description}</Text>
-          </SectionCard>
-
-          {player.is_provisional ? (
-            <SectionCard title="Placement Mode" subtitle="Tài khoản của bạn đang ở giai đoạn đánh giá ban đầu." className="mb-4">
-              <Text className="text-sm leading-6 text-slate-500">
-                Đã chơi {placementPlayed}/5 trận placement. Còn {placementLeft} trận để hệ thống ổn định Elo chính xác hơn.
-              </Text>
-              <View className="mt-4 h-3 rounded-full bg-amber-100">
-                <View className="h-3 rounded-full bg-amber-500" style={{ width: `${Math.min(100, (placementPlayed / 5) * 100)}%` }} />
-              </View>
-            </SectionCard>
-          ) : null}
-
-          <SectionCard title="Thông tin" className="mb-4">
-            <View className="gap-4">
-              <View className="flex-row items-center justify-between">
-                <Text className="text-sm font-semibold text-slate-400">Số điện thoại</Text>
-                <Text className="text-sm font-semibold text-slate-900">{player.phone || 'Chưa cập nhật'}</Text>
-              </View>
-              <View className="flex-row items-center justify-between">
-                <Text className="text-sm font-semibold text-slate-400">No-show</Text>
-                <Text className="text-sm font-semibold text-slate-900">{player.no_show_count}</Text>
-              </View>
-              <View className="flex-row items-center justify-between">
-                <Text className="text-sm font-semibold text-slate-400">Tham gia từ</Text>
-                <Text className="text-sm font-semibold text-slate-900">{new Date(player.created_at).toLocaleDateString('vi-VN')}</Text>
-              </View>
-            </View>
-          </SectionCard>
-
-          <View className="mb-4">
+          <View className="mt-6">
             <TrophyRoomSection />
           </View>
 
-          <View className="mb-3 px-1">
-            <Text className="text-lg font-extrabold text-slate-900">Lịch sử kèo</Text>
-            <Text className="mt-1 text-sm text-slate-500">Các kèo gần nhất bạn đã host hoặc tham gia.</Text>
-          </View>
-
           {history.length === 0 ? (
-            <EmptyState icon="🗓️" title="Chưa có kèo nào" description="Khi bạn tham gia hoặc tạo kèo, lịch sử sẽ hiện ở đây." />
+            <View className="mt-4">
+              <EmptyState
+                icon={<CalendarDays size={28} color="#64748b" />}
+                title="Chưa có kèo nào"
+                description="Khi bạn tham gia hoặc tạo kèo, lịch sử sẽ hiện ở đây."
+              />
+            </View>
           ) : (
-            history.map((item) => {
-              const cfg = sessionStatusConfig(item.status)
-              return (
-                <TouchableOpacity
-                  key={item.id}
-                  className="mb-3"
-                  onPress={() => router.push({ pathname: '/session/[id]', params: { id: item.id } })}
-                  activeOpacity={0.86}
-                >
-                  <SectionCard rightSlot={<StatusBadge label={cfg.label} tone={cfg.tone} />}>
-                    <Text className="text-sm font-semibold uppercase tracking-[1px] text-slate-400">
-                      {formatTime(item.slot.start_time)}
-                    </Text>
-                    <Text className="mt-2 text-lg font-extrabold text-slate-950">{item.slot.court.name}</Text>
-                    <View className="mt-2 flex-row items-center justify-between">
-                      <Text className="text-sm text-slate-500">📍 {item.slot.court.city}</Text>
-                      {item.is_host ? <StatusBadge label="Host" tone="info" /> : null}
-                    </View>
-                  </SectionCard>
-                </TouchableOpacity>
-              )
-            })
+            <ProfileHistoryList
+              title="Lịch sử kèo"
+              subtitle="Danh sách kèo gần nhất bạn đã host hoặc tham gia."
+              items={history}
+              formatTime={formatTime}
+              showRateAction
+            />
           )}
         </View>
       </ScrollView>

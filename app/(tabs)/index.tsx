@@ -2,7 +2,7 @@ import { FeedMatchCard } from '@/components/session/FeedMatchCard'
 import { getSkillLevelFromEloRange } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
 import { router, useFocusEffect } from 'expo-router'
-import { Plus, Zap } from 'lucide-react-native'
+import { Hand, Plus, Zap } from 'lucide-react-native'
 import type { ReactNode } from 'react'
 import { useCallback, useMemo, useState } from 'react'
 import { ActivityIndicator, FlatList, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native'
@@ -191,7 +191,10 @@ export default function HomeScreen() {
   const header = (
     <View className="bg-gray-50">
       <View className="px-5 pb-3 pt-4">
-        <Text className="text-sm font-medium text-gray-500">Xin chào 👋</Text>
+        <View className="flex-row items-center">
+          <Text className="text-sm font-medium text-gray-500">Xin chào</Text>
+          <Hand size={14} color="#6b7280" style={{ marginLeft: 6 }} />
+        </View>
         <Text className="mt-1 text-3xl font-black text-gray-950">{playerName || 'Player1'}</Text>
       </View>
 

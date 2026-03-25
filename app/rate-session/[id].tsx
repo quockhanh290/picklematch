@@ -1,47 +1,71 @@
 import { AppButton, AppChip, EmptyState, ScreenHeader, SectionCard, StatusBadge } from '@/components/design'
 import { supabase } from '@/lib/supabase'
 import { router, useLocalSearchParams } from 'expo-router'
+import type { LucideIcon } from 'lucide-react-native'
+import {
+  AlertTriangle,
+  Award,
+  CheckCircle2,
+  ClipboardList,
+  Flame,
+  Frown,
+  MapPin,
+  Scale,
+  ShieldCheck,
+  ShieldQuestion,
+  Swords,
+  Timer,
+  UserRoundX,
+  Users,
+} from 'lucide-react-native'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
-const PLAYER_TAGS_POSITIVE = [
-  { value: 'fair_play', label: '🏅 Chơi đẹp' },
-  { value: 'on_time', label: '⚡ Đúng giờ' },
-  { value: 'friendly', label: '🤝 Thân thiện' },
-  { value: 'skilled', label: '🎯 Kỹ thuật tốt' },
-]
-
-const PLAYER_TAGS_NEGATIVE = [
-  { value: 'toxic', label: '😡 Thái độ Toxic' },
-  { value: 'late', label: '⏰ Đi muộn' },
-  { value: 'dishonest', label: '❌ Gian lận điểm' },
-]
-
-const HOST_TAGS = [
-  { value: 'good_description', label: '📋 Đúng mô tả kèo' },
-  { value: 'well_organized', label: '🗂️ Tổ chức tốt' },
-  { value: 'fair_pairing', label: '⚖️ Xếp cặp công bằng' },
-]
-
-const HOST_TAGS_NEGATIVE = [
-  { value: 'court_mismatch', label: '🏟️ Sân sai mô tả' },
-  { value: 'poor_organization', label: '⚠️ Tổ chức kém' },
-]
-
-const SKILL_OPTIONS: SkillOption[] = [
-  { value: 'weaker', label: '🔴 Yếu hơn mác', tone: 'danger' as const },
-  { value: 'matched', label: '🟢 Đúng trình', tone: 'success' as const },
-  { value: 'outclass', label: '🔵 Out trình', tone: 'info' as const },
-]
-
 type SkillValidation = 'weaker' | 'matched' | 'outclass'
+
+type TagOption = {
+  value: string
+  label: string
+  icon: LucideIcon
+}
 
 type SkillOption = {
   value: SkillValidation
   label: string
+  icon: LucideIcon
   tone: 'danger' | 'success' | 'info'
 }
+
+const PLAYER_TAGS_POSITIVE: TagOption[] = [
+  { value: 'fair_play', label: 'Chơi đẹp', icon: Award },
+  { value: 'on_time', label: 'Đúng giờ', icon: Flame },
+  { value: 'friendly', label: 'Thân thiện', icon: Users },
+  { value: 'skilled', label: 'Kỹ thuật tốt', icon: Swords },
+]
+
+const PLAYER_TAGS_NEGATIVE: TagOption[] = [
+  { value: 'toxic', label: 'Toxic', icon: Frown },
+  { value: 'late', label: 'Đi muộn', icon: Timer },
+  { value: 'dishonest', label: 'Gian lận điểm', icon: AlertTriangle },
+]
+
+const HOST_TAGS: TagOption[] = [
+  { value: 'good_description', label: 'Đúng mô tả kèo', icon: ClipboardList },
+  { value: 'well_organized', label: 'Tổ chức tốt', icon: ShieldCheck },
+  { value: 'fair_pairing', label: 'Xếp cặp công bằng', icon: Scale },
+]
+
+const HOST_TAGS_NEGATIVE: TagOption[] = [
+  { value: 'court_mismatch', label: 'Sân sai mô tả', icon: MapPin },
+  { value: 'poor_organization', label: 'Tổ chức kém', icon: ShieldQuestion },
+]
+
+const SKILL_OPTIONS: SkillOption[] = [
+  { value: 'weaker', label: 'Yếu hơn mác', icon: UserRoundX, tone: 'danger' },
+  { value: 'matched', label: 'Đúng trình', icon: CheckCircle2, tone: 'info' },
+  { value: 'outclass', label: 'Out trình', icon: Award, tone: 'info' },
+]
 
 type PlayerInSession = {
   player_id: string
@@ -76,6 +100,30 @@ function createDefaultEntry(): RatingEntry {
     tags: [],
     no_show: false,
     skill_validation: 'matched',
+  }
+}
+
+function chipClasses(kind: 'positive' | 'negative' | 'skill') {
+  if (kind === 'positive') {
+    return {
+      active: 'bg-emerald-50',
+      text: 'text-emerald-700',
+      icon: '#047857',
+    }
+  }
+
+  if (kind === 'negative') {
+    return {
+      active: 'bg-rose-50',
+      text: 'text-rose-700',
+      icon: '#be123c',
+    }
+  }
+
+  return {
+    active: 'bg-sky-50',
+    text: 'text-sky-700',
+    icon: '#0369a1',
   }
 }
 
@@ -132,12 +180,7 @@ export default function RateSession() {
       return
     }
 
-    const { data: existing } = await supabase
-      .from('ratings')
-      .select('id')
-      .eq('session_id', id)
-      .eq('rater_id', user.id)
-      .limit(1)
+    const { data: existing } = await supabase.from('ratings').select('id').eq('session_id', id).eq('rater_id', user.id).limit(1)
 
     if ((existing?.length ?? 0) > 0) {
       setAlreadyRated(true)
@@ -181,9 +224,7 @@ export default function RateSession() {
   function toggleTag(playerId: string, tag: string) {
     setRatings((prev) => {
       const current = prev[playerId] ?? createDefaultEntry()
-      const nextTags = current.tags.includes(tag)
-        ? current.tags.filter((item) => item !== tag)
-        : [...current.tags, tag]
+      const nextTags = current.tags.includes(tag) ? current.tags.filter((item) => item !== tag) : [...current.tags, tag]
 
       return {
         ...prev,
@@ -263,6 +304,26 @@ export default function RateSession() {
     )
   }
 
+  function renderChip(option: TagOption | SkillOption, kind: 'positive' | 'negative' | 'skill', active: boolean, onPress: () => void) {
+    const palette = chipClasses(kind)
+    const Icon = option.icon
+
+    return (
+      <AppChip
+        key={option.value}
+        icon={<Icon size={15} color={active ? palette.icon : '#64748b'} />}
+        label={option.label}
+        tone={'tone' in option ? option.tone : kind === 'negative' ? 'danger' : kind === 'skill' ? 'info' : 'success'}
+        active={active}
+        onPress={onPress}
+        className="flex-row items-center rounded-[10px] px-3 py-2"
+        labelClassName={`text-[13px] font-bold ${active ? palette.text : 'text-slate-500'}`}
+        activeClassName={palette.active}
+        inactiveClassName="border border-slate-200 bg-white"
+      />
+    )
+  }
+
   if (loading) {
     return (
       <SafeAreaView className="flex-1 items-center justify-center bg-stone-100" edges={['top']}>
@@ -280,7 +341,7 @@ export default function RateSession() {
           subtitle="Phản hồi của bạn đã được ghi nhận và sẽ mở khi đủ điều kiện double-blind."
         />
         <EmptyState
-          icon="✅"
+          icon={<CheckCircle2 size={28} color="#059669" />}
           title="Đánh giá đã được lưu"
           description="Bạn có thể quay về trang chủ để tiếp tục tìm kèo mới."
         />
@@ -300,7 +361,7 @@ export default function RateSession() {
           subtitle="Kèo này hiện không có người chơi nào khác ngoài bạn."
         />
         <EmptyState
-          icon="🏓"
+          icon={<Users size={28} color="#64748b" />}
           title="Chưa có dữ liệu đánh giá"
           description="Khi có đồng đội hoặc đối thủ trong kèo, bạn sẽ đánh giá được ở đây."
         />
@@ -326,111 +387,88 @@ export default function RateSession() {
 
             return (
               <SectionCard key={player.player_id} className="mb-4">
-                <View className="flex-row items-center">
-                  <View className="mr-3 h-12 w-12 items-center justify-center rounded-[18px] bg-emerald-100">
-                    <Text className="text-lg font-black text-emerald-700">
-                      {player.name?.[0]?.toUpperCase() ?? '?'}
-                    </Text>
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-base font-extrabold text-slate-950">{player.name}</Text>
-                    <View className="mt-2 flex-row flex-wrap gap-2">
-                      {player.is_host ? <StatusBadge label="Host" tone="info" /> : null}
-                      {entry.no_show ? (
-                        <StatusBadge label="No-show" tone="danger" />
-                      ) : (
-                        <StatusBadge label="Đã tham gia" tone="success" />
-                      )}
-                    </View>
+                <View className="flex-row items-start">
+                  <View className="mr-3 h-12 w-12 items-center justify-center rounded-full bg-emerald-100">
+                    <Text className="text-lg font-black text-emerald-700">{player.name?.[0]?.toUpperCase() ?? '?'}</Text>
                   </View>
 
-                  <TouchableOpacity
-                    activeOpacity={0.88}
-                    className={`rounded-full px-4 py-2 ${entry.no_show ? 'bg-rose-100' : 'bg-slate-100'}`}
-                    onPress={() => toggleNoShow(player.player_id)}
-                  >
-                    <Text
-                      className={`text-xs font-extrabold ${entry.no_show ? 'text-rose-700' : 'text-slate-600'}`}
-                    >
-                      {entry.no_show ? '⚠️ No-show' : 'Báo no-show'}
-                    </Text>
-                  </TouchableOpacity>
+                  <View className="flex-1">
+                    <View className="flex-row items-start justify-between">
+                      <View className="flex-1 pr-3">
+                        <Text className="text-base font-extrabold text-slate-950">{player.name}</Text>
+                        <View className="mt-2 flex-row flex-wrap gap-2">
+                          {player.is_host ? <StatusBadge label="Host" tone="info" /> : null}
+                          {entry.no_show ? <StatusBadge label="No-show" tone="danger" /> : <StatusBadge label="Đã tham gia" tone="success" />}
+                        </View>
+                      </View>
+
+                      <TouchableOpacity
+                        activeOpacity={0.88}
+                        className={`rounded-full px-4 py-2 ${entry.no_show ? 'bg-rose-100' : 'bg-slate-100'}`}
+                        onPress={() => toggleNoShow(player.player_id)}
+                      >
+                        <Text className={`text-xs font-extrabold uppercase tracking-[1px] ${entry.no_show ? 'text-rose-700' : 'text-slate-600'}`}>
+                          {entry.no_show ? 'Đã báo no-show' : 'Báo no-show'}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
                 </View>
 
                 {!entry.no_show ? (
                   <>
                     <View className="mt-5">
-                      <Text className="text-sm font-extrabold text-slate-900">Màng lọc 3 · Xác thực trình độ</Text>
-                      <Text className="mt-1 text-sm leading-6 text-slate-500">
+                      <Text className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Skill Validation</Text>
+                      <Text className="mt-2 text-sm leading-6 text-slate-500">
                         Chọn cảm nhận thực chiến của bạn về trình độ người chơi này so với mức đang hiển thị.
                       </Text>
                       <View className="mt-4 flex-row flex-wrap gap-2">
-                        {SKILL_OPTIONS.map((option) => (
-                          <AppChip
-                            key={option.value}
-                            label={option.label}
-                            tone={option.tone}
-                            active={entry.skill_validation === option.value}
-                            onPress={() => setSkillValidation(player.player_id, option.value)}
-                          />
-                        ))}
+                        {SKILL_OPTIONS.map((option) =>
+                          renderChip(option, 'skill', entry.skill_validation === option.value, () =>
+                            setSkillValidation(player.player_id, option.value),
+                          ),
+                        )}
                       </View>
                     </View>
 
                     <View className="mt-5">
-                      <Text className="text-sm font-extrabold text-slate-900">Tích cực</Text>
-                      <Text className="mt-1 text-sm leading-6 text-slate-500">
+                      <Text className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Tích cực</Text>
+                      <Text className="mt-2 text-sm leading-6 text-slate-500">
                         Những điểm tốt bạn muốn ghi nhận để tăng độ tin cậy và độ khớp của hệ thống.
                       </Text>
                       <View className="mt-4 flex-row flex-wrap gap-2">
-                        {PLAYER_TAGS_POSITIVE.map((tag) => (
-                          <AppChip
-                            key={tag.value}
-                            label={tag.label}
-                            tone="success"
-                            active={entry.tags.includes(tag.value)}
-                            onPress={() => toggleTag(player.player_id, tag.value)}
-                          />
-                        ))}
+                        {PLAYER_TAGS_POSITIVE.map((tag) =>
+                          renderChip(tag, 'positive', entry.tags.includes(tag.value), () =>
+                            toggleTag(player.player_id, tag.value),
+                          ),
+                        )}
                         {player.is_host
-                          ? HOST_TAGS.map((tag) => (
-                              <AppChip
-                                key={tag.value}
-                                label={tag.label}
-                                tone="info"
-                                active={entry.tags.includes(tag.value)}
-                                onPress={() => toggleTag(player.player_id, tag.value)}
-                              />
-                            ))
+                          ? HOST_TAGS.map((tag) =>
+                              renderChip(tag, 'skill', entry.tags.includes(tag.value), () =>
+                                toggleTag(player.player_id, tag.value),
+                              ),
+                            )
                           : null}
                       </View>
                     </View>
 
                     <View className="mt-5">
-                      <Text className="text-sm font-extrabold text-slate-900">Cảnh báo</Text>
-                      <Text className="mt-1 text-sm leading-6 text-slate-500">
+                      <Text className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Cảnh báo</Text>
+                      <Text className="mt-2 text-sm leading-6 text-slate-500">
                         Chỉ chọn khi bạn thực sự gặp tình huống đó trong trận để đảm bảo đánh giá công bằng.
                       </Text>
                       <View className="mt-4 flex-row flex-wrap gap-2">
-                        {PLAYER_TAGS_NEGATIVE.map((tag) => (
-                          <AppChip
-                            key={tag.value}
-                            label={tag.label}
-                            tone="danger"
-                            active={entry.tags.includes(tag.value)}
-                            onPress={() => toggleTag(player.player_id, tag.value)}
-                          />
-                        ))}
+                        {PLAYER_TAGS_NEGATIVE.map((tag) =>
+                          renderChip(tag, 'negative', entry.tags.includes(tag.value), () =>
+                            toggleTag(player.player_id, tag.value),
+                          ),
+                        )}
                         {player.is_host
-                          ? HOST_TAGS_NEGATIVE.map((tag) => (
-                              <AppChip
-                                key={tag.value}
-                                label={tag.label}
-                                tone="danger"
-                                active={entry.tags.includes(tag.value)}
-                                onPress={() => toggleTag(player.player_id, tag.value)}
-                              />
-                            ))
+                          ? HOST_TAGS_NEGATIVE.map((tag) =>
+                              renderChip(tag, 'negative', entry.tags.includes(tag.value), () =>
+                                toggleTag(player.player_id, tag.value),
+                              ),
+                            )
                           : null}
                       </View>
                     </View>
@@ -447,7 +485,7 @@ export default function RateSession() {
           })}
 
           <SectionCard className="mb-5">
-            <Text className="text-sm font-extrabold text-slate-900">🔐 Ghi chú quyền riêng tư</Text>
+            <Text className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Quyền riêng tư</Text>
             <Text className="mt-2 text-sm leading-6 text-slate-500">
               Đánh giá của bạn là ẩn danh và chỉ hiển thị sau 24 giờ hoặc khi cả hai bên hoàn thành.
             </Text>

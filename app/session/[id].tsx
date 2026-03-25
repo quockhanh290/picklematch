@@ -364,7 +364,7 @@ export default function SessionDetail() {
         intro_note: item.intro_note ?? null,
         host_response_template: item.host_response_template ?? null,
         player: {
-          name: player?.name ?? 'NgÆ°á»i chÆ¡i',
+          name: player?.name ?? 'Người chơi',
           elo: player?.elo ?? null,
           current_elo: player?.current_elo ?? null,
           self_assessed_level: player?.self_assessed_level ?? null,
@@ -396,7 +396,7 @@ export default function SessionDetail() {
   }
 
   function formatDateLabel(dateKey?: string | null) {
-    if (!dateKey) return 'Chá»n ngÃ y'
+    if (!dateKey) return 'Chọn ngày'
     const date = new Date(`${dateKey}T00:00:00`)
     return date.toLocaleDateString('vi-VN')
   }
@@ -427,8 +427,8 @@ export default function SessionDetail() {
   }
 
   function buildSessionUpdateSummary(changes: string[]) {
-    if (changes.length === 0) return 'Host vá»«a cáº­p nháº­t má»™t sá»‘ thÃ´ng tin cá»§a kÃ¨o.'
-    return `Host vá»«a cáº­p nháº­t kÃ¨o: ${changes.join(', ')}. Vui lÃ²ng kiá»ƒm tra láº¡i chi tiáº¿t kÃ¨o nhÃ©.`
+    if (changes.length === 0) return 'Host vừa cập nhật một số thông tin của kèo.'
+    return `Host vừa cập nhật kèo: ${changes.join(', ')}. Vui lòng kiểm tra lại chi tiết kèo nhé.`
   }
 
   function hasBookingInfo() {
@@ -440,35 +440,35 @@ export default function SessionDetail() {
       return {
         bg: '#f0fdf4',
         text: '#166534',
-        label: 'SÃ¢n Ä‘Ã£ xÃ¡c nháº­n',
+        label: 'Sân đã xác nhận',
       }
     }
 
     return {
       bg: '#fffbeb',
       text: '#92400e',
-      label: 'SÃ¢n chÆ°a xÃ¡c nháº­n',
+      label: 'Sân chưa xác nhận',
     }
   }
 
   async function openCourtBookingLink() {
     const url = session?.slot?.court?.booking_url ?? session?.slot?.court?.google_maps_url
     if (!url) {
-      Alert.alert('ChÆ°a cÃ³ link Ä‘áº·t sÃ¢n', 'SÃ¢n nÃ y chÆ°a cÃ³ link booking. Báº¡n váº«n cÃ³ thá»ƒ tá»± Ä‘áº·t rá»“i nháº­p thÃ´ng tin booking bÃªn dÆ°á»›i.')
+      Alert.alert('Chưa có link đặt sân', 'Sân này chưa có link booking. Bạn vẫn có thể tự đặt rồi nhập thông tin booking bên dưới.')
       return
     }
 
     try {
       await Linking.openURL(url)
     } catch {
-      Alert.alert('KhÃ´ng má»Ÿ Ä‘Æ°á»£c link', 'Vui lÃ²ng thá»­ láº¡i hoáº·c má»Ÿ link booking cá»§a sÃ¢n theo cÃ¡ch khÃ¡c.')
+      Alert.alert('Không mở được link', 'Vui lòng thử lại hoặc mở link booking của sân theo cách khác.')
     }
   }
 
   async function confirmCourtBooking() {
     if (!session || !myId || myId !== session.host.id) return
     if (!hasBookingInfo()) {
-      Alert.alert('Thiáº¿u thÃ´ng tin booking', 'HÃ£y nháº­p Ã­t nháº¥t má»™t thÃ´ng tin booking Ä‘á»ƒ xÃ¡c nháº­n sÃ¢n.')
+      Alert.alert('Thiếu thông tin booking', 'Hãy nhập ít nhất một thông tin booking để xác nhận sân.')
       return
     }
 
@@ -494,24 +494,24 @@ export default function SessionDetail() {
     setSavingBooking(false)
 
     if (error) {
-      Alert.alert('Lá»—i', error.message)
+      Alert.alert('Lỗi', error.message)
       return
     }
 
     setSession((prev) => (prev ? { ...prev, ...payload } : prev))
-    Alert.alert('ÄÃ£ xÃ¡c nháº­n sÃ¢n', 'ThÃ´ng tin booking Ä‘Ã£ Ä‘Æ°á»£c lÆ°u cho kÃ¨o nÃ y.')
+    Alert.alert('Đã xác nhận sân', 'Thông tin booking đã được lưu cho kèo này.')
   }
 
   async function saveSessionEdits() {
     if (!session || !isHost) return
 
     if (!editSessionDate) {
-      Alert.alert('Thiáº¿u ngÃ y chÆ¡i', 'Vui lÃ²ng chá»n ngÃ y cho kÃ¨o.')
+      Alert.alert('Thiếu ngày chơi', 'Vui lòng chọn ngày cho kèo.')
       return
     }
 
     if (!isValidClockValue(editStartTime) || !isValidClockValue(editEndTime)) {
-      Alert.alert('Giá» khÃ´ng há»£p lá»‡', 'Vui lÃ²ng nháº­p giá» theo Ä‘á»‹nh dáº¡ng HH:MM.')
+      Alert.alert('Giờ không hợp lệ', 'Vui lòng nhập giờ theo định dạng HH:MM.')
       return
     }
 
@@ -521,12 +521,12 @@ export default function SessionDetail() {
     const nextEloMax = Number(editEloMax)
 
     if (!nextMaxPlayers || nextMaxPlayers < session.session_players.length) {
-      Alert.alert('Sá»‘ ngÆ°á»i khÃ´ng há»£p lá»‡', 'Max players khÃ´ng Ä‘Æ°á»£c nhá» hÆ¡n sá»‘ ngÆ°á»i Ä‘ang cÃ³ trong kÃ¨o.')
+      Alert.alert('Số người không hợp lệ', 'Max players không được nhỏ hơn số người đang có trong kèo.')
       return
     }
 
     if (nextEloMin > nextEloMax) {
-      Alert.alert('TrÃ¬nh Ä‘á»™ khÃ´ng há»£p lá»‡', 'TrÃ¬nh Ä‘á»™ tá»‘i thiá»ƒu khÃ´ng thá»ƒ cao hÆ¡n trÃ¬nh Ä‘á»™ tá»‘i Ä‘a.')
+      Alert.alert('Trình độ không hợp lệ', 'Trình độ tối thiểu không thể cao hơn trình độ tối đa.')
       return
     }
 
@@ -540,33 +540,33 @@ export default function SessionDetail() {
         : buildDateWithClock(editSessionDate, editEndTime)
 
     if (nextEnd <= nextStart) {
-      Alert.alert('Giá» káº¿t thÃºc khÃ´ng há»£p lá»‡', 'Giá» káº¿t thÃºc pháº£i sau giá» báº¯t Ä‘áº§u.')
+      Alert.alert('Giờ kết thúc không hợp lệ', 'Giờ kết thúc phải sau giờ bắt đầu.')
       return
     }
 
     const changedFields: string[] = []
 
     if (editStartTime !== formatClockInput(session.slot.start_time) || editEndTime !== formatClockInput(session.slot.end_time)) {
-      changedFields.push(`giá» chÆ¡i ${editStartTime} â†’ ${editEndTime}`)
+      changedFields.push(`giờ chơi ${editStartTime} → ${editEndTime}`)
     }
     if (session.court_booking_status !== 'confirmed' && editSessionDate !== formatDateInput(session.slot.start_time)) {
-      changedFields.push(`ngÃ y chÆ¡i ${formatDateLabel(formatDateInput(session.slot.start_time))} â†’ ${formatDateLabel(editSessionDate)}`)
+      changedFields.push(`ngày chơi ${formatDateLabel(formatDateInput(session.slot.start_time))} → ${formatDateLabel(editSessionDate)}`)
     }
     if (nextMaxPlayers !== session.max_players) {
-      changedFields.push(`sá»‘ chá»— ${session.max_players} â†’ ${nextMaxPlayers}`)
+      changedFields.push(`số chỗ ${session.max_players} → ${nextMaxPlayers}`)
     }
     if (nextPrice !== session.slot.price) {
-      changedFields.push(`giÃ¡ ${(session.slot.price ?? 0).toLocaleString('vi-VN')}Ä‘ â†’ ${nextPrice.toLocaleString('vi-VN')}Ä‘`)
+      changedFields.push(`giá ${(session.slot.price ?? 0).toLocaleString('vi-VN')}đ → ${nextPrice.toLocaleString('vi-VN')}đ`)
     }
     if (nextEloMin !== session.elo_min || nextEloMax !== session.elo_max) {
-      changedFields.push(`trÃ¬nh Ä‘á»™ ${skillLabel(session.elo_min, session.elo_max)} â†’ ${skillLabel(nextEloMin, nextEloMax)}`)
+      changedFields.push(`trình độ ${skillLabel(session.elo_min, session.elo_max)} → ${skillLabel(nextEloMin, nextEloMax)}`)
     }
     if (editRequireApproval !== session.require_approval) {
-      changedFields.push(editRequireApproval ? 'báº­t duyá»‡t tay' : 'táº¯t duyá»‡t tay')
+      changedFields.push(editRequireApproval ? 'bật duyệt tay' : 'tắt duyệt tay')
     }
     if (changedFields.length === 0) {
       setIsEditingSession(false)
-      Alert.alert('KhÃ´ng cÃ³ thay Ä‘á»•i', 'Báº¡n chÆ°a chá»‰nh sá»­a thÃ´ng tin nÃ o cá»§a kÃ¨o.')
+      Alert.alert('Không có thay đổi', 'Bạn chưa chỉnh sửa thông tin nào của kèo.')
       return
     }
 
@@ -584,13 +584,13 @@ export default function SessionDetail() {
 
     if (slotError) {
       setSavingSessionEdit(false)
-      Alert.alert('Lá»—i', slotError.message)
+      Alert.alert('Lỗi', slotError.message)
       return
     }
 
     if (!updatedSlots || updatedSlots.length === 0) {
       setSavingSessionEdit(false)
-      Alert.alert('KhÃ´ng lÆ°u Ä‘Æ°á»£c thay Ä‘á»•i', 'Host chÆ°a cÃ³ quyá»n cáº­p nháº­t khung giá» cá»§a kÃ¨o nÃ y. HÃ£y cháº¡y migration policy má»›i trong Supabase.')
+      Alert.alert('Không lưu được thay đổi', 'Host chưa có quyền cập nhật khung giờ của kèo này. Hãy chạy migration policy mới trong Supabase.')
       return
     }
 
@@ -612,12 +612,12 @@ export default function SessionDetail() {
     setSavingSessionEdit(false)
 
     if (sessionError) {
-      Alert.alert('Lá»—i', sessionError.message)
+      Alert.alert('Lỗi', sessionError.message)
       return
     }
 
     if (!updatedSessions || updatedSessions.length === 0) {
-      Alert.alert('KhÃ´ng lÆ°u Ä‘Æ°á»£c thay Ä‘á»•i', 'Host chÆ°a cÃ³ quyá»n cáº­p nháº­t thÃ´ng tin kÃ¨o nÃ y. HÃ£y cháº¡y migration policy má»›i trong Supabase.')
+      Alert.alert('Không lưu được thay đổi', 'Host chưa có quyền cập nhật thông tin kèo này. Hãy chạy migration policy mới trong Supabase.')
       return
     }
 
@@ -629,7 +629,7 @@ export default function SessionDetail() {
       playerIdsToNotify.map((playerId) =>
         insertNotification(
           playerId,
-          'KÃ¨o vá»«a Ä‘Æ°á»£c cáº­p nháº­t',
+          'Kèo vừa được cập nhật',
           buildSessionUpdateSummary(changedFields),
           'session_updated',
           `/session/${session.id}`,
@@ -660,7 +660,7 @@ export default function SessionDetail() {
     setEditMaxPlayers(String(nextMaxPlayers))
     setEditPrice(String(nextPrice))
     setIsEditingSession(false)
-    Alert.alert('ÄÃ£ cáº­p nháº­t kÃ¨o', 'Nhá»¯ng ngÆ°á»i Ä‘Ã£ join kÃ¨o Ä‘Ã£ Ä‘Æ°á»£c thÃ´ng bÃ¡o vá» thay Ä‘á»•i má»›i.')
+    Alert.alert('Đã cập nhật kèo', 'Những người đã join kèo đã được thông báo về thay đổi mới.')
   }
 
   function handleEditTimeChange(field: 'start' | 'end') {
@@ -754,7 +754,7 @@ export default function SessionDetail() {
 
     if (error) {
       setSavingResults(false)
-      Alert.alert('Lá»—i', error.message)
+      Alert.alert('Lỗi', error.message)
       return
     }
 
@@ -766,8 +766,8 @@ export default function SessionDetail() {
       playerIdsToNotify.map((playerId) =>
         insertNotification(
           playerId,
-          'Host Ä‘Ã£ gá»­i káº¿t quáº£ tráº­n',
-          'HÃ£y xÃ¡c nháº­n hoáº·c bÃ¡o sai káº¿t quáº£ trong chi tiáº¿t kÃ¨o. Káº¿t quáº£ sáº½ tá»± chá»‘t sau 24h náº¿u khÃ´ng ai pháº£n Ä‘á»‘i.',
+          'Host đã gửi kết quả trận',
+          'Hãy xác nhận hoặc báo sai kết quả trong chi tiết kèo. Kết quả sẽ tự chốt sau 24h nếu không ai phản đối.',
           'session_results_submitted',
           `/session/${session.id}`,
         ),
@@ -793,7 +793,7 @@ export default function SessionDetail() {
     )
 
     setSavingResults(false)
-    Alert.alert('ÄÃ£ gá»­i káº¿t quáº£', 'NgÆ°á»i chÆ¡i sáº½ cáº§n xÃ¡c nháº­n káº¿t quáº£. Achievement chá»‰ Ä‘Æ°á»£c tÃ­nh sau khi Ä‘á»§ xÃ¡c nháº­n hoáº·c háº¿t thá»i háº¡n 24h mÃ  khÃ´ng cÃ³ tranh cháº¥p.')
+    Alert.alert('Đã gửi kết quả', 'Người chơi sẽ cần xác nhận kết quả. Achievement chỉ được tính sau khi đủ xác nhận hoặc hết thời hạn 24h mà không có tranh chấp.')
   }
 
   async function respondToSessionResult(response: 'confirmed' | 'disputed') {
@@ -810,26 +810,26 @@ export default function SessionDetail() {
     setRespondingToResult(false)
 
     if (error) {
-      Alert.alert('Lá»—i', error.message)
+      Alert.alert('Lỗi', error.message)
       return
     }
 
     if (response === 'disputed') {
       await insertNotification(
         session.host.id,
-        'CÃ³ tranh cháº¥p káº¿t quáº£ tráº­n',
-        `${myPlayer?.name ?? 'Má»™t ngÆ°á»i chÆ¡i'} Ä‘Ã£ bÃ¡o sai káº¿t quáº£ vÃ  yÃªu cáº§u host kiá»ƒm tra láº¡i.`,
+        'Có tranh chấp kết quả trận',
+        `${myPlayer?.name ?? 'Một người chơi'} đã báo sai kết quả và yêu cầu host kiểm tra lại.`,
         'session_results_disputed',
         `/session/${session.id}`,
       )
     }
 
     if (data === 'finalized') {
-      Alert.alert('Káº¿t quáº£ Ä‘Ã£ chá»‘t', 'Káº¿t quáº£ tráº­n Ä‘Ã£ Ä‘á»§ Ä‘iá»u kiá»‡n xÃ¡c nháº­n vÃ  Ä‘Æ°á»£c chá»‘t chÃ­nh thá»©c.')
+      Alert.alert('Kết quả đã chốt', 'Kết quả trận đã đủ điều kiện xác nhận và được chốt chính thức.')
     } else if (response === 'confirmed') {
-      Alert.alert('ÄÃ£ xÃ¡c nháº­n', 'Há»‡ thá»‘ng Ä‘Ã£ ghi nháº­n xÃ¡c nháº­n cá»§a báº¡n. Chá» cÃ¡c ngÆ°á»i chÆ¡i cÃ²n láº¡i hoáº·c háº¿t thá»i háº¡n 24h.')
+      Alert.alert('Đã xác nhận', 'Hệ thống đã ghi nhận xác nhận của bạn. Chờ các người chơi còn lại hoặc hết thời hạn 24h.')
     } else {
-      Alert.alert('ÄÃ£ bÃ¡o sai káº¿t quáº£', 'Host Ä‘Ã£ Ä‘Æ°á»£c thÃ´ng bÃ¡o Ä‘á»ƒ kiá»ƒm tra láº¡i.')
+      Alert.alert('Đã báo sai kết quả', 'Host đã được thông báo để kiểm tra lại.')
     }
 
     setDisputeNote('')
@@ -859,16 +859,16 @@ export default function SessionDetail() {
     }
 
     if (error) {
-      Alert.alert('Lá»—i', error.message)
+      Alert.alert('Lỗi', error.message)
       return
     }
 
     if (data === 'already_reported') {
-      Alert.alert('ÄÃ£ vÃ´ hiá»‡u kÃ¨o', 'Äa sá»‘ ngÆ°á»i chÆ¡i Ä‘Ã£ bÃ¡o tráº­n Ä‘áº¥u khÃ´ng diá»…n ra. KÃ¨o nÃ y Ä‘Ã£ bá»‹ vÃ´ hiá»‡u.')
+      Alert.alert('Đã vô hiệu kèo', 'Đa số người chơi đã báo trận đấu không diễn ra. Kèo này đã bị vô hiệu.')
     } else if (data === 'member_finalized') {
-      Alert.alert('ÄÃ£ chá»‘t báº±ng Ä‘á»“ng thuáº­n', 'NgÆ°á»i chÆ¡i Ä‘Ã£ Ä‘á»§ Ä‘á»“ng thuáº­n Ä‘á»ƒ Ä‘Ã³ng kÃ¨o vÃ  má»Ÿ bÆ°á»›c háº­u tráº­n.')
+      Alert.alert('Đã chốt bằng đồng thuận', 'Người chơi đã đủ đồng thuận để đóng kèo và mở bước hậu trận.')
     } else {
-      Alert.alert('ÄÃ£ gá»­i bÃ¡o cÃ¡o', 'BÃ¡o cÃ¡o káº¿t quáº£ cá»§a báº¡n Ä‘Ã£ Ä‘Æ°á»£c ghi nháº­n.')
+      Alert.alert('Đã gửi báo cáo', 'Báo cáo kết quả của bạn đã được ghi nhận.')
     }
 
     await fetchSession(myId)
@@ -876,9 +876,9 @@ export default function SessionDetail() {
 
   async function directJoinSession() {
     if (!myId) {
-      Alert.alert('Cáº§n Ä‘Äƒng nháº­p', 'Báº¡n cáº§n Ä‘Äƒng nháº­p Ä‘á»ƒ tham gia kÃ¨o nÃ y', [
-        { text: 'Huá»·', style: 'cancel' },
-        { text: 'ÄÄƒng nháº­p', onPress: () => router.push('/login') },
+      Alert.alert('Cần đăng nhập', 'Bạn cần đăng nhập để tham gia kèo này', [
+        { text: 'Huỷ', style: 'cancel' },
+        { text: 'Đăng nhập', onPress: () => router.push('/login') },
       ])
       return
     }
@@ -903,20 +903,20 @@ export default function SessionDetail() {
     setJoining(false)
 
     if (error) {
-      Alert.alert('Lá»—i', error.message)
+      Alert.alert('Lỗi', error.message)
       return
     }
 
-    Alert.alert('Tham gia thÃ nh cÃ´ng', 'Báº¡n Ä‘Ã£ vÃ o kÃ¨o nÃ y rá»“i nhÃ©.')
+    Alert.alert('Tham gia thành công', 'Bạn đã vào kèo này rồi nhé.')
     setRequestStatus('accepted')
     await fetchSession(myId)
   }
 
   async function sendJoinRequest(mode: RequestStatus | 'waitlist', noteOverride?: string) {
     if (!myId) {
-      Alert.alert('Cáº§n Ä‘Äƒng nháº­p', 'Báº¡n cáº§n Ä‘Äƒng nháº­p Ä‘á»ƒ gá»­i yÃªu cáº§u', [
-        { text: 'Huá»·', style: 'cancel' },
-        { text: 'ÄÄƒng nháº­p', onPress: () => router.push('/login') },
+      Alert.alert('Cần đăng nhập', 'Bạn cần đăng nhập để gửi yêu cầu', [
+        { text: 'Huỷ', style: 'cancel' },
+        { text: 'Đăng nhập', onPress: () => router.push('/login') },
       ])
       return
     }
@@ -938,7 +938,7 @@ export default function SessionDetail() {
     setRequesting(false)
 
     if (error) {
-      Alert.alert('Lá»—i', error.message)
+      Alert.alert('Lỗi', error.message)
       return
     }
 
@@ -946,8 +946,8 @@ export default function SessionDetail() {
     setJoinModalVisible(false)
     setMyHostTemplate(null)
     Alert.alert(
-      mode === 'waitlist' ? 'ÄÃ£ Ä‘Äƒng kÃ½ dá»± bá»‹' : 'ÄÃ£ gá»­i yÃªu cáº§u',
-      mode === 'waitlist' ? 'Host sáº½ tháº¥y báº¡n trong danh sÃ¡ch dá»± bá»‹ náº¿u cÃ³ slot trá»‘ng.' : 'Chá» host duyá»‡t nhÃ©.'
+      mode === 'waitlist' ? 'Đã đăng ký dự bị' : 'Đã gửi yêu cầu',
+      mode === 'waitlist' ? 'Host sẽ thấy bạn trong danh sách dự bị nếu có slot trống.' : 'Chờ host duyệt nhé.'
     )
 
     // Notify host
@@ -956,8 +956,8 @@ export default function SessionDetail() {
         .toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
       await insertNotification(
         session.host.id,
-        mode === 'waitlist' ? 'CÃ³ ngÆ°á»i Ä‘Äƒng kÃ½ dá»± bá»‹' : 'CÃ³ ngÆ°á»i muá»‘n join kÃ¨o!',
-        `${myPlayer.name} (Elo ${myPlayer.current_elo ?? myPlayer.elo}) gá»­i yÃªu cáº§u vÃ o kÃ¨o lÃºc ${slotTime}`,
+        mode === 'waitlist' ? 'Có người đăng ký dự bị' : 'Có người muốn join kèo!',
+        `${myPlayer.name} (Elo ${myPlayer.current_elo ?? myPlayer.elo}) gửi yêu cầu vào kèo lúc ${slotTime}`,
         'join_request',
         `/session/${session.id}`,
       )
@@ -973,7 +973,7 @@ export default function SessionDetail() {
       .eq('id', requestId)
     if (reqErr) {
       console.warn('[approveRequest] update join_requests failed:', reqErr.message)
-      Alert.alert('Lá»—i', reqErr.message)
+      Alert.alert('Lỗi', reqErr.message)
       return
     }
 
@@ -984,22 +984,22 @@ export default function SessionDetail() {
     })
     if (playerErr) {
       console.warn('[approveRequest] insert session_players failed:', playerErr.message)
-      Alert.alert('Lá»—i', playerErr.message)
+      Alert.alert('Lỗi', playerErr.message)
       return
     }
 
     // Optimistically remove from pending list immediately
     setPendingRequests((prev) => prev.filter((r) => r.id !== requestId))
 
-    Alert.alert('ÄÃ£ duyá»‡t', 'NgÆ°á»i chÆ¡i Ä‘Ã£ Ä‘Æ°á»£c thÃªm vÃ o kÃ¨o.')
+    Alert.alert('Đã duyệt', 'Người chơi đã được thêm vào kèo.')
 
     console.log('[approveRequest] sending notification to player:', playerId)
     const slotTime = new Date(session.slot.start_time)
       .toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
     await insertNotification(
       playerId,
-      'ÄÆ°á»£c duyá»‡t!',
-      `Báº¡n Ä‘Ã£ Ä‘Æ°á»£c cháº¥p nháº­n vÃ o kÃ¨o lÃºc ${slotTime}`,
+      'Được duyệt!',
+      `Bạn đã được chấp nhận vào kèo lúc ${slotTime}`,
       'join_approved',
       `/session/${session.id}`,
     )
@@ -1017,20 +1017,20 @@ export default function SessionDetail() {
       .eq('id', requestId)
     if (error) {
       console.warn('[rejectRequest] failed:', error.message)
-      Alert.alert('Lá»—i', error.message)
+      Alert.alert('Lỗi', error.message)
       return
     }
 
     // Optimistically remove from pending list immediately
     setPendingRequests((prev) => prev.filter((r) => r.id !== requestId))
 
-    Alert.alert('ÄÃ£ tá»« chá»‘i.')
+    Alert.alert('Đã từ chối.')
 
     console.log('[rejectRequest] sending notification to player:', playerId)
     await insertNotification(
       playerId,
-      'ChÆ°a phÃ¹ há»£p',
-      'Host Ä‘Ã£ tá»« chá»‘i yÃªu cáº§u tham gia',
+      'Chưa phù hợp',
+      'Host đã từ chối yêu cầu tham gia',
       'join_rejected',
       `/session/${session.id}`,
     )
@@ -1048,7 +1048,7 @@ export default function SessionDetail() {
       .eq('id', requestId)
 
     if (error) {
-      Alert.alert('Lá»—i', error.message)
+      Alert.alert('Lỗi', error.message)
       return
     }
 
@@ -1060,22 +1060,22 @@ export default function SessionDetail() {
 
     await insertNotification(
       playerId,
-      'Host Ä‘Ã£ pháº£n há»“i yÃªu cáº§u',
+      'Host đã phản hồi yêu cầu',
       template,
       'join_request_reply',
       `/session/${session.id}`,
     )
 
-    Alert.alert('ÄÃ£ gá»­i pháº£n há»“i', 'Template Ä‘Ã£ Ä‘Æ°á»£c lÆ°u vÃ  gá»­i cho ngÆ°á»i chÆ¡i.')
+    Alert.alert('Đã gửi phản hồi', 'Template đã được lưu và gửi cho người chơi.')
   }
 
   async function leaveSession() {
     if (!myId || !session) return
 
-    Alert.alert('Rá»i kÃ¨o?', 'Báº¡n cháº¯c muá»‘n rá»i kÃ¨o nÃ y khÃ´ng?', [
-      { text: 'Huá»·', style: 'cancel' },
+    Alert.alert('Rời kèo?', 'Bạn chắc muốn rời kèo này không?', [
+      { text: 'Huỷ', style: 'cancel' },
       {
-        text: 'Rá»i kÃ¨o',
+        text: 'Rời kèo',
         style: 'destructive',
         onPress: async () => {
           const leavingPlayer = session.session_players.find((p) => p.player_id === myId)
@@ -1091,7 +1091,7 @@ export default function SessionDetail() {
 
           if (error) {
             setLeaving(false)
-            Alert.alert('Lá»—i', error.message)
+            Alert.alert('Lỗi', error.message)
             return
           }
 
@@ -1104,8 +1104,8 @@ export default function SessionDetail() {
           if (session.host.id !== myId) {
             await insertNotification(
               session.host.id,
-              'NgÆ°á»i chÆ¡i Ä‘Ã£ rá»i kÃ¨o',
-              `${leavingPlayer?.player?.name ?? 'Má»™t ngÆ°á»i chÆ¡i'} Ä‘Ã£ rá»i kÃ¨o lÃºc ${slotTime}.`,
+              'Người chơi đã rời kèo',
+              `${leavingPlayer?.player?.name ?? 'Một người chơi'} đã rời kèo lúc ${slotTime}.`,
               'player_left',
               `/session/${session.id}`,
             )
@@ -1139,15 +1139,15 @@ export default function SessionDetail() {
       .map((p) => p.player_id)
     const slotTime = new Date(session.slot.start_time)
       .toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
-    const alertTitle = isFull ? 'KÃ¨o Ä‘Ã£ Ä‘á»§ ngÆ°á»i' : 'Huá»· kÃ¨o?'
+    const alertTitle = isFull ? 'Kèo đã đủ người' : 'Huỷ kèo?'
     const alertMessage = isFull
-      ? 'KÃ¨o Ä‘Ã£ Ä‘á»§ ngÆ°á»i chÆ¡i, huá»· kÃ¨o nÃ y sáº½ áº£nh hÆ°á»Ÿng Ä‘áº¿n tá»· lá»‡ huá»· kÃ¨o cá»§a báº¡n. Báº¡n cÃ³ cháº¯c khÃ´ng?'
-      : 'KÃ¨o sáº½ bá»‹ huá»· vÃ  táº¥t cáº£ ngÆ°á»i chÆ¡i sáº½ bá»‹ xoÃ¡. KhÃ´ng thá»ƒ hoÃ n tÃ¡c!'
+      ? 'Kèo đã đủ người chơi, huỷ kèo này sẽ ảnh hưởng đến tỷ lệ huỷ kèo của bạn. Bạn có chắc không?'
+      : 'Kèo sẽ bị huỷ và tất cả người chơi sẽ bị xoá. Không thể hoàn tác!'
 
     Alert.alert(alertTitle, alertMessage, [
-      { text: 'KhÃ´ng', style: 'cancel' },
+      { text: 'Không', style: 'cancel' },
       {
-        text: 'Huá»· kÃ¨o',
+        text: 'Huỷ kèo',
         style: 'destructive',
         onPress: async () => {
           setCancelling(true)
@@ -1166,7 +1166,7 @@ export default function SessionDetail() {
           setCancelling(false)
 
           if (error) {
-            Alert.alert('Lá»—i', error.message)
+            Alert.alert('Lỗi', error.message)
             return
           }
 
@@ -1174,15 +1174,15 @@ export default function SessionDetail() {
             playerIdsToNotify.map((playerId) =>
               insertNotification(
                 playerId,
-                'Host Ä‘Ã£ huá»· kÃ¨o',
-                `KÃ¨o lÃºc ${slotTime} Ä‘Ã£ bá»‹ host huá»·.`,
+                'Host đã huỷ kèo',
+                `Kèo lúc ${slotTime} đã bị host huỷ.`,
                 'session_cancelled',
                 `/session/${session.id}`,
               )
             )
           )
 
-          Alert.alert('ÄÃ£ huá»· kÃ¨o', 'KÃ¨o cá»§a báº¡n Ä‘Ã£ Ä‘Æ°á»£c huá»·.', [
+          Alert.alert('Đã huỷ kèo', 'Kèo của bạn đã được huỷ.', [
             { text: 'OK', onPress: () => router.replace('/(tabs)' as any) },
           ])
         },
@@ -1195,9 +1195,9 @@ export default function SessionDetail() {
     const e = new Date(end)
     const fmt = (d: Date) =>
       `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
-    const weekday = ['Chá»§ nháº­t', 'Thá»© 2', 'Thá»© 3', 'Thá»© 4', 'Thá»© 5', 'Thá»© 6', 'Thá»© 7'][s.getDay()]
+    const weekday = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'][s.getDay()]
     const day = `${s.getDate().toString().padStart(2, '0')}/${(s.getMonth() + 1).toString().padStart(2, '0')}`
-    return `${weekday}, ${day} Â· ${fmt(s)} â†’ ${fmt(e)}`
+    return `${weekday}, ${day} · ${fmt(s)} → ${fmt(e)}`
   }
 
   function skillLabel(eloMin: number, eloMax: number) {
@@ -1215,7 +1215,7 @@ export default function SessionDetail() {
   if (!session) {
     return (
       <SafeAreaView style={styles.center} edges={['top']}>
-        <Text style={{ color: '#888' }}>KhÃ´ng tÃ¬m tháº¥y kÃ¨o nÃ y</Text>
+        <Text style={{ color: '#888' }}>Không tìm thấy kèo này</Text>
       </SafeAreaView>
     )
   }
@@ -1264,26 +1264,26 @@ export default function SessionDetail() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <View style={styles.topActionInline}>
             <ArrowLeft size={16} color="#059669" />
-            <Text style={styles.backText}>Quay láº¡i</Text>
+            <Text style={styles.backText}>Quay lại</Text>
           </View>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.shareBtn}
           onPress={() => {
             const url = Linking.createURL(`/session/${id}`)
-            Share.share({ message: `Tham gia kÃ¨o pickleball nÃ y nhÃ©! ${url}` })
+            Share.share({ message: `Tham gia kèo pickleball này nhé! ${url}` })
           }}
         >
           <View style={styles.topActionInline}>
             <Share2 size={15} color="#047857" />
-            <Text style={styles.shareBtnText}>Chia sáº»</Text>
+            <Text style={styles.shareBtnText}>Chia sẻ</Text>
           </View>
         </TouchableOpacity>
       </View>
 
       {created === '1' && (
         <View style={styles.successBanner}>
-          <Text style={styles.successBannerText}>KÃ¨o Ä‘Ã£ Ä‘Æ°á»£c Ä‘Äƒng. Chia sáº» link Ä‘á»ƒ má»i ngÆ°á»i chÆ¡i.</Text>
+          <Text style={styles.successBannerText}>Kèo đã được đăng. Chia sẻ link để mời người chơi.</Text>
         </View>
       )}
 
@@ -1292,7 +1292,7 @@ export default function SessionDetail() {
         <Text style={styles.courtName}>{court?.name}</Text>
         <View style={styles.heroMetaRow}>
           <MapPin size={15} color="#6b7280" />
-          <Text style={styles.address}>{court?.address} Â· {court?.city}</Text>
+          <Text style={styles.address}>{court?.address} · {court?.city}</Text>
         </View>
 
         <View style={styles.heroBadgeRow}>
@@ -1300,7 +1300,7 @@ export default function SessionDetail() {
             <View style={styles.approvalBadge}>
               <View style={styles.topActionInline}>
                 <ShieldAlert size={14} color="#92400e" />
-                <Text style={styles.approvalBadgeText}>KÃ¨o duyá»‡t tay</Text>
+                <Text style={styles.approvalBadgeText}>Kèo duyệt tay</Text>
               </View>
             </View>
           )}
@@ -1319,17 +1319,17 @@ export default function SessionDetail() {
 
         {(session.booking_reference || session.booking_name || session.booking_phone || session.booking_notes) && (
           <View style={styles.bookingInfoCard}>
-            <Text style={styles.bookingInfoTitle}>ThÃ´ng tin booking</Text>
-            {session.booking_reference && <Text style={styles.bookingInfoText}>MÃ£ booking: {session.booking_reference}</Text>}
-            {session.booking_name && <Text style={styles.bookingInfoText}>NgÆ°á»i Ä‘áº·t: {session.booking_name}</Text>}
-            {session.booking_phone && <Text style={styles.bookingInfoText}>Sá»‘ Ä‘iá»‡n thoáº¡i: {session.booking_phone}</Text>}
-            {session.booking_notes && <Text style={styles.bookingInfoText}>Ghi chÃº: {session.booking_notes}</Text>}
+            <Text style={styles.bookingInfoTitle}>Thông tin booking</Text>
+            {session.booking_reference && <Text style={styles.bookingInfoText}>Mã booking: {session.booking_reference}</Text>}
+            {session.booking_name && <Text style={styles.bookingInfoText}>Người đặt: {session.booking_name}</Text>}
+            {session.booking_phone && <Text style={styles.bookingInfoText}>Số điện thoại: {session.booking_phone}</Text>}
+            {session.booking_notes && <Text style={styles.bookingInfoText}>Ghi chú: {session.booking_notes}</Text>}
           </View>
         )}
 
         <View style={styles.infoRow}>
           <View style={styles.infoCard}>
-            <Text style={styles.infoLabel}>Thá»i gian</Text>
+            <Text style={styles.infoLabel}>Thời gian</Text>
             <View style={styles.infoInline}>
               <CalendarDays size={15} color="#4f46e5" />
               <Text style={styles.infoValue}>{formatTime(session.slot.start_time, session.slot.end_time)}</Text>
@@ -1339,23 +1339,23 @@ export default function SessionDetail() {
 
         <View style={styles.infoRow}>
           <View style={[styles.infoCard, { flex: 1 }]}>
-            <Text style={styles.infoLabel}>TrÃ¬nh Ä‘á»™</Text>
+            <Text style={styles.infoLabel}>Trình độ</Text>
             <Text style={styles.infoValue}>{skillLabel(session.elo_min, session.elo_max)}</Text>
           </View>
           <View style={[styles.infoCard, { flex: 1 }]}>
-            <Text style={styles.infoLabel}>GiÃ¡</Text>
+            <Text style={styles.infoLabel}>Giá</Text>
             <View style={styles.infoInline}>
               <Wallet size={15} color="#111827" />
-              <Text style={styles.infoValue}>{session.slot.price.toLocaleString('vi-VN')}Ä‘</Text>
+              <Text style={styles.infoValue}>{session.slot.price.toLocaleString('vi-VN')}đ</Text>
             </View>
           </View>
         </View>
       </View>
 
       <View style={styles.sectionHeaderRow}>
-        <Text style={styles.sectionTitle}>NgÆ°á»i chÆ¡i Â· {players.length}/{session.max_players}</Text>
-        {session.status === 'open' && spotsLeft > 0 ? <Text style={styles.spotsLeft}>CÃ²n {spotsLeft} chá»—</Text> : null}
-        {session.status === 'open' && spotsLeft <= 0 ? <Text style={styles.spotsFull}>ÄÃ£ Ä‘á»§ ngÆ°á»i</Text> : null}
+        <Text style={styles.sectionTitle}>Người chơi · {players.length}/{session.max_players}</Text>
+        {session.status === 'open' && spotsLeft > 0 ? <Text style={styles.spotsLeft}>Còn {spotsLeft} chỗ</Text> : null}
+        {session.status === 'open' && spotsLeft <= 0 ? <Text style={styles.spotsFull}>Đã đủ người</Text> : null}
       </View>
 
       <View style={styles.playersCard}>
@@ -1390,7 +1390,7 @@ export default function SessionDetail() {
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>{(p.player as any)?.name?.[0]?.toUpperCase() ?? '?'}</Text>
             </View>
-            <Text style={styles.playerName}>{(p.player as any)?.name ?? 'â€”'}</Text>
+            <Text style={styles.playerName}>{(p.player as any)?.name ?? '—'}</Text>
           </TouchableOpacity>
         ))}
 
@@ -1399,7 +1399,7 @@ export default function SessionDetail() {
             <View style={[styles.avatar, { backgroundColor: '#f0f0f0' }]}>
               <Text style={styles.avatarText}>?</Text>
             </View>
-            <Text style={[styles.playerName, { color: '#bbb' }]}>Chá» ngÆ°á»i chÆ¡i...</Text>
+            <Text style={[styles.playerName, { color: '#bbb' }]}>Chờ người chơi...</Text>
           </View>
         ))}
       </View>
@@ -1419,32 +1419,32 @@ export default function SessionDetail() {
         <View style={styles.hostActionsCard}>
           <View style={styles.hostActionsHeader}>
             <View style={styles.hostActionsCopy}>
-              <Text style={styles.hostActionsTitle}>XÃ¡c nháº­n káº¿t quáº£ tráº­n</Text>
+              <Text style={styles.hostActionsTitle}>Xác nhận kết quả trận</Text>
               <Text style={styles.hostActionsSub}>
-                Host Ä‘Ã£ gá»­i káº¿t quáº£ cho kÃ¨o nÃ y. Báº¡n hÃ£y xÃ¡c nháº­n hoáº·c bÃ¡o sai Ä‘á»ƒ trÃ¡nh tÃ­nh Elo vÃ  achievement sai.
+                Host đã gửi kết quả cho kèo này. Bạn hãy xác nhận hoặc báo sai để tránh tính Elo và achievement sai.
               </Text>
             </View>
           </View>
 
           <View style={styles.resultCard}>
-            <Text style={styles.editFieldLabel}>Káº¿t quáº£ host gá»­i cho báº¡n</Text>
+            <Text style={styles.editFieldLabel}>Kết quả host gửi cho bạn</Text>
             <Text style={styles.resultValueText}>
               {(() => {
                 const value = myResultRow.proposed_result ?? myResultRow.match_result ?? 'pending'
-                if (value === 'win') return 'Tháº¯ng'
+                if (value === 'win') return 'Thắng'
                 if (value === 'loss') return 'Thua'
-                if (value === 'draw') return 'HoÃ '
-                return 'ChÆ°a chá»‘t'
+                if (value === 'draw') return 'Hoà'
+                return 'Chưa chốt'
               })()}
             </Text>
             <Text style={styles.resultStatusText}>
               {session.results_status === 'finalized'
-                ? 'Káº¿t quáº£ Ä‘Ã£ Ä‘Æ°á»£c chá»‘t chÃ­nh thá»©c.'
+                ? 'Kết quả đã được chốt chính thức.'
                 : myResultRow.result_confirmation_status === 'confirmed'
-                  ? 'Báº¡n Ä‘Ã£ xÃ¡c nháº­n káº¿t quáº£ nÃ y.'
+                  ? 'Bạn đã xác nhận kết quả này.'
                   : myResultRow.result_confirmation_status === 'disputed'
-                    ? 'Báº¡n Ä‘Ã£ bÃ¡o sai káº¿t quáº£. Chá» host cáº­p nháº­t láº¡i.'
-                    : `Káº¿t quáº£ sáº½ tá»± chá»‘t sau 24h náº¿u khÃ´ng ai pháº£n Ä‘á»‘i. Háº¡n chÃ³t: ${session.results_confirmation_deadline ? new Date(session.results_confirmation_deadline).toLocaleString('vi-VN') : '24h'}`}
+                    ? 'Bạn đã báo sai kết quả. Chờ host cập nhật lại.'
+                    : `Kết quả sẽ tự chốt sau 24h nếu không ai phản đối. Hạn chót: ${session.results_confirmation_deadline ? new Date(session.results_confirmation_deadline).toLocaleString('vi-VN') : '24h'}`}
             </Text>
           </View>
 
@@ -1452,7 +1452,7 @@ export default function SessionDetail() {
             <>
               <TextInput
                 style={[styles.bookingInput, styles.bookingNotesInput]}
-                placeholder="Náº¿u bÃ¡o sai, hÃ£y ghi ngáº¯n lÃ½ do Ä‘á»ƒ host kiá»ƒm tra láº¡i"
+                placeholder="Nếu báo sai, hãy ghi ngắn lý do để host kiểm tra lại"
                 placeholderTextColor="#aaa"
                 multiline
                 value={disputeNote}
@@ -1466,7 +1466,7 @@ export default function SessionDetail() {
                   disabled={respondingToResult}
                 >
                   <Text style={styles.bookingConfirmBtnText}>
-                    {respondingToResult ? 'Äang gá»­i...' : 'XÃ¡c nháº­n'}
+                    {respondingToResult ? 'Đang gửi...' : 'Xác nhận'}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -1474,7 +1474,7 @@ export default function SessionDetail() {
                   onPress={() => respondToSessionResult('disputed')}
                   disabled={respondingToResult}
                 >
-                  <Text style={styles.cancelBtnText}>BÃ¡o sai káº¿t quáº£</Text>
+                  <Text style={styles.cancelBtnText}>Báo sai kết quả</Text>
                 </TouchableOpacity>
               </View>
             </>
@@ -1486,16 +1486,16 @@ export default function SessionDetail() {
         <View style={styles.hostActionsCard}>
           <View style={styles.hostActionsHeader}>
             <View style={styles.hostActionsCopy}>
-              <Text style={styles.hostActionsTitle}>BÃ¡o host khÃ´ng chuyÃªn nghiá»‡p</Text>
+              <Text style={styles.hostActionsTitle}>Báo host không chuyên nghiệp</Text>
               <Text style={styles.hostActionsSub}>
-                Host váº«n chÆ°a xÃ¡c nháº­n káº¿t quáº£ Ä‘Ãºng háº¡n. Báº¡n cÃ³ thá»ƒ gá»­i má»™t bÃ¡o cÃ¡o Ä‘á»ƒ há»‡ thá»‘ng ghi nháº­n.
+                Host vẫn chưa xác nhận kết quả đúng hạn. Bạn có thể gửi một báo cáo để hệ thống ghi nhận.
               </Text>
             </View>
           </View>
 
           <TextInput
             style={[styles.bookingInput, styles.bookingNotesInput]}
-            placeholder="Ghi chÃº thÃªm náº¿u cáº§n, vÃ­ dá»¥ host khÃ´ng chá»‘t kÃ¨o Ä‘Ãºng háº¡n"
+            placeholder="Ghi chú thêm nếu cần, ví dụ host không chốt kèo đúng hạn"
             placeholderTextColor="#aaa"
             multiline
             value={hostIssueNote}
@@ -1508,12 +1508,12 @@ export default function SessionDetail() {
             disabled={reportingHostIssue}
           >
             <Text style={styles.bookingConfirmBtnText}>
-              {reportingHostIssue ? 'Äang gá»­i...' : 'BÃ¡o host khÃ´ng chuyÃªn nghiá»‡p'}
+              {reportingHostIssue ? 'Đang gửi...' : 'Báo host không chuyên nghiệp'}
             </Text>
           </TouchableOpacity>
 
           <Text style={styles.resultStatusText}>
-            Náº¿u host váº«n khÃ´ng hoÃ n thÃ nh, há»‡ thá»‘ng sáº½ tá»± Ä‘á»™ng Ä‘Ã³ng kÃ¨o vá»›i káº¿t quáº£ hÃ²a Ä‘á»ƒ trÃ¡nh treo session.
+            Nếu host vẫn không hoàn thành, hệ thống sẽ tự động đóng kèo với kết quả hòa để tránh treo session.
           </Text>
         </View>
       ) : null}
@@ -1523,9 +1523,9 @@ export default function SessionDetail() {
         <View style={styles.hostActionsCard}>
           <View style={styles.hostActionsHeader}>
             <View style={styles.hostActionsCopy}>
-              <Text style={styles.hostActionsTitle}>Káº¿t quáº£ tráº­n</Text>
+              <Text style={styles.hostActionsTitle}>Kết quả trận</Text>
               <Text style={styles.hostActionsSub}>
-                Chá»n káº¿t quáº£ cho tá»«ng ngÆ°á»i rá»“i gá»­i sang bÆ°á»›c xÃ¡c nháº­n. Achievement chá»‰ Ä‘Æ°á»£c tÃ­nh sau khi ngÆ°á»i chÆ¡i xÃ¡c nháº­n hoáº·c háº¿t 24h mÃ  khÃ´ng ai tranh cháº¥p.
+                Chọn kết quả cho từng người rồi gửi sang bước xác nhận. Achievement chỉ được tính sau khi người chơi xác nhận hoặc hết 24h mà không ai tranh chấp.
               </Text>
             </View>
           </View>
@@ -1533,26 +1533,26 @@ export default function SessionDetail() {
           {players.map((player) => {
             const currentResult = matchResults[player.player_id] ?? player.proposed_result ?? player.match_result ?? 'pending'
             const playerName =
-              player.player_id === session.host.id ? session.host.name : (player.player as any)?.name ?? 'NgÆ°á»i chÆ¡i'
+              player.player_id === session.host.id ? session.host.name : (player.player as any)?.name ?? 'Người chơi'
 
             return (
               <View key={`result-${player.player_id}`} style={styles.resultCard}>
                 <Text style={styles.resultPlayerName}>{playerName}</Text>
                 <Text style={styles.resultStatusText}>
                   {player.result_confirmation_status === 'confirmed'
-                    ? 'ÄÃ£ xÃ¡c nháº­n'
+                    ? 'Đã xác nhận'
                     : player.result_confirmation_status === 'disputed'
-                      ? `Äang tranh cháº¥p${player.result_dispute_note ? ` Â· ${player.result_dispute_note}` : ''}`
+                      ? `Đang tranh chấp${player.result_dispute_note ? ` · ${player.result_dispute_note}` : ''}`
                       : player.player_id === session.host.id
                         ? 'Host'
-                        : 'Chá» ngÆ°á»i chÆ¡i xÃ¡c nháº­n'}
+                        : 'Chờ người chơi xác nhận'}
                 </Text>
                 <View style={styles.optionPillRow}>
                   {[
-                    { value: 'win', label: 'Tháº¯ng' },
+                    { value: 'win', label: 'Thắng' },
                     { value: 'loss', label: 'Thua' },
-                    { value: 'draw', label: 'HoÃ ' },
-                    { value: 'pending', label: 'ChÆ°a chá»‘t' },
+                    { value: 'draw', label: 'Hoà' },
+                    { value: 'pending', label: 'Chưa chốt' },
                   ].map((option) => (
                     <TouchableOpacity
                       key={`${player.player_id}-${option.value}`}
@@ -1575,7 +1575,7 @@ export default function SessionDetail() {
             disabled={savingResults}
           >
             <Text style={styles.bookingConfirmBtnText}>
-              {savingResults ? 'Äang gá»­i káº¿t quáº£...' : session.results_status === 'disputed' ? 'Gá»­i láº¡i káº¿t quáº£ Ä‘Ã£ sá»­a' : 'Gá»­i káº¿t quáº£ Ä‘á»ƒ xÃ¡c nháº­n'}
+              {savingResults ? 'Đang gửi kết quả...' : session.results_status === 'disputed' ? 'Gửi lại kết quả đã sửa' : 'Gửi kết quả để xác nhận'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -1583,7 +1583,7 @@ export default function SessionDetail() {
 
       {canRateSession && alreadyRated ? (
         <View style={styles.doneStateBtn}>
-          <Text style={styles.doneStateText}>Báº¡n Ä‘Ã£ Ä‘Ã¡nh giÃ¡ kÃ¨o nÃ y</Text>
+          <Text style={styles.doneStateText}>Bạn đã đánh giá kèo này</Text>
         </View>
       ) : canRateSession ? (
         <TouchableOpacity
@@ -1595,26 +1595,26 @@ export default function SessionDetail() {
             })
           }
         >
-          <Text style={styles.rateBtnText}>â­ ÄÃ¡nh giÃ¡ kÃ¨o nÃ y</Text>
+          <Text style={styles.rateBtnText}>⭐ Đánh giá kèo này</Text>
         </TouchableOpacity>
       ) : isDone ? (
         <View style={styles.fullBtn}>
-          <Text style={styles.fullBtnText}>KÃ¨o Ä‘Ã£ káº¿t thÃºc</Text>
+          <Text style={styles.fullBtnText}>Kèo đã kết thúc</Text>
         </View>
       ) : isPendingCompletion ? (
         <View style={styles.pendingBtn}>
-          <Text style={styles.pendingBtnText}>KÃ¨o Ä‘ang chá» host xÃ¡c nháº­n káº¿t quáº£</Text>
+          <Text style={styles.pendingBtnText}>Kèo đang chờ host xác nhận kết quả</Text>
         </View>
       ) : isCancelled ? (
         <View style={styles.fullBtn}>
-          <Text style={styles.fullBtnText}>KÃ¨o Ä‘Ã£ bá»‹ huá»·</Text>
+          <Text style={styles.fullBtnText}>Kèo đã bị huỷ</Text>
         </View>
       ) : (
         <>
           {!isHost && (
             hasJoined ? (
               <TouchableOpacity style={styles.leaveBtn} onPress={leaveSession} disabled={leaving}>
-                <Text style={styles.leaveBtnText}>{leaving ? 'Äang rá»i...' : 'Rá»i kÃ¨o'}</Text>
+                <Text style={styles.leaveBtnText}>{leaving ? 'Đang rời...' : 'Rời kèo'}</Text>
               </TouchableOpacity>
             ) : (
               <SmartJoinButton
@@ -1632,16 +1632,16 @@ export default function SessionDetail() {
               <View style={styles.hostActionsCard}>
                 <View style={styles.hostActionsHeader}>
                   <View style={styles.hostActionsCopy}>
-                    <Text style={styles.hostActionsTitle}>Chá»‰nh sá»­a kÃ¨o</Text>
+                    <Text style={styles.hostActionsTitle}>Chỉnh sửa kèo</Text>
                     <Text style={styles.hostActionsSub}>
-                      Khi lÆ°u thay Ä‘á»•i, ngÆ°á»i Ä‘Ã£ join kÃ¨o sáº½ nháº­n Ä‘Æ°á»£c notification cáº­p nháº­t.
+                      Khi lưu thay đổi, người đã join kèo sẽ nhận được notification cập nhật.
                     </Text>
                   </View>
                   <TouchableOpacity
                     style={styles.editToggleBtn}
                     onPress={() => setIsEditingSession((prev) => !prev)}
                   >
-                    <Text style={styles.editToggleBtnText}>{isEditingSession ? 'ÄÃ³ng' : 'Sá»­a kÃ¨o'}</Text>
+                    <Text style={styles.editToggleBtnText}>{isEditingSession ? 'Đóng' : 'Sửa kèo'}</Text>
                   </TouchableOpacity>
                 </View>
 
@@ -1650,7 +1650,7 @@ export default function SessionDetail() {
                     {session.court_booking_status !== 'confirmed' ? (
                       <>
                         <View style={styles.editField}>
-                          <Text style={styles.editFieldLabel}>NgÃ y chÆ¡i</Text>
+                          <Text style={styles.editFieldLabel}>Ngày chơi</Text>
                           <TouchableOpacity style={styles.timePickerBtn} onPress={openEditDatePicker}>
                             <Text style={styles.timePickerText}>{formatDateLabel(editSessionDate)}</Text>
                           </TouchableOpacity>
@@ -1658,13 +1658,13 @@ export default function SessionDetail() {
 
                         <View style={styles.editRow}>
                           <View style={styles.editField}>
-                            <Text style={styles.editFieldLabel}>Giá» báº¯t Ä‘áº§u</Text>
+                            <Text style={styles.editFieldLabel}>Giờ bắt đầu</Text>
                             <TouchableOpacity style={styles.timePickerBtn} onPress={() => openEditTimePicker('start')}>
                               <Text style={styles.timePickerText}>{editStartTime || '11:00'}</Text>
                             </TouchableOpacity>
                           </View>
                           <View style={styles.editField}>
-                            <Text style={styles.editFieldLabel}>Giá» káº¿t thÃºc</Text>
+                            <Text style={styles.editFieldLabel}>Giờ kết thúc</Text>
                             <TouchableOpacity style={styles.timePickerBtn} onPress={() => openEditTimePicker('end')}>
                               <Text style={styles.timePickerText}>{editEndTime || '13:30'}</Text>
                             </TouchableOpacity>
@@ -1673,16 +1673,16 @@ export default function SessionDetail() {
                       </>
                     ) : (
                       <View style={styles.lockedFieldCard}>
-                        <Text style={styles.lockedFieldTitle}>KÃ¨o Ä‘Ã£ chá»‘t sÃ¢n</Text>
+                        <Text style={styles.lockedFieldTitle}>Kèo đã chốt sân</Text>
                         <Text style={styles.lockedFieldText}>
-                          NgÃ y chÆ¡i vÃ  khung giá» Ä‘Ã£ Ä‘Æ°á»£c khÃ³a Ä‘á»ƒ trÃ¡nh lá»‡ch vá»›i booking sÃ¢n Ä‘Ã£ xÃ¡c nháº­n.
+                          Ngày chơi và khung giờ đã được khóa để tránh lệch với booking sân đã xác nhận.
                         </Text>
                       </View>
                     )}
 
                     <View style={styles.editRow}>
                       <View style={styles.editField}>
-                        <Text style={styles.editFieldLabel}>Sá»‘ chá»— tá»‘i Ä‘a</Text>
+                        <Text style={styles.editFieldLabel}>Số chỗ tối đa</Text>
                         <TextInput
                           style={styles.bookingInput}
                           placeholder="4"
@@ -1693,7 +1693,7 @@ export default function SessionDetail() {
                         />
                       </View>
                       <View style={styles.editField}>
-                        <Text style={styles.editFieldLabel}>GiÃ¡ / ngÆ°á»i</Text>
+                        <Text style={styles.editFieldLabel}>Giá / người</Text>
                         <TextInput
                           style={styles.bookingInput}
                           placeholder="120000"
@@ -1706,7 +1706,7 @@ export default function SessionDetail() {
                     </View>
 
                     <View style={styles.editField}>
-                      <Text style={styles.editFieldLabel}>TrÃ¬nh Ä‘á»™ tá»‘i thiá»ƒu</Text>
+                      <Text style={styles.editFieldLabel}>Trình độ tối thiểu</Text>
                       <View style={styles.optionPillRow}>
                         {SKILL_ASSESSMENT_LEVELS.map((level) => (
                           <TouchableOpacity
@@ -1723,7 +1723,7 @@ export default function SessionDetail() {
                     </View>
 
                     <View style={styles.editField}>
-                      <Text style={styles.editFieldLabel}>TrÃ¬nh Ä‘á»™ tá»‘i Ä‘a</Text>
+                      <Text style={styles.editFieldLabel}>Trình độ tối đa</Text>
                       <View style={styles.optionPillRow}>
                         {SKILL_ASSESSMENT_LEVELS.map((level) => (
                           <TouchableOpacity
@@ -1741,9 +1741,9 @@ export default function SessionDetail() {
 
                     <View style={styles.editSwitchRow}>
                       <View style={styles.editSwitchCopy}>
-                        <Text style={styles.editFieldLabel}>Duyá»‡t tay</Text>
+                        <Text style={styles.editFieldLabel}>Duyệt tay</Text>
                         <Text style={styles.editSwitchSub}>
-                          Náº¿u báº­t, má»i yÃªu cáº§u má»›i sáº½ cáº§n host xÃ©t duyá»‡t thay vÃ¬ vÃ o tháº³ng.
+                          Nếu bật, mọi yêu cầu mới sẽ cần host xét duyệt thay vì vào thẳng.
                         </Text>
                       </View>
                       <Switch
@@ -1760,7 +1760,7 @@ export default function SessionDetail() {
                       disabled={savingSessionEdit}
                     >
                       <Text style={styles.bookingConfirmBtnText}>
-                        {savingSessionEdit ? 'Äang lÆ°u thay Ä‘á»•i...' : 'LÆ°u thay Ä‘á»•i kÃ¨o'}
+                        {savingSessionEdit ? 'Đang lưu thay đổi...' : 'Lưu thay đổi kèo'}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -1769,30 +1769,30 @@ export default function SessionDetail() {
 
               {session.court_booking_status !== 'confirmed' && (
                 <View style={styles.bookingEditorCard}>
-                  <Text style={styles.sectionTitle}>XÃ¡c nháº­n Ä‘áº·t sÃ¢n</Text>
+                  <Text style={styles.sectionTitle}>Xác nhận đặt sân</Text>
                   <Text style={styles.bookingEditorText}>
-                    Cáº­p nháº­t tráº¡ng thÃ¡i sÃ¢n thÃ nh Ä‘Ã£ xÃ¡c nháº­n sau khi báº¡n cÃ³ thÃ´ng tin booking.
+                    Cập nhật trạng thái sân thành đã xác nhận sau khi bạn có thông tin booking.
                   </Text>
                   <TouchableOpacity style={styles.bookingOpenBtn} onPress={openCourtBookingLink}>
-                    <Text style={styles.bookingOpenBtnText}>Má»Ÿ link booking cá»§a sÃ¢n</Text>
+                    <Text style={styles.bookingOpenBtnText}>Mở link booking của sân</Text>
                   </TouchableOpacity>
                   <TextInput
                     style={styles.bookingInput}
-                    placeholder="MÃ£ booking / mÃ£ Ä‘áº·t sÃ¢n"
+                    placeholder="Mã booking / mã đặt sân"
                     placeholderTextColor="#aaa"
                     value={bookingReference}
                     onChangeText={setBookingReference}
                   />
                   <TextInput
                     style={styles.bookingInput}
-                    placeholder="TÃªn ngÆ°á»i Ä‘áº·t"
+                    placeholder="Tên người đặt"
                     placeholderTextColor="#aaa"
                     value={bookingName}
                     onChangeText={setBookingName}
                   />
                   <TextInput
                     style={styles.bookingInput}
-                    placeholder="Sá»‘ Ä‘iá»‡n thoáº¡i booking"
+                    placeholder="Số điện thoại booking"
                     placeholderTextColor="#aaa"
                     keyboardType="phone-pad"
                     value={bookingPhone}
@@ -1800,7 +1800,7 @@ export default function SessionDetail() {
                   />
                   <TextInput
                     style={[styles.bookingInput, styles.bookingNotesInput]}
-                    placeholder="Ghi chÃº booking"
+                    placeholder="Ghi chú booking"
                     placeholderTextColor="#aaa"
                     multiline
                     value={bookingNotes}
@@ -1812,7 +1812,7 @@ export default function SessionDetail() {
                     disabled={savingBooking}
                   >
                     <Text style={styles.bookingConfirmBtnText}>
-                      {savingBooking ? 'Äang lÆ°u...' : 'XÃ¡c nháº­n Ä‘Ã£ Ä‘áº·t sÃ¢n'}
+                      {savingBooking ? 'Đang lưu...' : 'Xác nhận đã đặt sân'}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -1820,7 +1820,7 @@ export default function SessionDetail() {
 
               {pendingRequests.length === 0 && (
                 <View style={styles.hostNote}>
-                  <Text style={styles.hostNoteText}>Báº¡n lÃ  host cá»§a kÃ¨o nÃ y</Text>
+                  <Text style={styles.hostNoteText}>Bạn là host của kèo này</Text>
                 </View>
               )}
               <TouchableOpacity
@@ -1829,7 +1829,7 @@ export default function SessionDetail() {
                 disabled={cancelling}
               >
                 <Text style={styles.cancelBtnText}>
-                  {cancelling ? 'Äang huá»·...' : 'Huá»· kÃ¨o'}
+                  {cancelling ? 'Đang huỷ...' : 'Huỷ kèo'}
                 </Text>
               </TouchableOpacity>
             </>
