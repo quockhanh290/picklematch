@@ -1,9 +1,9 @@
 import {
   AlertCircle,
+  CalendarDays,
   Check,
   ChevronRight,
   Crown,
-  Flame,
   LogOut,
   MapPin,
   PencilLine,
@@ -75,11 +75,7 @@ export function ProfileIdentityCard({
         <View className="flex-1">
           <View className="flex-row flex-wrap items-center gap-2">
             <Text className="text-[28px] font-black text-slate-900">{name}</Text>
-            <View
-              className={`flex-row items-center rounded-full px-3 py-1.5 ${
-                isProvisional ? 'bg-amber-50' : 'bg-emerald-50'
-              }`}
-            >
+            <View className={`flex-row items-center rounded-full px-3 py-1.5 ${isProvisional ? 'bg-amber-50' : 'bg-emerald-50'}`}>
               {isProvisional ? <ShieldQuestion size={14} color="#b45309" /> : <ShieldCheck size={14} color="#047857" />}
               <Text className={`ml-1.5 text-[10px] font-extrabold uppercase tracking-widest ${isProvisional ? 'text-amber-700' : 'text-emerald-700'}`}>
                 {isProvisional ? `${placementPlayed}/5 trận` : 'Stable'}
@@ -87,12 +83,12 @@ export function ProfileIdentityCard({
             </View>
           </View>
 
-          <View className="mt-2 flex-row items-center">
+          <View className="mt-2 flex-row flex-wrap items-center">
             <MapPin size={14} color="#64748b" />
             <Text className="ml-2 text-sm font-semibold text-slate-500">{city || 'Chưa cập nhật thành phố'}</Text>
+            <CalendarDays size={14} color="#94a3b8" style={{ marginLeft: 12 }} />
+            <Text className="ml-2 text-sm font-semibold text-slate-400">{formatJoinedDate(joinedAt)}</Text>
           </View>
-
-          <Text className="mt-2 text-sm font-semibold text-slate-400">Tham gia từ {formatJoinedDate(joinedAt)}</Text>
 
           {actions.length > 0 ? (
             <View className="mt-4 flex-row gap-2">
@@ -110,25 +106,6 @@ export function ProfileIdentityCard({
             </View>
           ) : null}
         </View>
-      </View>
-    </View>
-  )
-}
-
-export function ProfilePlacementProgress({ played, total = 5 }: { played: number; total?: number }) {
-  const progress = Math.min(100, (played / total) * 100)
-
-  return (
-    <View className="mt-4 rounded-[24px] border border-slate-200 bg-white p-5">
-      <Text className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Placement Progress</Text>
-      <View className="mt-3 flex-row items-end justify-between">
-        <Text className="text-2xl font-black text-slate-900">
-          {played}/{total} trận
-        </Text>
-        <Text className="text-sm font-semibold text-slate-500">Còn {Math.max(0, total - played)} trận</Text>
-      </View>
-      <View className="mt-4 h-3 rounded-full bg-slate-200">
-        <View className="h-3 rounded-full bg-emerald-500" style={{ width: `${progress}%` }} />
       </View>
     </View>
   )
@@ -172,21 +149,17 @@ export function ProfileSkillHero({
   )
 }
 
-export function ProfileWinStreak({ current, max, active = true }: { current: number; max: number; active?: boolean }) {
+export function ProfileWinStreak({ current, active = true }: { current: number; active?: boolean }) {
   return (
-    <View className={`mt-4 flex-row items-center justify-between rounded-[24px] border p-4 ${active ? 'border-orange-200 bg-orange-50' : 'border-slate-200 bg-white'}`}>
+    <View className={`mt-4 flex-row items-center rounded-[24px] border p-4 ${active ? 'border-orange-200 bg-orange-50' : 'border-slate-200 bg-white'}`}>
       <View className="flex-row items-center">
         <View className={`mr-4 h-12 w-12 items-center justify-center rounded-full ${active ? 'bg-orange-100' : 'bg-slate-100'}`}>
-          <Flame size={22} color={active ? '#ea580c' : '#64748b'} />
+          <Trophy size={22} color={active ? '#ea580c' : '#64748b'} />
         </View>
         <View>
           <Text className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Win Streak</Text>
           <Text className="mt-1 text-xl font-black text-slate-900">{current} trận liên tiếp</Text>
         </View>
-      </View>
-      <View className="items-end">
-        <Text className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Max</Text>
-        <Text className="mt-1 text-xl font-black text-slate-900">{max}</Text>
       </View>
     </View>
   )
@@ -225,28 +198,6 @@ export function ProfileStatsGrid({
           <Text className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Hosted</Text>
           <Text className="mt-3 text-3xl font-black text-slate-900">{hosted}</Text>
         </View>
-      </View>
-    </View>
-  )
-}
-
-export function ProfileInfoCard({
-  eyebrow = 'Player Info',
-  items,
-}: {
-  eyebrow?: string
-  items: { label: string; value: string }[]
-}) {
-  return (
-    <View className="mt-4 rounded-[24px] border border-slate-200 bg-white p-5">
-      <Text className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">{eyebrow}</Text>
-      <View className="mt-4 gap-4">
-        {items.map((item) => (
-          <View key={item.label} className="flex-row items-center justify-between">
-            <Text className="text-sm font-semibold text-slate-500">{item.label}</Text>
-            <Text className="text-sm font-bold text-slate-900">{item.value}</Text>
-          </View>
-        ))}
       </View>
     </View>
   )

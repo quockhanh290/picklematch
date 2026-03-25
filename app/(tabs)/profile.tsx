@@ -3,8 +3,6 @@ import CommunityFeedbackPanel from '@/components/profile/CommunityFeedbackSectio
 import {
   ProfileHistoryList,
   ProfileIdentityCard,
-  ProfileInfoCard,
-  ProfilePlacementProgress,
   ProfileSkillHero,
   ProfileStatsGrid,
   ProfileWinStreak,
@@ -13,7 +11,7 @@ import TrophyRoomSection from '@/components/profile/TrophyRoom'
 import { getSkillLevelFromElo, getSkillLevelFromPlayer } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
 import { router, useFocusEffect } from 'expo-router'
-import { CalendarDays, CircleAlert, UserCircle2 } from 'lucide-react-native'
+import { CalendarDays, CircleAlert, LogOut, UserCircle2 } from 'lucide-react-native'
 import { useCallback, useState } from 'react'
 import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -47,7 +45,6 @@ type SessionHistory = {
 
 const WIN_STREAK = {
   current: 5,
-  max: 8,
   active: true,
 }
 
@@ -247,13 +244,8 @@ export default function ProfileScreen() {
             joinedAt={player.created_at}
             isProvisional={Boolean(player.is_provisional)}
             placementMatchesPlayed={placementPlayed}
-            actions={[
-              { label: 'Sửa hồ sơ', icon: 'edit', onPress: () => router.push('/edit-profile' as any) },
-              { label: 'Đăng xuất', icon: 'logout', onPress: logout },
-            ]}
+            actions={[{ label: 'Sửa hồ sơ', icon: 'edit', onPress: () => router.push('/edit-profile' as any) }]}
           />
-
-          {player.is_provisional ? <ProfilePlacementProgress played={placementPlayed} /> : null}
 
           <ProfileSkillHero
             elo={effectiveElo}
@@ -262,7 +254,7 @@ export default function ProfileScreen() {
             description={skill?.description ?? 'Hệ thống đang dùng Elo và tín hiệu sau trận để tinh chỉnh nhịp ghép kèo phù hợp hơn.'}
           />
 
-          <ProfileWinStreak current={WIN_STREAK.current} max={WIN_STREAK.max} active={WIN_STREAK.active} />
+          <ProfileWinStreak current={WIN_STREAK.current} active={WIN_STREAK.active} />
 
           <ProfileStatsGrid
             reliability={reliability === null ? 'Mới' : `${reliability}%`}
@@ -270,13 +262,6 @@ export default function ProfileScreen() {
             reliabilityDescription="Độ tin cậy hiện tại dựa trên số trận đã chơi, no-show và tần suất hoàn tất kèo đúng nhịp."
             played={history.length}
             hosted={hostedCount}
-          />
-
-          <ProfileInfoCard
-            items={[
-              { label: 'Số điện thoại', value: player.phone || 'Chưa cập nhật' },
-              { label: 'No-show', value: String(player.no_show_count) },
-            ]}
           />
 
           <View className="mt-6">
@@ -304,6 +289,14 @@ export default function ProfileScreen() {
               showRateAction
             />
           )}
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={logout}
+            className="mt-6 flex-row items-center justify-center rounded-[18px] border border-rose-100 bg-white px-5 py-4"
+          >
+            <LogOut size={16} color="#be123c" />
+            <Text className="ml-2 text-sm font-bold text-rose-700">Đăng xuất</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>

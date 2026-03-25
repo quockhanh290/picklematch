@@ -103,35 +103,45 @@ function toneClasses(tone: BadgeTone) {
         card: 'bg-emerald-50 border-emerald-100',
         text: 'text-emerald-700',
         subtext: 'text-emerald-700/80',
+        divider: 'border-emerald-700/10',
         icon: '#047857',
+        watermark: 'rgba(4, 120, 87, 0.1)',
       }
     case 'amber':
       return {
         card: 'bg-amber-50 border-amber-100',
         text: 'text-amber-700',
         subtext: 'text-amber-700/80',
+        divider: 'border-amber-700/10',
         icon: '#b45309',
+        watermark: 'rgba(180, 83, 9, 0.1)',
       }
     case 'rose':
       return {
         card: 'bg-rose-50 border-rose-100',
         text: 'text-rose-700',
         subtext: 'text-rose-700/80',
+        divider: 'border-rose-700/10',
         icon: '#be123c',
+        watermark: 'rgba(190, 18, 60, 0.1)',
       }
     case 'sky':
       return {
         card: 'bg-sky-50 border-sky-100',
         text: 'text-sky-700',
         subtext: 'text-sky-700/80',
+        divider: 'border-sky-700/10',
         icon: '#0369a1',
+        watermark: 'rgba(3, 105, 161, 0.1)',
       }
     case 'violet':
       return {
         card: 'bg-violet-50 border-violet-100',
         text: 'text-violet-700',
         subtext: 'text-violet-700/80',
+        divider: 'border-violet-700/10',
         icon: '#6d28d9',
+        watermark: 'rgba(109, 40, 217, 0.1)',
       }
   }
 }
@@ -157,29 +167,34 @@ export function TrophyRoom() {
           return (
             <View
               key={badge.key}
-              className={`w-[48%] rounded-[20px] border p-4 ${
-                badge.earned ? `${palette.card} ${palette.text}` : 'border-slate-200 bg-slate-100 text-slate-500 opacity-75'
+              className={`relative w-[48%] overflow-hidden rounded-[20px] border p-4 flex flex-col ${
+                badge.earned ? palette.card : 'border-slate-200 bg-slate-100 text-slate-500 opacity-75'
               }`}
             >
-              <View className="flex-1 flex-col">
-                <View className="flex-row items-start justify-between">
-                  <Icon size={28} color={badge.earned ? palette.icon : '#64748b'} strokeWidth={2.1} />
-                  {badge.earned ? <Check size={16} color={palette.icon} /> : <Lock size={16} color="#64748b" />}
-                </View>
+              <Icon
+                size={80}
+                color={badge.earned ? palette.watermark : 'rgba(100, 116, 139, 0.1)'}
+                strokeWidth={1.8}
+                style={{ position: 'absolute', right: -16, bottom: -16 }}
+              />
 
-                <Text className="mt-4 text-[9px] font-extrabold uppercase tracking-widest opacity-60">
-                  {categoryLabel(badge.category)}
-                </Text>
-                <Text className="mt-2 text-sm font-extrabold">{badge.title}</Text>
-                <Text className={`mt-2 text-[11px] leading-5 opacity-80 ${badge.earned ? palette.subtext : 'text-slate-500'}`}>
-                  {badge.description}
-                </Text>
+              <View className="relative z-10 flex-row items-start justify-between">
+                <Icon size={24} color={badge.earned ? palette.icon : '#64748b'} strokeWidth={2.1} />
+                {badge.earned ? <Check size={16} color={palette.icon} /> : <Lock size={16} color="#64748b" />}
+              </View>
 
-                <View className="mt-4 border-t border-current/10 pt-3">
-                  <Text className="text-[11px] font-bold opacity-80">
-                    {badge.earned ? `Mở khóa: ${badge.earnedAt}` : `Yêu cầu: ${badge.requirement}`}
-                  </Text>
-                </View>
+              <Text className={`relative z-10 mt-4 text-[9px] font-extrabold uppercase tracking-widest opacity-60 ${badge.earned ? palette.text : 'text-slate-500'}`}>
+                {categoryLabel(badge.category)}
+              </Text>
+              <Text className={`relative z-10 mt-2 text-sm font-extrabold ${badge.earned ? palette.text : 'text-slate-500'}`}>{badge.title}</Text>
+              <Text className={`relative z-10 mt-2 text-[11px] leading-5 opacity-80 ${badge.earned ? palette.subtext : 'text-slate-500'}`}>
+                {badge.description}
+              </Text>
+
+              <View className={`relative z-10 mt-4 border-t pt-3 ${badge.earned ? palette.divider : 'border-slate-500/10'}`}>
+                <Text className={`relative z-10 text-[11px] font-bold opacity-80 ${badge.earned ? palette.text : 'text-slate-500'}`}>
+                  {badge.earned ? `Mở khóa: ${badge.earnedAt}` : `Yêu cầu: ${badge.requirement}`}
+                </Text>
               </View>
             </View>
           )

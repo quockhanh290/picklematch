@@ -4,7 +4,6 @@ import type { FeedbackTrait } from '@/components/profile/CommunityFeedbackSectio
 import {
   ProfileHistoryList,
   ProfileIdentityCard,
-  ProfileInfoCard,
   ProfileSkillHero,
   ProfileStatsGrid,
 } from '@/components/profile/ProfileSections'
@@ -143,11 +142,6 @@ type SessionHistory = {
 
 type Court = { id: string; name: string; city: string }
 
-type HostStats = {
-  total: number
-  badCancels: number
-}
-
 export default function PlayerProfile() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const [player, setPlayer] = useState<Player | null>(null)
@@ -155,7 +149,6 @@ export default function PlayerProfile() {
   const [ratingTags, setRatingTags] = useState<Record<string, number>>({})
   const [history, setHistory] = useState<SessionHistory[]>([])
   const [favCourts, setFavCourts] = useState<Court[]>([])
-  const [hostStats, setHostStats] = useState<HostStats>({ total: 0, badCancels: 0 })
   const [isMe, setIsMe] = useState(false)
 
   const fetchRatingTags = useCallback(async (playerId: string) => {
@@ -214,16 +207,6 @@ export default function PlayerProfile() {
     setFavCourts(data ?? [])
   }, [])
 
-  const fetchHostStats = useCallback(async (playerId: string) => {
-    const { data } = await supabase.from('sessions').select('status, was_full_when_cancelled').eq('host_id', playerId)
-
-    if (data) {
-      const total = data.length
-      const badCancels = data.filter((session: any) => session.status === 'cancelled' && session.was_full_when_cancelled).length
-      setHostStats({ total, badCancels })
-    }
-  }, [])
-
   const fetchAll = useCallback(async () => {
     setLoading(true)
     const {
@@ -243,11 +226,10 @@ export default function PlayerProfile() {
         fetchRatingTags(data.id),
         fetchHistory(data.id),
         fetchFavCourts(data.favorite_court_ids ?? []),
-        fetchHostStats(data.id),
       ])
     }
     setLoading(false)
-  }, [fetchFavCourts, fetchHistory, fetchHostStats, fetchRatingTags, id])
+  }, [fetchFavCourts, fetchHistory, fetchRatingTags, id])
 
   useEffect(() => {
     fetchAll()
@@ -353,13 +335,6 @@ export default function PlayerProfile() {
             reliabilityDescription="Dựa trên số trận đã chơi, tỷ lệ no-show và cách người này hoàn tất các kèo đã tham gia."
             played={player.sessions_joined ?? 0}
             hosted={hostedCount}
-          />
-
-          <ProfileInfoCard
-            items={[
-              { label: 'No-show', value: String(player.no_show_count) },
-              { label: 'Host xấu', value: hostStats.total === 0 ? 'Chưa host' : `${hostStats.badCancels}/${hostStats.total}` },
-            ]}
           />
 
           {favCourts.length > 0 ? (
