@@ -1,5 +1,6 @@
 import { FeedMatchCard } from '@/components/session/FeedMatchCard'
 import { getSkillLevelFromEloRange } from '@/lib/skillAssessment'
+import { getSkillLevelUi, getSkillTargetElo } from '@/lib/skillLevelUi'
 import { supabase } from '@/lib/supabase'
 import { router, useFocusEffect } from 'expo-router'
 import { CalendarDays } from 'lucide-react-native'
@@ -204,6 +205,8 @@ export default function MySessions() {
   const renderSession = useCallback(({ item }: { item: MySession }) => {
     const formatted = formatTime(item.start_time, item.end_time)
     const isFull = item.player_count >= item.max_players
+    const skillLevel = getSkillLevelFromEloRange(item.elo_min, item.elo_max)
+    const skillUi = getSkillLevelUi(skillLevel.id)
 
     return (
       <FeedMatchCard
@@ -212,7 +215,14 @@ export default function MySessions() {
         timeLabel={formatted.time}
         dateLabel={formatted.date}
         bookingStatus={item.court_booking_status}
-        skillLabel={getSkillLevelFromEloRange(item.elo_min, item.elo_max).title}
+        skillLabel={skillUi.shortLabel}
+        skillIcon={skillUi.icon}
+        skillTagClassName={skillUi.tagClassName}
+        skillTextClassName={skillUi.textClassName}
+        skillBorderClassName={skillUi.borderClassName}
+        skillIconColor={skillUi.iconColor}
+        eloValue={getSkillTargetElo(item.elo_min, item.elo_max)}
+        duprValue={skillUi.duprValue}
         matchTypeLabel={matchTypeLabel(item.status, item.role)}
         hostName={item.host_name}
         isProvisional={item.host_is_provisional}

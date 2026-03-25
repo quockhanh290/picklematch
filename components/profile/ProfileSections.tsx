@@ -10,11 +10,16 @@ import {
   ShieldCheck,
   ShieldQuestion,
   Swords,
+  Target,
   Trophy,
   Users,
+  Activity,
 } from 'lucide-react-native'
 import { router } from 'expo-router'
 import { Text, TouchableOpacity, View } from 'react-native'
+
+import { getSkillLevelUi } from '@/lib/skillLevelUi'
+import type { SkillAssessmentLevel } from '@/lib/skillAssessment'
 
 type ActionItem = {
   label: string
@@ -38,14 +43,6 @@ type HistoryItem = {
 function formatJoinedDate(value?: string | null) {
   if (!value) return 'Chưa có dữ liệu'
   return new Date(value).toLocaleDateString('vi-VN')
-}
-
-function duprEquivalent(elo: number) {
-  if (elo < 900) return '2.5'
-  if (elo < 1075) return '3.0'
-  if (elo < 1250) return '3.5'
-  if (elo < 1450) return '4.0'
-  return '4.5'
 }
 
 export function ProfileIdentityCard({
@@ -116,31 +113,63 @@ export function ProfileSkillHero({
   title,
   subtitle,
   description,
+  levelId,
 }: {
   elo: number
   title: string
   subtitle: string
   description: string
+  levelId?: SkillAssessmentLevel['id'] | null
 }) {
-  return (
-    <View className="relative mt-4 overflow-hidden rounded-[24px] bg-indigo-500 p-5">
-      <View className="absolute -right-5 -top-6 h-28 w-28 rounded-full bg-white/10" />
-      <View className="absolute -left-10 bottom-0 h-24 w-24 rounded-full bg-violet-400/30" />
-      <Trophy size={120} color="rgba(255,255,255,0.14)" style={{ position: 'absolute', right: -10, bottom: -10 }} />
+  const skillUi = getSkillLevelUi(levelId)
+  const WatermarkIcon = skillUi.icon
 
-      <View className="flex-row flex-wrap items-center gap-2">
+  return (
+    <View className="relative mt-4 overflow-hidden rounded-[24px] p-5" style={{ backgroundColor: skillUi.heroFrom }}>
+      <View
+        style={{
+          position: 'absolute',
+          right: -80,
+          top: -40,
+          width: 220,
+          height: 220,
+          borderRadius: 999,
+          backgroundColor: skillUi.heroTo,
+          opacity: 0.65,
+        }}
+      />
+      <View
+        style={{
+          position: 'absolute',
+          left: -60,
+          bottom: -60,
+          width: 200,
+          height: 200,
+          borderRadius: 999,
+          backgroundColor: '#ffffff',
+          opacity: 0.08,
+        }}
+      />
+      <WatermarkIcon size={140} color="rgba(255,255,255,0.14)" style={{ position: 'absolute', right: -24, bottom: -24 }} />
+
+      <View className="flex-row items-start justify-between">
         <View className="rounded-full bg-white/15 px-3 py-2">
           <Text className="text-[10px] font-extrabold uppercase tracking-widest text-white">DUPR Style</Text>
         </View>
-        <View className="flex-row items-center rounded-full bg-white/15 px-3 py-2">
-          <Trophy size={14} color="#ffffff" />
-          <Text className="ml-2 text-[10px] font-extrabold uppercase tracking-widest text-white">
-            {elo} ELO • {duprEquivalent(elo)} DUPR
-          </Text>
+
+        <View className="items-end gap-2">
+          <View className="flex-row items-center rounded-full bg-black/20 px-3 py-2">
+            <Target size={14} color="#ffffff" />
+            <Text className="ml-2 text-[10px] font-extrabold uppercase tracking-widest text-white">{elo} ELO</Text>
+          </View>
+          <View className="flex-row items-center rounded-full bg-white/20 px-3 py-2">
+            <Activity size={14} color="#ffffff" />
+            <Text className="ml-2 text-[10px] font-extrabold uppercase tracking-widest text-white">{skillUi.duprValue} DUPR</Text>
+          </View>
         </View>
       </View>
 
-      <View className="mt-10 pr-16">
+      <View className="mt-10 pr-20">
         <Text className="text-[30px] font-black text-white">{title}</Text>
         <Text className="mt-2 text-sm font-semibold text-white/80">{subtitle}</Text>
         <Text className="mt-4 text-sm leading-6 text-white/90">{description}</Text>

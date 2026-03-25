@@ -252,6 +252,7 @@ export default function ProfileScreen() {
             title={skill?.title ?? 'Đang hiệu chỉnh'}
             subtitle={skill?.subtitle ?? 'Dữ liệu trình độ sẽ rõ hơn sau thêm vài trận.'}
             description={skill?.description ?? 'Hệ thống đang dùng Elo và tín hiệu sau trận để tinh chỉnh nhịp ghép kèo phù hợp hơn.'}
+            levelId={skill?.id}
           />
 
           <ProfileWinStreak current={WIN_STREAK.current} active={WIN_STREAK.active} />

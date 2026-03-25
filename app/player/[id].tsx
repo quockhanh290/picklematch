@@ -327,7 +327,7 @@ export default function PlayerProfile() {
             actions={isMe ? [{ label: 'Sửa hồ sơ', icon: 'edit', onPress: () => router.push('/edit-profile' as any) }] : []}
           />
 
-          <ProfileSkillHero elo={effectiveElo} title={skill.title} subtitle={skill.subtitle} description={skill.description} />
+          <ProfileSkillHero elo={effectiveElo} title={skill.title} subtitle={skill.subtitle} description={skill.description} levelId={skill.id} />
 
           <ProfileStatsGrid
             reliability={reliability === null ? 'Mới' : `${reliability}%`}
