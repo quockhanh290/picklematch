@@ -1,4 +1,4 @@
-import { AppButton, EmptyState, ScreenHeader, SectionCard } from '@/components/design'
+import { EmptyState, ScreenHeader } from '@/components/design'
 import type { Notification } from '@/hooks/useNotifications'
 import { useNotificationsContext } from '@/lib/NotificationsContext'
 import { router } from 'expo-router'
@@ -51,69 +51,82 @@ export default function NotificationsScreen() {
       <ScreenHeader
         eyebrow="Hộp thư"
         title="Thông báo"
-        subtitle="Theo dõi các cập nhật mới nhất về kèo, phản hồi từ host và thay đổi trạng thái tham gia."
         rightSlot={
-          unreadCount > 0 ? (
-            <View className="min-w-[36px] items-center rounded-full bg-emerald-100 px-3 py-1.5">
-              <Text className="text-xs font-extrabold text-emerald-700">{unreadCount}</Text>
-            </View>
-          ) : null
+          <TouchableOpacity
+            onPress={markAllAsRead}
+            activeOpacity={0.9}
+            disabled={unreadCount === 0}
+            className={`rounded-full border p-2 ${unreadCount > 0 ? 'border-slate-200 bg-white' : 'border-slate-200 bg-slate-100 opacity-60'}`}
+          >
+            <CheckCircle2 size={20} color="#475569" />
+          </TouchableOpacity>
         }
       />
 
-      {unreadCount > 0 ? (
-        <View className="px-5 pb-4">
-          <AppButton label="Đọc tất cả" onPress={markAllAsRead} variant="secondary" />
-        </View>
-      ) : null}
-
-      <FlatList
-        data={notifications}
-        keyExtractor={(item) => item.id}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }}
-        ListEmptyComponent={
+      {notifications.length === 0 ? (
+        <View className="px-5 pb-8">
           <EmptyState
             icon={<Bell size={28} color="#64748b" />}
             title="Chưa có thông báo nào"
             description="Khi có yêu cầu tham gia, thay đổi kèo hoặc phản hồi mới, bạn sẽ thấy chúng ở đây."
           />
-        }
-        renderItem={({ item }) => {
-          const meta = typeIcon(item.type)
-          const Icon = meta.icon
+        </View>
+      ) : (
+        <View className="mx-5 overflow-hidden rounded-[28px] border border-slate-200 bg-white">
+          <FlatList
+            data={notifications}
+            keyExtractor={(item) => item.id}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 8 }}
+            renderItem={({ item, index }) => {
+              const meta = typeIcon(item.type)
+              const Icon = meta.icon
+              const isLast = index === notifications.length - 1
 
-          return (
-            <TouchableOpacity onPress={() => handleTap(item)} activeOpacity={0.86} className="mb-3">
-              <SectionCard className={item.is_read ? '' : 'border border-emerald-100 bg-emerald-50/60'}>
-                <View className="flex-row items-start">
-                  <View className={`mr-3 h-12 w-12 items-center justify-center rounded-2xl ${meta.bg}`}>
+              return (
+                <TouchableOpacity
+                  onPress={() => handleTap(item)}
+                  activeOpacity={0.86}
+                  className={`relative flex-row items-start gap-3.5 p-4 ${!item.is_read ? 'bg-sky-50/40' : 'bg-white'}`}
+                >
+                  {!item.is_read ? (
+                    <View className="absolute left-1.5 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-sky-500" />
+                  ) : null}
+
+                  <View className={`h-[46px] w-[46px] items-center justify-center rounded-[14px] border ${meta.bg}`} style={{ borderColor: `${meta.color}22` }}>
                     <Icon size={20} color={meta.color} />
                   </View>
+
                   <View className="flex-1">
-                    <View className="flex-row items-start justify-between">
+                    <View className="mb-1 flex-row items-start justify-between gap-2">
                       <Text
-                        className={`flex-1 pr-3 text-base ${
-                          item.is_read ? 'font-semibold text-slate-800' : 'font-extrabold text-slate-950'
+                        className={`flex-1 text-[15px] leading-5 ${
+                          item.is_read ? 'font-bold text-slate-700' : 'font-black text-slate-900'
                         }`}
                       >
                         {item.title}
                       </Text>
-                      {!item.is_read ? <View className="mt-1 h-2.5 w-2.5 rounded-full bg-emerald-500" /> : null}
+                      <Text
+                        className={`text-[11px] ${
+                          item.is_read ? 'font-semibold text-slate-400' : 'font-bold text-sky-600'
+                        }`}
+                      >
+                        {timeAgo(item.created_at)}
+                      </Text>
                     </View>
-                    <Text className="mt-2 text-sm leading-6 text-slate-500" numberOfLines={3}>
+
+                    <Text className="pr-4 text-[13px] leading-[18px] text-slate-500" numberOfLines={3}>
                       {item.body}
                     </Text>
-                    <Text className="mt-3 text-xs font-semibold uppercase tracking-[1px] text-slate-400">
-                      {timeAgo(item.created_at)}
-                    </Text>
                   </View>
-                </View>
-              </SectionCard>
-            </TouchableOpacity>
-          )
-        }}
-      />
+
+                  {!isLast ? <View className="absolute bottom-0 left-[74px] right-4 border-b border-slate-100" /> : null}
+                </TouchableOpacity>
+              )
+            }}
+          />
+        </View>
+      )}
     </SafeAreaView>
   )
 }

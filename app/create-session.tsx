@@ -1,3 +1,4 @@
+import { CreateSessionStep1 } from '@/components/create-session/CreateSessionStep1'
 import { SKILL_ASSESSMENT_LEVELS } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
 import { type NearByCourt, useNearbyCourts } from '@/lib/useNearbyCourts'
@@ -206,14 +207,6 @@ export default function CreateSession() {
     setTimeError(validateEnd(endTime, startTime))
   }, [endTime, startTime, validateEnd, validateStart])
 
-  // Auto-advance to step 2 once a valid endTime is set and the end picker is closed
-  useEffect(() => {
-    if (step === 1 && startTime && endTime && endTime > startTime && !timeError && !showEndPicker) {
-      const t = setTimeout(() => setStep(2), 300)
-      return () => clearTimeout(t)
-    }
-  }, [endTime, showEndPicker, startTime, step, timeError])
-
   function goToStep2() {
     if (!selectedCourt || !selectedDate || !startTime || !endTime || timeError) return
     setStep(2)
@@ -374,6 +367,57 @@ export default function CreateSession() {
   }
 
   // ── Time picker sub-render ────────────────────────────────────────────────────
+
+  if (step === 1) return (
+    <SafeAreaView style={s.container} edges={['top']}>
+      <BackLink label="Quay lại" onPress={() => router.back()} />
+      <WizardHeader title="Tạo kèo mới" subtitle="Bước 1/3 · Chọn sân và khung giờ phù hợp để bắt đầu tạo trận." />
+      <CreateSessionStep1
+        courts={courts}
+        loadingCourts={loadingCourts}
+        fallbackMode={fallbackMode}
+        keyword={keyword}
+        setKeyword={setKeyword}
+        searching={searching}
+        selectedCourt={selectedCourt}
+        selectedDate={selectedDate}
+        startTime={startTime}
+        endTime={endTime}
+        showStartPicker={showStartPicker}
+        showEndPicker={showEndPicker}
+        timeError={timeError}
+        duration={duration}
+        onCourtSelect={onCourtSelect}
+        onChangeCourt={() => {
+          setSelectedCourt(null)
+          setStartTime(null)
+          setEndTime(null)
+          setTimeError(null)
+          setShowStartPicker(false)
+          setShowEndPicker(false)
+        }}
+        onDateSelect={onDatePress}
+        onStartTimeChange={(date) => {
+          if (selectedDate) setStartTime(withTime(selectedDate, date))
+        }}
+        onEndTimeChange={(date) => {
+          if (selectedDate) setEndTime(withTime(selectedDate, date))
+        }}
+        onToggleStartPicker={() => {
+          setShowEndPicker(false)
+          setShowStartPicker(value => !value)
+        }}
+        onToggleEndPicker={() => {
+          setShowStartPicker(false)
+          setShowEndPicker(value => !value)
+        }}
+        onCloseStartPicker={() => setShowStartPicker(false)}
+        onCloseEndPicker={() => setShowEndPicker(false)}
+        defaultPickerValue={defaultPickerValue}
+        onContinue={goToStep2}
+      />
+    </SafeAreaView>
+  )
 
   function renderTimeBtn(type: 'start' | 'end') {
     const isStart  = type === 'start'

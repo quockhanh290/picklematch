@@ -1,5 +1,5 @@
 import { FeedMatchCard } from '@/components/session/FeedMatchCard'
-import { getSkillLevelFromEloRange } from '@/lib/skillAssessment'
+import { getSkillLevelFromEloRange, getSkillLevelFromPlayer } from '@/lib/skillAssessment'
 import { getSkillLevelUi, getSkillTargetElo } from '@/lib/skillLevelUi'
 import { supabase } from '@/lib/supabase'
 import { router, useFocusEffect } from 'expo-router'
@@ -17,7 +17,15 @@ type Session = {
   status: string
   court_booking_status: 'confirmed' | 'unconfirmed'
   host_id: string
-  host: { name: string; is_provisional?: boolean; placement_matches_played?: number }
+  host: {
+    name: string
+    is_provisional?: boolean
+    placement_matches_played?: number
+    current_elo?: number | null
+    elo?: number | null
+    self_assessed_level?: string | null
+    skill_label?: string | null
+  }
   slot: {
     start_time: string
     end_time: string
@@ -91,7 +99,7 @@ export default function HomeScreen() {
         `
         id, elo_min, elo_max, max_players, status, court_booking_status,
         host_id,
-        host:host_id ( name, is_provisional, placement_matches_played ),
+        host:host_id ( name, is_provisional, placement_matches_played, current_elo, elo, self_assessed_level, skill_label ),
         slot:slot_id (
           start_time, end_time, price,
           court:court_id ( name, address, city )
@@ -172,6 +180,8 @@ export default function HomeScreen() {
     const currentPlayers = item.player_count
     const skillLevel = getSkillLevelFromEloRange(item.elo_min, item.elo_max)
     const skillUi = getSkillLevelUi(skillLevel.id)
+    const hostSkillLevel = getSkillLevelFromPlayer(item.host)
+    const hostSkillUi = getSkillLevelUi(hostSkillLevel?.id)
 
     return (
       <FeedMatchCard
@@ -190,7 +200,7 @@ export default function HomeScreen() {
         duprValue={skillUi.duprValue}
         matchTypeLabel={matchTypeLabel(item)}
         hostName={item.host?.name ?? 'Ẩn danh'}
-        isProvisional={Boolean(item.host?.is_provisional)}
+        hostSkillIcon={hostSkillUi.icon}
         priceLabel={`${(item.slot?.price ?? 0).toLocaleString('vi-VN')}đ/người`}
         availabilityLabel={currentPlayers >= item.max_players ? 'Đầy' : `${currentPlayers}/${item.max_players}`}
         onPress={() => router.push({ pathname: '/session/[id]', params: { id: item.id } })}

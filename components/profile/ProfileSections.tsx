@@ -154,7 +154,7 @@ export function ProfileSkillHero({
 
       <View className="flex-row items-start justify-between">
         <View className="rounded-full bg-white/15 px-3 py-2">
-          <Text className="text-[10px] font-extrabold uppercase tracking-widest text-white">DUPR Style</Text>
+          <Text className="text-[10px] font-extrabold uppercase tracking-widest text-white">{skillUi.shortLabel}</Text>
         </View>
 
         <View className="items-end gap-2">

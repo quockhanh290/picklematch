@@ -1,5 +1,5 @@
 import { FeedMatchCard } from '@/components/session/FeedMatchCard'
-import { getSkillLevelFromEloRange } from '@/lib/skillAssessment'
+import { getSkillLevelFromEloRange, getSkillLevelFromPlayer } from '@/lib/skillAssessment'
 import { getSkillLevelUi, getSkillTargetElo } from '@/lib/skillLevelUi'
 import { supabase } from '@/lib/supabase'
 import { router, useFocusEffect } from 'expo-router'
@@ -19,7 +19,10 @@ type MySession = {
   court_city: string
   court_address: string
   host_name: string
-  host_is_provisional: boolean
+  host_current_elo?: number | null
+  host_elo?: number | null
+  host_self_assessed_level?: string | null
+  host_skill_label?: string | null
   price: number
   player_count: number
   max_players: number
@@ -48,7 +51,7 @@ export default function MySessions() {
         max_players,
         elo_min,
         elo_max,
-        host:host_id ( name, is_provisional ),
+        host:host_id ( name, is_provisional, current_elo, elo, self_assessed_level, skill_label ),
         slot:slot_id (
           start_time,
           end_time,
@@ -76,7 +79,10 @@ export default function MySessions() {
       court_city: session.slot?.court?.city ?? '',
       court_address: session.slot?.court?.address ?? '',
       host_name: session.host?.name ?? 'Bạn',
-      host_is_provisional: Boolean(session.host?.is_provisional),
+      host_current_elo: session.host?.current_elo ?? null,
+      host_elo: session.host?.elo ?? null,
+      host_self_assessed_level: session.host?.self_assessed_level ?? null,
+      host_skill_label: session.host?.skill_label ?? null,
       price: session.slot?.price ?? 0,
       player_count: (session.session_players ?? []).length,
       max_players: session.max_players,
@@ -95,7 +101,7 @@ export default function MySessions() {
           max_players,
           elo_min,
           elo_max,
-          host:host_id ( name, is_provisional ),
+          host:host_id ( name, is_provisional, current_elo, elo, self_assessed_level, skill_label ),
           slot:slot_id (
             start_time,
             end_time,
@@ -128,7 +134,10 @@ export default function MySessions() {
           court_city: session.slot?.court?.city ?? '',
           court_address: session.slot?.court?.address ?? '',
           host_name: session.host?.name ?? 'Ẩn danh',
-          host_is_provisional: Boolean(session.host?.is_provisional),
+          host_current_elo: session.host?.current_elo ?? null,
+          host_elo: session.host?.elo ?? null,
+          host_self_assessed_level: session.host?.self_assessed_level ?? null,
+          host_skill_label: session.host?.skill_label ?? null,
           price: session.slot?.price ?? 0,
           player_count: (session.session_players ?? []).length,
           max_players: session.max_players,
@@ -207,6 +216,13 @@ export default function MySessions() {
     const isFull = item.player_count >= item.max_players
     const skillLevel = getSkillLevelFromEloRange(item.elo_min, item.elo_max)
     const skillUi = getSkillLevelUi(skillLevel.id)
+    const hostSkillLevel = getSkillLevelFromPlayer({
+      current_elo: item.host_current_elo,
+      elo: item.host_elo,
+      self_assessed_level: item.host_self_assessed_level,
+      skill_label: item.host_skill_label,
+    })
+    const hostSkillUi = getSkillLevelUi(hostSkillLevel?.id)
 
     return (
       <FeedMatchCard
@@ -225,7 +241,7 @@ export default function MySessions() {
         duprValue={skillUi.duprValue}
         matchTypeLabel={matchTypeLabel(item.status, item.role)}
         hostName={item.host_name}
-        isProvisional={item.host_is_provisional}
+        hostSkillIcon={hostSkillUi.icon}
         priceLabel={`${item.price.toLocaleString('vi-VN')}đ/người`}
         availabilityLabel={isFull ? 'Đầy' : `${item.player_count}/${item.max_players}`}
         onPress={() => router.push({ pathname: '/session/[id]' as any, params: { id: item.id } })}

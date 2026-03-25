@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react-native'
-import { AlertCircle, CircleDollarSign, Clock3, MapPin, ShieldCheck, ShieldQuestion, Users } from 'lucide-react-native'
+import { Activity, AlertCircle, CircleDollarSign, Clock3, MapPin, ShieldCheck, Target, Users } from 'lucide-react-native'
 import { Text, TouchableOpacity, View } from 'react-native'
 
 type Props = {
@@ -18,7 +18,7 @@ type Props = {
   duprValue: string
   matchTypeLabel: string
   hostName: string
-  isProvisional?: boolean
+  hostSkillIcon?: LucideIcon
   priceLabel: string
   availabilityLabel: string
   onPress: () => void
@@ -54,7 +54,7 @@ export function FeedMatchCard({
   eloValue,
   duprValue,
   hostName,
-  isProvisional,
+  hostSkillIcon: HostSkillIcon,
   priceLabel,
   availabilityLabel,
   onPress,
@@ -70,7 +70,7 @@ export function FeedMatchCard({
   return (
     <TouchableOpacity
       activeOpacity={0.95}
-      className="mx-5 mb-4 rounded-3xl border border-gray-100 bg-white px-4 py-3.5 shadow-sm"
+      className="mx-5 mb-4 rounded-[28px] border border-slate-200 bg-white px-4 py-3.5"
       onPress={onPress}
     >
       <View className="flex-row items-center justify-between">
@@ -117,12 +117,14 @@ export function FeedMatchCard({
           <Text className={`ml-2 text-xs font-semibold uppercase tracking-[0.8px] ${skillTextClassName}`}>{skillLabel}</Text>
         </View>
 
-        <View className="rounded-full bg-gray-100 px-3 py-2">
-          <Text className="text-xs font-semibold uppercase tracking-[0.8px] text-gray-500">{eloValue} ELO</Text>
+        <View className="flex-row items-center rounded-full border border-slate-200 bg-slate-100 px-3 py-2">
+          <Target size={12} color="#64748b" />
+          <Text className="ml-1.5 text-xs font-semibold uppercase tracking-[0.8px] text-slate-500">{eloValue} ELO</Text>
         </View>
 
-        <View className="rounded-full bg-gray-100 px-3 py-2">
-          <Text className="text-xs font-semibold uppercase tracking-[0.8px] text-gray-500">{duprValue} DUPR</Text>
+        <View className="flex-row items-center rounded-full border border-slate-200 bg-slate-100 px-3 py-2">
+          <Activity size={12} color="#64748b" />
+          <Text className="ml-1.5 text-xs font-semibold uppercase tracking-[0.8px] text-slate-500">{duprValue} DUPR</Text>
         </View>
       </View>
 
@@ -130,8 +132,14 @@ export function FeedMatchCard({
 
       <View className="flex-row items-center justify-between">
         <View className="flex-1 flex-row items-center">
-          <View className="h-10 w-10 items-center justify-center rounded-full bg-gray-900">
+          <View className="relative h-10 w-10 items-center justify-center rounded-full bg-slate-900">
             <Text className="text-sm font-black text-white">{avatarLetter}</Text>
+            <View
+              className="absolute -bottom-1 -right-1 h-5 w-5 items-center justify-center rounded-full bg-slate-100"
+              style={{ borderWidth: 3, borderColor: '#ffffff' }}
+            >
+              {HostSkillIcon ? <HostSkillIcon size={10} color="#475569" /> : <SkillIcon size={10} color="#475569" />}
+            </View>
           </View>
 
           <View className="ml-3 flex-1">
@@ -139,18 +147,13 @@ export function FeedMatchCard({
               <Text className="text-sm font-bold text-gray-900" numberOfLines={1}>
                 {hostName || 'Ẩn danh'}
               </Text>
-              {isProvisional ? (
-                <View className="ml-2 rounded-full bg-amber-50 px-2 py-1">
-                  <ShieldQuestion size={12} color="#b45309" />
-                </View>
-              ) : null}
             </View>
           </View>
         </View>
 
-        <View className="ml-3 flex-row items-center rounded-full bg-gray-100 px-3 py-2">
-          <CircleDollarSign size={14} color="#6b7280" />
-          <Text className="ml-1.5 text-sm font-black text-gray-700">{compactPriceLabel(priceLabel)}</Text>
+        <View className="ml-3 flex-row items-center rounded-full border border-amber-200 bg-amber-50 px-3 py-2">
+          <CircleDollarSign size={14} color="#b45309" />
+          <Text className="ml-1.5 text-sm font-bold text-amber-700">{compactPriceLabel(priceLabel)}</Text>
         </View>
       </View>
     </TouchableOpacity>
