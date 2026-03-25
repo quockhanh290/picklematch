@@ -1,8 +1,20 @@
-import { AlertCircle, Check, ChevronRight, Flame, LogOut, MapPin, PencilLine, ShieldCheck, Trophy, Users } from 'lucide-react-native'
+import {
+  AlertCircle,
+  Check,
+  ChevronRight,
+  Crown,
+  Flame,
+  LogOut,
+  MapPin,
+  PencilLine,
+  ShieldCheck,
+  ShieldQuestion,
+  Swords,
+  Trophy,
+  Users,
+} from 'lucide-react-native'
 import { router } from 'expo-router'
 import { Text, TouchableOpacity, View } from 'react-native'
-
-import { StatusBadge } from '@/components/design'
 
 type ActionItem = {
   label: string
@@ -23,36 +35,64 @@ type HistoryItem = {
   }
 }
 
+function formatJoinedDate(value?: string | null) {
+  if (!value) return 'Chưa có dữ liệu'
+  return new Date(value).toLocaleDateString('vi-VN')
+}
+
+function duprEquivalent(elo: number) {
+  if (elo < 900) return '2.5'
+  if (elo < 1075) return '3.0'
+  if (elo < 1250) return '3.5'
+  if (elo < 1450) return '4.0'
+  return '4.5'
+}
+
 export function ProfileIdentityCard({
   name,
   city,
-  badgeLabel,
-  badgeTone = 'neutral',
+  joinedAt,
+  isProvisional = false,
+  placementMatchesPlayed = 0,
   actions = [],
 }: {
   name: string
   city?: string | null
-  badgeLabel?: string
-  badgeTone?: 'warning' | 'success' | 'info' | 'neutral' | 'danger'
+  joinedAt?: string | null
+  isProvisional?: boolean
+  placementMatchesPlayed?: number | null
   actions?: ActionItem[]
 }) {
+  const placementPlayed = placementMatchesPlayed ?? 0
+
   return (
     <View className="rounded-[24px] border border-slate-200 bg-white p-5">
-      <View className="flex-row items-center">
+      <View className="flex-row items-start">
         <View className="mr-4 h-20 w-20 items-center justify-center rounded-full bg-emerald-100">
           <Text className="text-3xl font-black text-emerald-700">{name?.[0]?.toUpperCase() ?? '?'}</Text>
         </View>
 
         <View className="flex-1">
-          <View className="flex-row items-center gap-2">
-            <Text className="flex-1 text-[28px] font-black text-slate-900">{name}</Text>
-            {badgeLabel ? <StatusBadge label={badgeLabel} tone={badgeTone} /> : null}
+          <View className="flex-row flex-wrap items-center gap-2">
+            <Text className="text-[28px] font-black text-slate-900">{name}</Text>
+            <View
+              className={`flex-row items-center rounded-full px-3 py-1.5 ${
+                isProvisional ? 'bg-amber-50' : 'bg-emerald-50'
+              }`}
+            >
+              {isProvisional ? <ShieldQuestion size={14} color="#b45309" /> : <ShieldCheck size={14} color="#047857" />}
+              <Text className={`ml-1.5 text-[10px] font-extrabold uppercase tracking-widest ${isProvisional ? 'text-amber-700' : 'text-emerald-700'}`}>
+                {isProvisional ? `${placementPlayed}/5 trận` : 'Stable'}
+              </Text>
+            </View>
           </View>
 
           <View className="mt-2 flex-row items-center">
             <MapPin size={14} color="#64748b" />
             <Text className="ml-2 text-sm font-semibold text-slate-500">{city || 'Chưa cập nhật thành phố'}</Text>
           </View>
+
+          <Text className="mt-2 text-sm font-semibold text-slate-400">Tham gia từ {formatJoinedDate(joinedAt)}</Text>
 
           {actions.length > 0 ? (
             <View className="mt-4 flex-row gap-2">
@@ -109,15 +149,17 @@ export function ProfileSkillHero({
     <View className="relative mt-4 overflow-hidden rounded-[24px] bg-indigo-500 p-5">
       <View className="absolute -right-5 -top-6 h-28 w-28 rounded-full bg-white/10" />
       <View className="absolute -left-10 bottom-0 h-24 w-24 rounded-full bg-violet-400/30" />
-      <Trophy size={110} color="rgba(255,255,255,0.14)" style={{ position: 'absolute', right: -10, bottom: -10 }} />
+      <Trophy size={120} color="rgba(255,255,255,0.14)" style={{ position: 'absolute', right: -10, bottom: -10 }} />
 
-      <View className="flex-row items-center justify-between">
+      <View className="flex-row flex-wrap items-center gap-2">
         <View className="rounded-full bg-white/15 px-3 py-2">
           <Text className="text-[10px] font-extrabold uppercase tracking-widest text-white">DUPR Style</Text>
         </View>
         <View className="flex-row items-center rounded-full bg-white/15 px-3 py-2">
           <Trophy size={14} color="#ffffff" />
-          <Text className="ml-2 text-[10px] font-extrabold uppercase tracking-widest text-white">ELO {elo}</Text>
+          <Text className="ml-2 text-[10px] font-extrabold uppercase tracking-widest text-white">
+            {elo} ELO • {duprEquivalent(elo)} DUPR
+          </Text>
         </View>
       </View>
 
@@ -173,11 +215,13 @@ export function ProfileStatsGrid({
       </View>
 
       <View className="flex-1 gap-3">
-        <View className="rounded-[24px] border border-slate-200 bg-white p-4">
+        <View className="relative overflow-hidden rounded-[24px] border border-slate-200 bg-white p-4">
+          <Swords size={62} color="rgba(15,23,42,0.06)" style={{ position: 'absolute', right: -8, bottom: -8 }} />
           <Text className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Played</Text>
           <Text className="mt-3 text-3xl font-black text-slate-900">{played}</Text>
         </View>
-        <View className="rounded-[24px] border border-slate-200 bg-white p-4">
+        <View className="relative overflow-hidden rounded-[24px] border border-slate-200 bg-white p-4">
+          <Crown size={58} color="rgba(15,23,42,0.06)" style={{ position: 'absolute', right: -6, bottom: -10 }} />
           <Text className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Hosted</Text>
           <Text className="mt-3 text-3xl font-black text-slate-900">{hosted}</Text>
         </View>

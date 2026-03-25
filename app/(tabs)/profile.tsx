@@ -244,8 +244,9 @@ export default function ProfileScreen() {
           <ProfileIdentityCard
             name={player.name}
             city={player.city}
-            badgeLabel={player.is_provisional ? 'Placement' : 'Stable'}
-            badgeTone={player.is_provisional ? 'warning' : 'success'}
+            joinedAt={player.created_at}
+            isProvisional={Boolean(player.is_provisional)}
+            placementMatchesPlayed={placementPlayed}
             actions={[
               { label: 'Sửa hồ sơ', icon: 'edit', onPress: () => router.push('/edit-profile' as any) },
               { label: 'Đăng xuất', icon: 'logout', onPress: logout },
@@ -275,7 +276,6 @@ export default function ProfileScreen() {
             items={[
               { label: 'Số điện thoại', value: player.phone || 'Chưa cập nhật' },
               { label: 'No-show', value: String(player.no_show_count) },
-              { label: 'Tham gia từ', value: new Date(player.created_at).toLocaleDateString('vi-VN') },
             ]}
           />
 

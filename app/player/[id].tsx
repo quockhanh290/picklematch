@@ -123,6 +123,8 @@ type Player = {
   elo: number
   current_elo?: number | null
   self_assessed_level?: string | null
+  is_provisional?: boolean | null
+  placement_matches_played?: number | null
   sessions_joined: number
   no_show_count: number
   created_at: string
@@ -231,7 +233,7 @@ export default function PlayerProfile() {
 
     const { data } = await supabase
       .from('players')
-      .select('id, name, city, skill_label, self_assessed_level, elo, current_elo, sessions_joined, no_show_count, created_at, favorite_court_ids')
+      .select('id, name, city, skill_label, self_assessed_level, elo, current_elo, is_provisional, placement_matches_played, sessions_joined, no_show_count, created_at, favorite_court_ids')
       .eq('id', id)
       .single()
 
@@ -337,8 +339,9 @@ export default function PlayerProfile() {
           <ProfileIdentityCard
             name={player.name}
             city={player.city}
-            badgeLabel={isMe ? 'Đây là bạn' : undefined}
-            badgeTone="info"
+            joinedAt={player.created_at}
+            isProvisional={Boolean(player.is_provisional)}
+            placementMatchesPlayed={player.placement_matches_played}
             actions={isMe ? [{ label: 'Sửa hồ sơ', icon: 'edit', onPress: () => router.push('/edit-profile' as any) }] : []}
           />
 
@@ -356,7 +359,6 @@ export default function PlayerProfile() {
             items={[
               { label: 'No-show', value: String(player.no_show_count) },
               { label: 'Host xấu', value: hostStats.total === 0 ? 'Chưa host' : `${hostStats.badCancels}/${hostStats.total}` },
-              { label: 'Tham gia từ', value: new Date(player.created_at).toLocaleDateString('vi-VN') },
             ]}
           />
 
