@@ -2,20 +2,18 @@ import { CreateSessionStep1 } from '@/components/create-session/CreateSessionSte
 import { SKILL_ASSESSMENT_LEVELS } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
 import { type NearByCourt, useNearbyCourts } from '@/lib/useNearbyCourts'
-import DateTimePicker from '@react-native-community/datetimepicker'
 import * as Linking from 'expo-linking'
 import { router } from 'expo-router'
-import { AlertTriangle, ArrowLeft, CalendarDays, CheckCircle2, Clock3, MapPin, ShieldCheck, Users, Wallet } from 'lucide-react-native'
+import { ArrowLeft, CalendarDays, CheckCircle2, Clock3, MapPin, ShieldCheck, Users, Wallet } from 'lucide-react-native'
 import type { ReactNode } from 'react'
 import { useCallback, useEffect, useState } from 'react'
 import {
-  ActivityIndicator, Alert, FlatList, Keyboard, ScrollView,
+  Alert, Keyboard, ScrollView,
   StyleSheet, Switch, Text, TextInput, TouchableOpacity, View,
 } from 'react-native'
-import { Calendar } from 'react-native-calendars'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
-// ── Constants ─────────────────────────────────────────────────────────────────
+// ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Constants ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
 
 const ELO_LEVELS = [
   { label: SKILL_ASSESSMENT_LEVELS[0].title, elo: 800 },
@@ -28,33 +26,27 @@ const ELO_LEVELS = [
 const PLAYER_OPTIONS = [2, 4, 6]
 
 const DEADLINE_OPTIONS = [
-  { label: '2 giờ',  hours: 2  },
-  { label: '4 giờ',  hours: 4  },
-  { label: '8 giờ',  hours: 8  },
-  { label: '24 giờ', hours: 24 },
+  { label: '2 giÃƒÂ¡Ã‚Â»Ã‚Â',  hours: 2  },
+  { label: '4 giÃƒÂ¡Ã‚Â»Ã‚Â',  hours: 4  },
+  { label: '8 giÃƒÂ¡Ã‚Â»Ã‚Â',  hours: 8  },
+  { label: '24 giÃƒÂ¡Ã‚Â»Ã‚Â', hours: 24 },
 ]
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Helpers ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
 
-const WEEKDAYS_LONG = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7']
+const WEEKDAYS_LONG = ['ChÃƒÂ¡Ã‚Â»Ã‚Â§ nhÃƒÂ¡Ã‚ÂºÃ‚Â­t', 'ThÃƒÂ¡Ã‚Â»Ã‚Â© 2', 'ThÃƒÂ¡Ã‚Â»Ã‚Â© 3', 'ThÃƒÂ¡Ã‚Â»Ã‚Â© 4', 'ThÃƒÂ¡Ã‚Â»Ã‚Â© 5', 'ThÃƒÂ¡Ã‚Â»Ã‚Â© 6', 'ThÃƒÂ¡Ã‚Â»Ã‚Â© 7']
 
 function fmtDateFull(d: Date): string {
   return `${WEEKDAYS_LONG[d.getDay()]}, ${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`
 }
 
 /** "YYYY-MM-DD" string for react-native-calendars */
-function toCalKey(d: Date): string {
-  const y  = d.getFullYear()
-  const m  = (d.getMonth() + 1).toString().padStart(2, '0')
-  const dd = d.getDate().toString().padStart(2, '0')
-  return `${y}-${m}-${dd}`
-}
 
 function fmtTime(d: Date): string {
   return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
 }
 
-/** "HH:MM" string → total minutes since midnight */
+/** "HH:MM" string ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ total minutes since midnight */
 function toMins(hhmm: string): number {
   const [h, m] = hhmm.split(':').map(Number)
   return (h ?? 0) * 60 + (m ?? 0)
@@ -67,17 +59,17 @@ function withTime(base: Date, time: Date): Date {
   return d
 }
 
-/** Duration string, e.g. "1 giờ 30 phút" */
+/** Duration string, e.g. "1 giÃƒÂ¡Ã‚Â»Ã‚Â 30 phÃƒÆ’Ã‚Âºt" */
 function fmtDuration(start: Date, end: Date): string {
   const mins = Math.round((end.getTime() - start.getTime()) / 60_000)
   const h = Math.floor(mins / 60)
   const m = mins % 60
-  if (h === 0) return `${m} phút`
-  if (m === 0) return `${h} giờ`
-  return `${h} giờ ${m} phút`
+  if (h === 0) return `${m} \u0070\u0068\u00fa\u0074`
+  if (m === 0) return `${h} \u0067\u0069\u1edd`
+  return `${h} \u0067\u0069\u1edd ${m} \u0070\u0068\u00fa\u0074`
 }
 
-// ── Component ─────────────────────────────────────────────────────────────────
+// ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Component ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
 
 function WizardHeader({ title, subtitle }: { title: string; subtitle: string }) {
   return (
@@ -101,7 +93,7 @@ function BackLink({ label, onPress }: { label: string; onPress: () => void }) {
 export default function CreateSession() {
   const [step, setStep] = useState<1 | 2 | 3>(1)
 
-  // Step 1 — court + time
+  // Step 1 ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â court + time
   const { courts, loading: loadingCourts, fallbackMode, keyword, setKeyword, searching } = useNearbyCourts()
   const [selectedCourt, setSelectedCourt] = useState<NearByCourt | null>(null)
   const [selectedDate, setSelectedDate]   = useState<Date | null>(null)
@@ -128,7 +120,7 @@ export default function CreateSession() {
 
   const [submitting, setSubmitting] = useState(false)
 
-  // ── Time helpers ─────────────────────────────────────────────────────────────
+  // ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Time helpers ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
 
   /** Default value shown in the picker before user picks anything */
   function defaultPickerValue(type: 'start' | 'end'): Date {
@@ -157,9 +149,9 @@ export default function CreateSession() {
     const closeMins = toMins(selectedCourt?.hours_close ?? '22:00')
     const tMins     = time.getHours() * 60 + time.getMinutes()
 
-    if (isToday && time <= now)  return 'Giờ bắt đầu phải sau giờ hiện tại'
-    if (tMins < openMins)        return `Sân mở cửa lúc ${selectedCourt?.hours_open ?? '06:00'}`
-    if (tMins >= closeMins)      return `Sân đóng cửa lúc ${selectedCourt?.hours_close ?? '22:00'}`
+    if (isToday && time <= now)  return 'GiÃƒÂ¡Ã‚Â»Ã‚Â bÃƒÂ¡Ã‚ÂºÃ‚Â¯t Ãƒâ€žÃ¢â‚¬ËœÃƒÂ¡Ã‚ÂºÃ‚Â§u phÃƒÂ¡Ã‚ÂºÃ‚Â£i sau giÃƒÂ¡Ã‚Â»Ã‚Â hiÃƒÂ¡Ã‚Â»Ã¢â‚¬Â¡n tÃƒÂ¡Ã‚ÂºÃ‚Â¡i'
+    if (tMins < openMins)        return `SÃƒÆ’Ã‚Â¢n mÃƒÂ¡Ã‚Â»Ã…Â¸ cÃƒÂ¡Ã‚Â»Ã‚Â­a lÃƒÆ’Ã‚Âºc ${selectedCourt?.hours_open ?? '06:00'}`
+    if (tMins >= closeMins)      return `SÃƒÆ’Ã‚Â¢n Ãƒâ€žÃ¢â‚¬ËœÃƒÆ’Ã‚Â³ng cÃƒÂ¡Ã‚Â»Ã‚Â­a lÃƒÆ’Ã‚Âºc ${selectedCourt?.hours_close ?? '22:00'}`
     return null
   }, [selectedCourt?.hours_close, selectedCourt?.hours_open, selectedDate])
 
@@ -169,13 +161,13 @@ export default function CreateSession() {
     const endMins   = end.getHours() * 60 + end.getMinutes()
     const diffMins  = (end.getTime() - start.getTime()) / 60_000
 
-    if (end <= start) return 'Giờ kết thúc phải sau giờ bắt đầu'
-    if (diffMins > 180)        return 'Tối đa 3 tiếng mỗi kèo'
-    if (endMins > closeMins)   return `Sân đóng cửa lúc ${selectedCourt?.hours_close ?? '22:00'}`
+    if (end <= start) return 'GiÃƒÂ¡Ã‚Â»Ã‚Â kÃƒÂ¡Ã‚ÂºÃ‚Â¿t thÃƒÆ’Ã‚Âºc phÃƒÂ¡Ã‚ÂºÃ‚Â£i sau giÃƒÂ¡Ã‚Â»Ã‚Â bÃƒÂ¡Ã‚ÂºÃ‚Â¯t Ãƒâ€žÃ¢â‚¬ËœÃƒÂ¡Ã‚ÂºÃ‚Â§u'
+    if (diffMins > 180)        return 'TÃƒÂ¡Ã‚Â»Ã¢â‚¬Ëœi Ãƒâ€žÃ¢â‚¬Ëœa 3 tiÃƒÂ¡Ã‚ÂºÃ‚Â¿ng mÃƒÂ¡Ã‚Â»Ã¢â‚¬â€i kÃƒÆ’Ã‚Â¨o'
+    if (endMins > closeMins)   return `SÃƒÆ’Ã‚Â¢n Ãƒâ€žÃ¢â‚¬ËœÃƒÆ’Ã‚Â³ng cÃƒÂ¡Ã‚Â»Ã‚Â­a lÃƒÆ’Ã‚Âºc ${selectedCourt?.hours_close ?? '22:00'}`
     return null
   }, [selectedCourt?.hours_close])
 
-  // ── Event handlers ────────────────────────────────────────────────────────────
+  // ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Event handlers ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
 
   function onCourtSelect(court: NearByCourt) {
     setSelectedCourt(court)
@@ -227,22 +219,22 @@ export default function CreateSession() {
   }
 
   function bookingStatusLabel() {
-    if (resolvedCourtBookingStatus() === 'confirmed') return 'Đã xác nhận đặt sân'
-    if (courtConfirmationChoice === 'needs_booking' && bookNowChoice === false) return 'Sân chưa xác nhận'
-    return 'Đang chờ xác nhận sân'
+    if (resolvedCourtBookingStatus() === 'confirmed') return 'Ãƒâ€žÃ‚ÂÃƒÆ’Ã‚Â£ xÃƒÆ’Ã‚Â¡c nhÃƒÂ¡Ã‚ÂºÃ‚Â­n Ãƒâ€žÃ¢â‚¬ËœÃƒÂ¡Ã‚ÂºÃ‚Â·t sÃƒÆ’Ã‚Â¢n'
+    if (courtConfirmationChoice === 'needs_booking' && bookNowChoice === false) return 'SÃƒÆ’Ã‚Â¢n chÃƒâ€ Ã‚Â°a xÃƒÆ’Ã‚Â¡c nhÃƒÂ¡Ã‚ÂºÃ‚Â­n'
+    return 'Ãƒâ€žÃ‚Âang chÃƒÂ¡Ã‚Â»Ã‚Â xÃƒÆ’Ã‚Â¡c nhÃƒÂ¡Ã‚ÂºÃ‚Â­n sÃƒÆ’Ã‚Â¢n'
   }
 
   async function openBookingLink() {
     const url = bookingLink()
     if (!url) {
-      Alert.alert('Chưa có link đặt sân', 'Sân này chưa có link booking. Bạn vẫn có thể tự đặt sân và nhập thông tin booking sau.')
+      Alert.alert('ChÃƒâ€ Ã‚Â°a cÃƒÆ’Ã‚Â³ link Ãƒâ€žÃ¢â‚¬ËœÃƒÂ¡Ã‚ÂºÃ‚Â·t sÃƒÆ’Ã‚Â¢n', 'SÃƒÆ’Ã‚Â¢n nÃƒÆ’Ã‚Â y chÃƒâ€ Ã‚Â°a cÃƒÆ’Ã‚Â³ link booking. BÃƒÂ¡Ã‚ÂºÃ‚Â¡n vÃƒÂ¡Ã‚ÂºÃ‚Â«n cÃƒÆ’Ã‚Â³ thÃƒÂ¡Ã‚Â»Ã†â€™ tÃƒÂ¡Ã‚Â»Ã‚Â± Ãƒâ€žÃ¢â‚¬ËœÃƒÂ¡Ã‚ÂºÃ‚Â·t sÃƒÆ’Ã‚Â¢n vÃƒÆ’Ã‚Â  nhÃƒÂ¡Ã‚ÂºÃ‚Â­p thÃƒÆ’Ã‚Â´ng tin booking sau.')
       return
     }
 
     try {
       await Linking.openURL(url)
     } catch {
-      Alert.alert('Không mở được link', 'Vui lòng thử lại hoặc mở link booking của sân theo cách khác.')
+      Alert.alert('KhÃƒÆ’Ã‚Â´ng mÃƒÂ¡Ã‚Â»Ã…Â¸ Ãƒâ€žÃ¢â‚¬ËœÃƒâ€ Ã‚Â°ÃƒÂ¡Ã‚Â»Ã‚Â£c link', 'Vui lÃƒÆ’Ã‚Â²ng thÃƒÂ¡Ã‚Â»Ã‚Â­ lÃƒÂ¡Ã‚ÂºÃ‚Â¡i hoÃƒÂ¡Ã‚ÂºÃ‚Â·c mÃƒÂ¡Ã‚Â»Ã…Â¸ link booking cÃƒÂ¡Ã‚Â»Ã‚Â§a sÃƒÆ’Ã‚Â¢n theo cÃƒÆ’Ã‚Â¡ch khÃƒÆ’Ã‚Â¡c.')
     }
   }
 
@@ -250,19 +242,19 @@ export default function CreateSession() {
     const minIdx = ELO_LEVELS.findIndex(l => l.elo === eloMin)
     const maxIdx = ELO_LEVELS.findIndex(l => l.elo === eloMax)
     if (minIdx > maxIdx) {
-      Alert.alert('Lỗi', 'Trình độ tối thiểu không thể cao hơn tối đa')
+      Alert.alert('LÃƒÂ¡Ã‚Â»Ã¢â‚¬â€i', 'TrÃƒÆ’Ã‚Â¬nh Ãƒâ€žÃ¢â‚¬ËœÃƒÂ¡Ã‚Â»Ã¢â€žÂ¢ tÃƒÂ¡Ã‚Â»Ã¢â‚¬Ëœi thiÃƒÂ¡Ã‚Â»Ã†â€™u khÃƒÆ’Ã‚Â´ng thÃƒÂ¡Ã‚Â»Ã†â€™ cao hÃƒâ€ Ã‚Â¡n tÃƒÂ¡Ã‚Â»Ã¢â‚¬Ëœi Ãƒâ€žÃ¢â‚¬Ëœa')
       return
     }
     if (!courtConfirmationChoice) {
-      Alert.alert('Thiếu thông tin', 'Bạn cần xác nhận tình trạng đặt sân trước khi đăng kèo.')
+      Alert.alert('ThiÃƒÂ¡Ã‚ÂºÃ‚Â¿u thÃƒÆ’Ã‚Â´ng tin', 'BÃƒÂ¡Ã‚ÂºÃ‚Â¡n cÃƒÂ¡Ã‚ÂºÃ‚Â§n xÃƒÆ’Ã‚Â¡c nhÃƒÂ¡Ã‚ÂºÃ‚Â­n tÃƒÆ’Ã‚Â¬nh trÃƒÂ¡Ã‚ÂºÃ‚Â¡ng Ãƒâ€žÃ¢â‚¬ËœÃƒÂ¡Ã‚ÂºÃ‚Â·t sÃƒÆ’Ã‚Â¢n trÃƒâ€ Ã‚Â°ÃƒÂ¡Ã‚Â»Ã¢â‚¬Âºc khi Ãƒâ€žÃ¢â‚¬ËœÃƒâ€žÃ†â€™ng kÃƒÆ’Ã‚Â¨o.')
       return
     }
     if (courtConfirmationChoice === 'needs_booking' && bookNowChoice === null) {
-      Alert.alert('Thiếu thông tin', 'Hãy chọn bạn có muốn đặt sân ngay lúc này hay không.')
+      Alert.alert('ThiÃƒÂ¡Ã‚ÂºÃ‚Â¿u thÃƒÆ’Ã‚Â´ng tin', 'HÃƒÆ’Ã‚Â£y chÃƒÂ¡Ã‚Â»Ã‚Ân bÃƒÂ¡Ã‚ÂºÃ‚Â¡n cÃƒÆ’Ã‚Â³ muÃƒÂ¡Ã‚Â»Ã¢â‚¬Ëœn Ãƒâ€žÃ¢â‚¬ËœÃƒÂ¡Ã‚ÂºÃ‚Â·t sÃƒÆ’Ã‚Â¢n ngay lÃƒÆ’Ã‚Âºc nÃƒÆ’Ã‚Â y hay khÃƒÆ’Ã‚Â´ng.')
       return
     }
     if (resolvedCourtBookingStatus() === 'confirmed' && !hasBookingInfo()) {
-      Alert.alert('Thiếu thông tin booking', 'Hãy cung cấp thông tin booking để xác nhận đã đặt sân.')
+      Alert.alert('ThiÃƒÂ¡Ã‚ÂºÃ‚Â¿u thÃƒÆ’Ã‚Â´ng tin booking', 'HÃƒÆ’Ã‚Â£y cung cÃƒÂ¡Ã‚ÂºÃ‚Â¥p thÃƒÆ’Ã‚Â´ng tin booking Ãƒâ€žÃ¢â‚¬ËœÃƒÂ¡Ã‚Â»Ã†â€™ xÃƒÆ’Ã‚Â¡c nhÃƒÂ¡Ã‚ÂºÃ‚Â­n Ãƒâ€žÃ¢â‚¬ËœÃƒÆ’Ã‚Â£ Ãƒâ€žÃ¢â‚¬ËœÃƒÂ¡Ã‚ÂºÃ‚Â·t sÃƒÆ’Ã‚Â¢n.')
       return
     }
     setStep(3)
@@ -275,9 +267,9 @@ export default function CreateSession() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       setSubmitting(false)
-      Alert.alert('Cần đăng nhập', 'Bạn cần đăng nhập để tạo kèo', [
-        { text: 'Đăng nhập', onPress: () => router.push('/login') },
-        { text: 'Huỷ', style: 'cancel' },
+      Alert.alert('CÃƒÂ¡Ã‚ÂºÃ‚Â§n Ãƒâ€žÃ¢â‚¬ËœÃƒâ€žÃ†â€™ng nhÃƒÂ¡Ã‚ÂºÃ‚Â­p', 'BÃƒÂ¡Ã‚ÂºÃ‚Â¡n cÃƒÂ¡Ã‚ÂºÃ‚Â§n Ãƒâ€žÃ¢â‚¬ËœÃƒâ€žÃ†â€™ng nhÃƒÂ¡Ã‚ÂºÃ‚Â­p Ãƒâ€žÃ¢â‚¬ËœÃƒÂ¡Ã‚Â»Ã†â€™ tÃƒÂ¡Ã‚ÂºÃ‚Â¡o kÃƒÆ’Ã‚Â¨o', [
+        { text: 'Ãƒâ€žÃ‚ÂÃƒâ€žÃ†â€™ng nhÃƒÂ¡Ã‚ÂºÃ‚Â­p', onPress: () => router.push('/login') },
+        { text: 'HuÃƒÂ¡Ã‚Â»Ã‚Â·', style: 'cancel' },
       ])
       return
     }
@@ -299,7 +291,7 @@ export default function CreateSession() {
 
     if (slotErr || !newSlot) {
       setSubmitting(false)
-      Alert.alert('Lỗi', slotErr?.message ?? 'Không thể tạo giờ chơi')
+      Alert.alert('LÃƒÂ¡Ã‚Â»Ã¢â‚¬â€i', slotErr?.message ?? 'KhÃƒÆ’Ã‚Â´ng thÃƒÂ¡Ã‚Â»Ã†â€™ tÃƒÂ¡Ã‚ÂºÃ‚Â¡o giÃƒÂ¡Ã‚Â»Ã‚Â chÃƒâ€ Ã‚Â¡i')
       return
     }
 
@@ -330,7 +322,7 @@ export default function CreateSession() {
 
     if (sessionErr || !newSession) {
       setSubmitting(false)
-      Alert.alert('Lỗi', sessionErr?.message ?? 'Không thể tạo kèo')
+      Alert.alert('LÃƒÂ¡Ã‚Â»Ã¢â‚¬â€i', sessionErr?.message ?? 'KhÃƒÆ’Ã‚Â´ng thÃƒÂ¡Ã‚Â»Ã†â€™ tÃƒÂ¡Ã‚ÂºÃ‚Â¡o kÃƒÆ’Ã‚Â¨o')
       return
     }
 
@@ -347,7 +339,7 @@ export default function CreateSession() {
     } as any)
   }
 
-  // ── Derived values ────────────────────────────────────────────────────────────
+  // ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Derived values ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
 
   const totalCost     = parseInt(totalCostStr.replace(/\D/g, ''), 10) || 0
   const costPerPerson = totalCost > 0 ? Math.ceil(totalCost / maxPlayers) : 0
@@ -363,15 +355,18 @@ export default function CreateSession() {
     const d  = new Date(Date.now() + deadlineHours * 3_600_000)
     const hh = d.getHours().toString().padStart(2, '0')
     const mm = d.getMinutes().toString().padStart(2, '0')
-    return `Hết hạn lúc ${hh}:${mm}, ${d.getDate()}/${d.getMonth() + 1}`
+    return `HÃƒÂ¡Ã‚ÂºÃ‚Â¿t hÃƒÂ¡Ã‚ÂºÃ‚Â¡n lÃƒÆ’Ã‚Âºc ${hh}:${mm}, ${d.getDate()}/${d.getMonth() + 1}`
   }
 
-  // ── Time picker sub-render ────────────────────────────────────────────────────
+  // ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Time picker sub-render ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
 
   if (step === 1) return (
     <SafeAreaView style={s.container} edges={['top']}>
-      <BackLink label="Quay lại" onPress={() => router.back()} />
-      <WizardHeader title="Tạo kèo mới" subtitle="Bước 1/3 · Chọn sân và khung giờ phù hợp để bắt đầu tạo trận." />
+      <BackLink label={'\u0051\u0075\u0061\u0079\u0020\u006c\u1ea1\u0069'} onPress={() => router.back()} />
+      <WizardHeader
+        title={'\u0054\u1ea1\u006f\u0020\u006b\u00e8\u006f\u0020\u006d\u1edb\u0069'}
+        subtitle={'\u0042\u01b0\u1edb\u0063\u0020\u0031\u002f\u0033\u0020\u00b7\u0020\u0043\u0068\u1ecd\u006e\u0020\u0073\u00e2\u006e\u0020\u0076\u00e0\u0020\u006b\u0068\u0075\u006e\u0067\u0020\u0067\u0069\u1edd\u0020\u0070\u0068\u00f9\u0020\u0068\u1ee3\u0070\u0020\u0111\u1ec3\u0020\u0062\u1eaf\u0074\u0020\u0111\u1ea7\u0075\u0020\u0074\u1ea1\u006f\u0020\u0074\u0072\u1ead\u006e\u002e'}
+      />
       <CreateSessionStep1
         courts={courts}
         loadingCourts={loadingCourts}
@@ -419,247 +414,22 @@ export default function CreateSession() {
     </SafeAreaView>
   )
 
-  function renderTimeBtn(type: 'start' | 'end') {
-    const isStart  = type === 'start'
-    const current  = isStart ? startTime : endTime
-    const disabled = !isStart && !startTime
-    const label    = isStart ? 'Bắt đầu' : 'Kết thúc'
-    const onPress  = isStart
-      ? () => { setShowEndPicker(false); setShowStartPicker(v => !v) }
-      : () => { setShowStartPicker(false); setShowEndPicker(v => !v) }
 
-    return (
-      <View style={s.timeBlock}>
-        <Text style={s.timeBlockLabel}>{label}</Text>
-        <TouchableOpacity
-          style={[s.timeBtn, disabled && s.timeBtnDisabled]}
-          onPress={onPress}
-          disabled={disabled}
-        >
-          <Text style={[s.timeBtnTxt, !current && s.timeBtnPlaceholder]}>
-            {current ? fmtTime(current) : '--:--'}
-          </Text>
-        </TouchableOpacity>
-      </View>
-    )
-  }
-
-  // ────────────────────────────────────────────────────────────────────────────
-  // STEP 1 — Chọn sân & giờ
-  // ────────────────────────────────────────────────────────────────────────────
-
-  if (step === 1) return (
-    <SafeAreaView style={s.container} edges={['top']}>
-      <BackLink label="Quay lại" onPress={() => router.back()} />
-      <WizardHeader title="Tạo kèo mới" subtitle="Bước 1/3 · Chọn sân và khung giờ phù hợp để bắt đầu tạo trận." />
-
-      {/* ── Court list or time picker ── */}
-      {!selectedCourt ? (
-        fallbackMode ? (
-          <>
-            <TextInput
-              style={s.searchInput}
-              placeholder="Tìm tên sân..."
-              placeholderTextColor="#aaa"
-              value={keyword}
-              onChangeText={setKeyword}
-              autoFocus
-              returnKeyType="search"
-            />
-            {searching ? (
-              <View style={s.center}><ActivityIndicator color="#16a34a" /></View>
-            ) : keyword.length > 0 && courts.length === 0 ? (
-              <View style={s.center}><Text style={s.noResult}>Không tìm thấy sân nào</Text></View>
-            ) : keyword.length === 0 ? (
-              <View style={s.center}><Text style={s.noResult}>Nhập tên sân để tìm kiếm</Text></View>
-            ) : (
-              <FlatList
-                data={courts}
-                keyExtractor={c => c.id}
-                keyboardShouldPersistTaps="handled"
-                contentContainerStyle={{ paddingBottom: 32 }}
-                renderItem={({ item }) => <CourtItem item={item} onPress={onCourtSelect} />}
-              />
-            )}
-          </>
-        ) : loadingCourts ? (
-          <View style={s.center}>
-            <ActivityIndicator color="#16a34a" size="large" />
-            <Text style={s.loadingText}>Đang tìm sân gần bạn...</Text>
-          </View>
-        ) : courts.length === 0 ? (
-          <View style={s.center}><Text style={s.noResult}>Không tìm thấy sân nào</Text></View>
-        ) : (
-          <FlatList
-            data={courts}
-            keyExtractor={c => c.id}
-            contentContainerStyle={{ paddingBottom: 32 }}
-            renderItem={({ item }) => <CourtItem item={item} onPress={onCourtSelect} />}
-          />
-        )
-      ) : (
-
-        /* ── Court selected: date + free-form time picker ── */
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32, flexGrow: 1 }} keyboardShouldPersistTaps="handled">
-
-          {/* Selected court card */}
-          <View style={s.selectedCard}>
-            <View style={s.selectedCardRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={s.selectedCardLabel}>Sân đã chọn</Text>
-                <Text style={s.selectedCardName}>{selectedCourt.name}</Text>
-                <View style={s.inlineMetaRow}>
-                  <MapPin size={14} color="#6b7280" />
-                  <Text style={s.selectedCardSub}>{selectedCourt.address} · {selectedCourt.city}</Text>
-                </View>
-                {(selectedCourt.hours_open || selectedCourt.hours_close) && (
-                  <View style={s.inlineMetaRow}>
-                    <Clock3 size={14} color="#6b7280" />
-                    <Text style={s.selectedCardSub}>
-                      {selectedCourt.hours_open ?? '06:00'} – {selectedCourt.hours_close ?? '22:00'}
-                    </Text>
-                  </View>
-                )}
-              </View>
-              <TouchableOpacity
-                onPress={() => { setSelectedCourt(null); setStartTime(null); setEndTime(null); setTimeError(null) }}
-              >
-                <Text style={s.changeTxt}>Đổi sân</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Calendar */}
-          <Calendar
-            minDate={toCalKey(new Date())}
-            maxDate={toCalKey(new Date(Date.now() + 30 * 86_400_000))}
-            markedDates={selectedDate ? { [toCalKey(selectedDate)]: { selected: true, selectedColor: '#00A651' } } : {}}
-            onDayPress={(day) => {
-              const d = new Date(day.dateString + 'T00:00:00')
-              onDatePress(d)
-            }}
-            hideExtraDays
-            enableSwipeMonths
-            theme={{
-              selectedDayBackgroundColor: '#00A651',
-              selectedDayTextColor: '#ffffff',
-              todayTextColor: '#00A651',
-              arrowColor: '#00A651',
-              textDayFontSize: 14,
-              textMonthFontSize: 14,
-            }}
-          />
-
-          {/* Time section — only after a date is chosen */}
-          {selectedDate && (
-            <>
-              <Text style={[s.label, { marginTop: 16 }]}>Giờ chơi</Text>
-              <View style={s.timeRow}>
-                {renderTimeBtn('start')}
-                <Text style={s.timeArrow}>→</Text>
-                {renderTimeBtn('end')}
-              </View>
-
-              {/* Inline start picker */}
-              {showStartPicker && (
-                <View style={s.inlinePicker}>
-                  <View style={s.inlinePickerHeader}>
-                    <TouchableOpacity onPress={() => setShowStartPicker(false)}>
-                      <Text style={s.inlinePickerCancel}>Huỷ</Text>
-                    </TouchableOpacity>
-                    <Text style={s.inlinePickerTitle}>Giờ bắt đầu</Text>
-                    <TouchableOpacity onPress={() => setShowStartPicker(false)}>
-                      <Text style={s.inlinePickerDone}>Xong</Text>
-                    </TouchableOpacity>
-                  </View>
-                  <DateTimePicker
-                    mode="time"
-                    display="spinner"
-                    themeVariant="light"
-                    value={startTime ?? defaultPickerValue('start')}
-                    is24Hour
-                    locale="vi"
-                    style={{ width: '100%', height: 216, backgroundColor: '#ffffff' }}
-                    onChange={(_ev, date) => {
-                      if (date) setStartTime(withTime(selectedDate, date))
-                    }}
-                  />
-                </View>
-              )}
-
-              {/* Inline end picker */}
-              {showEndPicker && (
-                <View style={s.inlinePicker}>
-                  <View style={s.inlinePickerHeader}>
-                    <TouchableOpacity onPress={() => setShowEndPicker(false)}>
-                      <Text style={s.inlinePickerCancel}>Huỷ</Text>
-                    </TouchableOpacity>
-                    <Text style={s.inlinePickerTitle}>Giờ kết thúc</Text>
-                    <TouchableOpacity onPress={() => setShowEndPicker(false)}>
-                      <Text style={s.inlinePickerDone}>Xong</Text>
-                    </TouchableOpacity>
-                  </View>
-                  <DateTimePicker
-                    mode="time"
-                    display="spinner"
-                    themeVariant="light"
-                    value={endTime ?? defaultPickerValue('end')}
-                    is24Hour
-                    locale="vi"
-                    style={{ width: '100%', height: 216, backgroundColor: '#ffffff' }}
-                    onChange={(_ev, date) => {
-                      if (date) setEndTime(withTime(selectedDate, date))
-                    }}
-                  />
-                </View>
-              )}
-            </>
-          )}
-
-          {/* Duration + error */}
-          {duration && !timeError && (
-            <View style={s.inlineMetaRow}>
-              <Clock3 size={14} color="#16a34a" />
-              <Text style={s.durationTxt}>{duration}</Text>
-            </View>
-          )}
-          {timeError && (
-            <View style={s.inlineMetaRow}>
-              <AlertTriangle size={14} color="#dc2626" />
-              <Text style={s.timeError}>{timeError}</Text>
-            </View>
-          )}
-
-          {/* Booking note */}
-          <View style={s.courtNote}>
-            <Text style={s.courtNoteTxt}>ℹ️ Vui lòng đặt sân trước khi tạo kèo</Text>
-          </View>
-
-          {selectedDate && startTime && endTime && !timeError && (
-            <TouchableOpacity style={s.nextBtn} onPress={goToStep2}>
-              <Text style={s.nextBtnTxt}>Tiếp theo →</Text>
-            </TouchableOpacity>
-          )}
-        </ScrollView>
-      )}
-    </SafeAreaView>
-  )
-
-  // ────────────────────────────────────────────────────────────────────────────
-  // STEP 2 — Cấu hình kèo
-  // ────────────────────────────────────────────────────────────────────────────
+  // ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
+  // STEP 2 ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â CÃƒÂ¡Ã‚ÂºÃ‚Â¥u hÃƒÆ’Ã‚Â¬nh kÃƒÆ’Ã‚Â¨o
+  // ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
 
   if (step === 2) return (
     <SafeAreaView style={s.container} edges={['top']}>
     <ScrollView contentContainerStyle={{ paddingBottom: 48 }} keyboardShouldPersistTaps="handled">
-      <BackLink label="Đổi sân / giờ" onPress={() => setStep(1)} />
-      <WizardHeader title="Cấu hình kèo" subtitle="Bước 2/3 · Thiết lập số người, trình độ, deadline và trạng thái sân." />
+      <BackLink label="Ãƒâ€žÃ‚ÂÃƒÂ¡Ã‚Â»Ã¢â‚¬Â¢i sÃƒÆ’Ã‚Â¢n / giÃƒÂ¡Ã‚Â»Ã‚Â" onPress={() => setStep(1)} />
+      <WizardHeader title="CÃƒÂ¡Ã‚ÂºÃ‚Â¥u hÃƒÆ’Ã‚Â¬nh kÃƒÆ’Ã‚Â¨o" subtitle="BÃƒâ€ Ã‚Â°ÃƒÂ¡Ã‚Â»Ã¢â‚¬Âºc 2/3 Ãƒâ€šÃ‚Â· ThiÃƒÂ¡Ã‚ÂºÃ‚Â¿t lÃƒÂ¡Ã‚ÂºÃ‚Â­p sÃƒÂ¡Ã‚Â»Ã¢â‚¬Ëœ ngÃƒâ€ Ã‚Â°ÃƒÂ¡Ã‚Â»Ã‚Âi, trÃƒÆ’Ã‚Â¬nh Ãƒâ€žÃ¢â‚¬ËœÃƒÂ¡Ã‚Â»Ã¢â€žÂ¢, deadline vÃƒÆ’Ã‚Â  trÃƒÂ¡Ã‚ÂºÃ‚Â¡ng thÃƒÆ’Ã‚Â¡i sÃƒÆ’Ã‚Â¢n." />
 
       <View style={s.selectedCard}>
         <Text style={s.selectedCardName}>{selectedCourt!.name}</Text>
         <View style={s.inlineMetaRow}>
           <CalendarDays size={14} color="#6b7280" />
-          <Text style={s.selectedCardSub}>{fmtDateFull(selectedDate!)} · {fmtTime(startTime!)} → {fmtTime(endTime!)}</Text>
+          <Text style={s.selectedCardSub}>{fmtDateFull(selectedDate!)} Ãƒâ€šÃ‚Â· {fmtTime(startTime!)} ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ {fmtTime(endTime!)}</Text>
         </View>
         <View style={[s.inlineMetaRow, { marginTop: 6 }]}>
           <Clock3 size={14} color="#6b7280" />
@@ -667,8 +437,8 @@ export default function CreateSession() {
         </View>
       </View>
 
-      {/* Số người */}
-      <Text style={s.label}>Số người chơi</Text>
+      {/* SÃƒÂ¡Ã‚Â»Ã¢â‚¬Ëœ ngÃƒâ€ Ã‚Â°ÃƒÂ¡Ã‚Â»Ã‚Âi */}
+      <Text style={s.label}>SÃƒÂ¡Ã‚Â»Ã¢â‚¬Ëœ ngÃƒâ€ Ã‚Â°ÃƒÂ¡Ã‚Â»Ã‚Âi chÃƒâ€ Ã‚Â¡i</Text>
       <View style={s.playerRow}>
         {PLAYER_OPTIONS.map(n => (
           <TouchableOpacity
@@ -676,13 +446,13 @@ export default function CreateSession() {
             style={[s.playerBtn, maxPlayers === n && s.optActive]}
             onPress={() => setMaxPlayers(n)}
           >
-            <Text style={[s.playerTxt, maxPlayers === n && s.optTxtActive]}>{n} người</Text>
+            <Text style={[s.playerTxt, maxPlayers === n && s.optTxtActive]}>{n} ngÃƒâ€ Ã‚Â°ÃƒÂ¡Ã‚Â»Ã‚Âi</Text>
           </TouchableOpacity>
         ))}
       </View>
 
       {/* ELO min */}
-      <Text style={s.label}>Trình độ tối thiểu</Text>
+      <Text style={s.label}>TrÃƒÆ’Ã‚Â¬nh Ãƒâ€žÃ¢â‚¬ËœÃƒÂ¡Ã‚Â»Ã¢â€žÂ¢ tÃƒÂ¡Ã‚Â»Ã¢â‚¬Ëœi thiÃƒÂ¡Ã‚Â»Ã†â€™u</Text>
       <View style={s.optRow}>
         {ELO_LEVELS.map(l => (
           <TouchableOpacity
@@ -696,7 +466,7 @@ export default function CreateSession() {
       </View>
 
       {/* ELO max */}
-      <Text style={s.label}>Trình độ tối đa</Text>
+      <Text style={s.label}>TrÃƒÆ’Ã‚Â¬nh Ãƒâ€žÃ¢â‚¬ËœÃƒÂ¡Ã‚Â»Ã¢â€žÂ¢ tÃƒÂ¡Ã‚Â»Ã¢â‚¬Ëœi Ãƒâ€žÃ¢â‚¬Ëœa</Text>
       <View style={s.optRow}>
         {ELO_LEVELS.map(l => (
           <TouchableOpacity
@@ -710,7 +480,7 @@ export default function CreateSession() {
       </View>
 
       {/* Deadline */}
-      <Text style={s.label}>Deadline ghép người</Text>
+      <Text style={s.label}>Deadline ghÃƒÆ’Ã‚Â©p ngÃƒâ€ Ã‚Â°ÃƒÂ¡Ã‚Â»Ã‚Âi</Text>
       <View style={s.deadlineRow}>
         {DEADLINE_OPTIONS.map(d => (
           <TouchableOpacity
@@ -726,11 +496,11 @@ export default function CreateSession() {
       </View>
       <Text style={s.deadlinePreview}>{deadlinePreview()}</Text>
 
-      {/* Duyệt người tham gia */}
+      {/* DuyÃƒÂ¡Ã‚Â»Ã¢â‚¬Â¡t ngÃƒâ€ Ã‚Â°ÃƒÂ¡Ã‚Â»Ã‚Âi tham gia */}
       <View style={s.approvalRow}>
         <View style={{ flex: 1 }}>
-          <Text style={s.approvalTitle}>Duyệt người tham gia</Text>
-          <Text style={s.approvalSub}>Host xem xét trước khi chấp nhận</Text>
+          <Text style={s.approvalTitle}>DuyÃƒÂ¡Ã‚Â»Ã¢â‚¬Â¡t ngÃƒâ€ Ã‚Â°ÃƒÂ¡Ã‚Â»Ã‚Âi tham gia</Text>
+          <Text style={s.approvalSub}>Host xem xÃƒÆ’Ã‚Â©t trÃƒâ€ Ã‚Â°ÃƒÂ¡Ã‚Â»Ã¢â‚¬Âºc khi chÃƒÂ¡Ã‚ÂºÃ‚Â¥p nhÃƒÂ¡Ã‚ÂºÃ‚Â­n</Text>
         </View>
         <Switch
           value={requireApproval}
@@ -740,8 +510,8 @@ export default function CreateSession() {
         />
       </View>
 
-      {/* Tiền sân */}
-      <Text style={s.label}>Tiền sân (tổng)</Text>
+      {/* TiÃƒÂ¡Ã‚Â»Ã‚Ân sÃƒÆ’Ã‚Â¢n */}
+      <Text style={s.label}>TiÃƒÂ¡Ã‚Â»Ã‚Ân sÃƒÆ’Ã‚Â¢n (tÃƒÂ¡Ã‚Â»Ã¢â‚¬Â¢ng)</Text>
       <TextInput
         style={s.costInput}
         placeholder="VD: 200000"
@@ -754,12 +524,12 @@ export default function CreateSession() {
       />
       {costPerPerson > 0 && (
         <Text style={s.costPreview}>
-          {maxPlayers} người ={' '}
-          <Text style={s.costPerPerson}>{costPerPerson.toLocaleString('vi-VN')}đ/người</Text>
+          {maxPlayers} ngÃƒâ€ Ã‚Â°ÃƒÂ¡Ã‚Â»Ã‚Âi ={' '}
+          <Text style={s.costPerPerson}>{costPerPerson.toLocaleString('vi-VN')}Ãƒâ€žÃ¢â‚¬Ëœ/ngÃƒâ€ Ã‚Â°ÃƒÂ¡Ã‚Â»Ã‚Âi</Text>
         </Text>
       )}
 
-      <Text style={s.label}>Tình trạng đặt sân</Text>
+      <Text style={s.label}>TÃƒÆ’Ã‚Â¬nh trÃƒÂ¡Ã‚ÂºÃ‚Â¡ng Ãƒâ€žÃ¢â‚¬ËœÃƒÂ¡Ã‚ÂºÃ‚Â·t sÃƒÆ’Ã‚Â¢n</Text>
       <View style={s.bookingCard}>
         <TouchableOpacity
           style={[s.bookingOption, courtConfirmationChoice === 'confirmed' && s.bookingOptionActive]}
@@ -769,9 +539,9 @@ export default function CreateSession() {
           }}
         >
           <Text style={[s.bookingOptionTitle, courtConfirmationChoice === 'confirmed' && s.bookingOptionTitleActive]}>
-            Đã đặt và xác nhận sân
+            Ãƒâ€žÃ‚ÂÃƒÆ’Ã‚Â£ Ãƒâ€žÃ¢â‚¬ËœÃƒÂ¡Ã‚ÂºÃ‚Â·t vÃƒÆ’Ã‚Â  xÃƒÆ’Ã‚Â¡c nhÃƒÂ¡Ã‚ÂºÃ‚Â­n sÃƒÆ’Ã‚Â¢n
           </Text>
-          <Text style={s.bookingOptionSub}>Bạn đã chốt sân và có thể cung cấp thông tin booking ngay.</Text>
+          <Text style={s.bookingOptionSub}>BÃƒÂ¡Ã‚ÂºÃ‚Â¡n Ãƒâ€žÃ¢â‚¬ËœÃƒÆ’Ã‚Â£ chÃƒÂ¡Ã‚Â»Ã¢â‚¬Ëœt sÃƒÆ’Ã‚Â¢n vÃƒÆ’Ã‚Â  cÃƒÆ’Ã‚Â³ thÃƒÂ¡Ã‚Â»Ã†â€™ cung cÃƒÂ¡Ã‚ÂºÃ‚Â¥p thÃƒÆ’Ã‚Â´ng tin booking ngay.</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -779,41 +549,41 @@ export default function CreateSession() {
           onPress={() => setCourtConfirmationChoice('needs_booking')}
         >
           <Text style={[s.bookingOptionTitle, courtConfirmationChoice === 'needs_booking' && s.bookingOptionTitleActive]}>
-            Chưa xác nhận sân
+            ChÃƒâ€ Ã‚Â°a xÃƒÆ’Ã‚Â¡c nhÃƒÂ¡Ã‚ÂºÃ‚Â­n sÃƒÆ’Ã‚Â¢n
           </Text>
-          <Text style={s.bookingOptionSub}>App sẽ hỏi bạn có muốn đặt sân ngay lúc này hay cập nhật sau.</Text>
+          <Text style={s.bookingOptionSub}>App sÃƒÂ¡Ã‚ÂºÃ‚Â½ hÃƒÂ¡Ã‚Â»Ã‚Âi bÃƒÂ¡Ã‚ÂºÃ‚Â¡n cÃƒÆ’Ã‚Â³ muÃƒÂ¡Ã‚Â»Ã¢â‚¬Ëœn Ãƒâ€žÃ¢â‚¬ËœÃƒÂ¡Ã‚ÂºÃ‚Â·t sÃƒÆ’Ã‚Â¢n ngay lÃƒÆ’Ã‚Âºc nÃƒÆ’Ã‚Â y hay cÃƒÂ¡Ã‚ÂºÃ‚Â­p nhÃƒÂ¡Ã‚ÂºÃ‚Â­t sau.</Text>
         </TouchableOpacity>
 
         {courtConfirmationChoice === 'needs_booking' && (
           <View style={s.bookingFollowup}>
-            <Text style={s.bookingQuestion}>Bạn có muốn đặt sân ngay bây giờ không?</Text>
+            <Text style={s.bookingQuestion}>BÃƒÂ¡Ã‚ÂºÃ‚Â¡n cÃƒÆ’Ã‚Â³ muÃƒÂ¡Ã‚Â»Ã¢â‚¬Ëœn Ãƒâ€žÃ¢â‚¬ËœÃƒÂ¡Ã‚ÂºÃ‚Â·t sÃƒÆ’Ã‚Â¢n ngay bÃƒÆ’Ã‚Â¢y giÃƒÂ¡Ã‚Â»Ã‚Â khÃƒÆ’Ã‚Â´ng?</Text>
             <View style={s.bookingChoiceRow}>
               <TouchableOpacity
                 style={[s.bookingMiniBtn, bookNowChoice === true && s.bookingMiniBtnActive]}
                 onPress={() => setBookNowChoice(true)}
               >
-                <Text style={[s.bookingMiniBtnText, bookNowChoice === true && s.bookingMiniBtnTextActive]}>Có, đặt luôn</Text>
+                <Text style={[s.bookingMiniBtnText, bookNowChoice === true && s.bookingMiniBtnTextActive]}>CÃƒÆ’Ã‚Â³, Ãƒâ€žÃ¢â‚¬ËœÃƒÂ¡Ã‚ÂºÃ‚Â·t luÃƒÆ’Ã‚Â´n</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[s.bookingMiniBtn, bookNowChoice === false && s.bookingMiniBtnActive]}
                 onPress={() => setBookNowChoice(false)}
               >
-                <Text style={[s.bookingMiniBtnText, bookNowChoice === false && s.bookingMiniBtnTextActive]}>Để sau</Text>
+                <Text style={[s.bookingMiniBtnText, bookNowChoice === false && s.bookingMiniBtnTextActive]}>Ãƒâ€žÃ‚ÂÃƒÂ¡Ã‚Â»Ã†â€™ sau</Text>
               </TouchableOpacity>
             </View>
 
             {bookNowChoice === true && (
               <View style={s.bookingHelpBox}>
-                <Text style={s.bookingHelpText}>Mở link booking của sân, đặt sân xong rồi nhập thông tin booking bên dưới để xác nhận.</Text>
+                <Text style={s.bookingHelpText}>MÃƒÂ¡Ã‚Â»Ã…Â¸ link booking cÃƒÂ¡Ã‚Â»Ã‚Â§a sÃƒÆ’Ã‚Â¢n, Ãƒâ€žÃ¢â‚¬ËœÃƒÂ¡Ã‚ÂºÃ‚Â·t sÃƒÆ’Ã‚Â¢n xong rÃƒÂ¡Ã‚Â»Ã¢â‚¬Å“i nhÃƒÂ¡Ã‚ÂºÃ‚Â­p thÃƒÆ’Ã‚Â´ng tin booking bÃƒÆ’Ã‚Âªn dÃƒâ€ Ã‚Â°ÃƒÂ¡Ã‚Â»Ã¢â‚¬Âºi Ãƒâ€žÃ¢â‚¬ËœÃƒÂ¡Ã‚Â»Ã†â€™ xÃƒÆ’Ã‚Â¡c nhÃƒÂ¡Ã‚ÂºÃ‚Â­n.</Text>
                 <TouchableOpacity style={s.bookingLinkBtn} onPress={openBookingLink}>
-                  <Text style={s.bookingLinkBtnText}>Mở link đặt sân</Text>
+                  <Text style={s.bookingLinkBtnText}>MÃƒÂ¡Ã‚Â»Ã…Â¸ link Ãƒâ€žÃ¢â‚¬ËœÃƒÂ¡Ã‚ÂºÃ‚Â·t sÃƒÆ’Ã‚Â¢n</Text>
                 </TouchableOpacity>
               </View>
             )}
 
             {bookNowChoice === false && (
               <View style={s.bookingHelpBox}>
-                <Text style={s.bookingHelpText}>Kèo sẽ được tạo với trạng thái sân chưa xác nhận. Bạn có thể cập nhật lại sau khi có booking.</Text>
+                <Text style={s.bookingHelpText}>KÃƒÆ’Ã‚Â¨o sÃƒÂ¡Ã‚ÂºÃ‚Â½ Ãƒâ€žÃ¢â‚¬ËœÃƒâ€ Ã‚Â°ÃƒÂ¡Ã‚Â»Ã‚Â£c tÃƒÂ¡Ã‚ÂºÃ‚Â¡o vÃƒÂ¡Ã‚Â»Ã¢â‚¬Âºi trÃƒÂ¡Ã‚ÂºÃ‚Â¡ng thÃƒÆ’Ã‚Â¡i sÃƒÆ’Ã‚Â¢n chÃƒâ€ Ã‚Â°a xÃƒÆ’Ã‚Â¡c nhÃƒÂ¡Ã‚ÂºÃ‚Â­n. BÃƒÂ¡Ã‚ÂºÃ‚Â¡n cÃƒÆ’Ã‚Â³ thÃƒÂ¡Ã‚Â»Ã†â€™ cÃƒÂ¡Ã‚ÂºÃ‚Â­p nhÃƒÂ¡Ã‚ÂºÃ‚Â­t lÃƒÂ¡Ã‚ÂºÃ‚Â¡i sau khi cÃƒÆ’Ã‚Â³ booking.</Text>
               </View>
             )}
           </View>
@@ -821,24 +591,24 @@ export default function CreateSession() {
 
         {((courtConfirmationChoice === 'confirmed') || (courtConfirmationChoice === 'needs_booking' && bookNowChoice === true)) && (
           <View style={s.bookingFields}>
-            <Text style={s.bookingFieldTitle}>Thông tin booking</Text>
+            <Text style={s.bookingFieldTitle}>ThÃƒÆ’Ã‚Â´ng tin booking</Text>
             <TextInput
               style={s.costInput}
-              placeholder="Mã booking / mã đặt sân"
+              placeholder="MÃƒÆ’Ã‚Â£ booking / mÃƒÆ’Ã‚Â£ Ãƒâ€žÃ¢â‚¬ËœÃƒÂ¡Ã‚ÂºÃ‚Â·t sÃƒÆ’Ã‚Â¢n"
               placeholderTextColor="#aaa"
               value={bookingReference}
               onChangeText={setBookingReference}
             />
             <TextInput
               style={s.costInput}
-              placeholder="Tên người đặt"
+              placeholder="TÃƒÆ’Ã‚Âªn ngÃƒâ€ Ã‚Â°ÃƒÂ¡Ã‚Â»Ã‚Âi Ãƒâ€žÃ¢â‚¬ËœÃƒÂ¡Ã‚ÂºÃ‚Â·t"
               placeholderTextColor="#aaa"
               value={bookingName}
               onChangeText={setBookingName}
             />
             <TextInput
               style={s.costInput}
-              placeholder="Số điện thoại booking"
+              placeholder="SÃƒÂ¡Ã‚Â»Ã¢â‚¬Ëœ Ãƒâ€žÃ¢â‚¬ËœiÃƒÂ¡Ã‚Â»Ã¢â‚¬Â¡n thoÃƒÂ¡Ã‚ÂºÃ‚Â¡i booking"
               placeholderTextColor="#aaa"
               keyboardType="phone-pad"
               value={bookingPhone}
@@ -846,52 +616,52 @@ export default function CreateSession() {
             />
             <TextInput
               style={[s.costInput, s.bookingNotesInput]}
-              placeholder="Ghi chú booking"
+              placeholder="Ghi chÃƒÆ’Ã‚Âº booking"
               placeholderTextColor="#aaa"
               multiline
               value={bookingNotes}
               onChangeText={setBookingNotes}
             />
-            <Text style={s.bookingFootnote}>Cần ít nhất một thông tin booking để xác nhận sân.</Text>
+            <Text style={s.bookingFootnote}>CÃƒÂ¡Ã‚ÂºÃ‚Â§n ÃƒÆ’Ã‚Â­t nhÃƒÂ¡Ã‚ÂºÃ‚Â¥t mÃƒÂ¡Ã‚Â»Ã¢â€žÂ¢t thÃƒÆ’Ã‚Â´ng tin booking Ãƒâ€žÃ¢â‚¬ËœÃƒÂ¡Ã‚Â»Ã†â€™ xÃƒÆ’Ã‚Â¡c nhÃƒÂ¡Ã‚ÂºÃ‚Â­n sÃƒÆ’Ã‚Â¢n.</Text>
           </View>
         )}
       </View>
 
       <TouchableOpacity style={s.nextBtn} onPress={goToStep3}>
-        <Text style={s.nextBtnTxt}>Xem lại kèo →</Text>
+        <Text style={s.nextBtnTxt}>Xem lÃƒÂ¡Ã‚ÂºÃ‚Â¡i kÃƒÆ’Ã‚Â¨o ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢</Text>
       </TouchableOpacity>
     </ScrollView>
     </SafeAreaView>
   )
 
-  // ────────────────────────────────────────────────────────────────────────────
-  // STEP 3 — Review + Publish
-  // ────────────────────────────────────────────────────────────────────────────
+  // ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
+  // STEP 3 ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Review + Publish
+  // ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
 
   return (
     <SafeAreaView style={s.container} edges={['top']}>
     <ScrollView contentContainerStyle={{ paddingBottom: 48 }}>
-      <BackLink label="Chỉnh lại" onPress={() => setStep(2)} />
-      <WizardHeader title="Xác nhận & đăng kèo" subtitle="Bước 3/3 · Kiểm tra lại toàn bộ thông tin trước khi publish." />
+      <BackLink label="ChÃƒÂ¡Ã‚Â»Ã¢â‚¬Â°nh lÃƒÂ¡Ã‚ÂºÃ‚Â¡i" onPress={() => setStep(2)} />
+      <WizardHeader title="XÃƒÆ’Ã‚Â¡c nhÃƒÂ¡Ã‚ÂºÃ‚Â­n & Ãƒâ€žÃ¢â‚¬ËœÃƒâ€žÃ†â€™ng kÃƒÆ’Ã‚Â¨o" subtitle="BÃƒâ€ Ã‚Â°ÃƒÂ¡Ã‚Â»Ã¢â‚¬Âºc 3/3 Ãƒâ€šÃ‚Â· KiÃƒÂ¡Ã‚Â»Ã†â€™m tra lÃƒÂ¡Ã‚ÂºÃ‚Â¡i toÃƒÆ’Ã‚Â n bÃƒÂ¡Ã‚Â»Ã¢â€žÂ¢ thÃƒÆ’Ã‚Â´ng tin trÃƒâ€ Ã‚Â°ÃƒÂ¡Ã‚Â»Ã¢â‚¬Âºc khi publish." />
 
       <View style={s.reviewCard}>
-        <ReviewRow icon={<ShieldCheck size={18} color="#059669" />} label="Sân" value={selectedCourt!.name} />
-        <ReviewRow icon={<MapPin size={18} color="#6b7280" />} label="Địa chỉ" value={`${selectedCourt!.address} · ${selectedCourt!.city}`} />
-        <ReviewRow icon={<CalendarDays size={18} color="#4f46e5" />} label="Ngày" value={fmtDateFull(selectedDate!)} />
-        <ReviewRow icon={<Clock3 size={18} color="#4f46e5" />} label="Giờ" value={`${fmtTime(startTime!)} → ${fmtTime(endTime!)}`} />
-        <ReviewRow icon={<Clock3 size={18} color="#6b7280" />} label="Thời lượng" value={duration ?? ''} />
-        <ReviewRow icon={<Users size={18} color="#059669" />} label="Số người" value={`${maxPlayers} người`} />
-        <ReviewRow icon={<ShieldCheck size={18} color="#111827" />} label="Trình độ" value={`${eloLabel(eloMin)} → ${eloLabel(eloMax)}`} />
+        <ReviewRow icon={<ShieldCheck size={18} color="#059669" />} label="SÃƒÆ’Ã‚Â¢n" value={selectedCourt!.name} />
+        <ReviewRow icon={<MapPin size={18} color="#6b7280" />} label="Ãƒâ€žÃ‚ÂÃƒÂ¡Ã‚Â»Ã¢â‚¬Â¹a chÃƒÂ¡Ã‚Â»Ã¢â‚¬Â°" value={`${selectedCourt!.address} Ãƒâ€šÃ‚Â· ${selectedCourt!.city}`} />
+        <ReviewRow icon={<CalendarDays size={18} color="#4f46e5" />} label="NgÃƒÆ’Ã‚Â y" value={fmtDateFull(selectedDate!)} />
+        <ReviewRow icon={<Clock3 size={18} color="#4f46e5" />} label="GiÃƒÂ¡Ã‚Â»Ã‚Â" value={`${fmtTime(startTime!)} ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ ${fmtTime(endTime!)}`} />
+        <ReviewRow icon={<Clock3 size={18} color="#6b7280" />} label="ThÃƒÂ¡Ã‚Â»Ã‚Âi lÃƒâ€ Ã‚Â°ÃƒÂ¡Ã‚Â»Ã‚Â£ng" value={duration ?? ''} />
+        <ReviewRow icon={<Users size={18} color="#059669" />} label="SÃƒÂ¡Ã‚Â»Ã¢â‚¬Ëœ ngÃƒâ€ Ã‚Â°ÃƒÂ¡Ã‚Â»Ã‚Âi" value={`${maxPlayers} ngÃƒâ€ Ã‚Â°ÃƒÂ¡Ã‚Â»Ã‚Âi`} />
+        <ReviewRow icon={<ShieldCheck size={18} color="#111827" />} label="TrÃƒÆ’Ã‚Â¬nh Ãƒâ€žÃ¢â‚¬ËœÃƒÂ¡Ã‚Â»Ã¢â€žÂ¢" value={`${eloLabel(eloMin)} ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ ${eloLabel(eloMax)}`} />
         {costPerPerson > 0 && (
-          <ReviewRow icon={<Wallet size={18} color="#111827" />} label="Chi phí" value={`${costPerPerson.toLocaleString('vi-VN')}đ/người`} />
+          <ReviewRow icon={<Wallet size={18} color="#111827" />} label="Chi phÃƒÆ’Ã‚Â­" value={`${costPerPerson.toLocaleString('vi-VN')}Ãƒâ€žÃ¢â‚¬Ëœ/ngÃƒâ€ Ã‚Â°ÃƒÂ¡Ã‚Â»Ã‚Âi`} />
         )}
         <ReviewRow icon={<Clock3 size={18} color="#c2410c" />} label="Deadline" value={deadlinePreview()} />
-        <ReviewRow icon={<CheckCircle2 size={18} color="#059669" />} label="Tình trạng sân" value={bookingStatusLabel()} />
+        <ReviewRow icon={<CheckCircle2 size={18} color="#059669" />} label="TÃƒÆ’Ã‚Â¬nh trÃƒÂ¡Ã‚ÂºÃ‚Â¡ng sÃƒÆ’Ã‚Â¢n" value={bookingStatusLabel()} />
         {hasBookingInfo() && (
           <ReviewRow
             icon={<CheckCircle2 size={18} color="#111827" />}
             label="Booking"
-            value={[bookingReference, bookingName, bookingPhone].filter((value) => value.trim().length > 0).join(' · ') || bookingNotes}
+            value={[bookingReference, bookingName, bookingPhone].filter((value) => value.trim().length > 0).join(' Ãƒâ€šÃ‚Â· ') || bookingNotes}
           />
         )}
       </View>
@@ -901,42 +671,10 @@ export default function CreateSession() {
         onPress={submit}
         disabled={submitting}
       >
-        <Text style={s.submitTxt}>{submitting ? 'Đang tạo kèo...' : 'Tạo kèo'}</Text>
+        <Text style={s.submitTxt}>{submitting ? 'Ãƒâ€žÃ‚Âang tÃƒÂ¡Ã‚ÂºÃ‚Â¡o kÃƒÆ’Ã‚Â¨o...' : 'TÃƒÂ¡Ã‚ÂºÃ‚Â¡o kÃƒÆ’Ã‚Â¨o'}</Text>
       </TouchableOpacity>
     </ScrollView>
     </SafeAreaView>
-  )
-}
-
-// ── Sub-components ────────────────────────────────────────────────────────────
-
-function CourtItem({ item, onPress }: { item: NearByCourt; onPress: (c: NearByCourt) => void }) {
-  return (
-    <TouchableOpacity style={s.courtItem} onPress={() => onPress(item)} activeOpacity={0.92}>
-      <View style={s.courtRow}>
-        <View style={{ flex: 1 }}>
-          <Text style={s.courtName}>{item.name}</Text>
-          <View style={s.inlineMetaRow}>
-            <MapPin size={14} color="#6b7280" />
-            <Text style={s.courtAddr}>{item.address} · {item.city}</Text>
-          </View>
-        </View>
-        <View style={s.courtMeta}>
-          {item.distance !== undefined && (
-            <Text style={s.distText}>
-              {item.distance < 1
-                ? `${Math.round(item.distance * 1000)}m`
-                : `${item.distance.toFixed(1)}km`}
-            </Text>
-          )}
-          <View style={[s.badge, item.hasSlots ? s.badgeOpen : s.badgeClosed]}>
-            <Text style={[s.badgeTxt, item.hasSlots ? s.badgeTxtOpen : s.badgeTxtClosed]}>
-              {item.hasSlots ? 'Đang mở' : 'Đã đóng'}
-            </Text>
-          </View>
-        </View>
-      </View>
-    </TouchableOpacity>
   )
 }
 
@@ -952,7 +690,7 @@ function ReviewRow({ icon, label, value }: { icon: ReactNode; label: string; val
   )
 }
 
-// ── Styles ────────────────────────────────────────────────────────────────────
+// ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Styles ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
 
 const s = StyleSheet.create({
   container:   { flex: 1, backgroundColor: '#f5f5f4', paddingHorizontal: 20 },
