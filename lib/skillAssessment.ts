@@ -108,6 +108,23 @@ export function getSkillLevelFromEloRange(eloMin: number, eloMax: number) {
   return SKILL_ASSESSMENT_LEVELS[4]
 }
 
+export function getShortSkillLabel(level?: SkillAssessmentLevel | null) {
+  switch (level?.id) {
+    case 'level_1':
+      return 'Mới chơi'
+    case 'level_2':
+      return 'Cơ bản'
+    case 'level_3':
+      return 'Cọ xát'
+    case 'level_4':
+      return 'Phong trào'
+    case 'level_5':
+      return 'Săn giải'
+    default:
+      return 'Cọ xát'
+  }
+}
+
 export function getSkillScoreFromLevelId(levelId?: string | null) {
   const level = getSkillLevelById(levelId)
   if (!level) return null

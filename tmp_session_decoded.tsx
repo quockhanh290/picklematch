@@ -4,20 +4,16 @@ import { JoinRequestModal } from '@/components/session/JoinRequestModal'
 import { SmartJoinButton } from '@/components/session/SmartJoinButton'
 import { getMatchStatus } from '@/lib/matchmaking'
 import {
-  getSkillLevelFromElo,
   getSkillLevelFromEloRange,
-  getSkillLevelFromPlayer,
-  getShortSkillLabel,
   getSkillScoreFromEloRange,
   getSkillScoreFromPlayer,
   SKILL_ASSESSMENT_LEVELS,
 } from '@/lib/skillAssessment'
-import { getSkillLevelUi, getSkillTargetElo } from '@/lib/skillLevelUi'
 import { supabase } from '@/lib/supabase'
 import { insertNotification } from '@/lib/notifications'
 import * as Linking from 'expo-linking'
 import { router, useLocalSearchParams } from 'expo-router'
-import { ArrowLeft, BadgeCheck, ChevronDown, ChevronUp, CircleDollarSign, Clock3, Flame, MapPin, Share2, Shield, ShieldAlert, ShieldQuestion, UserStar } from 'lucide-react-native'
+import { ArrowLeft, CalendarDays, MapPin, Share2, ShieldAlert, ShieldCheck, Wallet } from 'lucide-react-native'
 import { useCallback, useEffect, useState } from 'react'
 import {
   ActivityIndicator,
@@ -53,21 +49,7 @@ type SessionRecord = {
   booking_phone: string | null
   booking_notes: string | null
   booking_confirmed_at: string | null
-  host: {
-    id: string
-    name: string
-    auto_accept?: boolean
-    is_provisional?: boolean
-    placement_matches_played?: number
-    win_streak?: number | null
-    reliability_score?: number | null
-    sessions_joined?: number | null
-    no_show_count?: number | null
-    elo?: number | null
-    current_elo?: number | null
-    self_assessed_level?: string | null
-    skill_label?: string | null
-  }
+  host: { id: string; name: string; auto_accept?: boolean; is_provisional?: boolean; placement_matches_played?: number }
   slot: {
     id?: string
     start_time: string
@@ -84,18 +66,7 @@ type SessionRecord = {
     host_unprofessional_report_note?: string | null
     result_confirmation_status?: 'not_submitted' | 'awaiting_player' | 'confirmed' | 'disputed'
     result_dispute_note?: string | null
-    player: {
-      name: string
-      is_provisional?: boolean | null
-      win_streak?: number | null
-      reliability_score?: number | null
-      sessions_joined?: number | null
-      no_show_count?: number | null
-      elo?: number | null
-      current_elo?: number | null
-      self_assessed_level?: string | null
-      skill_label?: string | null
-    }
+    player: { name: string }
   }[]
 }
 
@@ -214,7 +185,6 @@ export default function SessionDetail() {
   const [joinModalVisible, setJoinModalVisible] = useState(false)
   const [introNote, setIntroNote] = useState('')
   const [refreshKey, setRefreshKey] = useState(0)
-  const [showBookingDetails, setShowBookingDetails] = useState(false)
 
   const fetchMyPlayer = useCallback(async (userId: string) => {
     const { data } = await supabase
@@ -234,28 +204,28 @@ export default function SessionDetail() {
     const fullSelect = `
         id, elo_min, elo_max, max_players, status, results_status, results_submitted_at, results_confirmation_deadline, auto_closed_at, auto_closed_reason, require_approval, fill_deadline,
         court_booking_status, booking_reference, booking_name, booking_phone, booking_notes, booking_confirmed_at,
-        host:host_id ( id, name, auto_accept, is_provisional, placement_matches_played, win_streak, reliability_score, sessions_joined, no_show_count, elo, current_elo, self_assessed_level, skill_label ),
+        host:host_id ( id, name, auto_accept, is_provisional, placement_matches_played ),
         slot:slot_id (
           id, start_time, end_time, price,
           court:court_id ( name, address, city, booking_url, google_maps_url )
           ),
           session_players (
             player_id, status, match_result, proposed_result, host_unprofessional_reported_at, host_unprofessional_report_note, result_confirmation_status, result_dispute_note,
-            player:player_id ( name, is_provisional, win_streak, reliability_score, sessions_joined, no_show_count, elo, current_elo, self_assessed_level, skill_label )
+            player:player_id ( name )
           )
         `
 
     const legacySelect = `
         id, elo_min, elo_max, max_players, status, require_approval, fill_deadline,
         court_booking_status, booking_reference, booking_name, booking_phone, booking_notes, booking_confirmed_at,
-        host:host_id ( id, name, auto_accept, is_provisional, placement_matches_played, elo, current_elo, self_assessed_level, skill_label ),
+        host:host_id ( id, name, auto_accept, is_provisional, placement_matches_played ),
         slot:slot_id (
           id, start_time, end_time, price,
           court:court_id ( name, address, city, booking_url, google_maps_url )
         ),
         session_players (
           player_id, status, match_result,
-          player:player_id ( name, elo, current_elo, self_assessed_level, skill_label )
+          player:player_id ( name )
         )
       `
 
@@ -470,7 +440,7 @@ export default function SessionDetail() {
       return {
         bg: '#f0fdf4',
         text: '#166534',
-        label: 'Sân đã chốt',
+        label: 'Sân đã xác nhận',
       }
     }
 
@@ -586,7 +556,7 @@ export default function SessionDetail() {
       changedFields.push(`số chỗ ${session.max_players} → ${nextMaxPlayers}`)
     }
     if (nextPrice !== session.slot.price) {
-      changedFields.push(`gi? ${(session.slot.price ?? 0).toLocaleString('vi-VN')}? ? ${nextPrice.toLocaleString('vi-VN')}?`)
+      changedFields.push(`giá ${(session.slot.price ?? 0).toLocaleString('vi-VN')}đ → ${nextPrice.toLocaleString('vi-VN')}đ`)
     }
     if (nextEloMin !== session.elo_min || nextEloMax !== session.elo_max) {
       changedFields.push(`trình độ ${skillLabel(session.elo_min, session.elo_max)} → ${skillLabel(nextEloMin, nextEloMax)}`)
@@ -796,8 +766,8 @@ export default function SessionDetail() {
       playerIdsToNotify.map((playerId) =>
         insertNotification(
           playerId,
-          'Host ?? g?i k?t qu? tr?n',
-          'H?y x?c nh?n ho?c b?o sai k?t qu? trong chi ti?t k?o. K?t qu? s? t? ch?t sau 24h n?u kh?ng ai ph?n ??i.',
+          'Host đã gửi kết quả trận',
+          'Hãy xác nhận hoặc báo sai kết quả trong chi tiết kèo. Kết quả sẽ tự chốt sau 24h nếu không ai phản đối.',
           'session_results_submitted',
           `/session/${session.id}`,
         ),
@@ -879,9 +849,9 @@ export default function SessionDetail() {
 
     if (!error) {
       if (data === 'already_reported') {
-        Alert.alert('Đã báo trước đó', 'Bạn đã gửi báo cáo về host của kèo này rồi.')
+        Alert.alert('Da bao truoc do', 'Ban da gui bao cao ve host cua keo nay roi.')
       } else {
-        Alert.alert('Đã gửi báo cáo', 'Hệ thống đã ghi nhận việc host không xác nhận kết quả đúng hạn.')
+        Alert.alert('Da gui bao cao', 'He thong da ghi nhan viec host khong xac nhan ket qua dung han.')
       }
 
       await fetchSession(myId)
@@ -1234,62 +1204,6 @@ export default function SessionDetail() {
     return getSkillLevelFromEloRange(eloMin, eloMax).title
   }
 
-  function compactPricePerPlayer(price: number) {
-    return `${Math.round(price / 1000)}K/người`
-  }
-
-  function playerSkillMeta(player?: {
-    self_assessed_level?: string | null
-    skill_label?: string | null
-    current_elo?: number | null
-    elo?: number | null
-  } | null) {
-    const level = getSkillLevelFromPlayer(player) ?? getSkillLevelFromElo(player?.current_elo ?? player?.elo)
-    if (!level) return null
-
-    return {
-      level,
-      ui: getSkillLevelUi(level.id),
-    }
-  }
-
-  function getSkillTone(levelId?: string | null) {
-    switch (levelId) {
-      case 'level_1':
-        return { bg: 'bg-slate-100', text: 'text-slate-700', border: 'border-slate-200', icon: '#475569' }
-      case 'level_2':
-        return { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', icon: '#047857' }
-      case 'level_3':
-        return { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', icon: '#1d4ed8' }
-      case 'level_4':
-        return { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200', icon: '#c2410c' }
-      case 'level_5':
-        return { bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-200', icon: '#7c3aed' }
-      default:
-        return { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', icon: '#1d4ed8' }
-    }
-  }
-
-  function getReliabilityScore(player?: {
-    reliability_score?: number | null
-    sessions_joined?: number | null
-    no_show_count?: number | null
-  } | null) {
-    if (player?.reliability_score != null) return Math.round(player.reliability_score)
-    const joined = player?.sessions_joined ?? 0
-    if (!joined) return null
-    const noShow = player?.no_show_count ?? 0
-    return Math.max(0, Math.min(100, Math.round(((joined - noShow) / joined) * 100)))
-  }
-
-  function getReliabilityColor(score: number | null) {
-    if (score == null) return '#94a3b8'
-    if (score >= 90) return '#16a34a'
-    if (score >= 70) return '#ca8a04'
-    return '#dc2626'
-  }
-
-
   if (loading) {
     return (
       <SafeAreaView style={styles.center} edges={['top']}>
@@ -1329,15 +1243,7 @@ export default function SessionDetail() {
   const smartJoinStatus = mySkillScore == null
     ? 'MATCHED'
     : getMatchStatus(mySkillScore, matchTargetScore, players.length, session.max_players)
-  const matchTargetElo = getSkillTargetElo(session.elo_min, session.elo_max)
-  const sessionSkill = getSkillLevelFromEloRange(session.elo_min, session.elo_max)
-  const sessionSkillUi = getSkillLevelUi(sessionSkill.id)
-  const sessionShortSkill = getShortSkillLabel(sessionSkill)
-  const sessionSkillTone = getSkillTone(sessionSkill.id)
-  const hostSkill = playerSkillMeta(session.host)
-  const hostReliability = getReliabilityScore(session.host)
-  const hostReliabilityColor = getReliabilityColor(hostReliability)
-  const hostWinStreak = session.host.win_streak ?? 0
+  const matchTargetElo = Math.round((session.elo_min + session.elo_max) / 2)
   const hostRequiresApproval = session.require_approval || !session.host.auto_accept
 
   function handleSmartJoinPress() {
@@ -1380,131 +1286,81 @@ export default function SessionDetail() {
           <Text style={styles.successBannerText}>Kèo đã được đăng. Chia sẻ link để mời người chơi.</Text>
         </View>
       )}
-      <View className="mx-5 rounded-[28px] border border-slate-200 bg-white p-5">
-        <Text className="text-[10px] font-extrabold uppercase tracking-[0.28em] text-slate-500">Session Detail</Text>
-        <View className="mt-3 flex-row items-start justify-between gap-3">
-          <View className="flex-1">
-            <Text className="text-[24px] font-black leading-7 text-slate-900">{court?.name}</Text>
-            <View className="mt-2 flex-row items-center">
-              <MapPin size={14} color="#64748b" />
-              <Text className="ml-2 flex-1 text-[13px] font-medium leading-5 text-slate-500">
-                {court?.address} · {court?.city}
-              </Text>
-            </View>
-          </View>
 
-          <View
-            className="rounded-full border px-3 py-2"
-            style={{ backgroundColor: bookingCfg.bg, borderColor: `${bookingCfg.text}1A` }}
-          >
-            <View className="flex-row items-center gap-1.5">
+      <View style={styles.heroCard}>
+        <Text style={styles.eyebrow}>Session Detail</Text>
+        <Text style={styles.courtName}>{court?.name}</Text>
+        <View style={styles.heroMetaRow}>
+          <MapPin size={15} color="#6b7280" />
+          <Text style={styles.address}>{court?.address} · {court?.city}</Text>
+        </View>
+
+        <View style={styles.heroBadgeRow}>
+          {session.require_approval && (
+            <View style={styles.approvalBadge}>
+              <View style={styles.topActionInline}>
+                <ShieldAlert size={14} color="#92400e" />
+                <Text style={styles.approvalBadgeText}>Kèo duyệt tay</Text>
+              </View>
+            </View>
+          )}
+
+          <View style={[styles.bookingBadge, { backgroundColor: bookingCfg.bg }]}>
+            <View style={styles.topActionInline}>
               {session.court_booking_status === 'confirmed' ? (
-                <BadgeCheck size={14} color={bookingCfg.text} />
+                <ShieldCheck size={14} color={bookingCfg.text} />
               ) : (
                 <ShieldAlert size={14} color={bookingCfg.text} />
               )}
-              <Text className="text-[11px] font-extrabold" style={{ color: bookingCfg.text }}>
-                {bookingCfg.label}
-              </Text>
+              <Text style={[styles.bookingBadgeText, { color: bookingCfg.text }]}>{bookingCfg.label}</Text>
             </View>
           </View>
-        </View>
-
-        <View className="mt-4 flex-row flex-wrap gap-2">
-          <View className="flex-row items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-2">
-            <Clock3 size={14} color="#475569" />
-            <Text className="ml-2 text-[12px] font-extrabold text-slate-700">
-              {formatTime(session.slot.start_time, session.slot.end_time)}
-            </Text>
-          </View>
-
-          <View className={`flex-row items-center rounded-full border px-3 py-2 ${sessionSkillTone.bg} ${sessionSkillTone.border}`}>
-            <sessionSkillUi.icon size={14} color={sessionSkillTone.icon} />
-            <Text className={`ml-2 text-[12px] font-extrabold ${sessionSkillTone.text}`}>{sessionShortSkill}</Text>
-          </View>
-
-          <View className="flex-row items-center rounded-full border border-slate-200 bg-white px-3 py-2">
-            <CircleDollarSign size={14} color="#334155" />
-            <Text className="ml-2 text-[12px] font-extrabold text-slate-700">{compactPricePerPlayer(session.slot.price)}</Text>
-          </View>
-
-          {session.require_approval && (
-            <View className="flex-row items-center rounded-full border border-amber-200 bg-amber-50 px-3 py-2">
-              <ShieldAlert size={14} color="#b45309" />
-              <Text className="ml-2 text-[12px] font-extrabold text-amber-700">Kèo duyệt tay</Text>
-            </View>
-          )}
         </View>
 
         {(session.booking_reference || session.booking_name || session.booking_phone || session.booking_notes) && (
-          <View
-            className={`mt-4 rounded-[20px] border px-4 py-3 ${
-              session.court_booking_status === 'confirmed'
-                ? 'border-emerald-100 bg-emerald-50'
-                : 'border-slate-200 bg-slate-50'
-            }`}
-          >
-            <TouchableOpacity
-              className="flex-row items-center justify-between"
-              onPress={() => setShowBookingDetails((prev) => !prev)}
-              activeOpacity={0.85}
-            >
-              <View className="flex-row items-center">
-                <BadgeCheck
-                  size={16}
-                  color={session.court_booking_status === 'confirmed' ? '#059669' : '#64748b'}
-                />
-                <Text
-                  className={`ml-2 text-[12px] font-extrabold ${
-                    session.court_booking_status === 'confirmed' ? 'text-emerald-700' : 'text-slate-700'
-                  }`}
-                >
-                  Thông tin booking
-                </Text>
-              </View>
-
-              {showBookingDetails ? (
-                <ChevronUp size={16} color={session.court_booking_status === 'confirmed' ? '#059669' : '#64748b'} />
-              ) : (
-                <ChevronDown size={16} color={session.court_booking_status === 'confirmed' ? '#059669' : '#64748b'} />
-              )}
-            </TouchableOpacity>
-
-            {showBookingDetails ? (
-              <View className="mt-3 gap-1.5">
-                {session.booking_reference ? (
-                  <Text className="text-[12px] font-medium text-slate-600">Mã booking: {session.booking_reference}</Text>
-                ) : null}
-                {session.booking_name ? (
-                  <Text className="text-[12px] font-medium text-slate-600">Người đặt: {session.booking_name}</Text>
-                ) : null}
-                {session.booking_phone ? (
-                  <Text className="text-[12px] font-medium text-slate-600">Số điện thoại: {session.booking_phone}</Text>
-                ) : null}
-                {session.booking_notes ? (
-                  <Text className="text-[12px] font-medium text-slate-600">Ghi chú: {session.booking_notes}</Text>
-                ) : null}
-              </View>
-            ) : null}
+          <View style={styles.bookingInfoCard}>
+            <Text style={styles.bookingInfoTitle}>Thông tin booking</Text>
+            {session.booking_reference && <Text style={styles.bookingInfoText}>Mã booking: {session.booking_reference}</Text>}
+            {session.booking_name && <Text style={styles.bookingInfoText}>Người đặt: {session.booking_name}</Text>}
+            {session.booking_phone && <Text style={styles.bookingInfoText}>Số điện thoại: {session.booking_phone}</Text>}
+            {session.booking_notes && <Text style={styles.bookingInfoText}>Ghi chú: {session.booking_notes}</Text>}
           </View>
         )}
+
+        <View style={styles.infoRow}>
+          <View style={styles.infoCard}>
+            <Text style={styles.infoLabel}>Thời gian</Text>
+            <View style={styles.infoInline}>
+              <CalendarDays size={15} color="#4f46e5" />
+              <Text style={styles.infoValue}>{formatTime(session.slot.start_time, session.slot.end_time)}</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.infoRow}>
+          <View style={[styles.infoCard, { flex: 1 }]}>
+            <Text style={styles.infoLabel}>Trình độ</Text>
+            <Text style={styles.infoValue}>{skillLabel(session.elo_min, session.elo_max)}</Text>
+          </View>
+          <View style={[styles.infoCard, { flex: 1 }]}>
+            <Text style={styles.infoLabel}>Giá</Text>
+            <View style={styles.infoInline}>
+              <Wallet size={15} color="#111827" />
+              <Text style={styles.infoValue}>{session.slot.price.toLocaleString('vi-VN')}đ</Text>
+            </View>
+          </View>
+        </View>
       </View>
 
-      <View className="mx-5 mt-6 flex-row items-center justify-between">
-        <Text className="text-[11px] font-extrabold uppercase tracking-[0.24em] text-slate-500">
-          Người chơi · {players.length}/{session.max_players}
-        </Text>
-        {session.status === 'open' && spotsLeft > 0 ? (
-          <Text className="text-[12px] font-bold text-emerald-600">Còn {spotsLeft} chỗ</Text>
-        ) : null}
-        {session.status === 'open' && spotsLeft <= 0 ? (
-          <Text className="text-[12px] font-bold text-rose-600">Đã đủ người</Text>
-        ) : null}
+      <View style={styles.sectionHeaderRow}>
+        <Text style={styles.sectionTitle}>Người chơi · {players.length}/{session.max_players}</Text>
+        {session.status === 'open' && spotsLeft > 0 ? <Text style={styles.spotsLeft}>Còn {spotsLeft} chỗ</Text> : null}
+        {session.status === 'open' && spotsLeft <= 0 ? <Text style={styles.spotsFull}>Đã đủ người</Text> : null}
       </View>
 
-      <View className="mx-5 mt-3 rounded-[24px] border border-slate-200 bg-white p-3">
+      <View style={styles.playersCard}>
         <TouchableOpacity
-          className="flex-row items-center rounded-[20px] px-3 py-3"
+          style={styles.playerRow}
           onPress={() =>
             router.push({ pathname: '/player/[id]' as any, params: { id: (session.host as any)?.id } })
           }
@@ -1512,110 +1368,38 @@ export default function SessionDetail() {
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>{(session.host as any)?.name?.[0]?.toUpperCase() ?? '?'}</Text>
           </View>
-          <View className="ml-3 flex-1">
-            <View className="flex-row flex-wrap items-center gap-2">
-              <Text className="text-[14px] font-black text-slate-900">{(session.host as any)?.name}</Text>
-              <View className="rounded-full bg-emerald-50 p-1.5">
-                <UserStar size={12} color="#15803d" />
-              </View>
-              {hostWinStreak >= 3 ? (
-                <View className="flex-row items-center rounded-full bg-orange-500 px-2 py-1">
-                  <Flame size={12} color="#ffffff" />
-                  <Text className="ml-1 text-[11px] font-extrabold text-white">{hostWinStreak}</Text>
-                </View>
-              ) : null}
-            </View>
-
-            <View className="mt-1 flex-row flex-wrap items-center gap-2">
-              <View className="flex-row items-center rounded-full bg-slate-100 px-2 py-1">
-                <Shield size={12} color={hostReliabilityColor} />
-                <Text className="ml-1 text-[11px] font-bold text-slate-600">
-                  {hostReliability != null ? `${hostReliability}% uy tín` : 'Chưa có dữ liệu'}
-                </Text>
-              </View>
-            </View>
+          <Text style={styles.playerName}>{(session.host as any)?.name}</Text>
+          <View style={styles.hostBadge}>
+            <Text style={styles.hostBadgeText}>Host</Text>
           </View>
-          {hostSkill ? (
-            <View className="items-end gap-1">
-              <View className={`flex-row items-center rounded-full border px-3 py-2 ${getSkillTone(hostSkill.level.id).bg} ${getSkillTone(hostSkill.level.id).border}`}>
-                <hostSkill.ui.icon size={12} color={getSkillTone(hostSkill.level.id).icon} />
-                <Text className={`ml-1.5 text-[11px] font-extrabold ${getSkillTone(hostSkill.level.id).text}`}>
-                  {getShortSkillLabel(hostSkill.level)}
-                </Text>
-              </View>
-              {(session.host as any)?.is_provisional ? (
-                <View className="flex-row items-center rounded-full border border-amber-200 bg-amber-50 px-2 py-1">
-                  <ShieldQuestion size={11} color="#b45309" />
-                  <Text className="ml-1 text-[10px] font-extrabold text-amber-700">Provisional</Text>
-                </View>
-              ) : null}
+          {(session.host as any)?.is_provisional && (
+            <View style={styles.provisionalHostBadge}>
+              <Text style={styles.provisionalHostBadgeText}>
+                Placement {(session.host as any)?.placement_matches_played ?? 0}/5
+              </Text>
             </View>
-          ) : null}
+          )}
         </TouchableOpacity>
 
-        {nonHostPlayers.map((p) => {
-          const skill = playerSkillMeta(p.player)
-          const reliability = getReliabilityScore(p.player)
-          const reliabilityColor = getReliabilityColor(reliability)
-          const streak = p.player?.win_streak ?? 0
-          const skillTone = getSkillTone(skill?.level.id)
-
-          return (
-            <TouchableOpacity
-              key={p.player_id}
-              className="mt-2 flex-row items-center rounded-[20px] border border-slate-100 px-3 py-3"
-              onPress={() => router.push({ pathname: '/player/[id]' as any, params: { id: p.player_id } })}
-            >
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>{(p.player as any)?.name?.[0]?.toUpperCase() ?? '?'}</Text>
-              </View>
-              <View className="ml-3 flex-1">
-                <View className="flex-row flex-wrap items-center gap-2">
-                  <Text className="text-[14px] font-black text-slate-900">{(p.player as any)?.name ?? '?'}</Text>
-                  {streak >= 3 ? (
-                    <View className="flex-row items-center rounded-full bg-orange-500 px-2 py-1">
-                      <Flame size={12} color="#ffffff" />
-                      <Text className="ml-1 text-[11px] font-extrabold text-white">{streak}</Text>
-                    </View>
-                  ) : null}
-                </View>
-
-                <View className="mt-1 flex-row flex-wrap items-center gap-2">
-                  <View className="flex-row items-center rounded-full bg-slate-100 px-2 py-1">
-                    <Shield size={12} color={reliabilityColor} />
-                    <Text className="ml-1 text-[11px] font-bold text-slate-600">
-                      {reliability != null ? `${reliability}% uy tín` : 'Chưa có dữ liệu'}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-
-              {skill ? (
-                <View className="items-end gap-1">
-                  <View className={`flex-row items-center rounded-full border px-3 py-2 ${skillTone.bg} ${skillTone.border}`}>
-                    <skill.ui.icon size={12} color={skillTone.icon} />
-                    <Text className={`ml-1.5 text-[11px] font-extrabold ${skillTone.text}`}>
-                      {getShortSkillLabel(skill.level)}
-                    </Text>
-                  </View>
-                  {p.player?.is_provisional ? (
-                    <View className="flex-row items-center rounded-full border border-amber-200 bg-amber-50 px-2 py-1">
-                      <ShieldQuestion size={11} color="#b45309" />
-                      <Text className="ml-1 text-[10px] font-extrabold text-amber-700">Provisional</Text>
-                    </View>
-                  ) : null}
-                </View>
-              ) : null}
-            </TouchableOpacity>
-          )
-        })}
+        {nonHostPlayers.map(p => (
+          <TouchableOpacity
+            key={p.player_id}
+            style={styles.playerRow}
+            onPress={() => router.push({ pathname: '/player/[id]' as any, params: { id: p.player_id } })}
+          >
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{(p.player as any)?.name?.[0]?.toUpperCase() ?? '?'}</Text>
+            </View>
+            <Text style={styles.playerName}>{(p.player as any)?.name ?? '—'}</Text>
+          </TouchableOpacity>
+        ))}
 
         {session.status === 'open' && Array.from({ length: Math.max(0, spotsLeft) }).map((_, i) => (
-          <View key={i} className="mt-2 flex-row items-center rounded-[20px] border border-dashed border-slate-200 px-3 py-3 opacity-60">
-            <View style={[styles.avatar, { backgroundColor: '#f1f5f9' }]}>
+          <View key={i} style={[styles.playerRow, { opacity: 0.35 }]}>
+            <View style={[styles.avatar, { backgroundColor: '#f0f0f0' }]}>
               <Text style={styles.avatarText}>?</Text>
             </View>
-            <Text className="ml-3 text-[13px] font-bold text-slate-400">Chờ người chơi...</Text>
+            <Text style={[styles.playerName, { color: '#bbb' }]}>Chờ người chơi...</Text>
           </View>
         ))}
       </View>
@@ -2122,8 +1906,7 @@ const styles = StyleSheet.create({
   heroMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 },
   backBtn: { },
   backText: { fontSize: 14, color: '#16a34a', fontWeight: '600' },
-  courtTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 8 },
-  courtName: { fontSize: 24, fontWeight: '900', color: '#020617', flex: 1 },
+  courtName: { fontSize: 28, fontWeight: '900', color: '#020617', marginBottom: 8 },
   address: { fontSize: 14, color: '#64748b', lineHeight: 20, flex: 1 },
   topActionInline: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   approvalBadge: {
@@ -2151,19 +1934,11 @@ const styles = StyleSheet.create({
   },
   bookingInfoTitle: { fontSize: 15, fontWeight: '800', color: '#0f172a', marginBottom: 8 },
   bookingInfoText: { fontSize: 13, color: '#475569', lineHeight: 20, marginBottom: 4 },
-  sessionInfoBlock: { backgroundColor: '#f8fafc', borderRadius: 20, padding: 14, gap: 10, borderWidth: 1, borderColor: '#e2e8f0' },
-  sessionInfoPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  sessionInfoText: { flex: 1, fontSize: 13, fontWeight: '700', color: '#0f172a', lineHeight: 18 },
+  infoRow: { flexDirection: 'row', gap: 12, marginBottom: 12 },
+  infoCard: { backgroundColor: '#f8fafc', borderRadius: 20, padding: 16, flex: 1, borderWidth: 1, borderColor: '#e2e8f0' },
+  infoLabel: { fontSize: 12, color: '#94a3b8', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.8, fontWeight: '700' },
+  infoValue: { fontSize: 15, fontWeight: '700', color: '#0f172a', lineHeight: 22 },
+  infoInline: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, marginBottom: 14 },
   sectionTitle: { fontSize: 18, fontWeight: '800', color: '#0f172a' },
   spotsLeft: { color: '#16a34a', fontWeight: '700', fontSize: 13 },
@@ -2190,13 +1965,17 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   avatarText: { fontSize: 16, fontWeight: '700', color: '#16a34a' },
-  playerCopy: { flex: 1, marginRight: 12 },
-  playerNameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  playerName: { fontSize: 15, color: '#0f172a', flexShrink: 1, fontWeight: '700' },
-  hostIconBadge: { width: 24, height: 24, borderRadius: 999, backgroundColor: '#dcfce7', alignItems: 'center', justifyContent: 'center' },
-  provisionalIconBadge: { backgroundColor: '#fffbeb', width: 24, height: 24, borderRadius: 999, alignItems: 'center', justifyContent: 'center' },
-  playerSkillChip: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#ffffff', borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 7, maxWidth: '44%' },
-  playerSkillChipText: { flexShrink: 1, fontSize: 11, fontWeight: '800', color: '#334155' },
+  playerName: { fontSize: 15, color: '#0f172a', flex: 1, fontWeight: '700' },
+  hostBadge: { backgroundColor: '#dcfce7', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5 },
+  hostBadgeText: { fontSize: 12, color: '#16a34a', fontWeight: '600' },
+  provisionalHostBadge: {
+    backgroundColor: '#fffbeb',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    marginLeft: 8,
+  },
+  provisionalHostBadgeText: { fontSize: 12, color: '#92400e', fontWeight: '700' },
   requestCard: {
     flexDirection: 'row',
     alignItems: 'center',
