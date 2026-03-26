@@ -1,7 +1,12 @@
 import DateTimePicker, { DateTimePickerAndroid, type DateTimePickerEvent } from '@react-native-community/datetimepicker'
 import { HostRequestReview } from '@/components/session/HostRequestReview'
+import { EditCourtSelector } from '@/components/session/EditCourtSelector'
 import { JoinRequestModal } from '@/components/session/JoinRequestModal'
 import { SmartJoinButton } from '@/components/session/SmartJoinButton'
+import {
+  CREATE_SESSION_SKILL_INACTIVE_CLASSNAME,
+  CREATE_SESSION_SKILL_OPTIONS,
+} from '@/components/create-session/skillLevelOptions'
 import { getMatchStatus } from '@/lib/matchmaking'
 import { formatEstimatedCostPerPerson } from '@/lib/sessionPricing'
 import {
@@ -11,14 +16,14 @@ import {
   getShortSkillLabel,
   getSkillScoreFromEloRange,
   getSkillScoreFromPlayer,
-  SKILL_ASSESSMENT_LEVELS,
 } from '@/lib/skillAssessment'
 import { getSkillLevelUi, getSkillTargetElo } from '@/lib/skillLevelUi'
 import { supabase } from '@/lib/supabase'
 import { insertNotification } from '@/lib/notifications'
 import * as Linking from 'expo-linking'
 import { router, useLocalSearchParams } from 'expo-router'
-import { Activity, ArrowLeft, BadgeCheck, ChevronDown, ChevronUp, CircleDollarSign, Clock3, Flame, MapPin, Share2, Shield, ShieldAlert, Target, UserStar } from 'lucide-react-native'
+import type { NearByCourt } from '@/lib/useNearbyCourts'
+import { Activity, ArrowLeft, BadgeCheck, Calendar, ChevronDown, ChevronUp, CircleDollarSign, Clock3, Flame, MapPin, Share2, Shield, ShieldAlert, Target, UserStar } from 'lucide-react-native'
 import { useCallback, useEffect, useState } from 'react'
 import {
   ActivityIndicator,
@@ -74,7 +79,19 @@ type SessionRecord = {
     start_time: string
     end_time: string
     price: number
-    court: { name: string; address: string; city: string; booking_url?: string | null; google_maps_url?: string | null }
+    court: {
+      id?: string
+      name: string
+      address: string
+      city: string
+      lat?: number | null
+      lng?: number | null
+      hours_open?: string | null
+      hours_close?: string | null
+      price_per_hour?: number | null
+      booking_url?: string | null
+      google_maps_url?: string | null
+    }
   }
   session_players: {
     player_id: string
@@ -203,6 +220,7 @@ export default function SessionDetail() {
   const [editEloMin, setEditEloMin] = useState<number>(800)
   const [editEloMax, setEditEloMax] = useState<number>(1500)
   const [editRequireApproval, setEditRequireApproval] = useState(false)
+  const [editSelectedCourt, setEditSelectedCourt] = useState<NearByCourt | null>(null)
   const [showEditDatePicker, setShowEditDatePicker] = useState(false)
   const [showEditStartPicker, setShowEditStartPicker] = useState(false)
   const [showEditEndPicker, setShowEditEndPicker] = useState(false)
@@ -239,7 +257,7 @@ export default function SessionDetail() {
         host:host_id ( id, name, auto_accept, is_provisional, placement_matches_played, win_streak, reliability_score, sessions_joined, no_show_count, elo, current_elo, self_assessed_level, skill_label ),
         slot:slot_id (
           id, start_time, end_time, price,
-          court:court_id ( name, address, city, booking_url, google_maps_url )
+          court:court_id ( id, name, address, city, lat, lng, hours_open, hours_close, price_per_hour, booking_url, google_maps_url )
           ),
           session_players (
             player_id, status, match_result, proposed_result, host_unprofessional_reported_at, host_unprofessional_report_note, result_confirmation_status, result_dispute_note,
@@ -253,7 +271,7 @@ export default function SessionDetail() {
         host:host_id ( id, name, auto_accept, is_provisional, placement_matches_played, elo, current_elo, self_assessed_level, skill_label ),
         slot:slot_id (
           id, start_time, end_time, price,
-          court:court_id ( name, address, city, booking_url, google_maps_url )
+          court:court_id ( id, name, address, city, lat, lng, hours_open, hours_close, price_per_hour, booking_url, google_maps_url )
         ),
         session_players (
           player_id, status, match_result,
@@ -281,6 +299,23 @@ export default function SessionDetail() {
     if (!error && data) {
       const normalized = normalizeSessionRecord(data)
       setSession(normalized)
+      setEditSelectedCourt(
+        normalized.slot?.court
+          ? {
+              id: normalized.slot.court.id ?? '',
+              name: normalized.slot.court.name,
+              address: normalized.slot.court.address,
+              city: normalized.slot.court.city,
+              lat: normalized.slot.court.lat ?? null,
+              lng: normalized.slot.court.lng ?? null,
+              hours_open: normalized.slot.court.hours_open ?? null,
+              hours_close: normalized.slot.court.hours_close ?? null,
+              price_per_hour: normalized.slot.court.price_per_hour ?? null,
+              booking_url: normalized.slot.court.booking_url ?? null,
+              google_maps_url: normalized.slot.court.google_maps_url ?? null,
+            }
+          : null,
+      )
       setBookingReference(normalized.booking_reference ?? '')
       setBookingName(normalized.booking_name ?? '')
       setBookingPhone(normalized.booking_phone ?? '')
@@ -484,7 +519,11 @@ export default function SessionDetail() {
   }
 
   async function openCourtBookingLink() {
-    const url = session?.slot?.court?.booking_url ?? session?.slot?.court?.google_maps_url
+    const url =
+      editSelectedCourt?.booking_url ??
+      editSelectedCourt?.google_maps_url ??
+      session?.slot?.court?.booking_url ??
+      session?.slot?.court?.google_maps_url
     if (!url) {
       Alert.alert('Chưa có link đặt sân', 'Sân này chưa có link booking. Bạn vẫn có thể tự đặt rồi nhập thông tin booking bên dưới.')
       return
@@ -551,6 +590,12 @@ export default function SessionDetail() {
     const nextPrice = parseInt(editPrice.replace(/\D/g, ''), 10)
     const nextEloMin = Number(editEloMin)
     const nextEloMax = Number(editEloMax)
+    const nextCourtId = editSelectedCourt?.id ?? session.slot.court.id ?? null
+
+    if (session.court_booking_status !== 'confirmed' && !nextCourtId) {
+      Alert.alert('Thiếu sân chơi', 'Vui lòng chọn sân cho kèo trước khi lưu thay đổi.')
+      return
+    }
 
     if (!nextMaxPlayers || nextMaxPlayers < session.session_players.length) {
       Alert.alert('Số người không hợp lệ', 'Max players không được nhỏ hơn số người đang có trong kèo.')
@@ -584,6 +629,14 @@ export default function SessionDetail() {
     if (session.court_booking_status !== 'confirmed' && editSessionDate !== formatDateInput(session.slot.start_time)) {
       changedFields.push(`ngày chơi ${formatDateLabel(formatDateInput(session.slot.start_time))} → ${formatDateLabel(editSessionDate)}`)
     }
+    if (
+      session.court_booking_status !== 'confirmed' &&
+      editSelectedCourt &&
+      editSelectedCourt.id &&
+      editSelectedCourt.id !== (session.slot.court.id ?? '')
+    ) {
+      changedFields.push(`sân ${session.slot.court.name} → ${editSelectedCourt.name}`)
+    }
     if (nextMaxPlayers !== session.max_players) {
       changedFields.push(`số chỗ ${session.max_players} → ${nextMaxPlayers}`)
     }
@@ -607,6 +660,7 @@ export default function SessionDetail() {
     const { data: updatedSlots, error: slotError } = await supabase
       .from('court_slots')
       .update({
+        court_id: nextCourtId,
         start_time: nextStart.toISOString(),
         end_time: nextEnd.toISOString(),
         price: nextPrice,
@@ -669,38 +723,19 @@ export default function SessionDetail() {
       )
     )
 
-    setSession((prev) =>
-      prev
-        ? {
-            ...prev,
-            max_players: nextMaxPlayers,
-            elo_min: nextEloMin,
-            elo_max: nextEloMax,
-            require_approval: editRequireApproval,
-            slot: {
-              ...prev.slot,
-              start_time: nextStart.toISOString(),
-              end_time: nextEnd.toISOString(),
-              price: nextPrice,
-            },
-          }
-        : prev
-    )
-    setEditStartTime(formatClockInput(nextStart.toISOString()))
-    setEditEndTime(formatClockInput(nextEnd.toISOString()))
-    setEditSessionDate(formatDateInput(nextStart.toISOString()))
-    setEditMaxPlayers(String(nextMaxPlayers))
-    setEditPrice(String(nextPrice))
+    await fetchSession(myId)
     setIsEditingSession(false)
     Alert.alert('Đã cập nhật kèo', 'Những người đã join kèo đã được thông báo về thay đổi mới.')
   }
 
   function handleEditTimeChange(field: 'start' | 'end') {
     return (event: DateTimePickerEvent, selectedDate?: Date) => {
-      if (field === 'start') {
-        setShowEditStartPicker(false)
-      } else {
-        setShowEditEndPicker(false)
+      if (Platform.OS === 'android') {
+        if (field === 'start') {
+          setShowEditStartPicker(false)
+        } else {
+          setShowEditEndPicker(false)
+        }
       }
 
       if (event.type !== 'set' || !selectedDate) return
@@ -715,7 +750,9 @@ export default function SessionDetail() {
   }
 
   function handleEditDateChange(event: DateTimePickerEvent, selectedDate?: Date) {
-    setShowEditDatePicker(false)
+    if (Platform.OS === 'android') {
+      setShowEditDatePicker(false)
+    }
     if (event.type !== 'set' || !selectedDate) return
     setEditSessionDate(formatDateInput(selectedDate.toISOString()))
   }
@@ -739,9 +776,13 @@ export default function SessionDetail() {
     }
 
     if (field === 'start') {
-      setShowEditStartPicker(true)
+      setShowEditDatePicker(false)
+      setShowEditEndPicker(false)
+      setShowEditStartPicker((prev) => !prev)
     } else {
-      setShowEditEndPicker(true)
+      setShowEditDatePicker(false)
+      setShowEditStartPicker(false)
+      setShowEditEndPicker((prev) => !prev)
     }
   }
 
@@ -759,7 +800,9 @@ export default function SessionDetail() {
       return
     }
 
-    setShowEditDatePicker(true)
+    setShowEditStartPicker(false)
+    setShowEditEndPicker(false)
+    setShowEditDatePicker((prev) => !prev)
   }
 
   function updateMatchResult(playerId: string, result: 'pending' | 'win' | 'loss' | 'draw') {
@@ -1867,29 +1910,75 @@ export default function SessionDetail() {
 
                   <View style={styles.editSessionForm}>
                     {session.court_booking_status !== 'confirmed' ? (
-                      <>
-                        <View style={styles.editField}>
-                          <Text style={styles.editFieldLabel}>Ngày chơi</Text>
-                          <TouchableOpacity style={styles.timePickerBtn} onPress={openEditDatePicker}>
-                            <Text style={styles.timePickerText}>{formatDateLabel(editSessionDate)}</Text>
+                      <EditCourtSelector selectedCourt={editSelectedCourt} onCourtSelect={setEditSelectedCourt} />
+                    ) : null}
+
+                    {session.court_booking_status !== 'confirmed' ? (
+                      <View style={styles.editSectionCard}>
+                        <Text style={styles.editSectionEyebrow}>Ngày & giờ chơi</Text>
+                        <TouchableOpacity style={styles.editDateCard} onPress={openEditDatePicker} activeOpacity={0.92}>
+                          <View style={styles.editDateIconWrap}>
+                            <Calendar size={18} color="#4f46e5" />
+                          </View>
+                          <View style={styles.editDateCopy}>
+                            <Text style={styles.editDateLabel}>Ngày chơi</Text>
+                            <Text style={styles.editDateValue}>{formatDateLabel(editSessionDate)}</Text>
+                          </View>
+                        </TouchableOpacity>
+                        {Platform.OS !== 'android' && showEditDatePicker && session ? (
+                          <View style={styles.inlinePickerCard}>
+                            <DateTimePicker
+                              value={editSessionDate ? new Date(`${editSessionDate}T00:00:00`) : new Date(session.slot.start_time)}
+                              mode="date"
+                              display="spinner"
+                              themeVariant="light"
+                              onChange={handleEditDateChange}
+                            />
+                          </View>
+                        ) : null}
+
+                        <View style={styles.editTimeRow}>
+                          <TouchableOpacity style={styles.editTimeCard} onPress={() => openEditTimePicker('start')} activeOpacity={0.92}>
+                            <Text style={styles.editTimeEyebrow}>Bắt đầu</Text>
+                            <Text style={styles.editTimeValue}>{editStartTime || '11:00'}</Text>
+                            <View style={styles.editTimeWatermark}>
+                              <Clock3 size={52} color="#312e81" />
+                            </View>
+                          </TouchableOpacity>
+
+                          <TouchableOpacity style={styles.editTimeCard} onPress={() => openEditTimePicker('end')} activeOpacity={0.92}>
+                            <Text style={styles.editTimeEyebrow}>Kết thúc</Text>
+                            <Text style={styles.editTimeValue}>{editEndTime || '13:30'}</Text>
+                            <View style={styles.editTimeWatermark}>
+                              <Clock3 size={52} color="#312e81" />
+                            </View>
                           </TouchableOpacity>
                         </View>
-
-                        <View style={styles.editRow}>
-                          <View style={styles.editField}>
-                            <Text style={styles.editFieldLabel}>Giờ bắt đầu</Text>
-                            <TouchableOpacity style={styles.timePickerBtn} onPress={() => openEditTimePicker('start')}>
-                              <Text style={styles.timePickerText}>{editStartTime || '11:00'}</Text>
-                            </TouchableOpacity>
+                        {Platform.OS !== 'android' && showEditStartPicker && session ? (
+                          <View style={styles.inlinePickerCard}>
+                            <DateTimePicker
+                              value={pickerTimeValue(session.slot.start_time, editStartTime)}
+                              mode="time"
+                              is24Hour
+                              display="spinner"
+                              themeVariant="light"
+                              onChange={handleEditTimeChange('start')}
+                            />
                           </View>
-                          <View style={styles.editField}>
-                            <Text style={styles.editFieldLabel}>Giờ kết thúc</Text>
-                            <TouchableOpacity style={styles.timePickerBtn} onPress={() => openEditTimePicker('end')}>
-                              <Text style={styles.timePickerText}>{editEndTime || '13:30'}</Text>
-                            </TouchableOpacity>
+                        ) : null}
+                        {Platform.OS !== 'android' && showEditEndPicker && session ? (
+                          <View style={styles.inlinePickerCard}>
+                            <DateTimePicker
+                              value={pickerTimeValue(session.slot.end_time, editEndTime)}
+                              mode="time"
+                              is24Hour
+                              display="spinner"
+                              themeVariant="light"
+                              onChange={handleEditTimeChange('end')}
+                            />
                           </View>
-                        </View>
-                      </>
+                        ) : null}
+                      </View>
                     ) : (
                       <View style={styles.lockedFieldCard}>
                         <Text style={styles.lockedFieldTitle}>Kèo đã chốt sân</Text>
@@ -1899,68 +1988,91 @@ export default function SessionDetail() {
                       </View>
                     )}
 
-                    <View style={styles.editRow}>
-                      <View style={styles.editField}>
-                        <Text style={styles.editFieldLabel}>Số chỗ tối đa</Text>
-                        <TextInput
-                          style={styles.bookingInput}
-                          placeholder="4"
-                          placeholderTextColor="#aaa"
-                          keyboardType="number-pad"
-                          value={editMaxPlayers}
-                          onChangeText={setEditMaxPlayers}
-                        />
+                    <View style={styles.editSectionCard}>
+                      <Text style={styles.editSectionEyebrow}>Cấu hình kèo</Text>
+                      <Text style={styles.editBlockTitle}>Số người chơi</Text>
+                      <View style={styles.editPlayerOptionsRow}>
+                        {[2, 4, 6, 8].map((num) => {
+                          const active = editMaxPlayers === String(num)
+                          return (
+                            <TouchableOpacity
+                              key={`edit-player-${num}`}
+                              activeOpacity={0.92}
+                              onPress={() => setEditMaxPlayers(String(num))}
+                              style={[styles.editPlayerOption, active && styles.editPlayerOptionActive]}
+                            >
+                              <Text style={[styles.editPlayerOptionText, active && styles.editPlayerOptionTextActive]}>{num}</Text>
+                            </TouchableOpacity>
+                          )
+                        })}
                       </View>
-                      <View style={styles.editField}>
-                        <Text style={styles.editFieldLabel}>Giá / người</Text>
+
+                      <Text style={styles.editSectionEyebrow}>Chi phí</Text>
+                      <View style={styles.editPriceInputWrap}>
+                        <CircleDollarSign size={18} color="#64748b" />
                         <TextInput
-                          style={styles.bookingInput}
+                          style={styles.editPriceInput}
                           placeholder="120000"
-                          placeholderTextColor="#aaa"
+                          placeholderTextColor="#94a3b8"
                           keyboardType="number-pad"
                           value={editPrice}
                           onChangeText={setEditPrice}
                         />
                       </View>
+                      <Text style={styles.editPriceHint}>
+                        {formatEstimatedCostPerPerson(Number(editPrice.replace(/\D/g, '')), Number(editMaxPlayers))}
+                      </Text>
                     </View>
 
-                    <View style={styles.editField}>
-                      <Text style={styles.editFieldLabel}>Trình độ tối thiểu</Text>
-                      <View style={styles.optionPillRow}>
-                        {SKILL_ASSESSMENT_LEVELS.map((level) => (
-                          <TouchableOpacity
-                            key={`min-${level.id}`}
-                            style={[styles.optionPill, editEloMin === level.starting_elo && styles.optionPillActive]}
-                            onPress={() => setEditEloMin(level.starting_elo)}
-                          >
-                            <Text style={[styles.optionPillText, editEloMin === level.starting_elo && styles.optionPillTextActive]}>
-                              {level.title}
-                            </Text>
-                          </TouchableOpacity>
-                        ))}
+                    <View style={styles.editSectionCard}>
+                      <Text style={styles.editSectionEyebrow}>Trình độ tối thiểu</Text>
+                      <View style={styles.editSkillOptionGrid}>
+                        {CREATE_SESSION_SKILL_OPTIONS.map((option) => {
+                          const Icon = option.icon
+                          const active = editEloMin === option.elo
+                          return (
+                            <TouchableOpacity
+                              key={`min-${option.id}`}
+                              activeOpacity={0.92}
+                              onPress={() => setEditEloMin(option.elo)}
+                              className={`flex-row items-center gap-1.5 rounded-[12px] border px-3 py-2.5 ${active ? `${option.activeClassName}` : CREATE_SESSION_SKILL_INACTIVE_CLASSNAME}`}
+                            >
+                              <Icon size={15} color={active ? option.iconColor : "#64748b"} />
+                              <Text className={`text-[13px] ${active ? `${option.textClassName} font-bold` : 'font-medium text-slate-500'}`}>
+                                {option.label}
+                              </Text>
+                            </TouchableOpacity>
+                          )
+                        })}
                       </View>
                     </View>
 
-                    <View style={styles.editField}>
-                      <Text style={styles.editFieldLabel}>Trình độ tối đa</Text>
-                      <View style={styles.optionPillRow}>
-                        {SKILL_ASSESSMENT_LEVELS.map((level) => (
-                          <TouchableOpacity
-                            key={`max-${level.id}`}
-                            style={[styles.optionPill, editEloMax === level.starting_elo && styles.optionPillActive]}
-                            onPress={() => setEditEloMax(level.starting_elo)}
-                          >
-                            <Text style={[styles.optionPillText, editEloMax === level.starting_elo && styles.optionPillTextActive]}>
-                              {level.title}
-                            </Text>
-                          </TouchableOpacity>
-                        ))}
+                    <View style={styles.editSectionCard}>
+                      <Text style={styles.editSectionEyebrow}>Trình độ tối đa</Text>
+                      <View style={styles.editSkillOptionGrid}>
+                        {CREATE_SESSION_SKILL_OPTIONS.map((option) => {
+                          const Icon = option.icon
+                          const active = editEloMax === option.elo
+                          return (
+                            <TouchableOpacity
+                              key={`max-${option.id}`}
+                              activeOpacity={0.92}
+                              onPress={() => setEditEloMax(option.elo)}
+                              className={`flex-row items-center gap-1.5 rounded-[12px] border px-3 py-2.5 ${active ? `${option.activeClassName}` : CREATE_SESSION_SKILL_INACTIVE_CLASSNAME}`}
+                            >
+                              <Icon size={15} color={active ? option.iconColor : "#64748b"} />
+                              <Text className={`text-[13px] ${active ? `${option.textClassName} font-bold` : 'font-medium text-slate-500'}`}>
+                                {option.label}
+                              </Text>
+                            </TouchableOpacity>
+                          )
+                        })}
                       </View>
                     </View>
 
                     <View style={styles.editSwitchRow}>
                       <View style={styles.editSwitchCopy}>
-                        <Text style={styles.editFieldLabel}>Duyệt tay</Text>
+                        <Text style={styles.editSwitchTitle}>Duyệt tay</Text>
                         <Text style={styles.editSwitchSub}>
                           Nếu bật, mọi yêu cầu mới sẽ cần host xét duyệt thay vì vào thẳng.
                         </Text>
@@ -1968,17 +2080,17 @@ export default function SessionDetail() {
                       <Switch
                         value={editRequireApproval}
                         onValueChange={setEditRequireApproval}
-                        trackColor={{ false: '#d1d5db', true: '#86efac' }}
-                        thumbColor={editRequireApproval ? '#16a34a' : '#f8fafc'}
+                        trackColor={{ false: "#cbd5e1", true: "#86efac" }}
+                        thumbColor="#ffffff"
                       />
                     </View>
 
                     <TouchableOpacity
-                      style={[styles.bookingConfirmBtn, savingSessionEdit && styles.bookingConfirmBtnDisabled]}
+                      style={[styles.editSaveBtn, savingSessionEdit && styles.bookingConfirmBtnDisabled]}
                       onPress={saveSessionEdits}
                       disabled={savingSessionEdit}
                     >
-                      <Text style={styles.bookingConfirmBtnText}>
+                      <Text style={styles.editSaveBtnText}>
                         {savingSessionEdit ? 'Đang lưu thay đổi...' : 'Lưu thay đổi kèo'}
                       </Text>
                     </TouchableOpacity>
@@ -1986,9 +2098,8 @@ export default function SessionDetail() {
                 </View>
               ) : null}
 
-              {session.court_booking_status !== 'confirmed' && (
-                <View style={styles.bookingEditorCard}>
-                  <Text style={styles.sectionTitle}>Xác nhận đặt sân</Text>
+                {session.court_booking_status !== 'confirmed' && (
+                  <View style={styles.bookingEditorCard}>
                   <Text style={styles.bookingEditorText}>
                     Cập nhật trạng thái sân thành đã xác nhận sau khi bạn có thông tin booking.
                   </Text>
@@ -2050,35 +2161,6 @@ export default function SessionDetail() {
         onClose={() => setJoinModalVisible(false)}
         onSubmit={() => void sendJoinRequest(smartJoinStatus === 'WAITLIST' ? 'waitlist' : 'pending')}
       />
-      {showEditStartPicker && session ? (
-        <DateTimePicker
-          value={pickerTimeValue(session.slot.start_time, editStartTime)}
-          mode="time"
-          is24Hour
-          display="spinner"
-          themeVariant="light"
-          onChange={handleEditTimeChange('start')}
-        />
-      ) : null}
-      {showEditEndPicker && session ? (
-        <DateTimePicker
-          value={pickerTimeValue(session.slot.end_time, editEndTime)}
-          mode="time"
-          is24Hour
-          display="spinner"
-          themeVariant="light"
-          onChange={handleEditTimeChange('end')}
-        />
-      ) : null}
-      {showEditDatePicker && session ? (
-        <DateTimePicker
-          value={editSessionDate ? new Date(`${editSessionDate}T00:00:00`) : new Date(session.slot.start_time)}
-          mode="date"
-          display="spinner"
-          themeVariant="light"
-          onChange={handleEditDateChange}
-        />
-      ) : null}
     </ScrollView>
     {showStickyFooter ? (
       <View
@@ -2338,16 +2420,13 @@ const styles = StyleSheet.create({
   },
   pendingBtnText: { color: '#92400e', fontSize: 15, fontWeight: '600' },
   hostActionsCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 28,
-    padding: 18,
-    marginTop: 24,
-    gap: 14,
-    shadowColor: '#0f172a',
-    shadowOpacity: 0.05,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 2,
+      backgroundColor: '#ffffff',
+      borderRadius: 20,
+      padding: 16,
+      marginTop: 24,
+      gap: 14,
+      borderWidth: 1,
+      borderColor: '#e2e8f0',
   },
   hostActionsHeader: {
     flexDirection: 'row',
@@ -2359,15 +2438,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   hostActionsTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 4,
+      fontSize: 16,
+      fontWeight: '800',
+      color: '#0f172a',
+      marginBottom: 6,
   },
   hostActionsSub: {
-    fontSize: 13,
-    lineHeight: 18,
-    color: '#6b7280',
+      fontSize: 13,
+      lineHeight: 20,
+      color: '#64748b',
   },
   editToggleBtn: {
     borderWidth: 1.5,
@@ -2383,14 +2462,199 @@ const styles = StyleSheet.create({
     color: '#16a34a',
   },
   editSessionForm: {
-    gap: 12,
+    gap: 14,
   },
-  editRow: {
+  editSectionCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  editSectionEyebrow: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#94a3b8',
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+    marginLeft: 4,
+    marginBottom: 12,
+  },
+  editBlockTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#0f172a',
+    marginBottom: 12,
+  },
+  editDateCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    backgroundColor: '#f8fafc',
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  editDateIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#e0e7ff',
+  },
+  editDateCopy: {
+    flex: 1,
+  },
+  editDateLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#94a3b8',
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+  },
+  editDateValue: {
+    marginTop: 4,
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#0f172a',
+  },
+  inlinePickerCard: {
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 16,
+    backgroundColor: '#f8fafc',
+    alignItems: 'center',
+    paddingVertical: 6,
+  },
+  editTimeRow: {
     flexDirection: 'row',
     gap: 12,
+    marginTop: 12,
+  },
+  editTimeCard: {
+    flex: 1,
+    position: 'relative',
+    overflow: 'hidden',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+    backgroundColor: '#f8fafc',
+    padding: 12,
+  },
+  editTimeEyebrow: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#94a3b8',
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+    zIndex: 1,
+  },
+  editTimeValue: {
+    marginTop: 6,
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#312e81',
+    zIndex: 1,
+  },
+  editTimeWatermark: {
+    position: 'absolute',
+    right: -6,
+    bottom: -6,
+    opacity: 0.1,
+  },
+  editPlayerOptionsRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 16,
+  },
+  editPlayerOption: {
+    flex: 1,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    backgroundColor: '#ffffff',
+    paddingVertical: 12,
+  },
+  editPlayerOptionActive: {
+    borderColor: '#10b981',
+    backgroundColor: '#ecfdf5',
+  },
+  editPlayerOptionText: {
+    textAlign: 'center',
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#475569',
+  },
+  editPlayerOptionTextActive: {
+    color: '#047857',
+  },
+  editPriceInputWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    backgroundColor: '#f8fafc',
+    borderRadius: 14,
+    paddingHorizontal: 14,
+  },
+  editPriceInput: {
+    flex: 1,
+    height: 48,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#0f172a',
+  },
+  editPriceHint: {
+    marginTop: 12,
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#64748b',
+  },
+  editSkillOptionGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  editSkillOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  editSkillOptionInactive: {
+    backgroundColor: '#f8fafc',
+    borderColor: '#e2e8f0',
+    opacity: 0.8,
+  },
+  editSkillOptionActive: {
+    backgroundColor: '#ecfdf5',
+    borderColor: '#86efac',
+  },
+  editSkillOptionText: {
+    fontSize: 13,
+  },
+  editSkillOptionTextInactive: {
+    color: '#64748b',
+    fontWeight: '500',
+  },
+  editSkillOptionTextActive: {
+    color: '#047857',
+    fontWeight: '700',
+  },
+  editRow: {
+      flexDirection: 'row',
+      gap: 10,
   },
   editField: {
-    flex: 1,
+      flex: 1,
   },
   optionPillRow: {
     flexDirection: 'row',
@@ -2398,117 +2662,142 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   optionPill: {
-    borderWidth: 1.5,
-    borderColor: '#cbd5e1',
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    backgroundColor: '#fff',
+      borderWidth: 1,
+      borderColor: '#e2e8f0',
+      borderRadius: 12,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      backgroundColor: '#f8fafc',
   },
   optionPillActive: {
-    borderColor: '#16a34a',
-    backgroundColor: '#f0fdf4',
+      borderColor: '#10b981',
+      backgroundColor: '#ecfdf5',
   },
   optionPillText: {
-    fontSize: 13,
-    color: '#4b5563',
-    fontWeight: '600',
+      fontSize: 13,
+      color: '#64748b',
+      fontWeight: '500',
   },
   optionPillTextActive: {
-    color: '#166534',
+      color: '#047857',
+      fontWeight: '700',
   },
   lockedFieldCard: {
-    borderWidth: 1,
-    borderColor: '#fde68a',
-    backgroundColor: '#fffbeb',
-    borderRadius: 18,
-    padding: 14,
+      borderWidth: 1,
+      borderColor: '#a7f3d0',
+      backgroundColor: '#ecfdf5',
+      borderRadius: 16,
+      padding: 16,
   },
   lockedFieldTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#92400e',
-    marginBottom: 6,
+      fontSize: 14,
+      fontWeight: '800',
+      color: '#064e3b',
+      marginBottom: 6,
   },
   lockedFieldText: {
-    fontSize: 13,
-    lineHeight: 18,
-    color: '#a16207',
+      fontSize: 12,
+      lineHeight: 18,
+      color: '#047857',
   },
   editFieldLabel: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 6,
+      fontSize: 10,
+      fontWeight: '800',
+      color: '#94a3b8',
+      marginBottom: 10,
+      textTransform: 'uppercase',
+      letterSpacing: 1.2,
   },
   timePickerBtn: {
-    borderWidth: 1.5,
-    borderColor: '#cbd5e1',
-    borderRadius: 16,
-    paddingHorizontal: 14,
-    height: 52,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: '#e2e8f0',
+      borderRadius: 16,
+      paddingHorizontal: 14,
+      height: 64,
+      backgroundColor: '#f8fafc',
+      justifyContent: 'center',
   },
   timePickerText: {
-    fontSize: 14,
-    color: '#111',
-    fontWeight: '600',
+      fontSize: 20,
+      color: '#312e81',
+      fontWeight: '900',
   },
   editSwitchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      borderWidth: 1,
+      borderColor: '#e2e8f0',
+      borderRadius: 16,
+      padding: 14,
+      backgroundColor: '#ffffff',
   },
   editSwitchCopy: {
-    flex: 1,
+      flex: 1,
+  },
+  editSwitchTitle: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: '#0f172a',
+      marginBottom: 4,
   },
   editSwitchSub: {
-    fontSize: 12,
-    lineHeight: 18,
-    color: '#6b7280',
+      fontSize: 12,
+      lineHeight: 18,
+      color: '#64748b',
+  },
+  editSaveBtn: {
+      backgroundColor: '#059669',
+      borderRadius: 14,
+      height: 56,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 4,
+  },
+  editSaveBtnText: {
+      color: '#fff',
+      fontSize: 16,
+      fontWeight: '700',
+      letterSpacing: 0.2,
   },
   bookingEditorCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 28,
-    padding: 18,
-    marginTop: 24,
-    gap: 10,
-    shadowColor: '#0f172a',
-    shadowOpacity: 0.05,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 2,
+      backgroundColor: '#ffffff',
+      borderRadius: 20,
+      padding: 16,
+      marginTop: 24,
+      gap: 12,
+      borderWidth: 1,
+      borderColor: '#e2e8f0',
   },
-  bookingEditorText: { fontSize: 13, color: '#6b7280', lineHeight: 18 },
+  bookingEditorText: { fontSize: 13, color: '#64748b', lineHeight: 20 },
   bookingOpenBtn: {
-    backgroundColor: '#16a34a',
-    borderRadius: 16,
-    height: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
+      backgroundColor: '#16a34a',
+      borderRadius: 14,
+      height: 52,
+      alignItems: 'center',
+      justifyContent: 'center',
   },
   bookingOpenBtnText: { color: '#fff', fontSize: 14, fontWeight: '700' },
   bookingInput: {
-    borderWidth: 1.5,
-    borderColor: '#cbd5e1',
-    borderRadius: 16,
-    paddingHorizontal: 14,
-    height: 52,
-    fontSize: 14,
-    color: '#111',
-    backgroundColor: '#fff',
+      borderWidth: 1,
+      borderColor: '#e2e8f0',
+      borderRadius: 16,
+      paddingHorizontal: 14,
+      height: 52,
+      fontSize: 14,
+      color: '#0f172a',
+      backgroundColor: '#f8fafc',
   },
   bookingNotesInput: { height: 90, paddingTop: 14, textAlignVertical: 'top' },
   bookingConfirmBtn: {
-    backgroundColor: '#111827',
-    borderRadius: 16,
-    height: 52,
-    alignItems: 'center',
-    justifyContent: 'center',
+      backgroundColor: '#059669',
+      borderRadius: 14,
+      height: 54,
+      alignItems: 'center',
+      justifyContent: 'center',
   },
-  bookingConfirmBtnDisabled: { opacity: 0.65 },
-  bookingConfirmBtnText: { color: '#fff', fontSize: 15, fontWeight: '700' },
+  bookingConfirmBtnDisabled: { opacity: 0.7 },
+  bookingConfirmBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
   hostNote: {
     backgroundColor: '#ecfdf5',
     borderRadius: 20,
