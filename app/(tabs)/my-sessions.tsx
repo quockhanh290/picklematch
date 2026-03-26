@@ -242,6 +242,7 @@ export default function MySessions() {
         matchTypeLabel={matchTypeLabel(item.status, item.role)}
         hostName={item.host_name}
         hostSkillIcon={hostSkillUi.icon}
+        priceDivisor={item.max_players}
         priceLabel={`${item.price.toLocaleString('vi-VN')}đ/người`}
         availabilityLabel={isFull ? 'Đầy' : `${item.player_count}/${item.max_players}`}
         onPress={() => router.push({ pathname: '/session/[id]' as any, params: { id: item.id } })}

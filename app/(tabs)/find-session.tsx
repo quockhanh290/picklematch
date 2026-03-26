@@ -225,6 +225,7 @@ export default function FindSession() {
         matchTypeLabel={matchTypeLabel(item)}
         hostName={item.host?.name ?? 'Ẩn danh'}
         hostSkillIcon={hostSkillUi.icon}
+        priceDivisor={item.max_players}
         priceLabel={`${(item.slot?.price ?? 0).toLocaleString('vi-VN')}đ/người`}
         availabilityLabel={isFull ? 'Đầy' : `${item.player_count}/${item.max_players}`}
         onPress={() => router.push({ pathname: '/session/[id]', params: { id: item.id } })}

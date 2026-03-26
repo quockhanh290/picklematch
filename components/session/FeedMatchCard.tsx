@@ -1,5 +1,14 @@
 import type { LucideIcon } from 'lucide-react-native'
-import { Activity, AlertCircle, CircleDollarSign, Clock3, MapPin, ShieldCheck, Target, Users } from 'lucide-react-native'
+import {
+  Activity,
+  AlertCircle,
+  CircleDollarSign,
+  Clock3,
+  MapPin,
+  ShieldCheck,
+  Target,
+  Users,
+} from 'lucide-react-native'
 import { Text, TouchableOpacity, View } from 'react-native'
 
 type Props = {
@@ -20,8 +29,11 @@ type Props = {
   hostName: string
   hostSkillIcon?: LucideIcon
   priceLabel: string
+  priceDivisor?: number
   availabilityLabel: string
   onPress: () => void
+  disabled?: boolean
+  containerClassName?: string
 }
 
 function extractCounts(label: string) {
@@ -33,10 +45,14 @@ function extractCounts(label: string) {
   }
 }
 
-function compactPriceLabel(label: string) {
+function compactPriceLabel(label: string, divisor?: number) {
+  if (!label.trim()) return 'FREE'
+  if (label.toLowerCase().includes('miễn phí')) return 'FREE'
+  if (/[kK]/.test(label)) return label
   const raw = Number(label.replace(/[^\d]/g, ''))
-  if (!raw) return label
-  return `${Math.round(raw / 1000)}K`
+  if (!raw) return 'FREE'
+  const normalized = divisor && divisor > 0 ? Math.ceil(raw / divisor) : raw
+  return `${Math.round(normalized / 1000)}K`
 }
 
 export function FeedMatchCard({
@@ -56,8 +72,11 @@ export function FeedMatchCard({
   hostName,
   hostSkillIcon: HostSkillIcon,
   priceLabel,
+  priceDivisor,
   availabilityLabel,
   onPress,
+  disabled = false,
+  containerClassName = 'mx-5 mb-4',
 }: Props) {
   const isConfirmed = bookingStatus === 'confirmed'
   const avatarLetter = (hostName || '?').slice(0, 1).toUpperCase()
@@ -69,9 +88,10 @@ export function FeedMatchCard({
 
   return (
     <TouchableOpacity
-      activeOpacity={0.95}
-      className="mx-5 mb-4 rounded-[28px] border border-slate-200 bg-white px-4 py-3.5"
+      activeOpacity={disabled ? 1 : 0.95}
+      className={`${containerClassName} rounded-[28px] border border-slate-200 bg-white px-4 py-3.5`}
       onPress={onPress}
+      disabled={disabled}
     >
       <View className="flex-row items-center justify-between">
         <View className={`flex-row items-center rounded-full px-3 py-2 ${isConfirmed ? 'bg-emerald-50' : 'bg-orange-50'}`}>
@@ -143,17 +163,15 @@ export function FeedMatchCard({
           </View>
 
           <View className="ml-3 flex-1">
-            <View className="flex-row items-center">
-              <Text className="text-sm font-bold text-gray-900" numberOfLines={1}>
-                {hostName || 'Ẩn danh'}
-              </Text>
-            </View>
+            <Text className="text-sm font-bold text-gray-900" numberOfLines={1}>
+              {hostName || 'Ẩn danh'}
+            </Text>
           </View>
         </View>
 
         <View className="ml-3 flex-row items-center rounded-full border border-amber-200 bg-amber-50 px-3 py-2">
           <CircleDollarSign size={14} color="#b45309" />
-          <Text className="ml-1.5 text-sm font-bold text-amber-700">{compactPriceLabel(priceLabel)}</Text>
+          <Text className="ml-1.5 text-sm font-bold text-amber-700">{compactPriceLabel(priceLabel, priceDivisor)}</Text>
         </View>
       </View>
     </TouchableOpacity>

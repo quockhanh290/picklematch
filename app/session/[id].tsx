@@ -3,6 +3,7 @@ import { HostRequestReview } from '@/components/session/HostRequestReview'
 import { JoinRequestModal } from '@/components/session/JoinRequestModal'
 import { SmartJoinButton } from '@/components/session/SmartJoinButton'
 import { getMatchStatus } from '@/lib/matchmaking'
+import { formatEstimatedCostPerPerson } from '@/lib/sessionPricing'
 import {
   getSkillLevelFromElo,
   getSkillLevelFromEloRange,
@@ -1436,7 +1437,7 @@ export default function SessionDetail() {
             </View>
             <View className="ml-3 flex-1">
               <Text className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">Chi phí (dự kiến)</Text>
-              <Text className="mt-1 text-[13px] font-bold text-slate-700">{`${session.slot.price.toLocaleString('vi-VN')}đ/người`}</Text>
+              <Text className="mt-1 text-[13px] font-bold text-slate-700">{formatEstimatedCostPerPerson(session.slot.price, session.max_players)}</Text>
             </View>
           </View>
 

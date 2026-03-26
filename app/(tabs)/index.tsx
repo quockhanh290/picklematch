@@ -201,6 +201,7 @@ export default function HomeScreen() {
         matchTypeLabel={matchTypeLabel(item)}
         hostName={item.host?.name ?? 'Ẩn danh'}
         hostSkillIcon={hostSkillUi.icon}
+        priceDivisor={item.max_players}
         priceLabel={`${(item.slot?.price ?? 0).toLocaleString('vi-VN')}đ/người`}
         availabilityLabel={currentPlayers >= item.max_players ? 'Đầy' : `${currentPlayers}/${item.max_players}`}
         onPress={() => router.push({ pathname: '/session/[id]', params: { id: item.id } })}
