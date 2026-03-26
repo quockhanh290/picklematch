@@ -235,6 +235,7 @@ export default function SessionDetail() {
   const [introNote, setIntroNote] = useState('')
   const [refreshKey, setRefreshKey] = useState(0)
   const [showBookingDetails, setShowBookingDetails] = useState(false)
+  const [showBookingEditor, setShowBookingEditor] = useState(false)
 
   const fetchMyPlayer = useCallback(async (userId: string) => {
     const { data } = await supabase
@@ -1932,6 +1933,7 @@ export default function SessionDetail() {
                               mode="date"
                               display="spinner"
                               themeVariant="light"
+                              locale="vi-VN"
                               onChange={handleEditDateChange}
                             />
                           </View>
@@ -1962,6 +1964,7 @@ export default function SessionDetail() {
                               is24Hour
                               display="spinner"
                               themeVariant="light"
+                              locale="vi-VN"
                               onChange={handleEditTimeChange('start')}
                             />
                           </View>
@@ -1974,6 +1977,7 @@ export default function SessionDetail() {
                               is24Hour
                               display="spinner"
                               themeVariant="light"
+                              locale="vi-VN"
                               onChange={handleEditTimeChange('end')}
                             />
                           </View>
@@ -2099,7 +2103,16 @@ export default function SessionDetail() {
               ) : null}
 
                 {session.court_booking_status !== 'confirmed' && (
-                  <View style={styles.bookingEditorCard}>
+                  <View style={styles.bookingEditorWrap}>
+                    <TouchableOpacity
+                      style={styles.bookingEditorToggle}
+                      onPress={() => setShowBookingEditor((prev) => !prev)}
+                      activeOpacity={0.92}
+                    >
+                      <Text style={styles.bookingEditorToggleText}>Cập nhật trạng thái sân</Text>
+                      {showBookingEditor ? <ChevronUp size={16} color="#047857" /> : <ChevronDown size={16} color="#047857" />}
+                    </TouchableOpacity>
+                  <View style={[styles.bookingEditorCard, !showBookingEditor && styles.bookingEditorCardHidden]}>
                   <Text style={styles.bookingEditorText}>
                     Cập nhật trạng thái sân thành đã xác nhận sau khi bạn có thông tin booking.
                   </Text>
@@ -2146,6 +2159,7 @@ export default function SessionDetail() {
                     </Text>
                   </TouchableOpacity>
                 </View>
+                  </View>
               )}
             </>
           )}
@@ -2760,14 +2774,36 @@ const styles = StyleSheet.create({
       fontWeight: '700',
       letterSpacing: 0.2,
   },
+  bookingEditorWrap: {
+      marginTop: 24,
+      gap: 10,
+  },
+  bookingEditorToggle: {
+      borderWidth: 1,
+      borderColor: '#a7f3d0',
+      borderRadius: 16,
+      backgroundColor: '#ecfdf5',
+      minHeight: 52,
+      paddingHorizontal: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+  },
+  bookingEditorToggleText: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: '#047857',
+  },
   bookingEditorCard: {
       backgroundColor: '#ffffff',
       borderRadius: 20,
       padding: 16,
-      marginTop: 24,
       gap: 12,
       borderWidth: 1,
       borderColor: '#e2e8f0',
+  },
+  bookingEditorCardHidden: {
+      display: 'none',
   },
   bookingEditorText: { fontSize: 13, color: '#64748b', lineHeight: 20 },
   bookingOpenBtn: {

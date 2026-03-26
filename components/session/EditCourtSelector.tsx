@@ -34,7 +34,7 @@ export function EditCourtSelector({ selectedCourt, onCourtSelect }: Props) {
         setIsChoosingCourt(false)
       }}
       onChangeCourt={() => setIsChoosingCourt((prev) => !prev)}
-      title={'\u0110\u1ecba \u0111i\u1ec3m'}
+      title="Địa điểm"
     />
   )
 }

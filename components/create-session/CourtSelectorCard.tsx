@@ -50,7 +50,7 @@ function CourtRow({ court, onPress }: { court: NearByCourt; onPress: (court: Nea
           <View className="mt-2 flex-row items-center gap-2">
             <View className={`rounded-full border px-2.5 py-1 ${isOpen ? 'border-emerald-200 bg-emerald-50' : 'border-rose-200 bg-rose-50'}`}>
               <Text className={`text-[10px] font-bold uppercase tracking-[0.8px] ${isOpen ? 'text-emerald-700' : 'text-rose-700'}`}>
-                {isOpen ? '\u0110ang m\u1edf' : '\u0110\u00e3 \u0111\u00f3ng'}
+                {isOpen ? 'Đang mở' : 'Đã đóng'}
               </Text>
             </View>
             {(court.hours_open || court.hours_close) ? (
@@ -76,7 +76,7 @@ export function CourtSelectorCard({
   isChoosingCourt,
   onCourtSelect,
   onChangeCourt,
-  title = '\u0110\u1ecba \u0111i\u1ec3m',
+  title = 'Địa điểm',
 }: Props) {
   const showPicker = !selectedCourt || isChoosingCourt
 
@@ -87,7 +87,7 @@ export function CourtSelectorCard({
         {selectedCourt ? (
           <TouchableOpacity onPress={onChangeCourt}>
             <Text className="text-[12px] font-bold text-emerald-600">
-              {showPicker ? '\u0110\u00f3ng ch\u1ecdn s\u00e2n' : '\u0110\u1ed5i s\u00e2n'}
+              {showPicker ? 'Đóng chọn sân' : 'Đổi sân'}
             </Text>
           </TouchableOpacity>
         ) : null}
@@ -117,7 +117,7 @@ export function CourtSelectorCard({
             <TextInput
               value={keyword}
               onChangeText={setKeyword}
-              placeholder="\u0054\u00ecm t\u00ean s\u00e2n ho\u1eb7c \u0111\u1ecba ch\u1ec9"
+              placeholder="Tìm tên sân hoặc địa chỉ"
               placeholderTextColor="#94a3b8"
               className="flex-1 py-0 text-[14px] text-slate-700"
               returnKeyType="search"
@@ -129,7 +129,7 @@ export function CourtSelectorCard({
               <View className="items-center justify-center rounded-[18px] border border-slate-200 bg-slate-50 px-4 py-8">
                 <ActivityIndicator color="#059669" />
                 <Text className="mt-3 text-[13px] font-medium text-slate-500">
-                  {'\u0110ang t\u00ecm s\u00e2n g\u1ea7n b\u1ea1n...'}
+                  {'Đang tìm sân gần bạn...'}
                 </Text>
               </View>
             ) : searching ? (
@@ -146,13 +146,9 @@ export function CourtSelectorCard({
                   }}
                 />
               ))
-            ) : (
+            ) : fallbackMode ? null : (
               <View className="items-center justify-center rounded-[18px] border border-dashed border-slate-200 bg-slate-50 px-4 py-8">
-                <Text className="text-center text-[13px] leading-[20px] text-slate-500">
-                  {fallbackMode
-                    ? '\u004e\u0068\u1eadp t\u00ean s\u00e2n \u0111\u1ec3 t\u00ecm ki\u1ebfm'
-                    : 'Kh\u00f4ng t\u00ecm th\u1ea5y s\u00e2n n\u00e0o'}
-                </Text>
+                <Text className="text-center text-[13px] leading-[20px] text-slate-500">Không tìm thấy sân nào</Text>
               </View>
             )}
           </View>
