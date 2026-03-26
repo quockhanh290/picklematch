@@ -96,7 +96,7 @@ function SkillSelector({
               }`}
             >
               <Icon size={15} color={active ? option.iconColor : '#64748b'} />
-              <Text className={`text-[13px] font-medium ${active ? option.textClassName : 'text-slate-500'}`}>
+              <Text className={`text-[13px] ${active ? `font-bold ${option.textClassName}` : 'font-medium text-slate-500'}`}>
                 {option.label}
               </Text>
             </TouchableOpacity>

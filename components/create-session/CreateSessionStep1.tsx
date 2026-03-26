@@ -1,6 +1,6 @@
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { ArrowRight, Calendar, Clock3, Info, MapPin, Search } from 'lucide-react-native'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ActivityIndicator, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 
 import type { NearByCourt } from '@/lib/useNearbyCourts'
@@ -159,6 +159,8 @@ export function CreateSessionStep1({
 }: Props) {
   const [showDatePicker, setShowDatePicker] = useState(false)
   const [draftDate, setDraftDate] = useState(selectedDate ?? new Date())
+  const [draftStartTime, setDraftStartTime] = useState(startTime ?? defaultPickerValue('start'))
+  const [draftEndTime, setDraftEndTime] = useState(endTime ?? defaultPickerValue('end'))
 
   const dateStrip = useMemo(() => {
     const today = startOfDay(new Date())
@@ -171,6 +173,18 @@ export function CreateSessionStep1({
 
   const canContinue = !!selectedCourt && !!selectedDate && !!startTime && !!endTime && !timeError
 
+  useEffect(() => {
+    if (showStartPicker) {
+      setDraftStartTime(startTime ?? defaultPickerValue('start'))
+    }
+  }, [defaultPickerValue, showStartPicker, startTime])
+
+  useEffect(() => {
+    if (showEndPicker) {
+      setDraftEndTime(endTime ?? defaultPickerValue('end'))
+    }
+  }, [defaultPickerValue, endTime, showEndPicker])
+
   function openDatePicker() {
     if (!selectedCourt) return
     setDraftDate(selectedDate ?? new Date())
@@ -180,6 +194,16 @@ export function CreateSessionStep1({
   function confirmDraftDate() {
     onDateSelect(startOfDay(draftDate))
     setShowDatePicker(false)
+  }
+
+  function confirmDraftStartTime() {
+    onStartTimeChange(draftStartTime)
+    onCloseStartPicker()
+  }
+
+  function confirmDraftEndTime() {
+    onEndTimeChange(draftEndTime)
+    onCloseEndPicker()
   }
 
   return (
@@ -338,12 +362,12 @@ export function CreateSessionStep1({
                 onPress={onToggleStartPicker}
                 className="relative flex-1 overflow-hidden rounded-[16px] border border-slate-100 bg-slate-50 p-3"
               >
-                <Text className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+                <Text className="relative z-10 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
                   {'\u0042\u1eaf\u0074\u0020\u0111\u1ea7\u0075'}
                 </Text>
-                <Text className="mt-1.5 text-[22px] font-black text-indigo-900">{formatTime(startTime)}</Text>
-                <View className="absolute bottom-2 right-2 opacity-10">
-                  <Clock3 size={40} color="#312e81" />
+                <Text className="relative z-10 mt-1.5 text-[22px] font-black text-indigo-900">{formatTime(startTime)}</Text>
+                <View className="absolute -bottom-3 -right-3 opacity-10">
+                  <Clock3 size={52} color="#312e81" />
                 </View>
               </TouchableOpacity>
 
@@ -355,12 +379,12 @@ export function CreateSessionStep1({
                 onPress={onToggleEndPicker}
                 className={`relative flex-1 overflow-hidden rounded-[16px] border p-3 ${selectedDate && startTime ? 'border-slate-100 bg-slate-50' : 'border-slate-100 bg-slate-50 opacity-60'}`}
               >
-                <Text className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+                <Text className="relative z-10 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
                   {'\u004b\u1ebf\u0074\u0020\u0074\u0068\u00fa\u0063'}
                 </Text>
-                <Text className="mt-1.5 text-[22px] font-black text-indigo-900">{formatTime(endTime)}</Text>
-                <View className="absolute bottom-2 right-2 opacity-10">
-                  <Clock3 size={40} color="#312e81" />
+                <Text className="relative z-10 mt-1.5 text-[22px] font-black text-indigo-900">{formatTime(endTime)}</Text>
+                <View className="absolute -bottom-3 -right-3 opacity-10">
+                  <Clock3 size={52} color="#312e81" />
                 </View>
               </TouchableOpacity>
             </View>
@@ -372,7 +396,7 @@ export function CreateSessionStep1({
                     <Text className="text-[13px] font-bold text-slate-500">{'\u0048\u1ee7\u0079'}</Text>
                   </TouchableOpacity>
                   <Text className="text-[13px] font-black text-slate-800">{'\u0047\u0069\u1edd\u0020\u0062\u1eaf\u0074\u0020\u0111\u1ea7\u0075'}</Text>
-                  <TouchableOpacity onPress={onCloseStartPicker}>
+                  <TouchableOpacity onPress={confirmDraftStartTime}>
                     <Text className="text-[13px] font-bold text-emerald-600">{'\u0058\u006f\u006e\u0067'}</Text>
                   </TouchableOpacity>
                 </View>
@@ -380,12 +404,12 @@ export function CreateSessionStep1({
                   mode="time"
                   display="spinner"
                   themeVariant="light"
-                  value={startTime ?? defaultPickerValue('start')}
+                  value={draftStartTime}
                   is24Hour
                   locale="vi-VN"
                   style={{ width: '100%', height: 216, backgroundColor: '#ffffff' }}
                   onChange={(_event, nextDate) => {
-                    if (nextDate) onStartTimeChange(nextDate)
+                    if (nextDate) setDraftStartTime(nextDate)
                   }}
                 />
               </View>
@@ -398,7 +422,7 @@ export function CreateSessionStep1({
                     <Text className="text-[13px] font-bold text-slate-500">{'\u0048\u1ee7\u0079'}</Text>
                   </TouchableOpacity>
                   <Text className="text-[13px] font-black text-slate-800">{'\u0047\u0069\u1edd\u0020\u006b\u1ebf\u0074\u0020\u0074\u0068\u00fa\u0063'}</Text>
-                  <TouchableOpacity onPress={onCloseEndPicker}>
+                  <TouchableOpacity onPress={confirmDraftEndTime}>
                     <Text className="text-[13px] font-bold text-emerald-600">{'\u0058\u006f\u006e\u0067'}</Text>
                   </TouchableOpacity>
                 </View>
@@ -406,12 +430,12 @@ export function CreateSessionStep1({
                   mode="time"
                   display="spinner"
                   themeVariant="light"
-                  value={endTime ?? defaultPickerValue('end')}
+                  value={draftEndTime}
                   is24Hour
                   locale="vi-VN"
                   style={{ width: '100%', height: 216, backgroundColor: '#ffffff' }}
                   onChange={(_event, nextDate) => {
-                    if (nextDate) onEndTimeChange(nextDate)
+                    if (nextDate) setDraftEndTime(nextDate)
                   }}
                 />
               </View>

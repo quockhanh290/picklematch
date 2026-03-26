@@ -1617,14 +1617,14 @@ export default function SessionDetail() {
         })}
 
         {session.status === 'open' && Array.from({ length: Math.max(0, spotsLeft) }).map((_, i) => (
-          <View key={i} className="mt-2 flex-row items-center rounded-[20px] border border-dashed border-emerald-200 bg-emerald-50/50 px-3 py-3">
+          <View key={i} className="mt-2 flex-row items-center rounded-[20px] border border-dashed border-slate-200 bg-slate-50 px-3 py-3">
             <View
               style={[
                 styles.avatar,
-                { backgroundColor: '#f0fdf4', borderColor: '#bbf7d0' },
+                { backgroundColor: '#e2e8f0', borderColor: '#94a3b8', borderWidth: 1.5 },
               ]}
             >
-              <Text style={styles.avatarText}>?</Text>
+              <Text className="text-[16px] font-bold text-slate-600">?</Text>
             </View>
             <Text className="ml-3 text-[13px] font-bold text-slate-400">Chờ người chơi...</Text>
           </View>
