@@ -1,7 +1,9 @@
 import { router } from 'expo-router'
 import {
   AlertCircle,
+  Calendar,
   Clock,
+  DollarSign,
   Heart,
   Hand,
   Home,
@@ -479,12 +481,50 @@ function buildHomeMockSession(session: MatchSession, index: number): HomeMockSes
   }
 }
 
+function buildRelativeSlotWindow(hoursUntilStart: number, durationHours: number) {
+  const startDate = new Date(Date.now() + hoursUntilStart * 60 * 60 * 1000)
+  const endDate = new Date(startDate.getTime() + durationHours * 60 * 60 * 1000)
+
+  return {
+    start_time: startDate.toISOString(),
+    end_time: endDate.toISOString(),
+  }
+}
+
+function formatCountdownLabelFromStartTime(startTime: string) {
+  const diffMs = Math.max(Date.parse(startTime) - Date.now(), 0)
+  const totalMinutes = Math.floor(diffMs / (60 * 1000))
+  const hours = Math.floor(totalMinutes / 60)
+  const minutes = totalMinutes % 60
+  const pad = (value: number) => value.toString().padStart(2, '0')
+
+  return `${pad(hours)}:${pad(minutes)}`
+}
+
 const HOME_SESSION_RECORDS: {
   next: HomeMockSession | null
   personalized: HomeMockSession[]
   rescue: HomeMockSession[]
 } = {
-  next: nextMatch ? buildHomeMockSession(nextMatch, 0) : null,
+  next: nextMatch
+    ? (() => {
+        const session = buildHomeMockSession(nextMatch, 0)
+        const relativeSlot = buildRelativeSlotWindow(30, 1.5)
+
+        return {
+          ...session,
+          slot: {
+            ...session.slot,
+            start_time: relativeSlot.start_time,
+            end_time: relativeSlot.end_time,
+          },
+          home_meta: {
+            ...session.home_meta,
+            countdown_label: formatCountdownLabelFromStartTime(relativeSlot.start_time),
+          },
+        }
+      })()
+    : null,
   personalized: personalizedSessions.map(buildHomeMockSession),
   rescue: rescueSessions.map((session, index) => buildHomeMockSession(session, index + personalizedSessions.length + 1)),
 }
@@ -539,6 +579,17 @@ function getStatusLabel(bookingStatus: HomeMockSession['court_booking_status']) 
   return bookingStatus === 'confirmed' ? 'Sân đã chốt' : 'Chờ chốt sân'
 }
 
+function isWithinNext24Hours(startTime: string) {
+  const startMs = Date.parse(startTime)
+  if (Number.isNaN(startMs)) {
+    return false
+  }
+
+  const nowMs = Date.now()
+  const diffMs = startMs - nowMs
+  return diffMs > 0 && diffMs <= 24 * 60 * 60 * 1000
+}
+
 function mapHomeMockSessionToMatchSession(session: HomeMockSession): MatchSession {
   const levelId = getLevelIdFromSession(session)
 
@@ -586,6 +637,8 @@ function mapHomeMockCourtToFamiliarCourt(court: HomeMockCourtRecord): FamiliarCo
 }
 
 const HOME_NEXT_MATCH = HOME_SESSION_RECORDS.next ? mapHomeMockSessionToMatchSession(HOME_SESSION_RECORDS.next) : null
+const HOME_NEXT_MATCH_IN_24_HOURS =
+  HOME_SESSION_RECORDS.next && isWithinNext24Hours(HOME_SESSION_RECORDS.next.slot.start_time) ? HOME_NEXT_MATCH : null
 const HOME_PERSONALIZED_SESSIONS = HOME_SESSION_RECORDS.personalized.map(mapHomeMockSessionToMatchSession)
 const HOME_RESCUE_SESSIONS = HOME_SESSION_RECORDS.rescue.map(mapHomeMockSessionToMatchSession)
 const HOME_FAMILIAR_COURTS = HOME_COURT_RECORDS.map(mapHomeMockCourtToFamiliarCourt)
@@ -699,10 +752,7 @@ function HomeGreetingHeader({
 
 function DashboardStatsStrip({ items }: { items: StatItem[] }) {
   return (
-    <View
-      className="mt-6 flex-row rounded-[30px] border border-slate-100 bg-white px-4 py-5"
-      style={{ shadowColor: '#0f172a', shadowOpacity: 0.06, shadowRadius: 18, shadowOffset: { width: 0, height: 10 } }}
-    >
+    <View className="mt-6 flex-row rounded-[30px] border border-slate-200 bg-white px-4 py-5">
       {items.map((item, index) => {
         const Icon = item.icon
 
@@ -757,7 +807,7 @@ function CarouselDots({
   const visibleCount = Math.min(count, 5)
 
   return (
-    <View className="mt-1.5 flex-row items-center justify-center gap-2">
+    <View className="flex-row items-center justify-center gap-2">
       {Array.from({ length: visibleCount }).map((_, index) => (
         <View
           key={index}
@@ -840,7 +890,13 @@ function MatchScoreBadge({
   return <HeroChip icon={TrendingUp} label={`${score}% Match`} palette={palette} />
 }
 
-function HeroThemeCard({ item }: { item: MatchSession }) {
+function HeroThemeCard({
+  item,
+  actionLabel = 'Sẵn sàng',
+}: {
+  item: MatchSession
+  actionLabel?: string
+}) {
   const skillUi = getSkillLevelUi(item.levelId)
   const WatermarkIcon = skillUi.icon
   const textPalette = getHeroTextPalette(skillUi.heroFrom)
@@ -986,7 +1042,7 @@ function HeroThemeCard({ item }: { item: MatchSession }) {
               >
                 <Users size={13} color={textPalette.primary} strokeWidth={iconStroke} />
                 <Text className="ml-2 text-[11px] font-black uppercase tracking-[1.8px]" style={{ color: textPalette.primary }}>
-                  Sẵn sàng
+                  {actionLabel}
                 </Text>
               </View>
             </View>
@@ -1028,30 +1084,26 @@ const _SmartMatchCard = memo(function SmartMatchCard({ item }: { item: MatchSess
         }}
       />
 
-      <View className="flex-row items-start justify-between">
-        <View className="flex-row flex-wrap items-center gap-2">
-          <View className={`flex-row items-center rounded-full px-3 py-1.5 ${isConfirmed ? 'bg-emerald-50' : 'bg-orange-50'}`}>
-            {isConfirmed ? (
-              <ShieldCheck size={12} color="#047857" strokeWidth={iconStroke} />
-            ) : (
-              <AlertCircle size={12} color="#c2410c" strokeWidth={iconStroke} />
-            )}
-            <Text className={`ml-1.5 text-[11px] font-bold uppercase tracking-[1px] ${isConfirmed ? 'text-emerald-700' : 'text-orange-700'}`}>
-              {item.statusLabel}
-            </Text>
-          </View>
-          <View className="flex-row items-center rounded-full bg-indigo-50 px-3 py-2">
-            <Clock size={14} color="#4338ca" strokeWidth={iconStroke} />
-            <Text className="ml-2 text-xs font-bold text-indigo-700">{item.timeLabel}</Text>
-          </View>
-        </View>
-      </View>
-
-      <Text className="mt-5 text-[9px] font-bold uppercase tracking-[2.8px] text-slate-400">Court</Text>
-      <Text className="mt-2 text-[24px] font-black text-slate-950">{item.courtName}</Text>
+      <Text className="text-[24px] font-black text-slate-950">{item.courtName}</Text>
       <View className="mt-2 flex-row items-center">
         <MapPin size={14} color="#64748b" strokeWidth={iconStroke} />
         <Text className="ml-2 text-sm font-medium text-slate-500">{item.address}</Text>
+      </View>
+      <View className="mt-3 self-start">
+        <View className={`flex-row items-center rounded-full px-3 py-1.5 ${isConfirmed ? 'bg-emerald-50' : 'bg-orange-50'}`}>
+          {isConfirmed ? (
+            <ShieldCheck size={12} color="#047857" strokeWidth={iconStroke} />
+          ) : (
+            <AlertCircle size={12} color="#c2410c" strokeWidth={iconStroke} />
+          )}
+          <Text className={`ml-1.5 text-[11px] font-bold uppercase tracking-[1px] ${isConfirmed ? 'text-emerald-700' : 'text-orange-700'}`}>
+            {item.statusLabel}
+          </Text>
+        </View>
+      </View>
+      <View className="mt-4 flex-row items-center">
+        <Calendar size={18} color="#4338ca" strokeWidth={iconStroke} />
+        <Text className="ml-2 text-[20px] font-black leading-[24px] text-slate-950">{item.timeLabel}</Text>
       </View>
 
       <Text className="mt-5 text-[9px] font-bold uppercase tracking-[2.8px] text-slate-400">Điều kiện trận</Text>
@@ -1352,6 +1404,203 @@ const SmartQueueStructuredCard = memo(function SmartQueueStructuredCard({ item }
   )
 })
 
+const SmartQueueHeroStyledCard = memo(function SmartQueueHeroStyledCard({ item }: { item: MatchSession }) {
+  const skillUi = getSkillLevelUi(item.levelId)
+  const textPalette = getHeroTextPalette(skillUi.heroFrom)
+  const WatermarkIcon = skillUi.icon
+  const eloRange = getEloRangeForLevel(item.levelId)
+  const eloValue = getSkillTargetElo(eloRange.elo_min, eloRange.elo_max)
+  const isConfirmed = item.statusLabel.toLowerCase().includes('chốt')
+
+  return (
+    <View
+      className={`relative overflow-hidden rounded-[48px] border p-7 ${item.urgent ? 'border-orange-300' : 'border-white/10'}`}
+      style={{
+        backgroundColor: skillUi.heroFrom,
+        shadowColor: item.urgent ? '#fb923c' : skillUi.heroTo,
+        shadowOpacity: item.urgent ? 0.16 : 0.26,
+        shadowRadius: item.urgent ? 16 : 28,
+        shadowOffset: { width: 0, height: item.urgent ? 12 : 20 },
+      }}
+    >
+      <View
+        style={{
+          position: 'absolute',
+          right: -80,
+          top: -42,
+          width: 220,
+          height: 220,
+          borderRadius: 999,
+          backgroundColor: skillUi.heroTo,
+          opacity: 0.68,
+        }}
+      />
+      <View
+        style={{
+          position: 'absolute',
+          left: -58,
+          bottom: -60,
+          width: 200,
+          height: 200,
+          borderRadius: 999,
+          backgroundColor: '#ffffff',
+          opacity: 0.1,
+        }}
+      />
+      <WatermarkIcon size={140} color="rgba(255,255,255,0.14)" style={{ position: 'absolute', right: -24, bottom: -24 }} />
+
+      <View>
+        <Text
+          className="text-[28px] font-black"
+          style={{ color: textPalette.primary }}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.72}
+        >
+          {item.courtName}
+        </Text>
+        <View className="mt-2 flex-row flex-wrap items-center gap-3">
+          <View className="flex-row items-center">
+            <MapPin size={14} color={textPalette.secondary} strokeWidth={iconStroke} />
+            <Text className="ml-2 text-sm font-medium" style={{ color: textPalette.secondary }}>
+              {item.address}
+            </Text>
+          </View>
+        </View>
+        <View className="mt-3 self-start">
+          <HeroChip icon={ShieldCheck} label={item.statusLabel} palette={textPalette} emphasis={isConfirmed ? 'soft' : 'contrast'} />
+        </View>
+        <View className="mt-4 flex-row items-center">
+          <Calendar size={18} color={textPalette.primary} strokeWidth={iconStroke} />
+          <Text className="ml-2 text-[20px] font-black leading-[24px]" style={{ color: textPalette.primary }}>
+            {item.timeLabel}
+          </Text>
+        </View>
+      </View>
+
+      <View className="mt-5 flex-row flex-wrap items-center gap-3">
+        <View className="rounded-[22px] border px-4 py-3" style={{ backgroundColor: textPalette.softChip, borderColor: textPalette.smartCardBorder }}>
+          <View className="flex-row items-center">
+            <TrendingUp size={16} color={textPalette.primary} strokeWidth={iconStroke} />
+            <Text className="ml-2 text-[15px] font-black" style={{ color: textPalette.primary }}>
+              {item.matchScore}% Match
+            </Text>
+          </View>
+        </View>
+        <View className="rounded-full border px-4 py-3" style={{ backgroundColor: textPalette.softChip, borderColor: textPalette.smartCardBorder }}>
+          <View className="flex-row items-center">
+            <DollarSign size={16} color={textPalette.primary} strokeWidth={iconStroke} />
+            <Text className="ml-2 text-[14px] font-black" style={{ color: textPalette.primary }}>
+              {item.priceLabel}
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      <Text className="mt-5 text-[9px] font-bold uppercase tracking-[2.8px]" style={{ color: textPalette.tertiary }}>
+        Thông số
+      </Text>
+      <View className="mt-2 flex-row items-center gap-2">
+        <View className="min-w-0 flex-1 flex-row items-center justify-center rounded-full px-3 py-2" style={{ backgroundColor: textPalette.softChip }}>
+          <Swords size={13} color={textPalette.primary} strokeWidth={iconStroke} />
+          <Text
+            className="ml-2 text-xs font-semibold uppercase tracking-[0.8px]"
+            style={{ color: textPalette.primary }}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.8}
+          >
+            {item.skillLabel}
+          </Text>
+        </View>
+        <View className="min-w-0 flex-1 flex-row items-center justify-center rounded-full px-3 py-2" style={{ backgroundColor: textPalette.softChip }}>
+          <Users size={12} color={textPalette.primary} strokeWidth={iconStroke} />
+          <Text
+            className="ml-1.5 text-xs font-semibold uppercase tracking-[0.8px]"
+            style={{ color: textPalette.primary }}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.7}
+          >
+            {item.openSlotsLabel}
+          </Text>
+        </View>
+        <View className="min-w-0 flex-1 flex-row items-center justify-center rounded-full px-3 py-2" style={{ backgroundColor: textPalette.softChip }}>
+          <TrendingUp size={12} color={textPalette.primary} strokeWidth={iconStroke} />
+          <Text
+            className="ml-1.5 text-xs font-semibold uppercase tracking-[0.8px]"
+            style={{ color: textPalette.primary }}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.8}
+          >
+            {`${eloValue} ELO`}
+          </Text>
+        </View>
+      </View>
+
+      <View
+        className="mt-6 rounded-[28px] p-5"
+        style={{ backgroundColor: textPalette.smartCardBg, borderWidth: 1, borderColor: textPalette.smartCardBorder }}
+      >
+        <Text className="text-[9px] font-bold uppercase tracking-[2.8px]" style={{ color: textPalette.tertiary }}>
+          HOST
+        </Text>
+        <View className="mt-3 flex-row items-center justify-between">
+          <View className="flex-row items-center">
+            <View className="h-12 w-12 items-center justify-center rounded-full border-2 border-white" style={{ backgroundColor: textPalette.contrastChip }}>
+              <Text className="text-sm font-black" style={{ color: textPalette.primary }}>
+                {item.host.name.slice(0, 1).toUpperCase()}
+              </Text>
+            </View>
+            <View className="ml-3">
+              <View className="flex-row items-center">
+                <Text className="text-base font-black" style={{ color: textPalette.primary }}>
+                  {item.host.name}
+                </Text>
+                <View className="ml-2 flex-row items-center">
+                  <Star size={14} color={textPalette.primary} strokeWidth={iconStroke} />
+                  <Text className="ml-1 text-sm font-black" style={{ color: textPalette.primary }}>
+                    {item.host.rating.toFixed(1)}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+
+          <View
+            className="flex-row items-center rounded-full px-3 py-1.5"
+            style={{ backgroundColor: textPalette.softChip, borderWidth: 1, borderColor: textPalette.smartCardBorder }}
+          >
+            <Swords size={12} color={textPalette.primary} strokeWidth={iconStroke} />
+            <Text className="ml-1.5 text-[10px] font-bold uppercase tracking-[0.8px]" style={{ color: textPalette.primary }}>
+              {item.skillLabel}
+            </Text>
+          </View>
+        </View>
+        <View className="mt-4 h-px" style={{ backgroundColor: textPalette.smartCardBorder }} />
+        <View className="mt-4">
+          <Text className="text-[9px] font-bold uppercase tracking-[2.8px]" style={{ color: textPalette.tertiary }}>
+            Players
+          </Text>
+          <View className="mt-2 flex-row items-center">
+            <View className="min-w-0 flex-1 overflow-hidden pr-3">
+              <AvatarStack players={item.players} />
+            </View>
+
+            <Pressable className="shrink-0 flex-row items-center rounded-full px-4 py-3.5" style={{ backgroundColor: textPalette.primary }}>
+              <Users size={13} color={skillUi.heroFrom} strokeWidth={iconStroke} />
+              <Text className="ml-2 text-[11px] font-black uppercase tracking-[1.8px]" style={{ color: skillUi.heroFrom }}>
+                Tham gia
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </View>
+    </View>
+  )
+})
+
 const FamiliarCourtCard = memo(function FamiliarCourtCard({ item }: { item: FamiliarCourt }) {
   return (
     <ImageBackground
@@ -1446,6 +1695,7 @@ function SwipeStack<T>({
 }) {
   const scrollRef = useAnimatedRef<Animated.ScrollView>()
   const scrollOffset = useScrollOffset(scrollRef)
+  const [measuredHeight, setMeasuredHeight] = useState(0)
 
   return (
     <Animated.ScrollView
@@ -1458,7 +1708,7 @@ function SwipeStack<T>({
       snapToAlignment="start"
       disableIntervalMomentum
       contentContainerStyle={{ paddingRight: 0 }}
-      style={{ height: containerHeight }}
+      style={{ height: measuredHeight || containerHeight }}
       onScroll={(event) => {
         const offsetX = event.nativeEvent.contentOffset.x
         const nextIndex = Math.round(offsetX / (carouselCardWidth + carouselGap))
@@ -1473,7 +1723,16 @@ function SwipeStack<T>({
             itemCount={items.length}
             scrollOffset={scrollOffset}
           >
-            {renderCard(item)}
+            <View
+              onLayout={(event) => {
+                const nextHeight = Math.ceil(event.nativeEvent.layout.height)
+                if (nextHeight !== measuredHeight) {
+                  setMeasuredHeight(nextHeight)
+                }
+              }}
+            >
+              {renderCard(item)}
+            </View>
           </CarouselCard>
         )
       })}
@@ -1485,9 +1744,12 @@ export default function HomeScreen() {
   const [personalizedIndex, setPersonalizedIndex] = useState(0)
   const [rescueIndex, setRescueIndex] = useState(0)
   const [courtIndex, setCourtIndex] = useState(0)
-  const hasUpcomingMatch = Boolean(HOME_NEXT_MATCH?.joined)
+  const hasUpcomingMatch = Boolean(HOME_NEXT_MATCH_IN_24_HOURS)
   const statusPrompt = hasUpcomingMatch ? 'Đã sẵn sàng ra sân chưa?' : 'Hôm nay ra sân chứ'
-  const renderPersonalizedCard = useCallback((item: MatchSession) => <_SmartMatchCard item={item} />, [])
+  const renderPersonalizedCard = useCallback(
+    (item: MatchSession) => (hasUpcomingMatch ? <_SmartMatchCard item={item} /> : <SmartQueueHeroStyledCard item={item} />),
+    [hasUpcomingMatch]
+  )
   const renderRescueCard = useCallback((item: MatchSession) => <_SmartMatchCard item={item} />, [])
   const renderCourtCard = useCallback((item: FamiliarCourt) => <FamiliarCourtCard item={item} />, [])
 
@@ -1502,13 +1764,13 @@ export default function HomeScreen() {
 
           <DashboardStatsStrip items={dashboardStats} />
 
-          {HOME_NEXT_MATCH ? (
+          {HOME_NEXT_MATCH_IN_24_HOURS ? (
             <View className="mt-8">
-              <HeroThemeCard item={HOME_NEXT_MATCH} />
+              <HeroThemeCard item={HOME_NEXT_MATCH_IN_24_HOURS} actionLabel="Sẵn sàng" />
             </View>
           ) : null}
 
-          <View className="mt-10">
+          <View className="mt-6">
             <SectionHeader eyebrow="Smart Queue" title="Dành riêng cho bạn" />
             <SwipeStack
               items={HOME_PERSONALIZED_SESSIONS}
@@ -1516,7 +1778,9 @@ export default function HomeScreen() {
               renderCard={renderPersonalizedCard}
               onIndexChange={setPersonalizedIndex}
             />
-            <CarouselDots count={HOME_PERSONALIZED_SESSIONS.length} activeIndex={personalizedIndex} />
+            <View className="mt-4">
+              <CarouselDots count={HOME_PERSONALIZED_SESSIONS.length} activeIndex={personalizedIndex} />
+            </View>
           </View>
 
           <View className="mt-10">
@@ -1527,7 +1791,9 @@ export default function HomeScreen() {
               renderCard={renderRescueCard}
               onIndexChange={setRescueIndex}
             />
-            <CarouselDots count={HOME_RESCUE_SESSIONS.length} activeIndex={rescueIndex} />
+            <View className="mt-4">
+              <CarouselDots count={HOME_RESCUE_SESSIONS.length} activeIndex={rescueIndex} />
+            </View>
           </View>
 
           <View className="mt-10">
@@ -1538,7 +1804,9 @@ export default function HomeScreen() {
               renderCard={renderCourtCard}
               onIndexChange={setCourtIndex}
             />
-            <CarouselDots count={HOME_FAMILIAR_COURTS.length} activeIndex={courtIndex} />
+            <View className="mt-4">
+              <CarouselDots count={HOME_FAMILIAR_COURTS.length} activeIndex={courtIndex} />
+            </View>
           </View>
         </ScrollView>
 
