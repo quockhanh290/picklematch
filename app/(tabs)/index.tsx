@@ -1,9 +1,9 @@
 import { router } from 'expo-router'
 import {
   AlertCircle,
-  Bell,
   Clock,
   Heart,
+  Hand,
   Home,
   MapPin,
   Plus,
@@ -11,7 +11,7 @@ import {
   Star,
   Swords,
   TrendingUp,
-  User,
+  UserRound,
   Users,
   Zap,
 } from 'lucide-react-native'
@@ -149,8 +149,6 @@ const CAROUSEL_SECTION_HEIGHT = 536
 const COURT_CAROUSEL_HEIGHT = 272
 const userProfile = {
   name: 'Quốc Khánh',
-  initials: 'QK',
-  city: 'Thủ Đức',
 }
 
 const dashboardStats: StatItem[] = [
@@ -666,37 +664,65 @@ function MiniBadge({
   )
 }
 
-function HeaderIconButton({
-  icon: Icon,
-  onPress,
+function HomeGreetingHeader({
+  name,
+  statusPrompt,
 }: {
-  icon: typeof Bell
-  onPress: () => void
+  name: string
+  statusPrompt: string
 }) {
   return (
-    <Pressable
-      onPress={onPress}
-      className="h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white"
-      style={{ shadowColor: '#0f172a', shadowOpacity: 0.06, shadowRadius: 18, shadowOffset: { width: 0, height: 10 } }}
-    >
-      <Icon size={18} color="#0f172a" strokeWidth={iconStroke} />
-    </Pressable>
+    <View className="flex-row items-start justify-between">
+      <View className="flex-1 pr-4">
+        <Text className="text-[11px] font-bold uppercase tracking-[2.8px] text-slate-400">Command Center</Text>
+        <View className="mt-2 flex-row items-center">
+          <Text className="text-[28px] font-black leading-[34px] text-slate-950">{name}</Text>
+          <View className="ml-2 rounded-full bg-amber-100 p-2">
+            <Hand size={18} color="#f59e0b" strokeWidth={iconStroke} />
+          </View>
+        </View>
+        <Text className="mt-2 text-[15px] font-semibold text-slate-400">{statusPrompt}</Text>
+      </View>
+
+      <Pressable
+        onPress={() => router.push('/(tabs)/profile' as never)}
+        className="h-20 w-20 items-center justify-center rounded-[26px] border border-white/80 bg-white"
+        style={{ shadowColor: '#0f172a', shadowOpacity: 0.08, shadowRadius: 20, shadowOffset: { width: 0, height: 10 } }}
+      >
+        <View className="h-[68px] w-[68px] items-center justify-center rounded-[22px] bg-amber-50">
+          <UserRound size={30} color="#b45309" strokeWidth={2.4} />
+        </View>
+      </Pressable>
+    </View>
   )
 }
 
-function StatCard({ item }: { item: StatItem }) {
-  const Icon = item.icon
-
+function DashboardStatsStrip({ items }: { items: StatItem[] }) {
   return (
     <View
-      className="flex-1 rounded-[24px] border border-slate-100 bg-white p-4"
+      className="mt-6 flex-row rounded-[30px] border border-slate-100 bg-white px-4 py-5"
       style={{ shadowColor: '#0f172a', shadowOpacity: 0.06, shadowRadius: 18, shadowOffset: { width: 0, height: 10 } }}
     >
-      <View className="mb-4 h-11 w-11 items-center justify-center rounded-2xl bg-slate-100">
-        <Icon size={18} color="#0f172a" strokeWidth={iconStroke} />
-      </View>
-      <Text className="text-[11px] font-bold uppercase tracking-[2.6px] text-slate-400">{item.label}</Text>
-      <Text className={`mt-2 text-[28px] font-black ${item.accent}`}>{item.value}</Text>
+      {items.map((item, index) => {
+        const Icon = item.icon
+
+        return (
+          <View key={item.id} className="flex-1 flex-row items-stretch">
+            <View className="flex-1 items-center justify-center px-2">
+              <View className="flex-row items-center">
+                <Icon
+                  size={15}
+                  color={item.id === 'elo' ? '#6366f1' : item.id === 'streak' ? '#f97316' : '#10b981'}
+                  strokeWidth={iconStroke}
+                />
+                <Text className="ml-2 text-[11px] font-bold uppercase tracking-[1px] text-slate-500">{item.label}</Text>
+              </View>
+              <Text className={`mt-3 text-[24px] font-black ${item.accent}`}>{item.value}</Text>
+            </View>
+            {index < items.length - 1 ? <View className="my-2 w-px self-stretch bg-slate-200" /> : null}
+          </View>
+        )
+      })}
     </View>
   )
 }
@@ -944,6 +970,7 @@ function HeroThemeCard({ item }: { item: MatchSession }) {
               </Text>
             </View>
           </View>
+          <View className="mt-4 h-px" style={{ backgroundColor: textPalette.smartCardBorder }} />
           <View className="mt-4">
             <Text className="text-[9px] font-bold uppercase tracking-[2.8px]" style={{ color: textPalette.tertiary }}>
               Players
@@ -1089,6 +1116,7 @@ const _SmartMatchCard = memo(function SmartMatchCard({ item }: { item: MatchSess
             </View>
           </View>
         </View>
+        <View className="mt-4 h-px bg-slate-200" />
         <View className="mt-4">
           <Text className="text-[9px] font-bold uppercase tracking-[2.8px] text-slate-400">Players</Text>
           <View className="mt-2 flex-row items-center">
@@ -1470,33 +1498,9 @@ export default function HomeScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: 160 }}
         >
-          <View className="flex-row items-start justify-between">
-            <View className="flex-row flex-1 items-center pr-4">
-              <Pressable
-                onPress={() => router.push('/(tabs)/profile' as never)}
-                className="mr-4 h-16 w-16 items-center justify-center rounded-full bg-emerald-100"
-              >
-                <Text className="text-xl font-black text-emerald-700">{userProfile.initials}</Text>
-              </Pressable>
+          <HomeGreetingHeader name={userProfile.name} statusPrompt={statusPrompt} />
 
-              <View className="flex-1">
-                <Text className="text-[11px] font-bold uppercase tracking-[2.8px] text-slate-400">Command Center</Text>
-                <Text className="mt-2 text-[28px] font-black text-slate-950">Chào {userProfile.name}</Text>
-                <Text className="mt-2 text-sm font-semibold text-slate-500">{statusPrompt}</Text>
-              </View>
-            </View>
-
-            <View className="flex-row gap-3">
-              <HeaderIconButton icon={Bell} onPress={() => router.push('/(tabs)/notifications' as never)} />
-              <HeaderIconButton icon={User} onPress={() => router.push('/(tabs)/profile' as never)} />
-            </View>
-          </View>
-
-          <View className="mt-6 flex-row gap-3">
-            {dashboardStats.map((item) => (
-              <StatCard key={item.id} item={item} />
-            ))}
-          </View>
+          <DashboardStatsStrip items={dashboardStats} />
 
           {HOME_NEXT_MATCH ? (
             <View className="mt-8">
@@ -1550,4 +1554,3 @@ export default function HomeScreen() {
     </SafeAreaView>
   )
 }
-
