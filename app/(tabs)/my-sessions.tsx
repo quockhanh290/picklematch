@@ -1,301 +1,688 @@
-import { FeedMatchCard } from '@/components/session/FeedMatchCard'
-import { getSkillLevelFromEloRange, getSkillLevelFromPlayer } from '@/lib/skillAssessment'
-import { getSkillLevelUi, getSkillTargetElo } from '@/lib/skillLevelUi'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { supabase } from '@/lib/supabase'
-import { router, useFocusEffect } from 'expo-router'
-import { CalendarDays } from 'lucide-react-native'
-import { useCallback, useState } from 'react'
-import { ActivityIndicator, FlatList, RefreshControl, Text, View } from 'react-native'
+import { useAuth } from '@/lib/useAuth'
+import { router } from 'expo-router'
+import {
+  Calendar,
+  CalendarDays,
+  CheckCircle2,
+  Clock,
+  FileText,
+  Hourglass,
+  Pencil as Edit3,
+  Share2,
+  Star,
+  Users,
+} from 'lucide-react-native'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import {
+  ActivityIndicator,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Share,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+
+type SessionRequestStatus = 'pending' | 'accepted' | 'rejected' | null
+type SessionRole = 'host' | 'player'
+type SessionTab = 'upcoming' | 'pending' | 'history'
 
 type MySession = {
   id: string
   status: string
   court_booking_status: 'confirmed' | 'unconfirmed'
-  role: 'host' | 'player'
+  role: SessionRole
+  request_status: SessionRequestStatus
   start_time: string
   end_time: string
   court_name: string
   court_city: string
   court_address: string
   host_name: string
-  host_current_elo?: number | null
-  host_elo?: number | null
-  host_self_assessed_level?: string | null
-  host_skill_label?: string | null
-  price: number
   player_count: number
   max_players: number
-  elo_min: number
-  elo_max: number
+}
+
+type MySessionsCache = {
+  userId: string
+  sessions: MySession[]
+  updatedAt: number
+}
+
+let mySessionsCache: MySessionsCache | null = null
+const MY_SESSIONS_CACHE_KEY = 'my_sessions_overview_cache_v1'
+const MY_SESSIONS_LAST_USER_KEY = 'my_sessions_last_user_id_v1'
+const ENABLE_MY_SESSIONS_TIMING_LOGS = false
+const MY_SESSIONS_CACHE_FRESH_MS = 30_000
+
+const TAB_OPTIONS: { key: SessionTab; label: string }[] = [
+  { key: 'upcoming', label: 'Sắp đánh' },
+  { key: 'pending', label: 'Chờ duyệt' },
+  { key: 'history', label: 'Lịch sử' },
+]
+
+function isValidDate(value?: string | null) {
+  if (!value) return false
+  return !Number.isNaN(new Date(value).getTime())
+}
+
+function logTiming(label: string, startedAt: number, extra?: Record<string, unknown>) {
+  if (!ENABLE_MY_SESSIONS_TIMING_LOGS) return
+
+  const payload = extra ? ` ${JSON.stringify(extra)}` : ''
+  console.log(`[MySessions][timing] ${label}: ${Date.now() - startedAt}ms${payload}`)
+}
+
+function sessionsFingerprint(items: MySession[]) {
+  return JSON.stringify(
+    items.map((item) => ({
+      id: item.id,
+      status: item.status,
+      court_booking_status: item.court_booking_status,
+      role: item.role,
+      request_status: item.request_status,
+      start_time: item.start_time,
+      end_time: item.end_time,
+      court_name: item.court_name,
+      court_city: item.court_city,
+      court_address: item.court_address,
+      host_name: item.host_name,
+      player_count: item.player_count,
+      max_players: item.max_players,
+    })),
+  )
 }
 
 export default function MySessions() {
+  const { userId, isLoading: isAuthLoading } = useAuth()
   const [sessions, setSessions] = useState<MySession[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [myId, setMyId] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<SessionTab>('upcoming')
+  const initInFlightRef = useRef(false)
+  const fetchInFlightRef = useRef<Promise<void> | null>(null)
 
-  const fetchMySessions = useCallback(async (userId: string) => {
-    setLoading(true)
-    await supabase.rpc('process_pending_session_completions')
-    await supabase.rpc('process_overdue_session_closures')
+  const hydrateCachedSessionsForLastUser = useCallback(async () => {
+    const startedAt = Date.now()
 
-    const { data: hostSessions, error: hostError } = await supabase
-      .from('sessions')
-      .select(
-        `
-        id,
-        status,
-        court_booking_status,
-        max_players,
-        elo_min,
-        elo_max,
-        host:host_id ( name, is_provisional, current_elo, elo, self_assessed_level, skill_label ),
-        slot:slot_id (
-          start_time,
-          end_time,
-          price,
-          court:court_id ( name, city, address )
-        ),
-        session_players ( player_id )
-      `,
-      )
-      .eq('host_id', userId)
-      .order('created_at', { ascending: false })
-
-    if (hostError) {
-      console.warn('[MySessions] hostSessions query failed:', hostError.message)
-    }
-
-    const hostList: MySession[] = (hostSessions ?? []).map((session: any) => ({
-      id: session.id,
-      status: session.status,
-      court_booking_status: session.court_booking_status,
-      role: 'host',
-      start_time: session.slot?.start_time,
-      end_time: session.slot?.end_time,
-      court_name: session.slot?.court?.name ?? 'Kèo Pickleball',
-      court_city: session.slot?.court?.city ?? '',
-      court_address: session.slot?.court?.address ?? '',
-      host_name: session.host?.name ?? 'Bạn',
-      host_current_elo: session.host?.current_elo ?? null,
-      host_elo: session.host?.elo ?? null,
-      host_self_assessed_level: session.host?.self_assessed_level ?? null,
-      host_skill_label: session.host?.skill_label ?? null,
-      price: session.slot?.price ?? 0,
-      player_count: (session.session_players ?? []).length,
-      max_players: session.max_players,
-      elo_min: session.elo_min,
-      elo_max: session.elo_max,
-    }))
-
-    const { data: playerSessions, error: playerError } = await supabase
-      .from('session_players')
-      .select(
-        `
-        session:session_id (
-          id,
-          status,
-          court_booking_status,
-          max_players,
-          elo_min,
-          elo_max,
-          host:host_id ( name, is_provisional, current_elo, elo, self_assessed_level, skill_label ),
-          slot:slot_id (
-            start_time,
-            end_time,
-            price,
-            court:court_id ( name, city, address )
-          ),
-          session_players ( player_id )
-        )
-      `,
-      )
-      .eq('player_id', userId)
-
-    if (playerError) {
-      console.warn('[MySessions] playerSessions query failed:', playerError.message)
-    }
-
-    const joinedList: MySession[] = (playerSessions ?? [])
-      .map((row: any) => {
-        const session = row.session
-        if (!session) return null
-
-        return {
-          id: session.id,
-          status: session.status,
-          court_booking_status: session.court_booking_status,
-          role: 'player' as const,
-          start_time: session.slot?.start_time,
-          end_time: session.slot?.end_time,
-          court_name: session.slot?.court?.name ?? 'Kèo Pickleball',
-          court_city: session.slot?.court?.city ?? '',
-          court_address: session.slot?.court?.address ?? '',
-          host_name: session.host?.name ?? 'Ẩn danh',
-          host_current_elo: session.host?.current_elo ?? null,
-          host_elo: session.host?.elo ?? null,
-          host_self_assessed_level: session.host?.self_assessed_level ?? null,
-          host_skill_label: session.host?.skill_label ?? null,
-          price: session.slot?.price ?? 0,
-          player_count: (session.session_players ?? []).length,
-          max_players: session.max_players,
-          elo_min: session.elo_min,
-          elo_max: session.elo_max,
-        }
-      })
-      .filter(Boolean) as MySession[]
-
-    const deduped = [...hostList, ...joinedList].filter(
-      (session, index, arr) => arr.findIndex((candidate) => candidate.id === session.id) === index,
-    )
-
-    deduped.sort((a, b) => {
-      const bookingWeight =
-        Number(b.court_booking_status === 'confirmed') - Number(a.court_booking_status === 'confirmed')
-      if (bookingWeight !== 0) return bookingWeight
-      return new Date(b.start_time).getTime() - new Date(a.start_time).getTime()
-    })
-
-    setSessions(deduped)
-    setLoading(false)
-  }, [])
-
-  const init = useCallback(async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-      setMyId(null)
-      setSessions([])
+    if (mySessionsCache?.sessions.length) {
+      setSessions(mySessionsCache.sessions)
       setLoading(false)
+      logTiming('bootstrap-memory-cache-hit', startedAt, { sessions: mySessionsCache.sessions.length })
       return
     }
 
-    setMyId(user.id)
-    await fetchMySessions(user.id)
-  }, [fetchMySessions])
+    try {
+      const [lastUserId, raw] = await Promise.all([
+        AsyncStorage.getItem(MY_SESSIONS_LAST_USER_KEY),
+        AsyncStorage.getItem(MY_SESSIONS_CACHE_KEY),
+      ])
 
-  useFocusEffect(
-    useCallback(() => {
-      init()
-    }, [init]),
-  )
+      if (!lastUserId || !raw) {
+        logTiming('bootstrap-cache-miss', startedAt)
+        return
+      }
+
+      const parsed = JSON.parse(raw) as MySessionsCache
+      if (parsed.userId !== lastUserId || !Array.isArray(parsed.sessions) || parsed.sessions.length === 0) {
+        logTiming('bootstrap-cache-stale', startedAt, { cacheUserId: parsed.userId, lastUserId })
+        return
+      }
+
+      mySessionsCache = parsed
+      setSessions(parsed.sessions)
+      setLoading(false)
+      logTiming('bootstrap-storage-cache-hit', startedAt, { sessions: parsed.sessions.length })
+    } catch (error) {
+      console.warn('[MySessions] bootstrap cache hydrate failed:', error)
+      logTiming('bootstrap-cache-error', startedAt)
+    }
+  }, [])
+
+  const hydrateCachedSessions = useCallback(async (userId: string) => {
+    const startedAt = Date.now()
+
+    if (mySessionsCache?.userId === userId && mySessionsCache.sessions.length > 0) {
+      setSessions(mySessionsCache.sessions)
+      setLoading(false)
+      logTiming('cache-memory-hit', startedAt, { sessions: mySessionsCache.sessions.length })
+      return true
+    }
+
+    try {
+      const raw = await AsyncStorage.getItem(MY_SESSIONS_CACHE_KEY)
+      if (!raw) {
+        logTiming('cache-miss', startedAt, { layer: 'storage' })
+        return false
+      }
+
+      const parsed = JSON.parse(raw) as MySessionsCache
+      if (parsed.userId !== userId || !Array.isArray(parsed.sessions) || parsed.sessions.length === 0) {
+        logTiming('cache-stale', startedAt, { cacheUserId: parsed.userId, requestedUserId: userId })
+        return false
+      }
+
+      mySessionsCache = parsed
+      setSessions(parsed.sessions)
+      setLoading(false)
+      logTiming('cache-storage-hit', startedAt, { sessions: parsed.sessions.length })
+      return true
+    } catch (error) {
+      console.warn('[MySessions] cache hydrate failed:', error)
+      logTiming('cache-error', startedAt)
+      return false
+    }
+  }, [])
+
+  const fetchMySessions = useCallback(async (userId: string, options?: { showLoader?: boolean; runMaintenance?: boolean }) => {
+    if (fetchInFlightRef.current) {
+      logTiming('fetch-deduped', Date.now())
+      await fetchInFlightRef.current
+      return
+    }
+
+    const run = async () => {
+    const startedAt = Date.now()
+    const showLoader = options?.showLoader ?? false
+    const runMaintenance = options?.runMaintenance ?? false
+
+    if (showLoader) {
+      setLoading(true)
+    }
+
+    if (runMaintenance) {
+      const maintenanceStartedAt = Date.now()
+      await Promise.all([
+        supabase.rpc('process_pending_session_completions'),
+        supabase.rpc('process_overdue_session_closures'),
+      ])
+      logTiming('maintenance-rpc', maintenanceStartedAt)
+    }
+
+    const rpcStartedAt = Date.now()
+    const { data, error } = await supabase.rpc('get_my_sessions_overview')
+    logTiming('overview-rpc', rpcStartedAt, { rows: data?.length ?? 0, hasError: Boolean(error) })
+
+    if (error) {
+      console.warn('[MySessions] get_my_sessions_overview failed:', error.message)
+    }
+
+    const nextSessions: MySession[] = (data ?? []).map((session: any) => ({
+      id: session.id,
+      status: session.status,
+      court_booking_status: session.court_booking_status,
+      role: session.role,
+      request_status: session.request_status,
+      start_time: session.start_time,
+      end_time: session.end_time,
+      court_name: session.court_name ?? 'Kèo Pickleball',
+      court_city: session.court_city ?? '',
+      court_address: session.court_address ?? '',
+      host_name: session.host_name ?? (session.role === 'host' ? 'Bạn' : 'Ẩn danh'),
+      player_count: session.player_count ?? 0,
+      max_players: session.max_players ?? 0,
+    }))
+
+    nextSessions.sort((a, b) => {
+      const aTime = new Date(a.start_time).getTime()
+      const bTime = new Date(b.start_time).getTime()
+      const safeATime = Number.isNaN(aTime) ? Number.MAX_SAFE_INTEGER : aTime
+      const safeBTime = Number.isNaN(bTime) ? Number.MAX_SAFE_INTEGER : bTime
+      return safeATime - safeBTime
+    })
+
+    mySessionsCache = {
+      userId,
+      sessions: nextSessions,
+      updatedAt: Date.now(),
+    }
+
+    try {
+      const persistStartedAt = Date.now()
+      await Promise.all([
+        AsyncStorage.setItem(MY_SESSIONS_CACHE_KEY, JSON.stringify(mySessionsCache)),
+        AsyncStorage.setItem(MY_SESSIONS_LAST_USER_KEY, userId),
+      ])
+      logTiming('cache-persist', persistStartedAt)
+    } catch (error) {
+      console.warn('[MySessions] cache persist failed:', error)
+    }
+
+    const nextFingerprint = sessionsFingerprint(nextSessions)
+    const currentFingerprint = sessionsFingerprint(sessions)
+
+    if (nextFingerprint !== currentFingerprint) {
+      setSessions(nextSessions)
+      logTiming('sessions-updated', startedAt, { changed: true, sessions: nextSessions.length })
+    } else {
+      logTiming('sessions-skipped-update', startedAt, { changed: false, sessions: nextSessions.length })
+    }
+
+    if (showLoader) {
+      setLoading(false)
+    }
+
+    logTiming('fetch-total', startedAt, { sessions: nextSessions.length, runMaintenance, showLoader })
+    }
+
+    fetchInFlightRef.current = run()
+    try {
+      await fetchInFlightRef.current
+    } finally {
+      fetchInFlightRef.current = null
+    }
+  }, [sessions])
+
+  const init = useCallback(async () => {
+    if (initInFlightRef.current) {
+      logTiming('init-deduped', Date.now())
+      return
+    }
+
+    initInFlightRef.current = true
+    try {
+    const initStartedAt = Date.now()
+    if (isAuthLoading) {
+      logTiming('auth-context-loading', initStartedAt)
+      return
+    }
+
+    if (!userId) {
+      setMyId(null)
+      setSessions([])
+      setLoading(false)
+      logTiming('init-no-user', initStartedAt)
+      return
+    }
+
+    setMyId(userId)
+
+    const hadBootstrapCache = mySessionsCache?.userId === userId && mySessionsCache.sessions.length > 0
+    if (hadBootstrapCache) {
+      const cacheAgeMs = Date.now() - (mySessionsCache?.updatedAt ?? 0)
+      if (cacheAgeMs < MY_SESSIONS_CACHE_FRESH_MS) {
+        logTiming('init-cache-fresh-skip-network', initStartedAt, { cacheAgeMs })
+        return
+      }
+
+      void fetchMySessions(userId, { showLoader: false, runMaintenance: false })
+      logTiming('init-skip-second-cache-hydrate', initStartedAt)
+      return
+    }
+
+    const hydrated = await hydrateCachedSessions(userId)
+    if (hydrated) {
+      void fetchMySessions(userId, { showLoader: false, runMaintenance: false })
+      logTiming('init-from-cache', initStartedAt)
+      return
+    }
+
+    await fetchMySessions(userId, { showLoader: true, runMaintenance: false })
+    setLoading(false)
+    logTiming('init-network', initStartedAt)
+    } finally {
+      initInFlightRef.current = false
+    }
+  }, [fetchMySessions, hydrateCachedSessions, isAuthLoading, userId])
+
+  useEffect(() => {
+    void hydrateCachedSessionsForLastUser()
+  }, [hydrateCachedSessionsForLastUser])
+
+  useEffect(() => {
+    void init()
+  }, [init])
 
   const onRefresh = useCallback(async () => {
     if (!myId) return
     setRefreshing(true)
-    await fetchMySessions(myId)
+    await fetchMySessions(myId, { showLoader: false, runMaintenance: true })
     setRefreshing(false)
   }, [fetchMySessions, myId])
 
-  function formatTime(start: string, end: string) {
+  function formatDatePart(value: string) {
+    if (!isValidDate(value)) {
+      return 'Chưa cập nhật ngày'
+    }
+
+    return new Date(value).toLocaleDateString('vi-VN', {
+      weekday: 'short',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    })
+  }
+
+  function formatTimeRange(start: string, end: string) {
+    if (!isValidDate(start) || !isValidDate(end)) {
+      return 'Chưa cập nhật giờ'
+    }
+
     const startDate = new Date(start)
     const endDate = new Date(end)
-    const pad = (value: number) => value.toString().padStart(2, '0')
 
-    return {
-      time: `${pad(startDate.getHours())}:${pad(startDate.getMinutes())} - ${pad(endDate.getHours())}:${pad(
-        endDate.getMinutes(),
-      )}`,
-      date: `${pad(startDate.getDate())}/${pad(startDate.getMonth() + 1)}`,
+    return `${startDate.toLocaleTimeString('vi-VN', {
+      hour: '2-digit',
+      minute: '2-digit',
+    })} - ${endDate.toLocaleTimeString('vi-VN', {
+      hour: '2-digit',
+      minute: '2-digit',
+    })}`
+  }
+
+  function resolveTab(session: MySession): SessionTab {
+    if (session.status === 'pending_completion' || session.status === 'done' || session.status === 'cancelled') {
+      return 'history'
+    }
+
+    if (session.role === 'player' && session.request_status === 'pending') {
+      return 'pending'
+    }
+
+    return 'upcoming'
+  }
+
+  function shareMessage(session?: MySession) {
+    if (!session) {
+      return 'Lịch chơi PickleMatch của tôi đang được cập nhật.'
+    }
+
+    return [
+      'Cùng xem kèo pickleball này nhé:',
+      session.court_name,
+      `${formatDatePart(session.start_time)} • ${formatTimeRange(session.start_time, session.end_time)}`,
+      session.court_address ? `${session.court_address}${session.court_city ? `, ${session.court_city}` : ''}` : '',
+    ]
+      .filter(Boolean)
+      .join('\n')
+  }
+
+  async function handleShare(session?: MySession) {
+    try {
+      await Share.share({ message: shareMessage(session) })
+    } catch (error) {
+      console.warn('[MySessions] share failed:', error)
     }
   }
 
-  function matchTypeLabel(status: string, role: 'host' | 'player') {
-    if (status === 'pending_completion') return 'Chờ xác nhận'
-    if (status === 'cancelled') return 'Đã huỷ'
-    if (status === 'done') return 'Đã hoàn tất'
-    return role === 'host' ? 'Bạn là host' : 'Đã tham gia'
+  function openSessionDetail(sessionId: string) {
+    router.push({ pathname: '/session/[id]' as any, params: { id: sessionId } })
   }
 
-  const renderSession = useCallback(({ item }: { item: MySession }) => {
-    const formatted = formatTime(item.start_time, item.end_time)
-    const isFull = item.player_count >= item.max_players
-    const skillLevel = getSkillLevelFromEloRange(item.elo_min, item.elo_max)
-    const skillUi = getSkillLevelUi(skillLevel.id)
-    const hostSkillLevel = getSkillLevelFromPlayer({
-      current_elo: item.host_current_elo,
-      elo: item.host_elo,
-      self_assessed_level: item.host_self_assessed_level,
-      skill_label: item.host_skill_label,
+  function openRateSession(sessionId: string) {
+    router.push({ pathname: '/rate-session/[id]' as any, params: { id: sessionId } })
+  }
+
+  const filteredSessions = sessions
+    .filter((session) => resolveTab(session) === activeTab)
+    .sort((a, b) => {
+      const aTime = new Date(a.start_time).getTime()
+      const bTime = new Date(b.start_time).getTime()
+      const safeATime = Number.isNaN(aTime) ? (activeTab === 'history' ? 0 : Number.MAX_SAFE_INTEGER) : aTime
+      const safeBTime = Number.isNaN(bTime) ? (activeTab === 'history' ? 0 : Number.MAX_SAFE_INTEGER) : bTime
+
+      if (activeTab === 'history') {
+        return safeBTime - safeATime
+      }
+
+      const bookingWeight =
+        Number(b.court_booking_status === 'confirmed') - Number(a.court_booking_status === 'confirmed')
+
+      if (bookingWeight !== 0) {
+        return bookingWeight
+      }
+
+      return safeATime - safeBTime
     })
-    const hostSkillUi = getSkillLevelUi(hostSkillLevel?.id)
+
+  function EmptyState() {
+    const config =
+      activeTab === 'upcoming'
+        ? {
+            eyebrow: 'SẴN SÀNG RA SÂN',
+            title: 'Bạn chưa có kèo sắp đánh',
+            description: 'Tạo kèo mới hoặc tham gia một trận phù hợp để lịch chơi của bạn bắt đầu đầy lên.',
+          }
+        : activeTab === 'pending'
+          ? {
+              eyebrow: 'ĐANG CHỜ',
+              title: 'Chưa có yêu cầu nào cần duyệt',
+              description: 'Những kèo bạn đang chờ host phản hồi sẽ xuất hiện tại đây.',
+            }
+          : {
+              eyebrow: 'LỊCH SỬ THI ĐẤU',
+              title: 'Bạn chưa có lịch sử trận đấu',
+              description: 'Sau khi hoàn thành các trận đã chơi, phần lịch sử sẽ hiển thị tại đây.',
+            }
 
     return (
-      <FeedMatchCard
-        courtName={item.court_name}
-        address={`${item.court_address}${item.court_city ? `, ${item.court_city}` : ''}`}
-        timeLabel={formatted.time}
-        dateLabel={formatted.date}
-        bookingStatus={item.court_booking_status}
-        skillLabel={skillUi.shortLabel}
-        skillIcon={skillUi.icon}
-        skillTagClassName={skillUi.tagClassName}
-        skillTextClassName={skillUi.textClassName}
-        skillBorderClassName={skillUi.borderClassName}
-        skillIconColor={skillUi.iconColor}
-        eloValue={getSkillTargetElo(item.elo_min, item.elo_max)}
-        duprValue={skillUi.duprValue}
-        matchTypeLabel={matchTypeLabel(item.status, item.role)}
-        hostName={item.host_name}
-        hostSkillIcon={hostSkillUi.icon}
-        priceDivisor={item.max_players}
-        priceLabel={`${item.price.toLocaleString('vi-VN')}đ/người`}
-        availabilityLabel={isFull ? 'Đầy' : `${item.player_count}/${item.max_players}`}
-        onPress={() => router.push({ pathname: '/session/[id]' as any, params: { id: item.id } })}
-      />
-    )
-  }, [])
-
-  const header = (
-    <View className="bg-gray-50">
-      <View className="px-5 pb-4 pt-4">
-        <View className="flex-row items-center">
-          <CalendarDays size={16} color="#6b7280" />
-          <Text className="ml-2 text-sm font-medium text-gray-500">Lịch chơi của bạn</Text>
-        </View>
-        <Text className="mt-2 text-3xl font-black text-gray-950">Kèo của tôi</Text>
-        <Text className="mt-2 text-sm leading-6 text-gray-500">
-          Theo dõi những kèo bạn đang host hoặc đã tham gia, ưu tiên các kèo đã chốt sân ở phía trên.
-        </Text>
+      <View className="rounded-[32px] border border-white/70 bg-white px-6 py-7 shadow-sm">
+        <Text className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400">{config.eyebrow}</Text>
+        <Text className="mt-3 text-[24px] font-black leading-[30px] text-slate-950">{config.title}</Text>
+        <Text className="mt-2 text-[14px] leading-6 text-slate-500">{config.description}</Text>
       </View>
-    </View>
-  )
+    )
+  }
 
-  return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
-      {loading ? (
-        <>
-          {header}
-          <ActivityIndicator size="large" color="#059669" style={{ marginTop: 40 }} />
-        </>
-      ) : sessions.length === 0 ? (
-        <>
-          {header}
-          <View className="px-5 pt-6">
-            <View className="rounded-3xl border border-gray-100 bg-white px-6 py-8 shadow-sm">
-              <Text className="text-xs font-extrabold uppercase tracking-[1.4px] text-gray-400">Bắt đầu</Text>
-              <Text className="mt-3 text-2xl font-black text-gray-950">Bạn chưa có kèo nào</Text>
-              <Text className="mt-2 text-sm leading-6 text-gray-500">
-                Tạo kèo đầu tiên hoặc tham gia một trận phù hợp để bắt đầu lịch sử chơi của bạn.
+  function SessionCard({ item }: { item: MySession }) {
+    const isHost = item.role === 'host'
+    const isBooked = item.court_booking_status === 'confirmed'
+    const progress = item.max_players > 0 ? Math.min(item.player_count / item.max_players, 1) : 0
+    const address = [item.court_address, item.court_city].filter(Boolean).join(', ')
+
+    return (
+      <Pressable
+        onPress={() => openSessionDetail(item.id)}
+        className="mb-4 rounded-[32px] border border-white/70 bg-white p-5 shadow-sm active:scale-[0.98]"
+      >
+        <View className="flex-row items-start justify-between">
+          <View className="mr-3 flex-1 flex-row flex-wrap items-center gap-2">
+            <View className={`rounded-full px-3 py-2 ${isHost ? 'bg-indigo-50' : 'bg-slate-100'}`}>
+              <Text className={`text-[10px] font-black uppercase tracking-[0.12em] ${isHost ? 'text-indigo-700' : 'text-slate-600'}`}>
+                {isHost ? 'Bạn là host' : 'Bạn là người chơi'}
+              </Text>
+            </View>
+
+            {isBooked ? (
+              <View className="rounded-full bg-emerald-50 px-3 py-2">
+                <View className="flex-row items-center">
+                  <CheckCircle2 size={13} color="#059669" strokeWidth={2.4} />
+                  <Text className="ml-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-emerald-700">
+                    Đã chốt sân
+                  </Text>
+                </View>
+              </View>
+            ) : null}
+          </View>
+
+          <View className="rounded-full bg-slate-100 px-3 py-2">
+            <Text className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-500">
+              #{item.id.slice(0, 6)}
+            </Text>
+          </View>
+        </View>
+
+        <View className="mt-5">
+          <Text className="text-[19px] font-black text-slate-950">{item.court_name}</Text>
+          {address ? <Text className="mt-2 text-[14px] text-slate-500">{address}</Text> : null}
+        </View>
+
+        <View className="mt-5 rounded-[22px] bg-slate-50 px-4 py-3">
+          <View className="flex-row flex-wrap items-center gap-4">
+            <View className="flex-row items-center">
+              <CalendarDays size={15} color="#475569" strokeWidth={2.3} />
+              <Text className="ml-2 text-[13px] font-semibold text-slate-700">{formatDatePart(item.start_time)}</Text>
+            </View>
+
+            <View className="flex-row items-center">
+              <Clock size={15} color="#475569" strokeWidth={2.3} />
+              <Text className="ml-2 text-[13px] font-semibold text-slate-700">
+                {formatTimeRange(item.start_time, item.end_time)}
               </Text>
             </View>
           </View>
-        </>
+        </View>
+
+        <View className="mt-5">
+          <View className="flex-row items-center justify-between">
+            <View className="flex-row items-center">
+              <Users size={15} color="#0f172a" strokeWidth={2.3} />
+              <Text className="ml-2 text-[14px] font-bold text-slate-900">
+                {item.player_count}/{item.max_players} người tham gia
+              </Text>
+            </View>
+            <Text className="text-[12px] font-bold text-slate-400">{Math.round(progress * 100)}%</Text>
+          </View>
+
+          <View className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
+            <View className="h-2 rounded-full bg-emerald-500" style={{ width: `${Math.max(progress * 100, 8)}%` }} />
+          </View>
+        </View>
+
+        {activeTab === 'pending' ? (
+          <View className="mt-5 rounded-[24px] border border-amber-200 bg-amber-50 px-4 py-4">
+            <View className="flex-row items-center">
+              <Hourglass size={16} color="#b45309" strokeWidth={2.3} />
+              <Text className="ml-2 text-[14px] font-black text-amber-700">Đang chờ phản hồi</Text>
+            </View>
+            <Text className="mt-2 text-[13px] leading-5 text-amber-700">
+              Host sẽ duyệt yêu cầu tham gia của bạn trong thời gian sớm nhất.
+            </Text>
+          </View>
+        ) : null}
+
+        {activeTab === 'upcoming' ? (
+          <View className="mt-5 flex-row gap-3">
+            <Pressable
+              onPress={() => openSessionDetail(item.id)}
+              className="flex-1 flex-row items-center justify-center rounded-[22px] border border-slate-200 bg-white px-4 py-4"
+            >
+              {isHost ? <Edit3 size={16} color="#0f172a" strokeWidth={2.3} /> : <FileText size={16} color="#0f172a" strokeWidth={2.3} />}
+              <Text className="ml-2 text-[14px] font-black text-slate-900">{isHost ? 'Sửa kèo' : 'Chi tiết'}</Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => void handleShare(item)}
+              className="flex-1 flex-row items-center justify-center rounded-[22px] bg-[#BEF264] px-4 py-4"
+            >
+              <Share2 size={16} color="#000000" strokeWidth={2.3} />
+              <Text className="ml-2 text-[14px] font-black text-black">Chia sẻ</Text>
+            </Pressable>
+          </View>
+        ) : null}
+
+        {activeTab === 'history' ? (
+          <Pressable
+            onPress={() => (item.status === 'done' ? openRateSession(item.id) : openSessionDetail(item.id))}
+            className={`mt-5 flex-row items-center justify-center rounded-[22px] px-4 py-4 ${item.status === 'done' ? 'bg-slate-950' : 'bg-slate-200'}`}
+          >
+            <Star size={16} color={item.status === 'done' ? '#BEF264' : '#64748b'} strokeWidth={2.3} />
+            <Text className={`ml-2 text-[14px] font-black ${item.status === 'done' ? 'text-white' : 'text-slate-500'}`}>
+              Đánh giá trận đấu
+            </Text>
+          </Pressable>
+        ) : null}
+      </Pressable>
+    )
+  }
+
+  return (
+    <SafeAreaView className="flex-1 bg-slate-50" edges={['top']}>
+      {loading ? (
+        <View className="flex-1 items-center justify-center px-6">
+          <ActivityIndicator size="large" color="#4f46e5" />
+          <Text className="mt-4 text-[14px] font-semibold text-slate-500">Đang tải kèo của bạn...</Text>
+        </View>
       ) : (
-        <FlatList
-          data={sessions}
-          renderItem={renderSession}
-          keyExtractor={(item) => item.id}
-          ListHeaderComponent={header}
-          contentContainerStyle={{ paddingBottom: 32, paddingTop: 8 }}
+        <ScrollView
           showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#059669" />}
-        />
+          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 36 }}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#4f46e5" />}
+        >
+          <View className="flex-row items-start justify-between">
+            <View className="mr-4 flex-1">
+              <View className="flex-row items-center">
+                <Calendar size={14} color="#475569" strokeWidth={2.5} />
+                <Text className="ml-2 text-[10px] font-black uppercase tracking-[0.15em] text-slate-500">
+                  LỊCH CHƠI CỦA BẠN
+                </Text>
+              </View>
+              <Text className="mt-3 text-[32px] font-black leading-[36px] text-slate-950">Kèo của tôi</Text>
+            </View>
+
+            <Pressable
+              onPress={() => void handleShare()}
+              className="h-12 w-12 items-center justify-center rounded-2xl border border-white/70 bg-white shadow-sm"
+            >
+              <Share2 size={18} color="#0f172a" strokeWidth={2.3} />
+            </Pressable>
+          </View>
+
+          <View className="mt-6 rounded-[24px] bg-slate-100 p-1.5">
+            <View className="flex-row">
+              {TAB_OPTIONS.map((tab) => {
+                const isActive = activeTab === tab.key
+
+                return (
+                  <Pressable
+                    key={tab.key}
+                    onPress={() => setActiveTab(tab.key)}
+                    style={[styles.segmentButton, isActive ? styles.segmentButtonActive : styles.segmentButtonIdle]}
+                  >
+                    <Text style={[styles.segmentLabel, isActive ? styles.segmentLabelActive : styles.segmentLabelIdle]}>
+                      {tab.label}
+                    </Text>
+                  </Pressable>
+                )
+              })}
+            </View>
+          </View>
+
+          <View className="mt-6">
+            {filteredSessions.length === 0 ? (
+              <EmptyState />
+            ) : (
+              filteredSessions.map((session) => <SessionCard key={`${activeTab}-${session.id}`} item={session} />)
+            )}
+          </View>
+        </ScrollView>
       )}
     </SafeAreaView>
   )
 }
+
+const styles = StyleSheet.create({
+  segmentButton: {
+    flex: 1,
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+  },
+  segmentButtonActive: {
+    backgroundColor: '#ffffff',
+    shadowColor: '#0f172a',
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
+  },
+  segmentButtonIdle: {
+    backgroundColor: 'transparent',
+  },
+  segmentLabel: {
+    textAlign: 'center',
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  segmentLabelActive: {
+    color: '#020617',
+  },
+  segmentLabelIdle: {
+    color: '#64748b',
+  },
+})
