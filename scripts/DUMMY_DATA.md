@@ -60,6 +60,30 @@ Các tài khoản:
 - `cancelled`: test lịch sử kèo đã huỷ
 - `provisionalHost`: test host provisional badge
 - `doneHistorical`: test profile có rating/badge lịch sử
+- `pendingCompletion`: test session đã hết giờ nhưng host chưa submit kết quả
+- `resultsPending`: test host đã submit kết quả, player cần confirm
+- `resultsDisputed`: test player dispute kết quả
+- `autoClosed`: test hệ thống auto-close và ready-for-rating
+- `ghostVoided`: test kèo bị void do người chơi báo trận không diễn ra
+
+## Coverage mới trong seed
+
+- `player_stats`
+- `player_achievements`
+- notification types mới:
+  - `achievement_unlocked`
+  - `session_pending_completion`
+  - `session_results_submitted`
+  - `session_results_disputed`
+  - `session_auto_closed`
+  - `session_ready_for_rating`
+  - `ghost_session_voided`
+  - `host_unprofessional_reported`
+
+## Lưu ý thực tế
+
+- `Home` hiện vẫn dùng mock UI cứng trong [app/(tabs)/index.tsx](/c:/Users/quock/OneDrive/picklematch-vn/app/(tabs)/index.tsx), nên seed backend này không thay đổi dữ liệu tab Home.
+- `Profile` và `Trophy Room` hiện mới được cover dữ liệu backend ở mức bảng `player_stats` / `player_achievements`; một số widget UI vẫn còn mock cứng nên cần đọc review để biết giới hạn test.
 
 ## Lưu ý
 

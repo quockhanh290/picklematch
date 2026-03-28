@@ -1,4 +1,4 @@
-import { router } from 'expo-router'
+import { router, useFocusEffect } from 'expo-router'
 import {
   AlertCircle,
   Calendar,
@@ -17,9 +17,9 @@ import {
   Users,
   Zap,
 } from 'lucide-react-native'
-import { memo, useCallback, useState } from 'react'
+import { memo, useCallback, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
-import { Dimensions, ImageBackground, Pressable, ScrollView, Text, View } from 'react-native'
+import { ActivityIndicator, Dimensions, ImageBackground, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native'
 import Animated, {
   useAnimatedStyle,
   useAnimatedRef,
@@ -31,7 +31,9 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { getSkillLevelUi, getSkillTargetElo } from '@/lib/skillLevelUi'
 import { getShadowStyle } from '@/lib/designSystem'
 import type { SkillAssessmentLevel } from '@/lib/skillAssessment'
+import { supabase } from '@/lib/supabase'
 import { useAppTheme } from '@/lib/theme-context'
+import { useAuth } from '@/lib/useAuth'
 
 type StatItem = {
   id: string
@@ -54,64 +56,112 @@ type Host = {
   vibe: string
 }
 
-type HomeMockPlayer = {
+type HomeSessionRecord = {
   id: string
-  name: string
-  current_elo?: number | null
-  self_assessed_level?: string | null
-  skill_label?: string | null
-}
-
-type HomeMockSessionPlayer = {
-  player_id: string
-  status: 'confirmed' | 'pending'
-  badge: 'trusted' | 'streak'
-  player: HomeMockPlayer
-}
-
-type HomeMockCourt = {
-  id: string
-  name: string
-  address: string
-  city: string
-  image?: string
-}
-
-type HomeMockCourtRecord = HomeMockCourt & {
-  home_meta: {
-    open_matches: number
-    note: string
-  }
-}
-
-type HomeMockSlot = {
-  id: string
-  start_time: string
-  end_time: string
-  price: number
-  court: HomeMockCourt
-}
-
-type HomeMockSession = {
-  id: string
-  title: string
-  booking_id: string
+  host_id: string
   elo_min: number
   elo_max: number
   max_players: number
-  status: 'open' | 'done' | 'cancelled'
+  status: 'open' | 'done' | 'cancelled' | 'pending_completion'
   court_booking_status: 'confirmed' | 'unconfirmed'
-  host: Host & HomeMockPlayer
-  slot: HomeMockSlot
-  session_players: HomeMockSessionPlayer[]
-  home_meta: {
-    match_score: number
-    skill_label: string
-    open_slots_label: string
-    urgent?: boolean
-    joined?: boolean
-    countdown_label?: string
+  created_at?: string | null
+  host: {
+    id: string
+    name: string
+    current_elo?: number | null
+    elo?: number | null
+    self_assessed_level?: string | null
+    skill_label?: string | null
+    reliability_score?: number | null
+    host_reputation?: number | null
+  } | null
+  slot: {
+    id: string
+    start_time: string
+    end_time: string
+    price: number
+    court: {
+      id: string
+      name: string
+      address: string
+      city: string
+    } | null
+  } | null
+  session_players: {
+    player_id: string
+    status: string
+    player: {
+      id: string
+      name: string
+      reliability_score?: number | null
+      current_elo?: number | null
+      self_assessed_level?: string | null
+      skill_label?: string | null
+    } | null
+  }[]
+}
+
+type HomeSessionRelation<T> = T | T[] | null
+
+type HomeSessionSlotRaw = Omit<NonNullable<HomeSessionRecord['slot']>, 'court'> & {
+  court: HomeSessionRelation<NonNullable<NonNullable<HomeSessionRecord['slot']>['court']>>
+}
+
+type HomeSessionRecordRaw = Omit<HomeSessionRecord, 'host' | 'slot' | 'session_players'> & {
+  host: HomeSessionRelation<NonNullable<HomeSessionRecord['host']>>
+  slot: HomeSessionRelation<HomeSessionSlotRaw>
+  session_players:
+    | (Omit<HomeSessionRecord['session_players'][number], 'player'> & {
+        player: HomeSessionRelation<NonNullable<HomeSessionRecord['session_players'][number]['player']>>
+      })[]
+    | null
+}
+
+type HomeProfile = {
+  id: string
+  name: string
+  current_elo?: number | null
+  elo?: number | null
+  reliability_score?: number | null
+  host_reputation?: number | null
+}
+
+function normalizeRelation<T>(value: HomeSessionRelation<T>): T | null {
+  if (Array.isArray(value)) {
+    return value[0] ?? null
   }
+
+  return value ?? null
+}
+
+function normalizeHomeSessionRecord(session: HomeSessionRecordRaw): HomeSessionRecord {
+  const slot = normalizeRelation(session.slot)
+
+  return {
+    ...session,
+    host: normalizeRelation(session.host),
+    slot: slot
+      ? {
+          ...slot,
+          court: normalizeRelation(slot.court),
+        }
+      : null,
+    session_players: (session.session_players ?? []).map((sessionPlayer) => ({
+      ...sessionPlayer,
+      player: normalizeRelation(sessionPlayer.player),
+    })),
+  }
+}
+
+type PlayerStatsRecord = {
+  current_win_streak: number
+  host_average_rating: number
+}
+
+type MySessionOverviewRow = {
+  id: string
+  status: string
+  start_time: string
 }
 
 type MatchSession = {
@@ -151,271 +201,6 @@ const SMART_MATCH_CARD_HEIGHT = 520
 const COURT_CARD_HEIGHT = 256
 const CAROUSEL_SECTION_HEIGHT = 536
 const COURT_CAROUSEL_HEIGHT = 272
-const userProfile = {
-  name: 'Quốc Khánh',
-}
-
-const dashboardStats: StatItem[] = [
-  { id: 'elo', label: 'ELO', value: '1.286', accent: 'text-indigo-700', icon: TrendingUp },
-  { id: 'streak', label: 'STREAK', value: '09', accent: 'text-orange-600', icon: Zap },
-  { id: 'reputation', label: 'UY TÍN', value: '98%', accent: 'text-emerald-600', icon: ShieldCheck },
-]
-
-const nextMatch: MatchSession | null = {
-  id: 'next-match',
-  title: 'Thu Duc Prime Night',
-  bookingId: 'BK-2048',
-  courtName: 'Pickle Dome Sala Court 03',
-  address: '10 Mai Chí Thọ, Thủ Đức',
-  matchScore: 94,
-  skillLabel: 'Cọ xát',
-  timeLabel: '20:30 - 22:00',
-  priceLabel: '145.000đ',
-  openSlotsLabel: 'Còn 1 chỗ',
-  statusLabel: 'Sân đã chốt',
-  countdownLabel: '01:24',
-  levelId: 'level_3',
-  host: { name: 'Minh Anh', rating: 4.9, vibe: 'Host giữ nhịp kèo rất chắc' },
-  players: [
-    { id: 'p1', name: 'Tuấn', initials: 'TA', badge: 'trusted' },
-    { id: 'p2', name: 'Bảo', initials: 'BL', badge: 'streak' },
-    { id: 'p3', name: 'Linh', initials: 'LN', badge: 'trusted' },
-  ],
-  joined: true,
-}
-
-const personalizedSessions: MatchSession[] = [
-  {
-    id: 'smart-1',
-    title: 'Kèo đôi nhiệt cao',
-    bookingId: 'BK-1931',
-    courtName: 'The Vista Pickle Club',
-    address: 'An Phú, Thủ Đức',
-    matchScore: 96,
-    skillLabel: 'Cọ xát',
-    timeLabel: '19:00 - 21:00',
-    priceLabel: '160.000đ',
-    openSlotsLabel: 'Còn 2 chỗ',
-    statusLabel: 'Sân đã chốt',
-    levelId: 'level_3',
-    host: { name: 'Hoàng Nam', rating: 4.8, vibe: 'Đánh nhiệt nhưng rất văn minh' },
-    players: [
-      { id: 'p4', name: 'Khánh', initials: 'QK', badge: 'trusted' },
-      { id: 'p5', name: 'My', initials: 'MT', badge: 'streak' },
-      { id: 'p6', name: 'Đạt', initials: 'DT', badge: 'trusted' },
-    ],
-  },
-  {
-    id: 'smart-2',
-    title: 'Kèo tối có đèn',
-    bookingId: 'BK-1948',
-    courtName: 'Riverside Rally Club',
-    address: 'Bình Thạnh, TP. HCM',
-    matchScore: 91,
-    skillLabel: 'Cân đối',
-    timeLabel: '18:30 - 20:00',
-    priceLabel: '135.000đ',
-    openSlotsLabel: 'Còn 1 chỗ',
-    statusLabel: 'Sân đã chốt',
-    levelId: 'level_2',
-    host: { name: 'Anh Thư', rating: 5, vibe: 'Host phản hồi cực nhanh' },
-    players: [
-      { id: 'p7', name: 'Vy', initials: 'VY', badge: 'streak' },
-      { id: 'p8', name: 'Long', initials: 'LG', badge: 'trusted' },
-      { id: 'p9', name: 'Hiếu', initials: 'HU', badge: 'trusted' },
-    ],
-  },
-  {
-    id: 'smart-3',
-    title: 'Kèo xoay đôi để vào form',
-    bookingId: 'BK-1992',
-    courtName: 'Saigon South Pickle Hall',
-    address: 'Quận 7, TP. HCM',
-    matchScore: 88,
-    skillLabel: 'Lên tay',
-    timeLabel: '21:00 - 22:30',
-    priceLabel: '120.000đ',
-    openSlotsLabel: 'Còn 2 chỗ',
-    statusLabel: 'Sân đã chốt',
-    levelId: 'level_4',
-    host: { name: 'Gia Hân', rating: 4.7, vibe: 'Kèo vui và đúng giờ' },
-    players: [
-      { id: 'p10', name: 'Phúc', initials: 'PC', badge: 'streak' },
-      { id: 'p11', name: 'Nhi', initials: 'NH', badge: 'trusted' },
-      { id: 'p12', name: 'Bảo', initials: 'BO', badge: 'trusted' },
-    ],
-  },
-  {
-    id: 'smart-4',
-    title: 'Kèo cân trình sau giờ làm',
-    bookingId: 'BK-2004',
-    courtName: 'Landmark Pickle Studio',
-    address: 'Bình Thạnh, TP. HCM',
-    matchScore: 92,
-    skillLabel: 'Cân đối',
-    timeLabel: '19:30 - 21:00',
-    priceLabel: '140.000đ',
-    openSlotsLabel: 'Còn 1 chỗ',
-    statusLabel: 'Sân đã chốt',
-    levelId: 'level_2',
-    host: { name: 'Hải Nam', rating: 4.9, vibe: 'Nhịp trận ổn và ghép người rất mượt' },
-    players: [
-      { id: 'p19', name: 'Ngân', initials: 'NN', badge: 'trusted' },
-      { id: 'p20', name: 'Trí', initials: 'TR', badge: 'streak' },
-      { id: 'p21', name: 'Lâm', initials: 'LM', badge: 'trusted' },
-    ],
-  },
-  {
-    id: 'smart-5',
-    title: 'Kèo lên tay cuối tuần',
-    bookingId: 'BK-2010',
-    courtName: 'Eastside Pickle Arena',
-    address: 'Thủ Đức, TP. HCM',
-    matchScore: 90,
-    skillLabel: 'Lên tay',
-    timeLabel: '08:00 - 09:30',
-    priceLabel: '125.000đ',
-    openSlotsLabel: 'Còn 2 chỗ',
-    statusLabel: 'Sân đã chốt',
-    levelId: 'level_4',
-    host: { name: 'Mai Trâm', rating: 4.8, vibe: 'Kèo sáng đúng giờ và nhiều rally đẹp' },
-    players: [
-      { id: 'p22', name: 'Phong', initials: 'PH', badge: 'streak' },
-      { id: 'p23', name: 'Khôi', initials: 'KH', badge: 'trusted' },
-      { id: 'p24', name: 'Uyên', initials: 'UY', badge: 'trusted' },
-    ],
-  },
-]
-
-const rescueSessions: MatchSession[] = [
-  {
-    id: 'rescue-1',
-    title: 'Cần người vào sân gấp',
-    bookingId: 'BK-2027',
-    courtName: 'District 2 Open Court',
-    address: 'Thảo Điền, Thủ Đức',
-    matchScore: 93,
-    skillLabel: 'Cứu net',
-    timeLabel: '17:45 - 19:15',
-    priceLabel: '110.000đ',
-    openSlotsLabel: 'Thiếu 1 người',
-    statusLabel: 'Sân đã chốt',
-    levelId: 'level_4',
-    host: { name: 'Thành Đạt', rating: 4.9, vibe: 'Đang chờ đủ người để giữ sân' },
-    players: [
-      { id: 'p13', name: 'An', initials: 'AN', badge: 'streak' },
-      { id: 'p14', name: 'Tùng', initials: 'TG', badge: 'trusted' },
-      { id: 'p15', name: 'Tâm', initials: 'TM', badge: 'trusted' },
-    ],
-    urgent: true,
-  },
-  {
-    id: 'rescue-2',
-    title: 'Sân đã giữ, vào là đánh',
-    bookingId: 'BK-2031',
-    courtName: 'Premier Paddle Hub',
-    address: 'Phú Nhuận, TP. HCM',
-    matchScore: 89,
-    skillLabel: 'Gấp',
-    timeLabel: '20:00 - 21:30',
-    priceLabel: '150.000đ',
-    openSlotsLabel: 'Còn 1 người',
-    statusLabel: 'Sân đã chốt',
-    levelId: 'level_4',
-    host: { name: 'Yến Nhi', rating: 4.8, vibe: 'Team có gu đánh nhanh' },
-    players: [
-      { id: 'p16', name: 'Kim', initials: 'KM', badge: 'streak' },
-      { id: 'p17', name: 'Vũ', initials: 'VU', badge: 'trusted' },
-      { id: 'p18', name: 'Trang', initials: 'TR', badge: 'trusted' },
-    ],
-    urgent: true,
-  },
-  {
-    id: 'rescue-3',
-    title: 'Thiếu 1 là chạy kèo ngay',
-    bookingId: 'BK-2038',
-    courtName: 'Urban Rally Deck',
-    address: 'Quận 2, TP. HCM',
-    matchScore: 90,
-    skillLabel: 'Gấp',
-    timeLabel: '18:15 - 19:45',
-    priceLabel: '130.000đ',
-    openSlotsLabel: 'Thiếu 1 người',
-    statusLabel: 'Sân đã chốt',
-    levelId: 'level_4',
-    host: { name: 'Bảo Châu', rating: 4.9, vibe: 'Nhóm đã có mặt gần đủ, vào là đánh' },
-    players: [
-      { id: 'p25', name: 'Kha', initials: 'KA', badge: 'streak' },
-      { id: 'p26', name: 'Duy', initials: 'DY', badge: 'trusted' },
-      { id: 'p27', name: 'Nhã', initials: 'NA', badge: 'trusted' },
-    ],
-    urgent: true,
-  },
-  {
-    id: 'rescue-4',
-    title: 'Cứu net phút cuối',
-    bookingId: 'BK-2041',
-    courtName: 'Racket Social Hub',
-    address: 'Gò Vấp, TP. HCM',
-    matchScore: 87,
-    skillLabel: 'Cứu net',
-    timeLabel: '21:15 - 22:45',
-    priceLabel: '118.000đ',
-    openSlotsLabel: 'Còn 1 người',
-    statusLabel: 'Sân đã chốt',
-    levelId: 'level_4',
-    host: { name: 'Tuệ Minh', rating: 4.7, vibe: 'Kèo vui, đội hình đang chờ slot cuối' },
-    players: [
-      { id: 'p28', name: 'Lộc', initials: 'LC', badge: 'streak' },
-      { id: 'p29', name: 'Vi', initials: 'VI', badge: 'trusted' },
-      { id: 'p30', name: 'Sơn', initials: 'SN', badge: 'trusted' },
-    ],
-    urgent: true,
-  },
-]
-
-const familiarCourts: FamiliarCourt[] = [
-  {
-    id: 'court-1',
-    name: 'Sala Signature Court',
-    area: 'Thủ Đức',
-    openMatches: 3,
-    note: 'Sân êm, đèn đẹp, booking nhanh',
-    image: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=1200&q=80',
-  },
-  {
-    id: 'court-2',
-    name: 'Sunrise Pickle Loft',
-    area: 'Quận 7',
-    openMatches: 2,
-    note: 'Nhiều kèo tối, dễ ghép trình',
-    image: 'https://images.unsplash.com/photo-1547347298-4074fc3086f0?auto=format&fit=crop&w=1200&q=80',
-  },
-  {
-    id: 'court-3',
-    name: 'Thao Dien Social Club',
-    area: 'Thủ Đức',
-    openMatches: 4,
-    note: 'Cộng đồng thân thiện, vào là có người',
-    image: 'https://images.unsplash.com/photo-1526232761682-d26e03ac148e?auto=format&fit=crop&w=1200&q=80',
-  },
-  {
-    id: 'court-4',
-    name: 'Grand Park Pickle House',
-    area: 'Thủ Đức',
-    openMatches: 5,
-    note: 'Buổi tối nhiều kèo, dễ vào sân nhanh',
-    image: 'https://images.unsplash.com/photo-1505250469679-203ad9ced0cb?auto=format&fit=crop&w=1200&q=80',
-  },
-  {
-    id: 'court-5',
-    name: 'Canal Side Court Club',
-    area: 'Quận 7',
-    openMatches: 2,
-    note: 'Không gian thoáng, hợp kèo social lẫn cọ xát',
-    image: 'https://images.unsplash.com/photo-1518604666860-9ed391f76460?auto=format&fit=crop&w=1200&q=80',
-  },
-]
 
 function getEloRangeForLevel(levelId: SkillAssessmentLevel['id']) {
   if (levelId === 'level_1') return { elo_min: 800, elo_max: 950 }
@@ -425,147 +210,25 @@ function getEloRangeForLevel(levelId: SkillAssessmentLevel['id']) {
   return { elo_min: 1500, elo_max: 1700 }
 }
 
-function buildHomeMockSession(session: MatchSession, index: number): HomeMockSession {
-  const timeParts = session.timeLabel.split(' - ')
-  const start = timeParts[0] ?? '19:00'
-  const end = timeParts[1] ?? '21:00'
-  const { elo_min, elo_max } = getEloRangeForLevel(session.levelId)
-
-  return {
-    id: session.id,
-    title: session.title,
-    booking_id: session.bookingId,
-    elo_min,
-    elo_max,
-    max_players: 4,
-    status: 'open',
-    court_booking_status: 'confirmed',
-    host: {
-      id: `host-${index + 1}`,
-      name: session.host.name,
-      rating: session.host.rating,
-      vibe: session.host.vibe,
-      current_elo: Math.round((elo_min + elo_max) / 2),
-      self_assessed_level: session.levelId,
-      skill_label: session.skillLabel,
-    },
-    slot: {
-      id: `slot-${index + 1}`,
-      start_time: `2026-03-27T${start}:00+07:00`,
-      end_time: `2026-03-27T${end}:00+07:00`,
-      price: Number(session.priceLabel.replace(/[^\d]/g, '')) * 4,
-      court: {
-        id: `court-${session.id}`,
-        name: session.courtName,
-        address: session.address,
-        city: session.address.includes('TP. HCM') ? 'TP. HCM' : 'TP. HCM',
-      },
-    },
-    session_players: session.players.map((player) => ({
-      player_id: player.id,
-      status: 'confirmed',
-      badge: player.badge,
-      player: {
-        id: player.id,
-        name: player.name,
-        current_elo: Math.round((elo_min + elo_max) / 2),
-        self_assessed_level: session.levelId,
-      },
-    })),
-    home_meta: {
-      match_score: session.matchScore,
-      skill_label: session.skillLabel,
-      open_slots_label: session.openSlotsLabel,
-      urgent: session.urgent,
-      joined: session.joined,
-      countdown_label: session.countdownLabel,
-    },
-  }
-}
-
-function buildRelativeSlotWindow(hoursUntilStart: number, durationHours: number) {
-  const startDate = new Date(Date.now() + hoursUntilStart * 60 * 60 * 1000)
-  const endDate = new Date(startDate.getTime() + durationHours * 60 * 60 * 1000)
-
-  return {
-    start_time: startDate.toISOString(),
-    end_time: endDate.toISOString(),
-  }
-}
-
-function formatCountdownLabelFromStartTime(startTime: string) {
-  const diffMs = Math.max(Date.parse(startTime) - Date.now(), 0)
-  const totalMinutes = Math.floor(diffMs / (60 * 1000))
-  const hours = Math.floor(totalMinutes / 60)
-  const minutes = totalMinutes % 60
-  const pad = (value: number) => value.toString().padStart(2, '0')
-
-  return `${pad(hours)}:${pad(minutes)}`
-}
-
-const HOME_SESSION_RECORDS: {
-  next: HomeMockSession | null
-  personalized: HomeMockSession[]
-  rescue: HomeMockSession[]
-} = {
-  next: nextMatch
-    ? (() => {
-        const session = buildHomeMockSession(nextMatch, 0)
-        const relativeSlot = buildRelativeSlotWindow(30, 1.5)
-
-        return {
-          ...session,
-          slot: {
-            ...session.slot,
-            start_time: relativeSlot.start_time,
-            end_time: relativeSlot.end_time,
-          },
-          home_meta: {
-            ...session.home_meta,
-            countdown_label: formatCountdownLabelFromStartTime(relativeSlot.start_time),
-          },
-        }
-      })()
-    : null,
-  personalized: personalizedSessions.map(buildHomeMockSession),
-  rescue: rescueSessions.map((session, index) => buildHomeMockSession(session, index + personalizedSessions.length + 1)),
-}
-
-const HOME_COURT_RECORDS: HomeMockCourtRecord[] = familiarCourts.map((court) => ({
-  id: court.id,
-  name: court.name,
-  address: court.area,
-  city: 'TP. HCM',
-  image: court.image,
-  home_meta: {
-    open_matches: court.openMatches,
-    note: court.note,
-  },
-}))
-
-function getLevelIdFromSession(session: Pick<HomeMockSession, 'elo_min' | 'elo_max' | 'host'>): SkillAssessmentLevel['id'] {
-  const hostLevel = session.host.self_assessed_level as SkillAssessmentLevel['id'] | undefined
-  if (hostLevel) return hostLevel
-  if (session.elo_max <= 950) return 'level_1'
-  if (session.elo_max <= 1150) return 'level_2'
-  if (session.elo_max <= 1300) return 'level_3'
-  if (session.elo_max <= 1500) return 'level_4'
-  return 'level_5'
-}
-
 function formatTimeLabel(startTime: string, endTime: string) {
   const startDate = new Date(startTime)
   const endDate = new Date(endTime)
-  const pad = (value: number) => value.toString().padStart(2, '0')
+  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+    return 'Chưa rõ thời gian'
+  }
 
-  return `${pad(startDate.getDate())}/${pad(startDate.getMonth() + 1)} · ${pad(startDate.getHours())}:${pad(
-    startDate.getMinutes(),
-  )} - ${pad(endDate.getHours())}:${pad(endDate.getMinutes())}`
+  const weekdayLabels = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
+  const pad = (value: number) => value.toString().padStart(2, '0')
+  const dateLabel = `${weekdayLabels[startDate.getDay()]}, ${pad(startDate.getDate())}/${pad(startDate.getMonth() + 1)}`
+  const startClock = `${pad(startDate.getHours())}:${pad(startDate.getMinutes())}`
+  const endClock = `${pad(endDate.getHours())}:${pad(endDate.getMinutes())}`
+
+  return `${dateLabel} · ${startClock} - ${endClock}`
 }
 
 function formatPriceLabel(totalPrice: number, maxPlayers: number) {
   const pricePerPerson = Math.round(totalPrice / Math.max(maxPlayers, 1))
-  return `${pricePerPerson.toLocaleString('vi-VN')}đ`
+  return `${pricePerPerson.toLocaleString('vi-VN')}d`
 }
 
 function getInitials(name: string) {
@@ -577,8 +240,8 @@ function getInitials(name: string) {
     .join('')
 }
 
-function getStatusLabel(bookingStatus: HomeMockSession['court_booking_status']) {
-  return bookingStatus === 'confirmed' ? 'Sân đã chốt' : 'Chờ chốt sân'
+function getStatusLabel(bookingStatus: HomeSessionRecord['court_booking_status']) {
+  return bookingStatus === 'confirmed' ? 'Sân đã chốt' : 'Chưa chốt sân'
 }
 
 function isWithinNext24Hours(startTime: string) {
@@ -592,58 +255,173 @@ function isWithinNext24Hours(startTime: string) {
   return diffMs > 0 && diffMs <= 24 * 60 * 60 * 1000
 }
 
-function mapHomeMockSessionToMatchSession(session: HomeMockSession): MatchSession {
-  const levelId = getLevelIdFromSession(session)
+function formatCountdownLabelFromStartTime(startTime: string) {
+  const diffMs = Math.max(Date.parse(startTime) - Date.now(), 0)
+  const totalMinutes = Math.floor(diffMs / (60 * 1000))
+  const hours = Math.floor(totalMinutes / 60)
+  const minutes = totalMinutes % 60
+  const pad = (value: number) => value.toString().padStart(2, '0')
+
+  return `${pad(hours)}:${pad(minutes)}`
+}
+
+function getLevelIdFromSession(session: Pick<HomeSessionRecord, 'elo_min' | 'elo_max' | 'host'>): SkillAssessmentLevel['id'] {
+  const hostLevel = session.host?.self_assessed_level as SkillAssessmentLevel['id'] | undefined
+  if (hostLevel) return hostLevel
+  if (session.elo_max <= 950) return 'level_1'
+  if (session.elo_max <= 1150) return 'level_2'
+  if (session.elo_max <= 1300) return 'level_3'
+  if (session.elo_max <= 1500) return 'level_4'
+  return 'level_5'
+}
+const COURT_FALLBACK_IMAGES = [
+  'https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=1200&q=80',
+  'https://images.unsplash.com/photo-1547347298-4074fc3086f0?auto=format&fit=crop&w=1200&q=80',
+  'https://images.unsplash.com/photo-1526232761682-d26e03ac148e?auto=format&fit=crop&w=1200&q=80',
+  'https://images.unsplash.com/photo-1505250469679-203ad9ced0cb?auto=format&fit=crop&w=1200&q=80',
+  'https://images.unsplash.com/photo-1518604666860-9ed391f76460?auto=format&fit=crop&w=1200&q=80',
+]
+
+function getLivePlayerBadge(player?: { reliability_score?: number | null }): Player['badge'] {
+  return (player?.reliability_score ?? 0) >= 95 ? 'trusted' : 'streak'
+}
+
+function getLiveHostRating(session: HomeSessionRecord, hostAverageRating?: number | null) {
+  if (hostAverageRating != null && hostAverageRating > 0) return Number(hostAverageRating.toFixed(1))
+
+  const hostReputation = session.host?.host_reputation ?? 0
+  const reliability = session.host?.reliability_score ?? 90
+  const normalized = 4.2 + Math.min(hostReputation, 20) * 0.03 + Math.min(Math.max(reliability - 85, 0), 15) * 0.01
+  return Math.min(5, Number(normalized.toFixed(1)))
+}
+
+function buildLiveHostVibe(session: HomeSessionRecord, slotsLeft: number) {
+  if (session.court_booking_status === 'confirmed' && slotsLeft <= 1) return 'Đã chốt sân, vào là chạy kèo'
+  if (slotsLeft <= 2) return 'Đang chờ ghép nốt đội hình đẹp'
+  if ((session.host?.reliability_score ?? 0) >= 95) return 'Host uy tín, phản hồi thường rất nhanh'
+  return 'Kèo đang mở, dễ ghép người và vào sân'
+}
+
+function computeLiveMatchScore(session: HomeSessionRecord, viewerElo?: number | null, joined?: boolean) {
+  const activePlayers = session.session_players.filter((player) => player.status !== 'rejected').length
+  const slotsLeft = Math.max(session.max_players - activePlayers, 0)
+  const midpoint = Math.round((session.elo_min + session.elo_max) / 2)
+  const eloGap = viewerElo == null ? 80 : Math.abs(viewerElo - midpoint)
+
+  let score = 72
+  if (session.court_booking_status === 'confirmed') score += 10
+  if (isWithinNext24Hours(session.slot?.start_time ?? '')) score += 7
+  if (slotsLeft > 0 && slotsLeft <= 2) score += 8
+  if (joined) score += 6
+  if (eloGap <= 60) score += 10
+  else if (eloGap <= 140) score += 6
+  else if (eloGap <= 220) score += 3
+
+  return Math.max(78, Math.min(score, 99))
+}
+
+function mapLiveSessionToMatchSession(
+  session: HomeSessionRecord,
+  options?: { viewerId?: string | null; viewerElo?: number | null; hostAverageRating?: number | null; urgent?: boolean },
+): MatchSession {
+  const levelId = getLevelIdFromSession(session as any)
+  const joined =
+    (options?.viewerId != null && session.host_id === options.viewerId) ||
+    session.session_players.some((player) => player.player_id === options?.viewerId)
+  const players = session.session_players
+    .filter((player) => player.status !== 'rejected' && player.player)
+    .slice(0, 3)
+    .map((sessionPlayer) => ({
+      id: sessionPlayer.player?.id ?? sessionPlayer.player_id,
+      name: sessionPlayer.player?.name ?? 'Người chơi',
+      initials: getInitials(sessionPlayer.player?.name ?? 'Người chơi'),
+      badge: getLivePlayerBadge(sessionPlayer.player ?? undefined),
+    }))
+  const activePlayers = session.session_players.filter((player) => player.status !== 'rejected').length
+  const slotsLeft = Math.max(session.max_players - activePlayers, 0)
+  const urgent = options?.urgent ?? slotsLeft <= 2
+  const court = session.slot?.court
 
   return {
     id: session.id,
-    title: session.title,
-    bookingId: session.booking_id,
-    courtName: session.slot.court.name,
-    address: session.slot.court.address,
-    matchScore: session.home_meta.match_score,
+    title: urgent ? 'Cần chốt đội hình' : `Kèo ${getSkillLevelUi(levelId).shortLabel.toLowerCase()}`,
+    bookingId: `BK-${session.id.slice(0, 6).toUpperCase()}`,
+    courtName: court?.name ?? 'Kèo Pickleball',
+    address: [court?.address, court?.city].filter(Boolean).join(', '),
+    matchScore: computeLiveMatchScore(session, options?.viewerElo, joined),
     skillLabel: getSkillLevelUi(levelId).shortLabel,
-    timeLabel: formatTimeLabel(session.slot.start_time, session.slot.end_time),
-    priceLabel: formatPriceLabel(session.slot.price, session.max_players),
-    openSlotsLabel:
-      session.home_meta.open_slots_label ||
-      `${Math.max(session.max_players - session.session_players.length, 0)} chỗ trống`,
-    statusLabel: getStatusLabel(session.court_booking_status),
-    countdownLabel: session.home_meta.countdown_label,
+    timeLabel: formatTimeLabel(session.slot?.start_time ?? new Date().toISOString(), session.slot?.end_time ?? new Date().toISOString()),
+    priceLabel: formatPriceLabel(session.slot?.price ?? 0, session.max_players),
+    openSlotsLabel: urgent ? `Thiếu ${Math.max(slotsLeft, 1)} người` : `${slotsLeft} chỗ trống`,
+    statusLabel: getStatusLabel(session.court_booking_status as any),
+    countdownLabel: isWithinNext24Hours(session.slot?.start_time ?? '') ? formatCountdownLabelFromStartTime(session.slot?.start_time ?? '') : undefined,
     levelId,
     host: {
-      name: session.host.name,
-      rating: session.host.rating,
-      vibe: session.host.vibe,
+      name: session.host?.name ?? 'Ẩn danh',
+      rating: getLiveHostRating(session, options?.hostAverageRating),
+      vibe: buildLiveHostVibe(session, slotsLeft),
     },
-    players: session.session_players.map((sessionPlayer) => ({
-      id: sessionPlayer.player.id,
-      name: sessionPlayer.player.name,
-      initials: getInitials(sessionPlayer.player.name),
-      badge: sessionPlayer.badge,
-    })),
-    urgent: session.home_meta.urgent,
-    joined: session.home_meta.joined,
+    players,
+    urgent,
+    joined,
   }
 }
 
-function mapHomeMockCourtToFamiliarCourt(court: HomeMockCourtRecord): FamiliarCourt {
-  return {
-    id: court.id,
-    name: court.name,
-    area: court.address,
-    openMatches: court.home_meta.open_matches,
-    note: court.home_meta.note,
-    image: court.image ?? '',
-  }
+function buildLiveFamiliarCourts(sessions: HomeSessionRecord[]) {
+  const grouped = new Map<string, { id: string; name: string; area: string; openMatches: number }>()
+
+  sessions.forEach((session) => {
+    const court = session.slot?.court
+    if (!court) return
+
+    const current = grouped.get(court.id)
+    if (current) {
+      current.openMatches += 1
+      return
+    }
+
+    grouped.set(court.id, {
+      id: court.id,
+      name: court.name,
+      area: court.city || court.address,
+      openMatches: 1,
+    })
+  })
+
+  return Array.from(grouped.values())
+    .sort((left, right) => right.openMatches - left.openMatches)
+    .slice(0, 5)
+    .map((court, index) => ({
+      id: court.id,
+      name: court.name,
+      area: court.area,
+      openMatches: court.openMatches,
+      note:
+        court.openMatches >= 4
+          ? 'Nhiều kèo đang mở, dễ vào sân nhanh'
+          : court.openMatches >= 2
+            ? 'Có kèo đều trong ngày, hợp để canh ghép trình'
+            : 'Đang có tín hiệu mở kèo, đáng để theo dõi',
+      image: COURT_FALLBACK_IMAGES[index % COURT_FALLBACK_IMAGES.length],
+    }))
 }
 
-const HOME_NEXT_MATCH = HOME_SESSION_RECORDS.next ? mapHomeMockSessionToMatchSession(HOME_SESSION_RECORDS.next) : null
-const HOME_NEXT_MATCH_IN_24_HOURS =
-  HOME_SESSION_RECORDS.next && isWithinNext24Hours(HOME_SESSION_RECORDS.next.slot.start_time) ? HOME_NEXT_MATCH : null
-const HOME_PERSONALIZED_SESSIONS = HOME_SESSION_RECORDS.personalized.map(mapHomeMockSessionToMatchSession)
-const HOME_RESCUE_SESSIONS = HOME_SESSION_RECORDS.rescue.map(mapHomeMockSessionToMatchSession)
-const HOME_FAMILIAR_COURTS = HOME_COURT_RECORDS.map(mapHomeMockCourtToFamiliarCourt)
+function buildDashboardStats(profile: HomeProfile | null, playerStats: PlayerStatsRecord | null): StatItem[] {
+  const eloValue = profile?.current_elo ?? profile?.elo ?? 0
+  const reliabilityValue = profile?.reliability_score ?? 100
+
+  return [
+    { id: 'elo', label: 'ELO', value: eloValue ? eloValue.toLocaleString('vi-VN') : '--', accent: 'text-indigo-700', icon: TrendingUp },
+    {
+      id: 'streak',
+      label: 'STREAK',
+      value: String(playerStats?.current_win_streak ?? 0).padStart(2, '0'),
+      accent: 'text-orange-600',
+      icon: Zap,
+    },
+    { id: 'reputation', label: 'UY TÍN', value: `${reliabilityValue}%`, accent: 'text-emerald-600', icon: ShieldCheck },
+  ]
+}
 
 function hexToRgb(hex: string) {
   const clean = hex.replace('#', '')
@@ -930,6 +708,7 @@ function HeroThemeCard({
   const skillUi = getSkillLevelUi(item.levelId)
   const WatermarkIcon = skillUi.icon
   const textPalette = getHeroTextPalette(skillUi.heroFrom)
+  const openSession = () => router.push({ pathname: '/session/[id]', params: { id: item.id } })
 
   return (
     <View
@@ -1066,7 +845,8 @@ function HeroThemeCard({
                 <AvatarStack players={item.players} />
               </View>
 
-              <View
+              <Pressable
+                onPress={openSession}
                 className="shrink-0 flex-row items-center rounded-full px-4 py-3.5"
                 style={{ backgroundColor: textPalette.softChip, borderWidth: 1, borderColor: textPalette.smartCardBorder }}
               >
@@ -1074,7 +854,7 @@ function HeroThemeCard({
                 <Text className="ml-2 text-[11px] font-black uppercase tracking-[1.8px]" style={{ color: textPalette.primary }}>
                   {actionLabel}
                 </Text>
-              </View>
+              </Pressable>
             </View>
           </View>
         </View>
@@ -1088,6 +868,7 @@ const _SmartMatchCard = memo(function SmartMatchCard({ item }: { item: MatchSess
   const eloRange = getEloRangeForLevel(item.levelId)
   const eloValue = getSkillTargetElo(eloRange.elo_min, eloRange.elo_max)
   const isConfirmed = item.statusLabel.toLowerCase().includes('chốt')
+  const openSession = () => router.push({ pathname: '/session/[id]', params: { id: item.id } })
 
   return (
     <View
@@ -1206,7 +987,7 @@ const _SmartMatchCard = memo(function SmartMatchCard({ item }: { item: MatchSess
               <AvatarStack players={item.players} />
             </View>
 
-            <Pressable className="shrink-0 flex-row items-center rounded-full bg-emerald-600 px-4 py-3.5">
+            <Pressable onPress={openSession} className="shrink-0 flex-row items-center rounded-full bg-emerald-600 px-4 py-3.5">
               <Users size={13} color="#ffffff" strokeWidth={iconStroke} />
               <Text className="ml-2 text-[11px] font-black uppercase tracking-[1.8px] text-white">Tham gia</Text>
             </Pressable>
@@ -1223,6 +1004,7 @@ const SmartQueueHeroCard = memo(function SmartQueueHeroCard({ item }: { item: Ma
   const skillUi = getSkillLevelUi(item.levelId)
   const textPalette = getHeroTextPalette(skillUi.heroFrom)
   const WatermarkIcon = skillUi.icon
+  const openSession = () => router.push({ pathname: '/session/[id]', params: { id: item.id } })
 
   return (
     <View
@@ -1270,7 +1052,7 @@ const SmartQueueHeroCard = memo(function SmartQueueHeroCard({ item }: { item: Ma
       <View className="flex-row items-start justify-between">
         <View className="flex-row flex-wrap items-center gap-2">
           <HeroChip icon={ShieldCheck} label={item.statusLabel} palette={textPalette} />
-          {item.urgent ? <MiniBadge icon={Zap} label="Cứu net" tone="urgent" /> : null}
+          {item.urgent ? <MiniBadge icon={Zap} label="Cứu nét" tone="urgent" /> : null}
         </View>
         <View className="rounded-full px-3 py-2" style={{ backgroundColor: textPalette.softChip }}>
           <Text className="text-sm font-black" style={{ color: textPalette.primary }}>
@@ -1331,7 +1113,7 @@ const SmartQueueHeroCard = memo(function SmartQueueHeroCard({ item }: { item: Ma
           </View>
         </View>
 
-        <Pressable className="rounded-full px-5 py-4" style={{ backgroundColor: item.urgent ? '#fb923c' : '#ffffff' }}>
+        <Pressable onPress={openSession} className="rounded-full px-5 py-4" style={{ backgroundColor: item.urgent ? '#fb923c' : '#ffffff' }}>
           <Text className="text-xs font-black uppercase tracking-[2.4px]" style={{ color: item.urgent ? '#ffffff' : skillUi.heroFrom }}>
             Tham gia
           </Text>
@@ -1345,6 +1127,7 @@ const SmartQueueHeroCard = memo(function SmartQueueHeroCard({ item }: { item: Ma
 const SmartQueueStructuredCard = memo(function SmartQueueStructuredCard({ item }: { item: MatchSession }) {
   const skillUi = getSkillLevelUi(item.levelId)
   const SkillIcon = skillUi.icon
+  const openSession = () => router.push({ pathname: '/session/[id]', params: { id: item.id } })
 
   return (
     <View
@@ -1370,10 +1153,10 @@ const SmartQueueStructuredCard = memo(function SmartQueueStructuredCard({ item }
         }}
       />
 
-      <View className="flex-row items-center justify-between">
+        <View className="flex-row items-center justify-between">
         <View className="flex-row flex-wrap items-center gap-2">
           <MiniBadge icon={ShieldCheck} label={item.statusLabel} tone="neutral" />
-          {item.urgent ? <MiniBadge icon={Zap} label="Cứu net" tone="urgent" /> : null}
+          {item.urgent ? <MiniBadge icon={Zap} label="Cứu nét" tone="urgent" /> : null}
         </View>
         <Text className="text-xs font-bold uppercase tracking-[2.4px] text-slate-400">#{item.bookingId}</Text>
       </View>
@@ -1426,7 +1209,7 @@ const SmartQueueStructuredCard = memo(function SmartQueueStructuredCard({ item }
           <Text className="text-xs font-bold uppercase tracking-[2.2px] text-slate-500">Bạn?</Text>
         </View>
 
-        <Pressable className="rounded-full bg-emerald-600 px-5 py-4">
+        <Pressable onPress={openSession} className="rounded-full bg-emerald-600 px-5 py-4">
           <Text className="text-xs font-black uppercase tracking-[2.4px] text-white">Tham gia</Text>
         </Pressable>
       </View>
@@ -1441,6 +1224,7 @@ const SmartQueueHeroStyledCard = memo(function SmartQueueHeroStyledCard({ item }
   const eloRange = getEloRangeForLevel(item.levelId)
   const eloValue = getSkillTargetElo(eloRange.elo_min, eloRange.elo_max)
   const isConfirmed = item.statusLabel.toLowerCase().includes('chốt')
+  const openSession = () => router.push({ pathname: '/session/[id]', params: { id: item.id } })
 
   return (
     <View
@@ -1618,7 +1402,7 @@ const SmartQueueHeroStyledCard = memo(function SmartQueueHeroStyledCard({ item }
               <AvatarStack players={item.players} />
             </View>
 
-            <Pressable className="shrink-0 flex-row items-center rounded-full px-4 py-3.5" style={{ backgroundColor: textPalette.primary }}>
+            <Pressable onPress={openSession} className="shrink-0 flex-row items-center rounded-full px-4 py-3.5" style={{ backgroundColor: textPalette.primary }}>
               <Users size={13} color={skillUi.heroFrom} strokeWidth={iconStroke} />
               <Text className="ml-2 text-[11px] font-black uppercase tracking-[1.8px]" style={{ color: skillUi.heroFrom }}>
                 Tham gia
@@ -1772,10 +1556,153 @@ function SwipeStack<T>({
 
 export default function HomeScreen() {
   const theme = useAppTheme()
+  const { userId, isLoading: isAuthLoading } = useAuth()
   const [personalizedIndex, setPersonalizedIndex] = useState(0)
   const [rescueIndex, setRescueIndex] = useState(0)
   const [courtIndex, setCourtIndex] = useState(0)
-  const hasUpcomingMatch = Boolean(HOME_NEXT_MATCH_IN_24_HOURS)
+  const [refreshing, setRefreshing] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [profile, setProfile] = useState<HomeProfile | null>(null)
+  const [playerStats, setPlayerStats] = useState<PlayerStatsRecord | null>(null)
+  const [nextMatch, setNextMatch] = useState<MatchSession | null>(null)
+  const [personalizedSessions, setPersonalizedSessions] = useState<MatchSession[]>([])
+  const [rescueSessions, setRescueSessions] = useState<MatchSession[]>([])
+  const [familiarCourts, setFamiliarCourts] = useState<FamiliarCourt[]>([])
+  const hasUpcomingMatch = Boolean(nextMatch)
+  const fetchHomeData = useCallback(async () => {
+    if (isAuthLoading) return
+
+    setLoading(true)
+
+    try {
+      const openSessionsPromise = supabase
+        .from('sessions')
+        .select(
+          `
+          id, host_id, elo_min, elo_max, max_players, status, court_booking_status, created_at,
+          host:host_id ( id, name, current_elo, elo, self_assessed_level, skill_label, reliability_score, host_reputation ),
+          slot:slot_id (
+            id, start_time, end_time, price,
+            court:court_id ( id, name, address, city )
+          ),
+          session_players (
+            player_id, status,
+            player:player_id ( id, name, reliability_score, current_elo, self_assessed_level, skill_label )
+          )
+        `,
+        )
+        .eq('status', 'open')
+        .order('created_at', { ascending: false })
+        .limit(30)
+
+      const profilePromise = userId
+        ? supabase
+            .from('players')
+            .select('id, name, current_elo, elo, reliability_score, host_reputation')
+            .eq('id', userId)
+            .maybeSingle()
+        : Promise.resolve({ data: null })
+
+      const playerStatsPromise = userId
+        ? supabase
+            .from('player_stats')
+            .select('current_win_streak, host_average_rating')
+            .eq('player_id', userId)
+            .maybeSingle()
+        : Promise.resolve({ data: null })
+
+      const overviewPromise = userId ? supabase.rpc('get_my_sessions_overview') : Promise.resolve({ data: [] })
+
+      const [openSessionsResult, profileResult, playerStatsResult, overviewResult] = await Promise.all([
+        openSessionsPromise,
+        profilePromise,
+        playerStatsPromise,
+        overviewPromise,
+      ])
+
+      const openSessions = ((openSessionsResult.data ?? []) as unknown as HomeSessionRecordRaw[]).map(normalizeHomeSessionRecord)
+      const nextProfile = (profileResult.data ?? null) as HomeProfile | null
+      const nextPlayerStats = (playerStatsResult.data ?? null) as PlayerStatsRecord | null
+      const overviewRows = (overviewResult.data ?? []) as MySessionOverviewRow[]
+      const viewerElo = nextProfile?.current_elo ?? nextProfile?.elo ?? null
+
+      const sortedOpenSessions = [...openSessions].sort(
+        (left, right) => Date.parse(left.slot?.start_time ?? '') - Date.parse(right.slot?.start_time ?? ''),
+      )
+
+      const upcomingOverview = overviewRows
+        .filter((item) => item.status === 'open' && isWithinNext24Hours(item.start_time))
+        .sort((left, right) => Date.parse(left.start_time) - Date.parse(right.start_time))[0]
+
+      const liveNextSession =
+        sortedOpenSessions.find((session) => session.id === upcomingOverview?.id) ??
+        sortedOpenSessions.find(
+          (session) =>
+            isWithinNext24Hours(session.slot?.start_time ?? '') &&
+            (session.host_id === userId || session.session_players.some((player) => player.player_id === userId)),
+        ) ??
+        null
+
+      setProfile(nextProfile)
+      setPlayerStats(nextPlayerStats)
+      setNextMatch(
+        liveNextSession
+          ? mapLiveSessionToMatchSession(liveNextSession, {
+              viewerId: userId,
+              viewerElo,
+              hostAverageRating: nextPlayerStats?.host_average_rating,
+            })
+          : null,
+      )
+      setPersonalizedSessions(
+        sortedOpenSessions
+          .filter((session) => session.id !== liveNextSession?.id)
+          .map((session) => mapLiveSessionToMatchSession(session, { viewerId: userId, viewerElo }))
+          .sort((left, right) => right.matchScore - left.matchScore)
+          .slice(0, 5),
+      )
+      setRescueSessions(
+        sortedOpenSessions
+          .filter((session) => {
+            const activePlayers = session.session_players.filter((player) => player.status !== 'rejected').length
+            const slotsLeft = Math.max(session.max_players - activePlayers, 0)
+            return slotsLeft > 0 && slotsLeft <= 2
+          })
+          .map((session) => mapLiveSessionToMatchSession(session, { viewerId: userId, viewerElo, urgent: true }))
+          .sort((left, right) => right.matchScore - left.matchScore)
+          .slice(0, 5),
+      )
+      setFamiliarCourts(buildLiveFamiliarCourts(sortedOpenSessions))
+    } catch (error) {
+      console.warn('[HomeScreen] fetchHomeData failed:', error)
+      setProfile(null)
+      setPlayerStats(null)
+      setNextMatch(null)
+      setPersonalizedSessions([])
+      setRescueSessions([])
+      setFamiliarCourts([])
+    } finally {
+      setLoading(false)
+    }
+  }, [isAuthLoading, userId])
+
+  useEffect(() => {
+    void fetchHomeData()
+  }, [fetchHomeData])
+
+  useFocusEffect(
+    useCallback(() => {
+      void fetchHomeData()
+    }, [fetchHomeData]),
+  )
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true)
+    await fetchHomeData()
+    setRefreshing(false)
+  }, [fetchHomeData])
+
+  const dashboardStats = buildDashboardStats(profile, playerStats)
   const statusPrompt = hasUpcomingMatch ? 'Đã sẵn sàng ra sân chưa?' : 'Hôm nay ra sân chứ'
   const renderPersonalizedCard = useCallback(
     (item: MatchSession) => (hasUpcomingMatch ? <_SmartMatchCard item={item} /> : <SmartQueueHeroStyledCard item={item} />),
@@ -1790,55 +1717,63 @@ export default function HomeScreen() {
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: 160 }}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />}
         >
-          <HomeGreetingHeader name={userProfile.name} statusPrompt={statusPrompt} />
+          <HomeGreetingHeader name={profile?.name ?? 'Bạn'} statusPrompt={statusPrompt} />
 
           <DashboardStatsStrip items={dashboardStats} />
 
-          {HOME_NEXT_MATCH_IN_24_HOURS ? (
+          {nextMatch ? (
             <View className="mt-8">
-              <HeroThemeCard item={HOME_NEXT_MATCH_IN_24_HOURS} actionLabel="Sẵn sàng" />
+              <HeroThemeCard item={nextMatch} actionLabel="Sẵn sàng" />
             </View>
           ) : null}
 
-          <View className="mt-6">
+          {loading ? (
+            <View className="mt-8 items-center rounded-[28px] border border-slate-200 bg-white py-12">
+              <ActivityIndicator color={theme.primary} />
+              <Text className="mt-4 text-sm font-semibold text-slate-500">Đang tải dữ liệu thật từ hệ thống...</Text>
+            </View>
+          ) : null}
+
+          {personalizedSessions.length > 0 ? <View className="mt-6">
             <SectionHeader eyebrow="Smart Queue" title="Dành riêng cho bạn" />
             <SwipeStack
-              items={HOME_PERSONALIZED_SESSIONS}
+              items={personalizedSessions}
               containerHeight={CAROUSEL_SECTION_HEIGHT}
               renderCard={renderPersonalizedCard}
               onIndexChange={setPersonalizedIndex}
             />
             <View className="mt-4">
-              <CarouselDots count={HOME_PERSONALIZED_SESSIONS.length} activeIndex={personalizedIndex} />
+              <CarouselDots count={personalizedSessions.length} activeIndex={personalizedIndex} />
             </View>
-          </View>
+          </View> : null}
 
-          <View className="mt-10">
-            <SectionHeader eyebrow="Urgent Fill" title="Cứu net khẩn cấp" />
+          {rescueSessions.length > 0 ? <View className="mt-10">
+            <SectionHeader eyebrow="Urgent Fill" title="Cứu nét khẩn cấp" />
             <SwipeStack
-              items={HOME_RESCUE_SESSIONS}
+              items={rescueSessions}
               containerHeight={CAROUSEL_SECTION_HEIGHT}
               renderCard={renderRescueCard}
               onIndexChange={setRescueIndex}
             />
             <View className="mt-4">
-              <CarouselDots count={HOME_RESCUE_SESSIONS.length} activeIndex={rescueIndex} />
+              <CarouselDots count={rescueSessions.length} activeIndex={rescueIndex} />
             </View>
-          </View>
+          </View> : null}
 
-          <View className="mt-10">
+          {familiarCourts.length > 0 ? <View className="mt-10">
             <SectionHeader eyebrow="Go-To Courts" title="Sân quen của bạn" />
             <SwipeStack
-              items={HOME_FAMILIAR_COURTS}
+              items={familiarCourts}
               containerHeight={COURT_CAROUSEL_HEIGHT}
               renderCard={renderCourtCard}
               onIndexChange={setCourtIndex}
             />
             <View className="mt-4">
-              <CarouselDots count={HOME_FAMILIAR_COURTS.length} activeIndex={courtIndex} />
+              <CarouselDots count={familiarCourts.length} activeIndex={courtIndex} />
             </View>
-          </View>
+          </View> : null}
         </ScrollView>
 
         <Pressable

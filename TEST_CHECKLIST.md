@@ -96,6 +96,47 @@ Accounts:
 
 - mở profile/public profile để xem dữ liệu historical từ `doneHistorical`
 
+### Completion / Result Confirmation
+
+- đăng nhập `host.approval@picklematch.vn`
+- mở `pendingCompletion`
+- xác nhận host nhìn thấy session đang chờ submit kết quả
+
+- đăng nhập `player.matched@picklematch.vn`
+- mở `resultsPending`
+- xác nhận trạng thái chờ confirm kết quả
+
+- đăng nhập `host.confirmed@picklematch.vn`
+- mở `resultsDisputed`
+- xác nhận thấy dispute note từ player
+
+- đăng nhập `host.approval@picklematch.vn`
+- mở `autoClosed`
+- xác nhận session đã finalized do auto-close
+
+- đăng nhập `host.confirmed@picklematch.vn`
+- mở `ghostVoided`
+- xác nhận session bị void / ghost-report
+
+### Achievements / Notifications mở rộng
+
+- đăng nhập `player.matched@picklematch.vn`
+- mở profile + notifications
+- kiểm tra `achievement_unlocked`
+
+- đăng nhập `host.approval@picklematch.vn`
+- mở notifications
+- kiểm tra:
+  - `session_pending_completion`
+  - `session_auto_closed`
+  - `host_unprofessional_reported`
+
+- đăng nhập `host.confirmed@picklematch.vn`
+- mở notifications
+- kiểm tra:
+  - `session_results_disputed`
+  - `ghost_session_voided`
+
 ## 4. Session IDs mẫu
 
 - `openConfirmed`: `55555555-5555-5555-5555-555555555551`
@@ -105,8 +146,14 @@ Accounts:
 - `cancelled`: `55555555-5555-5555-5555-555555555555`
 - `provisionalHost`: `55555555-5555-5555-5555-555555555556`
 - `doneHistorical`: `55555555-5555-5555-5555-555555555557`
+- `resultsPending`: `55555555-5555-5555-5555-555555555558`
+- `resultsDisputed`: `55555555-5555-5555-5555-555555555559`
+- `pendingCompletion`: `55555555-5555-5555-5555-555555555560`
+- `autoClosed`: `55555555-5555-5555-5555-555555555561`
+- `ghostVoided`: `55555555-5555-5555-5555-555555555562`
 
 ## 5. Lưu ý
 
 - Cron auto-finalize rating sau 24h vẫn đang hold, chưa rollout.
 - Nếu test TypeScript bằng `tsc`, hiện phần Edge Function Deno cần cấu hình riêng, không thuộc app runtime Expo.
+- Tab `Home` hiện vẫn có mock UI riêng nên không phản ánh toàn bộ seed backend.

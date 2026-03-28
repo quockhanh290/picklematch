@@ -31,6 +31,11 @@ const IDS = {
     cancelled: '44444444-4444-4444-4444-444444444445',
     provisionalHost: '44444444-4444-4444-4444-444444444446',
     doneHistorical: '44444444-4444-4444-4444-444444444447',
+    resultsPending: '44444444-4444-4444-4444-444444444448',
+    resultsDisputed: '44444444-4444-4444-4444-444444444449',
+    pendingCompletion: '44444444-4444-4444-4444-444444444450',
+    autoClosed: '44444444-4444-4444-4444-444444444451',
+    ghostVoided: '44444444-4444-4444-4444-444444444452',
   },
   sessions: {
     openConfirmed: '55555555-5555-5555-5555-555555555551',
@@ -40,6 +45,11 @@ const IDS = {
     cancelled: '55555555-5555-5555-5555-555555555555',
     provisionalHost: '55555555-5555-5555-5555-555555555556',
     doneHistorical: '55555555-5555-5555-5555-555555555557',
+    resultsPending: '55555555-5555-5555-5555-555555555558',
+    resultsDisputed: '55555555-5555-5555-5555-555555555559',
+    pendingCompletion: '55555555-5555-5555-5555-555555555560',
+    autoClosed: '55555555-5555-5555-5555-555555555561',
+    ghostVoided: '55555555-5555-5555-5555-555555555562',
   },
   notifications: {
     joinRequest: '66666666-6666-6666-6666-666666666661',
@@ -49,6 +59,14 @@ const IDS = {
     sessionCancelled: '66666666-6666-6666-6666-666666666665',
     sessionUpdated: '66666666-6666-6666-6666-666666666666',
     joinRequestReply: '66666666-6666-6666-6666-666666666667',
+    achievementUnlocked: '66666666-6666-6666-6666-666666666668',
+    sessionPendingCompletion: '66666666-6666-6666-6666-666666666669',
+    sessionResultsSubmitted: '66666666-6666-6666-6666-666666666670',
+    sessionResultsDisputed: '66666666-6666-6666-6666-666666666671',
+    sessionAutoClosed: '66666666-6666-6666-6666-666666666672',
+    sessionReadyForRating: '66666666-6666-6666-6666-666666666673',
+    ghostSessionVoided: '66666666-6666-6666-6666-666666666674',
+    hostUnprofessionalReported: '66666666-6666-6666-6666-666666666675',
   },
   ratings: {
     r1: '77777777-7777-7777-7777-777777777771',
@@ -267,19 +285,110 @@ async function resetDummyRows(authUsers) {
   const sessionIds = Object.values(IDS.sessions)
   const slotIds = Object.values(IDS.slots)
   const courtIds = Object.values(IDS.courts)
-  const notificationIds = Object.values(IDS.notifications)
   const ratingIds = Object.values(IDS.ratings)
   const playerIds = Object.values(authUsers).map((user) => user.id)
 
+  await supabase.from('player_achievements').delete().in('player_id', playerIds)
+  await supabase.from('player_stats').delete().in('player_id', playerIds)
   await supabase.from('ratings').delete().in('id', ratingIds)
   await supabase.from('ratings').delete().in('session_id', sessionIds)
-  await supabase.from('notifications').delete().in('id', notificationIds)
+  await supabase.from('ratings').delete().in('rated_id', playerIds)
+  await supabase.from('ratings').delete().in('rater_id', playerIds)
+  await supabase.from('notifications').delete().in('player_id', playerIds)
   await supabase.from('join_requests').delete().in('match_id', sessionIds)
+  await supabase.from('join_requests').delete().in('player_id', playerIds)
   await supabase.from('session_players').delete().in('session_id', sessionIds)
   await supabase.from('sessions').delete().in('id', sessionIds)
   await supabase.from('court_slots').delete().in('id', slotIds)
   await supabase.from('courts').delete().in('id', courtIds)
   await supabase.from('players').delete().in('id', playerIds)
+}
+
+async function seedPlayerStatsAndAchievements(authUsers) {
+  const statsRows = [
+    {
+      player_id: authUsers.hostConfirmed.id,
+      total_matches: 24,
+      total_wins: 16,
+      current_win_streak: 3,
+      max_win_streak: 6,
+      last_match_at: isoAt(-1, 21, 0),
+      streak_fire_active: true,
+      streak_fire_level: 1,
+      host_average_rating: 4.92,
+    },
+    {
+      player_id: authUsers.matchedPlayer.id,
+      total_matches: 14,
+      total_wins: 9,
+      current_win_streak: 2,
+      max_win_streak: 4,
+      last_match_at: isoAt(-1, 21, 0),
+      streak_fire_active: false,
+      streak_fire_level: 0,
+      host_average_rating: 0,
+    },
+    {
+      player_id: authUsers.provisionalHost.id,
+      total_matches: 4,
+      total_wins: 2,
+      current_win_streak: 1,
+      max_win_streak: 2,
+      last_match_at: isoAt(-1, 21, 0),
+      streak_fire_active: false,
+      streak_fire_level: 0,
+      host_average_rating: 3.8,
+    },
+  ]
+
+  const { error: statsError } = await supabase.from('player_stats').upsert(statsRows)
+  if (statsError) throw statsError
+
+  const achievementRows = [
+    {
+      player_id: authUsers.hostConfirmed.id,
+      badge_key: 'active_member_20',
+      badge_title: 'Hoi vien tich cuc',
+      badge_category: 'progression',
+      badge_description: 'Hoan thanh 20 tran pickleball tren PickleMatch.',
+      icon: 'medal',
+      earned_at: isoAt(-10, 8, 0),
+      meta: { source: 'seed' },
+    },
+    {
+      player_id: authUsers.hostConfirmed.id,
+      badge_key: 'golden_host',
+      badge_title: 'Host Vang',
+      badge_category: 'conduct',
+      badge_description: 'Giu diem host trung binh tu 4.9 tro len.',
+      icon: 'shield',
+      earned_at: isoAt(-4, 8, 0),
+      meta: { source: 'seed' },
+    },
+    {
+      player_id: authUsers.matchedPlayer.id,
+      badge_key: 'giant_slayer',
+      badge_title: 'Giant Slayer',
+      badge_category: 'performance',
+      badge_description: 'Thang mot keo co nguong trinh cao hon ban it nhat 100 Elo.',
+      icon: 'swords',
+      earned_at: isoAt(-6, 8, 0),
+      meta: { source: 'seed' },
+    },
+    {
+      player_id: authUsers.matchedPlayer.id,
+      badge_key: 'win_streak_3',
+      badge_title: 'Win Streak',
+      badge_category: 'momentum',
+      badge_description: 'Dat chuoi thang 3 tran lien tiep.',
+      icon: 'flame',
+      earned_at: isoAt(-2, 8, 0),
+      meta: { source: 'seed', streak: 3 },
+    },
+  ]
+
+  const { error: achievementError } = await supabase.from('player_achievements').insert(achievementRows)
+  if (achievementError) throw achievementError
 }
 
 async function seedPlayers(authUsers) {
@@ -415,6 +524,16 @@ async function seedSlotsAndSessions(authUsers) {
     provisionalHostEnd: isoAt(2, 9, 0),
     doneHistoricalStart: isoAt(-7, 19, 0),
     doneHistoricalEnd: isoAt(-7, 21, 0),
+    resultsPendingStart: isoAt(-1, 21, 0),
+    resultsPendingEnd: isoAt(-1, 22, 30),
+    resultsDisputedStart: isoAt(-2, 18, 0),
+    resultsDisputedEnd: isoAt(-2, 20, 0),
+    pendingCompletionStart: isoAt(-1, 8, 0),
+    pendingCompletionEnd: isoAt(-1, 10, 0),
+    autoClosedStart: isoAt(-3, 19, 0),
+    autoClosedEnd: isoAt(-3, 21, 0),
+    ghostVoidedStart: isoAt(-4, 18, 30),
+    ghostVoidedEnd: isoAt(-4, 20, 0),
   }
 
   const slots = [
@@ -425,6 +544,11 @@ async function seedSlotsAndSessions(authUsers) {
     { id: IDS.slots.cancelled, court_id: IDS.courts.tanBinh, start_time: times.cancelledStart, end_time: times.cancelledEnd, price: 125000, status: 'booked' },
     { id: IDS.slots.provisionalHost, court_id: IDS.courts.tanBinh, start_time: times.provisionalHostStart, end_time: times.provisionalHostEnd, price: 90000, status: 'booked' },
     { id: IDS.slots.doneHistorical, court_id: IDS.courts.thaoDien, start_time: times.doneHistoricalStart, end_time: times.doneHistoricalEnd, price: 150000, status: 'booked' },
+    { id: IDS.slots.resultsPending, court_id: IDS.courts.vanPhuc, start_time: times.resultsPendingStart, end_time: times.resultsPendingEnd, price: 105000, status: 'booked' },
+    { id: IDS.slots.resultsDisputed, court_id: IDS.courts.thaoDien, start_time: times.resultsDisputedStart, end_time: times.resultsDisputedEnd, price: 165000, status: 'booked' },
+    { id: IDS.slots.pendingCompletion, court_id: IDS.courts.tanBinh, start_time: times.pendingCompletionStart, end_time: times.pendingCompletionEnd, price: 95000, status: 'booked' },
+    { id: IDS.slots.autoClosed, court_id: IDS.courts.vanPhuc, start_time: times.autoClosedStart, end_time: times.autoClosedEnd, price: 115000, status: 'booked' },
+    { id: IDS.slots.ghostVoided, court_id: IDS.courts.tanBinh, start_time: times.ghostVoidedStart, end_time: times.ghostVoidedEnd, price: 130000, status: 'booked' },
   ]
 
   const { error: slotError } = await supabase.from('court_slots').upsert(slots)
@@ -606,6 +730,152 @@ async function seedSlotsAndSessions(authUsers) {
       booking_confirmed_at: isoAt(-8, 10, 0),
       was_full_when_cancelled: false,
     },
+    {
+      id: IDS.sessions.resultsPending,
+      host_id: authUsers.hostApproval.id,
+      slot_id: IDS.slots.resultsPending,
+      elo_min: 1100,
+      elo_max: 1300,
+      max_players: 4,
+      status: 'done',
+      results_status: 'pending_confirmation',
+      results_submitted_at: isoAt(-1, 23, 0),
+      results_confirmation_deadline: isoAt(1, 23, 0),
+      require_approval: false,
+      fill_deadline: isoAt(-1, 17, 0),
+      total_cost: 420000,
+      court_fee_total: 420000,
+      cost_per_player: 105000,
+      start_time: times.resultsPendingStart,
+      end_time: times.resultsPendingEnd,
+      court_id: IDS.courts.vanPhuc,
+      session_date: dateOnlyFromIso(times.resultsPendingStart),
+      court_booking_status: 'confirmed',
+      booking_reference: 'VP-BOOK-007',
+      booking_name: 'Thu Trang',
+      booking_phone: '+84902222222',
+      booking_notes: 'Host da gui ket qua, dang cho xac nhan.',
+      booking_confirmed_at: isoAt(-2, 8, 0),
+      was_full_when_cancelled: false,
+    },
+    {
+      id: IDS.sessions.resultsDisputed,
+      host_id: authUsers.hostConfirmed.id,
+      slot_id: IDS.slots.resultsDisputed,
+      elo_min: 1200,
+      elo_max: 1450,
+      max_players: 4,
+      status: 'done',
+      results_status: 'disputed',
+      results_submitted_at: isoAt(-2, 21, 0),
+      results_confirmation_deadline: isoAt(0, 21, 0),
+      require_approval: false,
+      fill_deadline: isoAt(-2, 14, 0),
+      total_cost: 660000,
+      court_fee_total: 660000,
+      cost_per_player: 165000,
+      start_time: times.resultsDisputedStart,
+      end_time: times.resultsDisputedEnd,
+      court_id: IDS.courts.thaoDien,
+      session_date: dateOnlyFromIso(times.resultsDisputedStart),
+      court_booking_status: 'confirmed',
+      booking_reference: 'TD-BOOK-008',
+      booking_name: 'Minh Tu',
+      booking_phone: '+84901111111',
+      booking_notes: 'Dang co player dispute ket qua.',
+      booking_confirmed_at: isoAt(-3, 11, 0),
+      was_full_when_cancelled: false,
+    },
+    {
+      id: IDS.sessions.pendingCompletion,
+      host_id: authUsers.hostApproval.id,
+      slot_id: IDS.slots.pendingCompletion,
+      elo_min: 1000,
+      elo_max: 1250,
+      max_players: 4,
+      status: 'pending_completion',
+      results_status: 'not_submitted',
+      pending_completion_marked_at: isoAt(-1, 10, 45),
+      completion_reminder_sent_at: isoAt(-1, 10, 50),
+      require_approval: false,
+      fill_deadline: isoAt(-1, 7, 0),
+      total_cost: 380000,
+      court_fee_total: 380000,
+      cost_per_player: 95000,
+      start_time: times.pendingCompletionStart,
+      end_time: times.pendingCompletionEnd,
+      court_id: IDS.courts.tanBinh,
+      session_date: dateOnlyFromIso(times.pendingCompletionStart),
+      court_booking_status: 'confirmed',
+      booking_reference: 'TB-BOOK-009',
+      booking_name: 'Thu Trang',
+      booking_phone: '+84902222222',
+      booking_notes: 'Dang cho host xac nhan ket qua.',
+      booking_confirmed_at: isoAt(-2, 9, 0),
+      was_full_when_cancelled: false,
+    },
+    {
+      id: IDS.sessions.autoClosed,
+      host_id: authUsers.hostApproval.id,
+      slot_id: IDS.slots.autoClosed,
+      elo_min: 1000,
+      elo_max: 1250,
+      max_players: 4,
+      status: 'done',
+      results_status: 'finalized',
+      results_submitted_at: isoAt(-3, 22, 0),
+      results_confirmation_deadline: isoAt(-3, 22, 0),
+      pending_completion_marked_at: isoAt(-3, 21, 45),
+      auto_closed_at: isoAt(-3, 23, 45),
+      auto_closed_reason: 'timeout_no_host_completion',
+      finalized_by: 'system',
+      require_approval: false,
+      fill_deadline: isoAt(-3, 15, 0),
+      total_cost: 460000,
+      court_fee_total: 460000,
+      cost_per_player: 115000,
+      start_time: times.autoClosedStart,
+      end_time: times.autoClosedEnd,
+      court_id: IDS.courts.vanPhuc,
+      session_date: dateOnlyFromIso(times.autoClosedStart),
+      court_booking_status: 'confirmed',
+      booking_reference: 'VP-BOOK-010',
+      booking_name: 'Thu Trang',
+      booking_phone: '+84902222222',
+      booking_notes: 'He thong auto-close vi host chua submit.',
+      booking_confirmed_at: isoAt(-4, 10, 0),
+      was_full_when_cancelled: false,
+    },
+    {
+      id: IDS.sessions.ghostVoided,
+      host_id: authUsers.hostConfirmed.id,
+      slot_id: IDS.slots.ghostVoided,
+      elo_min: 950,
+      elo_max: 1200,
+      max_players: 4,
+      status: 'cancelled',
+      results_status: 'void',
+      results_submitted_at: isoAt(-4, 21, 0),
+      results_confirmation_deadline: isoAt(-4, 21, 0),
+      ghost_session_reported_at: isoAt(-4, 22, 0),
+      finalized_by: 'players',
+      require_approval: false,
+      fill_deadline: isoAt(-4, 14, 0),
+      total_cost: 520000,
+      court_fee_total: 520000,
+      cost_per_player: 130000,
+      start_time: times.ghostVoidedStart,
+      end_time: times.ghostVoidedEnd,
+      court_id: IDS.courts.tanBinh,
+      session_date: dateOnlyFromIso(times.ghostVoidedStart),
+      court_booking_status: 'confirmed',
+      booking_reference: 'TB-BOOK-011',
+      booking_name: 'Minh Tu',
+      booking_phone: '+84901111111',
+      booking_notes: 'Nguoi choi bao tran khong dien ra.',
+      booking_confirmed_at: isoAt(-5, 9, 0),
+      was_full_when_cancelled: false,
+    },
   ]
 
   const { error: sessionError } = await supabase.from('sessions').upsert(sessions)
@@ -641,6 +911,131 @@ async function seedSessionPlayersAndRequests(authUsers) {
     { session_id: IDS.sessions.doneHistorical, player_id: authUsers.hostConfirmed.id, status: 'confirmed' },
     { session_id: IDS.sessions.doneHistorical, player_id: authUsers.matchedPlayer.id, status: 'confirmed' },
     { session_id: IDS.sessions.doneHistorical, player_id: authUsers.lowerSkillPlayer.id, status: 'confirmed' },
+    {
+      session_id: IDS.sessions.resultsPending,
+      player_id: authUsers.hostApproval.id,
+      status: 'confirmed',
+      proposed_result: 'win',
+      match_result: 'pending',
+      result_confirmation_status: 'confirmed',
+      result_confirmed_at: isoAt(-1, 23, 0),
+    },
+    {
+      session_id: IDS.sessions.resultsPending,
+      player_id: authUsers.matchedPlayer.id,
+      status: 'confirmed',
+      proposed_result: 'loss',
+      match_result: 'pending',
+      result_confirmation_status: 'awaiting_player',
+    },
+    {
+      session_id: IDS.sessions.resultsPending,
+      player_id: authUsers.socialPlayer.id,
+      status: 'confirmed',
+      proposed_result: 'loss',
+      match_result: 'pending',
+      result_confirmation_status: 'confirmed',
+      result_confirmed_at: isoAt(-1, 23, 20),
+    },
+    {
+      session_id: IDS.sessions.resultsDisputed,
+      player_id: authUsers.hostConfirmed.id,
+      status: 'confirmed',
+      proposed_result: 'win',
+      match_result: 'pending',
+      result_confirmation_status: 'confirmed',
+      result_confirmed_at: isoAt(-2, 21, 0),
+    },
+    {
+      session_id: IDS.sessions.resultsDisputed,
+      player_id: authUsers.matchedPlayer.id,
+      status: 'confirmed',
+      proposed_result: 'loss',
+      match_result: 'pending',
+      result_confirmation_status: 'confirmed',
+      result_confirmed_at: isoAt(-2, 21, 15),
+    },
+    {
+      session_id: IDS.sessions.resultsDisputed,
+      player_id: authUsers.socialPlayer.id,
+      status: 'confirmed',
+      proposed_result: 'loss',
+      match_result: 'pending',
+      result_confirmation_status: 'disputed',
+      result_disputed_at: isoAt(-2, 22, 0),
+      result_dispute_note: 'Ty so host submit khong dung voi ket qua thuc te.',
+    },
+    { session_id: IDS.sessions.pendingCompletion, player_id: authUsers.hostApproval.id, status: 'confirmed' },
+    { session_id: IDS.sessions.pendingCompletion, player_id: authUsers.matchedPlayer.id, status: 'confirmed' },
+    { session_id: IDS.sessions.pendingCompletion, player_id: authUsers.lowerSkillPlayer.id, status: 'confirmed' },
+    { session_id: IDS.sessions.pendingCompletion, player_id: authUsers.socialPlayer.id, status: 'confirmed' },
+    {
+      session_id: IDS.sessions.autoClosed,
+      player_id: authUsers.hostApproval.id,
+      status: 'confirmed',
+      proposed_result: 'draw',
+      match_result: 'draw',
+      result_confirmation_status: 'confirmed',
+      result_confirmed_at: isoAt(-3, 23, 45),
+    },
+    {
+      session_id: IDS.sessions.autoClosed,
+      player_id: authUsers.matchedPlayer.id,
+      status: 'confirmed',
+      proposed_result: 'draw',
+      match_result: 'draw',
+      result_confirmation_status: 'confirmed',
+      result_confirmed_at: isoAt(-3, 23, 45),
+    },
+    {
+      session_id: IDS.sessions.autoClosed,
+      player_id: authUsers.lowerSkillPlayer.id,
+      status: 'confirmed',
+      proposed_result: 'draw',
+      match_result: 'draw',
+      result_confirmation_status: 'confirmed',
+      result_confirmed_at: isoAt(-3, 23, 45),
+      host_unprofessional_reported_at: isoAt(-3, 23, 55),
+      host_unprofessional_report_note: 'Host de he thong auto-close, khong xac nhan ket qua dung han.',
+    },
+    {
+      session_id: IDS.sessions.autoClosed,
+      player_id: authUsers.socialPlayer.id,
+      status: 'confirmed',
+      proposed_result: 'draw',
+      match_result: 'draw',
+      result_confirmation_status: 'confirmed',
+      result_confirmed_at: isoAt(-3, 23, 45),
+    },
+    {
+      session_id: IDS.sessions.ghostVoided,
+      player_id: authUsers.hostConfirmed.id,
+      status: 'confirmed',
+    },
+    {
+      session_id: IDS.sessions.ghostVoided,
+      player_id: authUsers.matchedPlayer.id,
+      status: 'confirmed',
+      member_reported_result: 'not_played',
+      member_reported_at: isoAt(-4, 20, 45),
+      member_report_note: 'Host khong co mat, tran khong dien ra.',
+    },
+    {
+      session_id: IDS.sessions.ghostVoided,
+      player_id: authUsers.lowerSkillPlayer.id,
+      status: 'confirmed',
+      member_reported_result: 'not_played',
+      member_reported_at: isoAt(-4, 20, 50),
+      member_report_note: 'Den san nhung khong thay host.',
+    },
+    {
+      session_id: IDS.sessions.ghostVoided,
+      player_id: authUsers.socialPlayer.id,
+      status: 'confirmed',
+      member_reported_result: 'not_played',
+      member_reported_at: isoAt(-4, 20, 55),
+      member_report_note: 'Ca nhom xac nhan tran bi ghost.',
+    },
   ]
 
   const { error: playersError } = await supabase.from('session_players').insert(sessionPlayers)
@@ -748,6 +1143,76 @@ async function seedNotifications(authUsers) {
       is_read: true,
       created_at: new Date().toISOString(),
     },
+    {
+      id: IDS.notifications.sessionPendingCompletion,
+      player_id: authUsers.hostApproval.id,
+      type: 'session_pending_completion',
+      title: 'Keo da het gio',
+      body: 'Hay vao xac nhan ket qua cho keo dang pending completion.',
+      deep_link: `/session/${IDS.sessions.pendingCompletion}`,
+      is_read: false,
+      created_at: isoAt(-1, 10, 50),
+    },
+    {
+      id: IDS.notifications.sessionResultsSubmitted,
+      player_id: authUsers.matchedPlayer.id,
+      type: 'session_results_submitted',
+      title: 'Host da gui ket qua',
+      body: 'Hay vao xem va xac nhan ket qua cua tran vua xong.',
+      deep_link: `/session/${IDS.sessions.resultsPending}`,
+      is_read: false,
+      created_at: isoAt(-1, 23, 5),
+    },
+    {
+      id: IDS.notifications.sessionResultsDisputed,
+      player_id: authUsers.hostConfirmed.id,
+      type: 'session_results_disputed',
+      title: 'Co tranh chap ket qua',
+      body: 'Mot nguoi choi vua bao sai ket qua tran dau.',
+      deep_link: `/session/${IDS.sessions.resultsDisputed}`,
+      is_read: false,
+      created_at: isoAt(-2, 22, 5),
+    },
+    {
+      id: IDS.notifications.sessionAutoClosed,
+      player_id: authUsers.hostApproval.id,
+      type: 'session_auto_closed',
+      title: 'Keo da duoc tu dong dong',
+      body: 'He thong da auto-close session vi host chua xac nhan ket qua dung han.',
+      deep_link: `/session/${IDS.sessions.autoClosed}`,
+      is_read: true,
+      created_at: isoAt(-3, 23, 50),
+    },
+    {
+      id: IDS.notifications.sessionReadyForRating,
+      player_id: authUsers.socialPlayer.id,
+      type: 'session_ready_for_rating',
+      title: 'Keo da hoan tat',
+      body: 'Ban co the vao danh gia tran dau va nguoi choi khac.',
+      deep_link: `/session/${IDS.sessions.autoClosed}`,
+      is_read: false,
+      created_at: isoAt(-3, 23, 55),
+    },
+    {
+      id: IDS.notifications.ghostSessionVoided,
+      player_id: authUsers.hostConfirmed.id,
+      type: 'ghost_session_voided',
+      title: 'Keo bi danh dau khong dien ra',
+      body: 'Nguoi choi da bao tran dau khong dien ra va session bi void.',
+      deep_link: `/session/${IDS.sessions.ghostVoided}`,
+      is_read: false,
+      created_at: isoAt(-4, 22, 10),
+    },
+    {
+      id: IDS.notifications.hostUnprofessionalReported,
+      player_id: authUsers.hostApproval.id,
+      type: 'host_unprofessional_reported',
+      title: 'Host bi bao van hanh kem',
+      body: 'Mot nguoi choi vua bao cao host khong xu ly ket qua dung han.',
+      deep_link: `/session/${IDS.sessions.autoClosed}`,
+      is_read: true,
+      created_at: isoAt(-3, 23, 58),
+    },
   ]
 
   const { error } = await supabase.from('notifications').upsert(rows)
@@ -820,6 +1285,7 @@ async function main() {
   const authUsers = await ensureAuthUsers()
   await resetDummyRows(authUsers)
   await seedPlayers(authUsers)
+  await seedPlayerStatsAndAchievements(authUsers)
   await seedCourts()
   await seedSlotsAndSessions(authUsers)
   await seedSessionPlayersAndRequests(authUsers)
@@ -839,6 +1305,11 @@ async function main() {
   console.log(`- Rating session: ${IDS.sessions.doneRecent}`)
   console.log(`- Cancelled session history: ${IDS.sessions.cancelled}`)
   console.log(`- Historical visible ratings: ${IDS.sessions.doneHistorical}`)
+  console.log(`- Pending completion flow: ${IDS.sessions.pendingCompletion}`)
+  console.log(`- Results awaiting confirmation: ${IDS.sessions.resultsPending}`)
+  console.log(`- Results disputed: ${IDS.sessions.resultsDisputed}`)
+  console.log(`- Auto-closed session: ${IDS.sessions.autoClosed}`)
+  console.log(`- Ghost / voided session: ${IDS.sessions.ghostVoided}`)
 }
 
 main().catch((error) => {

@@ -1,5 +1,4 @@
 import type { LucideIcon } from 'lucide-react-native'
-import { Award, Flame, Frown, Timer } from 'lucide-react-native'
 import { Text, View } from 'react-native'
 
 type FeedbackTone = 'positive' | 'negative'
@@ -12,41 +11,6 @@ export type FeedbackTrait = {
   context: string
   tone: FeedbackTone
 }
-
-const MOCK_TRAITS: FeedbackTrait[] = [
-  {
-    key: 'fair-play',
-    icon: Award,
-    label: 'Chơi đẹp',
-    count: '+18 ghi nhận',
-    context: 'Thường được đánh giá fair-play và giữ nhịp trận rất tốt.',
-    tone: 'positive',
-  },
-  {
-    key: 'on-time',
-    icon: Flame,
-    label: 'Đúng giờ',
-    count: '+14 ghi nhận',
-    context: 'Có mặt sớm, vào sân đúng giờ và không làm trễ kèo.',
-    tone: 'positive',
-  },
-  {
-    key: 'toxic',
-    icon: Frown,
-    label: 'Xấu tính',
-    count: '-2 cảnh báo',
-    context: 'Đôi lúc phản ứng gắt khi trận đấu căng hoặc tranh điểm.',
-    tone: 'negative',
-  },
-  {
-    key: 'late',
-    icon: Timer,
-    label: 'Đến trễ',
-    count: '-1 cảnh báo',
-    context: 'Có vài lần đến sát giờ làm host phải chờ đội hình.',
-    tone: 'negative',
-  },
-]
 
 function toneClasses(tone: FeedbackTone) {
   if (tone === 'positive') {
@@ -76,11 +40,7 @@ type Props = {
   traits?: FeedbackTrait[]
 }
 
-export function CommunityFeedbackSection({
-  eyebrow = 'Top Traits',
-  title = 'Community Feedback',
-  traits = MOCK_TRAITS,
-}: Props) {
+export function CommunityFeedbackSection({ eyebrow = 'Top Traits', title = 'Community Feedback', traits = [] }: Props) {
   return (
     <View className="gap-4">
       <View className="px-1">

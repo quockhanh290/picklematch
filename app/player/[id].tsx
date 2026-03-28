@@ -148,6 +148,7 @@ export default function PlayerProfile() {
   const [loading, setLoading] = useState(true)
   const [ratingTags, setRatingTags] = useState<Record<string, number>>({})
   const [history, setHistory] = useState<SessionHistory[]>([])
+  const [hostedSessionsCount, setHostedSessionsCount] = useState(0)
   const [favCourts, setFavCourts] = useState<Court[]>([])
   const [isMe, setIsMe] = useState(false)
 
@@ -207,6 +208,20 @@ export default function PlayerProfile() {
     setFavCourts(data ?? [])
   }, [])
 
+  const fetchHostedSessionsCount = useCallback(async (playerId: string) => {
+    const { count, error } = await supabase
+      .from('sessions')
+      .select('id', { count: 'exact', head: true })
+      .eq('host_id', playerId)
+
+    if (error) {
+      console.warn('[PlayerProfile] hosted session count query failed:', error.message)
+      return
+    }
+
+    setHostedSessionsCount(count ?? 0)
+  }, [])
+
   const fetchAll = useCallback(async () => {
     setLoading(true)
     const {
@@ -227,11 +242,12 @@ export default function PlayerProfile() {
       await Promise.all([
         fetchRatingTags(data.id),
         fetchHistory(data.id),
+        fetchHostedSessionsCount(data.id),
         fetchFavCourts(data.favorite_court_ids ?? []),
       ])
     }
     setLoading(false)
-  }, [fetchFavCourts, fetchHistory, fetchRatingTags, id])
+  }, [fetchFavCourts, fetchHistory, fetchHostedSessionsCount, fetchRatingTags, id])
 
   useEffect(() => {
     fetchAll()
@@ -303,7 +319,7 @@ export default function PlayerProfile() {
   }
 
   const reliability = reliabilityScore(player.sessions_joined ?? 0, player.no_show_count ?? 0)
-  const hostedCount = history.filter((item) => item.is_host).length
+  const hostedCount = hostedSessionsCount
   const effectiveElo = player.current_elo ?? player.elo
   const calibratedSkill = getSkillLevelFromElo(effectiveElo)
   const fallbackSkill = getSkillLevelFromPlayer(player)

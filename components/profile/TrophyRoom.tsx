@@ -1,10 +1,10 @@
 import type { LucideIcon } from 'lucide-react-native'
-import { Award, Check, Crown, Flame, GraduationCap, Lock, Swords, Trophy } from 'lucide-react-native'
+import { Check, Lock } from 'lucide-react-native'
 import { Text, View } from 'react-native'
 
 type BadgeTone = 'emerald' | 'amber' | 'rose' | 'sky' | 'violet'
 
-type TrophyBadge = {
+export type TrophyBadge = {
   key: string
   title: string
   category: 'progression' | 'performance' | 'momentum' | 'conduct'
@@ -15,73 +15,6 @@ type TrophyBadge = {
   earned: boolean
   earnedAt?: string
 }
-
-const MOCK_BADGES: TrophyBadge[] = [
-  {
-    key: 'active-member',
-    title: 'Hội viên tích cực',
-    category: 'progression',
-    description: 'Hoàn thành 20 trận và luôn xuất hiện đều đặn trên sân.',
-    requirement: 'Chơi đủ 20 trận',
-    icon: Award,
-    tone: 'emerald',
-    earned: true,
-    earnedAt: '18/03/2026',
-  },
-  {
-    key: 'court-warrior',
-    title: 'Chiến thần sân bãi',
-    category: 'progression',
-    description: 'Cán mốc 100 trận đã hoàn thành trên PickleMatch.',
-    requirement: 'Chơi đủ 100 trận',
-    icon: Crown,
-    tone: 'amber',
-    earned: false,
-  },
-  {
-    key: 'giant-slayer',
-    title: 'Giant Slayer',
-    category: 'performance',
-    description: 'Thắng kèo có ngưỡng trình cao hơn bạn ít nhất 100 Elo.',
-    requirement: 'Thắng một kèo lệch +100 Elo',
-    icon: Swords,
-    tone: 'rose',
-    earned: true,
-    earnedAt: '06/03/2026',
-  },
-  {
-    key: 'placement-perfect',
-    title: 'Tốt nghiệp xuất sắc',
-    category: 'performance',
-    description: 'Thắng trọn 5/5 trận placement với tỷ lệ thắng tuyệt đối.',
-    requirement: '100% win rate trong 5 placement matches',
-    icon: GraduationCap,
-    tone: 'sky',
-    earned: false,
-  },
-  {
-    key: 'streak-keeper',
-    title: 'Lửa không tắt',
-    category: 'momentum',
-    description: 'Duy trì phong độ và giữ chuỗi thắng đủ dài trong thời gian ngắn.',
-    requirement: 'Đạt chuỗi thắng 7 trận',
-    icon: Flame,
-    tone: 'violet',
-    earned: true,
-    earnedAt: '24/03/2026',
-  },
-  {
-    key: 'golden-host',
-    title: 'Host vàng',
-    category: 'conduct',
-    description: 'Điểm host xuất sắc, lên kèo rõ ràng và tổ chức rất mượt.',
-    requirement: 'Host rating 4.9+',
-    icon: Trophy,
-    tone: 'emerald',
-    earned: true,
-    earnedAt: '12/03/2026',
-  },
-]
 
 function categoryLabel(category: TrophyBadge['category']) {
   switch (category) {
@@ -146,8 +79,12 @@ function toneClasses(tone: BadgeTone) {
   }
 }
 
-export function TrophyRoom() {
-  const earnedCount = MOCK_BADGES.filter((badge) => badge.earned).length
+type Props = {
+  badges?: TrophyBadge[]
+}
+
+export function TrophyRoom({ badges = [] }: Props) {
+  const earnedCount = badges.filter((badge) => badge.earned).length
 
   return (
     <View className="gap-4">
@@ -155,12 +92,12 @@ export function TrophyRoom() {
         <Text className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Badges</Text>
         <Text className="mt-2 text-2xl font-black text-slate-900">Trophy Room</Text>
         <Text className="mt-2 text-sm leading-6 text-slate-500">
-          {earnedCount}/{MOCK_BADGES.length} danh hiệu đã mở khóa dựa trên phong độ, độ uy tín và chất lượng host.
+          {earnedCount}/{badges.length} danh hiệu đã mở khóa dựa trên phong độ, độ uy tín và chất lượng host.
         </Text>
       </View>
 
       <View className="flex-row flex-wrap justify-between gap-y-3">
-        {MOCK_BADGES.map((badge) => {
+        {badges.map((badge) => {
           const palette = toneClasses(badge.tone)
           const Icon = badge.icon
 
