@@ -1,5 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { SectionCard, StatusBadge } from '@/components/design'
+import { getShadowStyle } from '@/lib/designSystem'
 import { supabase } from '@/lib/supabase'
+import { useAppTheme } from '@/lib/theme-context'
 import { useAuth } from '@/lib/useAuth'
 import { router } from 'expo-router'
 import {
@@ -100,6 +103,7 @@ function sessionsFingerprint(items: MySession[]) {
 }
 
 export default function MySessions() {
+  const theme = useAppTheme()
   const { userId, isLoading: isAuthLoading } = useAuth()
   const { width } = useWindowDimensions()
   const [sessions, setSessions] = useState<MySession[]>([])
@@ -501,11 +505,17 @@ export default function MySessions() {
             }
 
     return (
-      <View className="rounded-[32px] border border-white/70 bg-white px-6 py-7 shadow-sm">
-        <Text className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400">{config.eyebrow}</Text>
-        <Text className="mt-3 text-[24px] font-black leading-[30px] text-slate-950">{config.title}</Text>
-        <Text className="mt-2 text-[14px] leading-6 text-slate-500">{config.description}</Text>
-      </View>
+      <SectionCard className="px-6 py-7">
+        <Text className="text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: theme.textSoft }}>
+          {config.eyebrow}
+        </Text>
+        <Text className="mt-3 text-[24px] font-black leading-[30px]" style={{ color: theme.text }}>
+          {config.title}
+        </Text>
+        <Text className="mt-2 text-[14px] leading-6" style={{ color: theme.textMuted }}>
+          {config.description}
+        </Text>
+      </SectionCard>
     )
   }
 
@@ -518,21 +528,18 @@ export default function MySessions() {
     return (
       <Pressable
         onPress={() => openSessionDetail(item.id)}
-        className="mb-4 rounded-[32px] border border-white/70 bg-white p-5 shadow-sm active:scale-[0.98]"
+        className="mb-4 rounded-[32px] border p-5 active:scale-[0.98]"
+        style={{ backgroundColor: theme.surface, borderColor: theme.border, ...getShadowStyle(theme) }}
       >
         <View className="flex-row items-start justify-between">
           <View className="mr-3 flex-1 flex-row flex-wrap items-center gap-2">
-            <View className={`rounded-full px-3 py-2 ${isHost ? 'bg-indigo-50' : 'bg-slate-100'}`}>
-              <Text className={`text-[10px] font-black uppercase tracking-[0.12em] ${isHost ? 'text-indigo-700' : 'text-slate-600'}`}>
-                {isHost ? 'Bạn là host' : 'Bạn là người chơi'}
-              </Text>
-            </View>
+            <StatusBadge label={isHost ? 'Bạn là host' : 'Bạn là người chơi'} tone={isHost ? 'info' : 'neutral'} />
 
             {isBooked ? (
-              <View className="rounded-full bg-emerald-50 px-3 py-2">
+              <View className="rounded-full px-3 py-2" style={{ backgroundColor: theme.primarySoft }}>
                 <View className="flex-row items-center">
-                  <CheckCircle2 size={13} color="#059669" strokeWidth={2.4} />
-                  <Text className="ml-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-emerald-700">
+                  <CheckCircle2 size={13} color={theme.primary} strokeWidth={2.4} />
+                  <Text className="ml-1.5 text-[10px] font-black uppercase tracking-[0.12em]" style={{ color: theme.primaryStrong }}>
                     Đã chốt sân
                   </Text>
                 </View>
@@ -540,28 +547,28 @@ export default function MySessions() {
             ) : null}
           </View>
 
-          <View className="rounded-full bg-slate-100 px-3 py-2">
-            <Text className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-500">
+          <View className="rounded-full px-3 py-2" style={{ backgroundColor: theme.surfaceAlt }}>
+            <Text className="text-[10px] font-black uppercase tracking-[0.12em]" style={{ color: theme.textMuted }}>
               #{item.id.slice(0, 6)}
             </Text>
           </View>
         </View>
 
         <View className="mt-5">
-          <Text className="text-[19px] font-black text-slate-950">{item.court_name}</Text>
-          {address ? <Text className="mt-2 text-[14px] text-slate-500">{address}</Text> : null}
+          <Text className="text-[19px] font-black" style={{ color: theme.text }}>{item.court_name}</Text>
+          {address ? <Text className="mt-2 text-[14px]" style={{ color: theme.textMuted }}>{address}</Text> : null}
         </View>
 
-        <View className="mt-5 rounded-[22px] bg-slate-50 px-4 py-3">
+        <View className="mt-5 rounded-[22px] px-4 py-3" style={{ backgroundColor: theme.surfaceAlt }}>
           <View className="flex-row flex-wrap items-center gap-4">
             <View className="flex-row items-center">
-              <CalendarDays size={15} color="#475569" strokeWidth={2.3} />
-              <Text className="ml-2 text-[13px] font-semibold text-slate-700">{formatDatePart(item.start_time)}</Text>
+              <CalendarDays size={15} color={theme.textMuted} strokeWidth={2.3} />
+              <Text className="ml-2 text-[13px] font-semibold" style={{ color: theme.text }}>{formatDatePart(item.start_time)}</Text>
             </View>
 
             <View className="flex-row items-center">
-              <Clock size={15} color="#475569" strokeWidth={2.3} />
-              <Text className="ml-2 text-[13px] font-semibold text-slate-700">
+              <Clock size={15} color={theme.textMuted} strokeWidth={2.3} />
+              <Text className="ml-2 text-[13px] font-semibold" style={{ color: theme.text }}>
                 {formatTimeRange(item.start_time, item.end_time)}
               </Text>
             </View>
@@ -571,28 +578,28 @@ export default function MySessions() {
         <View className="mt-5">
           <View className="flex-row items-center justify-between">
             <View className="flex-row items-center">
-              <Users size={15} color="#0f172a" strokeWidth={2.3} />
-              <Text className="ml-2 text-[14px] font-bold text-slate-900">
+              <Users size={15} color={theme.text} strokeWidth={2.3} />
+              <Text className="ml-2 text-[14px] font-bold" style={{ color: theme.text }}>
                 {item.player_count}/{item.max_players} người tham gia
               </Text>
             </View>
-            <Text className="text-[12px] font-bold text-slate-400">{Math.round(progress * 100)}%</Text>
+            <Text className="text-[12px] font-bold" style={{ color: theme.textSoft }}>{Math.round(progress * 100)}%</Text>
           </View>
 
-          <View className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
-            <View className="h-2 rounded-full bg-emerald-500" style={{ width: `${Math.max(progress * 100, 8)}%` }} />
+          <View className="mt-3 h-2 overflow-hidden rounded-full" style={{ backgroundColor: theme.surfaceAlt }}>
+            <View className="h-2 rounded-full" style={{ width: `${Math.max(progress * 100, 8)}%`, backgroundColor: theme.primary }} />
           </View>
         </View>
 
         {tab === 'pending' ? (
-          <View className="mt-5 rounded-[24px] border border-amber-200 bg-amber-50 px-4 py-4">
+          <View className="mt-5 rounded-[24px] border px-4 py-4" style={{ borderColor: theme.warning, backgroundColor: theme.warningSoft }}>
             <View className="flex-row items-center">
-              <Hourglass size={16} color="#b45309" strokeWidth={2.3} />
-              <Text className="ml-2 text-[14px] font-black text-amber-700">
+              <Hourglass size={16} color={theme.warning} strokeWidth={2.3} />
+              <Text className="ml-2 text-[14px] font-black" style={{ color: theme.warning }}>
                 {isHost ? 'Có người đang chờ bạn duyệt' : 'Đang chờ phản hồi'}
               </Text>
             </View>
-            <Text className="mt-2 text-[13px] leading-5 text-amber-700">
+            <Text className="mt-2 text-[13px] leading-5" style={{ color: theme.warning }}>
               {isHost
                 ? 'Mở chi tiết kèo để xem và duyệt những người chơi vừa gửi yêu cầu tham gia.'
                 : 'Host sẽ duyệt yêu cầu tham gia của bạn trong thời gian sớm nhất.'}
@@ -604,15 +611,17 @@ export default function MySessions() {
           <View className="mt-5 flex-row gap-3">
             <Pressable
               onPress={() => openSessionDetail(item.id)}
-              className="flex-1 flex-row items-center justify-center rounded-[22px] border border-slate-200 bg-white px-4 py-4"
+              className="flex-1 flex-row items-center justify-center rounded-[22px] border px-4 py-4"
+              style={{ borderColor: theme.border, backgroundColor: theme.surface }}
             >
-              {isHost ? <Edit3 size={16} color="#0f172a" strokeWidth={2.3} /> : <FileText size={16} color="#0f172a" strokeWidth={2.3} />}
-              <Text className="ml-2 text-[14px] font-black text-slate-900">{isHost ? 'Sửa kèo' : 'Chi tiết'}</Text>
+              {isHost ? <Edit3 size={16} color={theme.text} strokeWidth={2.3} /> : <FileText size={16} color={theme.text} strokeWidth={2.3} />}
+              <Text className="ml-2 text-[14px] font-black" style={{ color: theme.text }}>{isHost ? 'Sửa kèo' : 'Chi tiết'}</Text>
             </Pressable>
 
             <Pressable
               onPress={() => void handleShare(item)}
-              className="flex-1 flex-row items-center justify-center rounded-[22px] bg-[#BEF264] px-4 py-4"
+              className="flex-1 flex-row items-center justify-center rounded-[22px] px-4 py-4"
+              style={{ backgroundColor: theme.accent }}
             >
               <Share2 size={16} color="#000000" strokeWidth={2.3} />
               <Text className="ml-2 text-[14px] font-black text-black">Chia sẻ</Text>
@@ -623,10 +632,11 @@ export default function MySessions() {
         {tab === 'history' ? (
           <Pressable
             onPress={() => (item.status === 'done' ? openRateSession(item.id) : openSessionDetail(item.id))}
-            className={`mt-5 flex-row items-center justify-center rounded-[22px] px-4 py-4 ${item.status === 'done' ? 'bg-slate-950' : 'bg-slate-200'}`}
+            className="mt-5 flex-row items-center justify-center rounded-[22px] px-4 py-4"
+            style={{ backgroundColor: item.status === 'done' ? theme.text : theme.surfaceAlt }}
           >
-            <Star size={16} color={item.status === 'done' ? '#BEF264' : '#64748b'} strokeWidth={2.3} />
-            <Text className={`ml-2 text-[14px] font-black ${item.status === 'done' ? 'text-white' : 'text-slate-500'}`}>
+            <Star size={16} color={item.status === 'done' ? theme.accent : theme.textMuted} strokeWidth={2.3} />
+            <Text className="ml-2 text-[14px] font-black" style={{ color: item.status === 'done' ? theme.primaryContrast : theme.textMuted }}>
               Đánh giá trận đấu
             </Text>
           </Pressable>
@@ -636,39 +646,41 @@ export default function MySessions() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-50" edges={['top']}>
+    <SafeAreaView className="flex-1" style={{ backgroundColor: theme.background }} edges={['top']}>
       {loading ? (
         <View className="flex-1 items-center justify-center px-6">
-          <ActivityIndicator size="large" color="#4f46e5" />
-          <Text className="mt-4 text-[14px] font-semibold text-slate-500">Đang tải kèo của bạn...</Text>
+          <ActivityIndicator size="large" color={theme.info} />
+          <Text className="mt-4 text-[14px] font-semibold" style={{ color: theme.textMuted }}>Đang tải kèo của bạn...</Text>
         </View>
       ) : (
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 36 }}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#4f46e5" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.info} />}
         >
           <View className="flex-row items-start justify-between">
             <View className="mr-4 flex-1">
               <View className="flex-row items-center">
-                <Calendar size={14} color="#475569" strokeWidth={2.5} />
-                <Text className="ml-2 text-[10px] font-black uppercase tracking-[0.15em] text-slate-500">
+                <Calendar size={14} color={theme.textMuted} strokeWidth={2.5} />
+                <Text className="ml-2 text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: theme.textMuted }}>
                   LỊCH CHƠI CỦA BẠN
                 </Text>
               </View>
-              <Text className="mt-3 text-[32px] font-black leading-[36px] text-slate-950">Kèo của tôi</Text>
+              <Text className="mt-3 text-[32px] font-black leading-[36px]" style={{ color: theme.text }}>Kèo của tôi</Text>
             </View>
 
             <Pressable
               onPress={() => void handleShare()}
-              className="h-12 w-12 items-center justify-center rounded-2xl border border-white/70 bg-white shadow-sm"
+              className="h-12 w-12 items-center justify-center rounded-2xl border"
+              style={{ borderColor: theme.border, backgroundColor: theme.surface, ...getShadowStyle(theme) }}
             >
-              <Share2 size={18} color="#0f172a" strokeWidth={2.3} />
+              <Share2 size={18} color={theme.text} strokeWidth={2.3} />
             </Pressable>
           </View>
 
           <View
-            className="mt-6 rounded-[24px] bg-slate-100 p-1.5"
+            className="mt-6 rounded-[24px] p-1.5"
+            style={{ backgroundColor: theme.surfaceAlt }}
             onLayout={(event) => setSegmentWidth(event.nativeEvent.layout.width - 12)}
           >
             <View className="relative flex-row">

@@ -1,4 +1,6 @@
 import DateTimePicker, { DateTimePickerAndroid, type DateTimePickerEvent } from '@react-native-community/datetimepicker'
+import { getShadowStyle } from '@/lib/designSystem'
+import { useAppTheme } from '@/lib/theme-context'
 import { HostRequestReview } from '@/components/session/HostRequestReview'
 import { EditCourtSelector } from '@/components/session/EditCourtSelector'
 import { JoinRequestModal } from '@/components/session/JoinRequestModal'
@@ -29,6 +31,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
+  InteractionManager,
   Platform,
   ScrollView,
   Share,
@@ -178,15 +181,22 @@ type SessionDetailCache = {
   updatedAt: number
 }
 
+type SessionFetchInFlight = {
+  sessionId: string
+  promise: Promise<void>
+}
+
 let sessionDetailCache: SessionDetailCache | null = null
 const SESSION_DETAIL_CACHE_FRESH_MS = 30_000
-const ENABLE_SESSION_DETAIL_TIMING_LOGS = false
+const ENABLE_SESSION_DETAIL_TIMING_LOGS = __DEV__
 
 function logSessionDetailTiming(label: string, startedAt: number, extra?: Record<string, unknown>) {
   if (!ENABLE_SESSION_DETAIL_TIMING_LOGS) return
 
+  const durationMs = Date.now() - startedAt
   const payload = extra ? ` ${JSON.stringify(extra)}` : ''
-  console.log(`[SessionDetail][timing] ${label}: ${Date.now() - startedAt}ms${payload}`)
+  const prefix = durationMs >= 700 ? '[SessionDetail][slow]' : '[SessionDetail][timing]'
+  console.log(`${prefix} ${label}: ${durationMs}ms${payload}`)
 }
 
 function normalizeSessionRecord(raw: any): SessionRecord {
@@ -210,8 +220,14 @@ function normalizeSessionRecord(raw: any): SessionRecord {
 }
 
 export default function SessionDetail() {
-  const { id, created } = useLocalSearchParams<{ id: string; created?: string }>()
+  const { id, created, navStartedAt, navSource } = useLocalSearchParams<{
+    id: string
+    created?: string
+    navStartedAt?: string
+    navSource?: string
+  }>()
   const { userId, isLoading: isAuthLoading } = useAuth()
+  const theme = useAppTheme()
   const insets = useSafeAreaInsets()
   const [session, setSession] = useState<SessionRecord | null>(null)
   const [loading, setLoading] = useState(true)
@@ -257,9 +273,21 @@ export default function SessionDetail() {
   const [refreshKey, setRefreshKey] = useState(0)
   const [showBookingDetails, setShowBookingDetails] = useState(false)
   const [showBookingEditor, setShowBookingEditor] = useState(false)
-  const fetchSessionInFlightRef = useRef<Promise<void> | null>(null)
+  const fetchSessionInFlightRef = useRef<SessionFetchInFlight | null>(null)
+  const mountedAtRef = useRef(Date.now())
+  const firstContentLoggedRef = useRef(false)
+  const fetchGenerationRef = useRef(0)
+
+  useEffect(() => {
+    mountedAtRef.current = Date.now()
+    firstContentLoggedRef.current = false
+    fetchGenerationRef.current += 1
+    setSession(null)
+    setLoading(true)
+  }, [id])
 
   const fetchMyPlayer = useCallback(async (userId: string) => {
+    const startedAt = Date.now()
     const { data } = await supabase
       .from('players')
       .select('id, name, elo, current_elo, self_assessed_level, skill_label')
@@ -267,14 +295,18 @@ export default function SessionDetail() {
       .maybeSingle()
 
     setMyPlayer((data as MyPlayerRecord | null) ?? null)
+    logSessionDetailTiming('fetch-my-player', startedAt, { userId })
   }, [])
 
   const fetchSession = useCallback(async (userId?: string | null, options?: { showLoader?: boolean; runMaintenance?: boolean }) => {
-    if (fetchSessionInFlightRef.current) {
-      logSessionDetailTiming('fetch-deduped', Date.now())
-      await fetchSessionInFlightRef.current
+    if (fetchSessionInFlightRef.current?.sessionId === id) {
+      logSessionDetailTiming('fetch-deduped', Date.now(), { sessionId: id })
+      await fetchSessionInFlightRef.current.promise
       return
     }
+
+    const requestGeneration = fetchGenerationRef.current
+    const isStale = () => requestGeneration !== fetchGenerationRef.current
 
     const run = async () => {
     const startedAt = Date.now()
@@ -301,6 +333,11 @@ export default function SessionDetail() {
       hasError: Boolean(error),
       sessionId: id,
     })
+
+    if (isStale()) {
+      logSessionDetailTiming('fetch-stale-discarded', startedAt, { sessionId: id, stage: 'after-main-query' })
+      return
+    }
 
     if (!error && overview?.session) {
       const normalizeStartedAt = Date.now()
@@ -354,7 +391,7 @@ export default function SessionDetail() {
         setLoading(false)
       }
 
-      const uid = userId ?? myId
+      const uid = userId ?? null
       if (uid) {
         const auxStartedAt = Date.now()
         logSessionDetailTiming('session-aux-queries', auxStartedAt, {
@@ -381,6 +418,11 @@ export default function SessionDetail() {
       ) {
         const { error: finalizeError } = await supabase.rpc('finalize_session_results', { p_session_id: normalized.id })
 
+        if (isStale()) {
+          logSessionDetailTiming('fetch-stale-discarded', startedAt, { sessionId: id, stage: 'after-finalize' })
+          return
+        }
+
         if (!finalizeError) {
           await fetchSession(uid)
           return
@@ -404,13 +446,19 @@ export default function SessionDetail() {
     })
     }
 
-    fetchSessionInFlightRef.current = run()
-    try {
-      await fetchSessionInFlightRef.current
-    } finally {
-      fetchSessionInFlightRef.current = null
+    const promise = run()
+    fetchSessionInFlightRef.current = {
+      sessionId: id,
+      promise,
     }
-  }, [id, myId])
+    try {
+      await promise
+    } finally {
+      if (fetchSessionInFlightRef.current?.promise === promise) {
+        fetchSessionInFlightRef.current = null
+      }
+    }
+  }, [id])
 
   useEffect(() => {
     setMyId(userId ?? null)
@@ -422,12 +470,16 @@ export default function SessionDetail() {
       if (isAuthLoading) return
 
       const activeUserId = userId ?? null
+      const hasFreshCacheForCurrentSession =
+        sessionDetailCache?.sessionId === String(id) &&
+        Date.now() - sessionDetailCache.updatedAt < SESSION_DETAIL_CACHE_FRESH_MS
+
       if (sessionDetailCache?.sessionId === String(id)) {
         setSession(sessionDetailCache.session)
         setLoading(false)
         logSessionDetailTiming('cache-hit', initStartedAt, { sessionId: id })
 
-        if (Date.now() - sessionDetailCache.updatedAt < SESSION_DETAIL_CACHE_FRESH_MS) {
+        if (hasFreshCacheForCurrentSession) {
           logSessionDetailTiming('cache-fresh-skip-network', initStartedAt, { sessionId: id })
           return
         }
@@ -437,18 +489,55 @@ export default function SessionDetail() {
         const authUserStartedAt = Date.now()
         await Promise.all([
           fetchMyPlayer(activeUserId),
-          fetchSession(activeUserId, { showLoader: !sessionDetailCache, runMaintenance: false }),
+          fetchSession(activeUserId, { showLoader: !hasFreshCacheForCurrentSession, runMaintenance: false }),
         ])
         logSessionDetailTiming('init-auth-user', authUserStartedAt, { sessionId: id })
       } else {
         setMyPlayer(null)
-        await fetchSession(null, { showLoader: !sessionDetailCache, runMaintenance: false })
+        await fetchSession(null, { showLoader: !hasFreshCacheForCurrentSession, runMaintenance: false })
         logSessionDetailTiming('init-no-user', initStartedAt, { sessionId: id })
       }
     }
 
     void init()
   }, [fetchMyPlayer, fetchSession, id, isAuthLoading, userId])
+
+  useEffect(() => {
+    logSessionDetailTiming('screen-mounted', mountedAtRef.current, {
+      sessionId: id,
+      navSource: navSource ?? 'unknown',
+      hasNavStartedAt: Boolean(navStartedAt),
+    })
+  }, [id, navSource, navStartedAt])
+
+  useEffect(() => {
+    if (loading || !session || firstContentLoggedRef.current) return
+
+    firstContentLoggedRef.current = true
+
+    logSessionDetailTiming('content-ready-state', mountedAtRef.current, {
+      sessionId: id,
+      navSource: navSource ?? 'unknown',
+    })
+
+    const navStartedAtMs = navStartedAt ? Number(navStartedAt) : NaN
+    const task = InteractionManager.runAfterInteractions(() => {
+      const extra: Record<string, unknown> = {
+        sessionId: id,
+        navSource: navSource ?? 'unknown',
+      }
+
+      if (Number.isFinite(navStartedAtMs)) {
+        extra.tapToInteractiveMs = Date.now() - navStartedAtMs
+      }
+
+      logSessionDetailTiming('content-after-interactions', mountedAtRef.current, extra)
+    })
+
+    return () => {
+      task.cancel()
+    }
+  }, [id, loading, navSource, navStartedAt, session])
 
   async function fetchPendingRequests(sessionId: string) {
     setLoadingPendingRequests(true)
@@ -1469,28 +1558,28 @@ export default function SessionDetail() {
           <Text style={styles.successBannerText}>Kèo đã được đăng. Chia sẻ link để mời người chơi.</Text>
         </View>
       )}
-      <View className="rounded-[28px] border border-slate-200 bg-white p-5">
+      <View className="rounded-[28px] border p-5" style={{ backgroundColor: theme.surface, borderColor: theme.border, ...getShadowStyle(theme) }}>
         <View className="flex-row flex-wrap items-center gap-2">
           <View className={`flex-row items-center rounded-full border px-3 py-2 ${sessionSkillUi.tagClassName} ${sessionSkillUi.borderClassName}`}>
             <sessionSkillUi.icon size={14} color={sessionSkillUi.iconColor} />
             <Text className={`ml-2 text-[11px] font-bold uppercase tracking-[0.8px] ${sessionSkillUi.textClassName}`}>{sessionShortSkill}</Text>
           </View>
-          <View className="flex-row items-center rounded-full border border-slate-200 bg-slate-100 px-3 py-2">
-            <Target size={12} color="#64748b" />
-            <Text className="ml-1.5 text-[11px] font-bold uppercase tracking-[0.8px] text-slate-500">{`${matchTargetElo} ELO`}</Text>
+          <View className="flex-row items-center rounded-full border px-3 py-2" style={{ borderColor: theme.border, backgroundColor: theme.surfaceAlt }}>
+            <Target size={12} color={theme.textMuted} />
+            <Text className="ml-1.5 text-[11px] font-bold uppercase tracking-[0.8px]" style={{ color: theme.textMuted }}>{`${matchTargetElo} ELO`}</Text>
           </View>
-          <View className="flex-row items-center rounded-full border border-slate-200 bg-slate-100 px-3 py-2">
-            <Activity size={12} color="#64748b" />
-            <Text className="ml-1.5 text-[11px] font-bold uppercase tracking-[0.8px] text-slate-500">{`${sessionSkillUi.duprValue} DUPR`}</Text>
+          <View className="flex-row items-center rounded-full border px-3 py-2" style={{ borderColor: theme.border, backgroundColor: theme.surfaceAlt }}>
+            <Activity size={12} color={theme.textMuted} />
+            <Text className="ml-1.5 text-[11px] font-bold uppercase tracking-[0.8px]" style={{ color: theme.textMuted }}>{`${sessionSkillUi.duprValue} DUPR`}</Text>
           </View>
         </View>
-        <Text className="mt-7 text-[10px] font-extrabold uppercase tracking-[0.28em] text-slate-400">Session Detail</Text>
+        <Text className="mt-7 text-[10px] font-extrabold uppercase tracking-[0.28em]" style={{ color: theme.textSoft }}>Session Detail</Text>
         <View className="mt-3">
           <View className="flex-1">
-            <Text className="text-[24px] font-black leading-8 text-slate-900">{court?.name}</Text>
+            <Text className="text-[24px] font-black leading-8" style={{ color: theme.text }}>{court?.name}</Text>
             <View className="mt-2 flex-row items-center">
-              <MapPin size={15} color="#6b7280" />
-              <Text className="ml-2 flex-1 text-[13px] font-medium leading-5 text-slate-500">
+              <MapPin size={15} color={theme.textMuted} />
+              <Text className="ml-2 flex-1 text-[13px] font-medium leading-5" style={{ color: theme.textMuted }}>
                 {court?.address} · {court?.city}
               </Text>
             </View>
@@ -1513,28 +1602,28 @@ export default function SessionDetail() {
           </View>
         </View>
 
-        <View className="mt-5 rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-4">
+        <View className="mt-5 rounded-[22px] border px-4 py-4" style={{ borderColor: theme.border, backgroundColor: theme.surfaceAlt }}>
           <View className="flex-row items-center">
             <View className="h-11 w-11 items-center justify-center rounded-full bg-indigo-100">
               <Clock3 size={18} color="#4f46e5" />
             </View>
             <View className="ml-3 flex-1">
-              <Text className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">Thời gian</Text>
-              <Text className="mt-1 text-[13px] font-bold text-slate-700">
+              <Text className="text-[10px] font-bold uppercase tracking-[0.12em]" style={{ color: theme.textMuted }}>Thời gian</Text>
+              <Text className="mt-1 text-[13px] font-bold" style={{ color: theme.text }}>
                 {formatTime(session.slot.start_time, session.slot.end_time)}
               </Text>
             </View>
           </View>
 
-          <View className="my-4 h-px bg-slate-200" />
+          <View className="my-4 h-px" style={{ backgroundColor: theme.border }} />
 
           <View className="flex-row items-center">
             <View className="h-11 w-11 items-center justify-center rounded-full bg-amber-100">
               <CircleDollarSign size={18} color="#ea580c" />
             </View>
             <View className="ml-3 flex-1">
-              <Text className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">Chi phí (dự kiến)</Text>
-              <Text className="mt-1 text-[13px] font-bold text-slate-700">{formatEstimatedCostPerPerson(session.slot.price, session.max_players)}</Text>
+              <Text className="text-[10px] font-bold uppercase tracking-[0.12em]" style={{ color: theme.textMuted }}>Chi phí (dự kiến)</Text>
+              <Text className="mt-1 text-[13px] font-bold" style={{ color: theme.text }}>{formatEstimatedCostPerPerson(session.slot.price, session.max_players)}</Text>
             </View>
           </View>
 
@@ -1599,7 +1688,7 @@ export default function SessionDetail() {
         ) : null}
       </View>
 
-      <View className="mt-3 rounded-[24px] border border-slate-200 bg-white p-3">
+      <View className="mt-3 rounded-[24px] border p-3" style={{ backgroundColor: theme.surface, borderColor: theme.border, ...getShadowStyle(theme) }}>
         <TouchableOpacity
           className={`flex-row items-center rounded-[20px] border bg-slate-50 px-3 py-3 ${hostSkillTone.border}`}
           onPress={() =>

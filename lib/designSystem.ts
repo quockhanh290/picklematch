@@ -1,36 +1,127 @@
-export const appColors = {
-  bg: 'bg-stone-100',
-  surface: 'bg-white',
-  surfaceMuted: 'bg-slate-50',
-  ink: 'text-slate-900',
-  inkSoft: 'text-slate-600',
-  line: 'border-slate-200',
-  brand: 'bg-emerald-600',
-  brandSoft: 'bg-emerald-50',
-  brandText: 'text-emerald-700',
-}
+import type { TextStyle, ViewStyle } from 'react-native'
 
-export const badgeToneClasses = {
-  success: {
-    wrap: 'bg-emerald-100',
-    text: 'text-emerald-700',
-  },
-  warning: {
-    wrap: 'bg-amber-100',
-    text: 'text-amber-700',
-  },
-  danger: {
-    wrap: 'bg-rose-100',
-    text: 'text-rose-700',
-  },
-  info: {
-    wrap: 'bg-sky-100',
-    text: 'text-sky-700',
-  },
-  neutral: {
-    wrap: 'bg-slate-100',
-    text: 'text-slate-700',
-  },
+import type { AppTheme } from '@/constants/theme'
+
+export const appRadii = {
+  sm: 'rounded-2xl',
+  md: 'rounded-[28px]',
+  lg: 'rounded-[32px]',
 } as const
 
-export type BadgeTone = keyof typeof badgeToneClasses
+export const appRadiusValues = {
+  sm: 18,
+  md: 28,
+  lg: 32,
+} as const
+
+export type BadgeTone = 'success' | 'warning' | 'danger' | 'info' | 'neutral'
+
+type TonePalette = {
+  backgroundColor: string
+  textColor: string
+  borderColor: string
+  activeBackgroundColor: string
+  activeTextColor: string
+}
+
+export function getTonePalette(theme: AppTheme, tone: BadgeTone): TonePalette {
+  switch (tone) {
+    case 'success':
+      return {
+        backgroundColor: theme.primarySoft,
+        textColor: theme.primaryStrong,
+        borderColor: theme.primary,
+        activeBackgroundColor: theme.primary,
+        activeTextColor: theme.primaryContrast,
+      }
+    case 'warning':
+      return {
+        backgroundColor: theme.warningSoft,
+        textColor: theme.warning,
+        borderColor: theme.warning,
+        activeBackgroundColor: theme.warning,
+        activeTextColor: theme.text,
+      }
+    case 'danger':
+      return {
+        backgroundColor: theme.dangerSoft,
+        textColor: theme.danger,
+        borderColor: theme.danger,
+        activeBackgroundColor: theme.danger,
+        activeTextColor: theme.primaryContrast,
+      }
+    case 'info':
+      return {
+        backgroundColor: theme.infoSoft,
+        textColor: theme.info,
+        borderColor: theme.info,
+        activeBackgroundColor: theme.info,
+        activeTextColor: theme.primaryContrast,
+      }
+    case 'neutral':
+    default:
+      return {
+        backgroundColor: theme.surfaceAlt,
+        textColor: theme.textMuted,
+        borderColor: theme.borderStrong,
+        activeBackgroundColor: theme.text,
+        activeTextColor: theme.primaryContrast,
+      }
+  }
+}
+
+export function getSurfaceStyle(
+  theme: AppTheme,
+  tone: 'default' | 'muted' | 'alt' = 'default'
+): ViewStyle {
+  if (tone === 'muted') {
+    return {
+      backgroundColor: theme.surfaceMuted,
+      borderColor: theme.border,
+    }
+  }
+
+  if (tone === 'alt') {
+    return {
+      backgroundColor: theme.surfaceAlt,
+      borderColor: theme.border,
+    }
+  }
+
+  return {
+    backgroundColor: theme.surface,
+    borderColor: theme.border,
+  }
+}
+
+export function getShadowStyle(theme: AppTheme, level: 'card' | 'raised' = 'card'): ViewStyle {
+  if (level === 'raised') {
+    return {
+      shadowColor: theme.shadow,
+      shadowOpacity: 0.16,
+      shadowRadius: 24,
+      shadowOffset: { width: 0, height: 14 },
+      elevation: 8,
+    }
+  }
+
+  return {
+    shadowColor: theme.shadow,
+    shadowOpacity: 0.1,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 4,
+  }
+}
+
+export function getTextToneStyle(theme: AppTheme, tone: 'default' | 'muted' | 'soft' = 'default'): TextStyle {
+  if (tone === 'muted') {
+    return { color: theme.textMuted }
+  }
+
+  if (tone === 'soft') {
+    return { color: theme.textSoft }
+  }
+
+  return { color: theme.text }
+}

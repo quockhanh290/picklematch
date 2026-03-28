@@ -1,5 +1,7 @@
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native'
 
+import { useAppTheme } from '@/lib/theme-context'
+
 type Props = {
   label: string
   onPress: () => void
@@ -17,31 +19,53 @@ export function AppButton({
   variant = 'primary',
   fullWidth = true,
 }: Props) {
+  const theme = useAppTheme()
   const isPrimary = variant === 'primary'
   const isSecondary = variant === 'secondary'
-  const classes = isPrimary
-    ? 'bg-emerald-600'
+
+  const buttonStyle = isPrimary
+    ? {
+        backgroundColor: theme.primary,
+        borderColor: theme.primary,
+        borderRadius: theme.radiusMd,
+      }
     : isSecondary
-      ? 'border border-emerald-500 bg-white'
-      : 'bg-transparent'
-  const textClasses = isPrimary ? 'text-white' : isSecondary ? 'text-emerald-700' : 'text-slate-700'
+      ? {
+          backgroundColor: theme.surface,
+          borderColor: theme.primary,
+          borderWidth: 1,
+          borderRadius: theme.radiusMd,
+        }
+      : {
+          backgroundColor: 'transparent',
+          borderRadius: theme.radiusMd,
+        }
+
+  const textStyle = isPrimary
+    ? { color: theme.primaryContrast }
+    : isSecondary
+      ? { color: theme.primaryStrong }
+      : { color: theme.textMuted }
 
   return (
     <TouchableOpacity
       activeOpacity={0.92}
       onPress={onPress}
       disabled={disabled || loading}
-      className={`${fullWidth ? 'w-full' : ''} h-14 items-center justify-center rounded-2xl px-5 ${classes} ${
-        disabled || loading ? 'opacity-70' : ''
-      }`}
+      className={`${fullWidth ? 'w-full' : ''} h-14 items-center justify-center px-5 ${disabled || loading ? 'opacity-70' : ''}`}
+      style={buttonStyle}
     >
       {loading ? (
         <View className="flex-row items-center gap-3">
-          <ActivityIndicator color={isPrimary ? '#fff' : '#047857'} />
-          <Text className={`text-base font-extrabold ${textClasses}`}>Đang xử lý...</Text>
+          <ActivityIndicator color={isPrimary ? theme.primaryContrast : theme.primaryStrong} />
+          <Text className="text-base font-extrabold" style={textStyle}>
+            Đang xử lý...
+          </Text>
         </View>
       ) : (
-        <Text className={`text-base font-extrabold ${textClasses}`}>{label}</Text>
+        <Text className="text-base font-extrabold" style={textStyle}>
+          {label}
+        </Text>
       )}
     </TouchableOpacity>
   )

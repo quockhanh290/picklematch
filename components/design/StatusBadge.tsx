@@ -1,6 +1,7 @@
 import { Text, View } from 'react-native'
 
-import { badgeToneClasses, type BadgeTone } from '@/lib/designSystem'
+import { appRadii, getTonePalette, type BadgeTone } from '@/lib/designSystem'
+import { useAppTheme } from '@/lib/theme-context'
 
 type Props = {
   label: string
@@ -8,11 +9,17 @@ type Props = {
 }
 
 export function StatusBadge({ label, tone = 'neutral' }: Props) {
-  const palette = badgeToneClasses[tone]
+  const theme = useAppTheme()
+  const palette = getTonePalette(theme, tone)
 
   return (
-    <View className={`rounded-full px-3 py-1.5 ${palette.wrap}`}>
-      <Text className={`text-xs font-bold ${palette.text}`}>{label}</Text>
+    <View
+      className={`${appRadii.sm} border px-3 py-1.5`}
+      style={{ backgroundColor: palette.backgroundColor, borderColor: palette.borderColor }}
+    >
+      <Text className="text-xs font-bold" style={{ color: palette.textColor }}>
+        {label}
+      </Text>
     </View>
   )
 }

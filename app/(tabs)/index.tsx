@@ -29,7 +29,9 @@ import Animated, {
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { getSkillLevelUi, getSkillTargetElo } from '@/lib/skillLevelUi'
+import { getShadowStyle } from '@/lib/designSystem'
 import type { SkillAssessmentLevel } from '@/lib/skillAssessment'
+import { useAppTheme } from '@/lib/theme-context'
 
 type StatItem = {
   id: string
@@ -724,26 +726,41 @@ function HomeGreetingHeader({
   name: string
   statusPrompt: string
 }) {
+  const theme = useAppTheme()
+
   return (
-    <View className="flex-row items-start justify-between">
+    <View
+      className="flex-row items-start justify-between rounded-[32px] px-5 py-5"
+      style={{
+        backgroundColor: theme.surface,
+        borderWidth: 1,
+        borderColor: theme.border,
+        ...getShadowStyle(theme),
+      }}
+    >
       <View className="flex-1 pr-4">
-        <Text className="text-[11px] font-bold uppercase tracking-[2.8px] text-slate-400">Command Center</Text>
+        <Text className="text-[11px] font-bold uppercase tracking-[2.8px]" style={{ color: theme.textSoft }}>Command Center</Text>
         <View className="mt-2 flex-row items-center">
-          <Text className="text-[28px] font-black leading-[34px] text-slate-950">{name}</Text>
-          <View className="ml-2 rounded-full bg-amber-100 p-2">
-            <Hand size={18} color="#f59e0b" strokeWidth={iconStroke} />
+          <Text className="text-[28px] font-black leading-[34px]" style={{ color: theme.text }}>{name}</Text>
+          <View className="ml-2 rounded-full p-2" style={{ backgroundColor: theme.warningSoft }}>
+            <Hand size={18} color={theme.warning} strokeWidth={iconStroke} />
           </View>
         </View>
-        <Text className="mt-2 text-[15px] font-semibold text-slate-400">{statusPrompt}</Text>
+        <Text className="mt-2 text-[15px] font-semibold" style={{ color: theme.textMuted }}>{statusPrompt}</Text>
       </View>
 
       <Pressable
         onPress={() => router.push('/(tabs)/profile' as never)}
-        className="h-20 w-20 items-center justify-center rounded-[26px] border border-white/80 bg-white"
-        style={{ shadowColor: '#0f172a', shadowOpacity: 0.08, shadowRadius: 20, shadowOffset: { width: 0, height: 10 } }}
+        className="h-20 w-20 items-center justify-center rounded-[26px]"
+        style={{
+          borderWidth: 1,
+          borderColor: theme.border,
+          backgroundColor: theme.surfaceAlt,
+          ...getShadowStyle(theme),
+        }}
       >
-        <View className="h-[68px] w-[68px] items-center justify-center rounded-[22px] bg-amber-50">
-          <UserRound size={30} color="#b45309" strokeWidth={2.4} />
+        <View className="h-[68px] w-[68px] items-center justify-center rounded-[22px]" style={{ backgroundColor: theme.primarySoft }}>
+          <UserRound size={30} color={theme.primary} strokeWidth={2.4} />
         </View>
       </Pressable>
     </View>
@@ -751,25 +768,36 @@ function HomeGreetingHeader({
 }
 
 function DashboardStatsStrip({ items }: { items: StatItem[] }) {
+  const theme = useAppTheme()
+
   return (
-    <View className="mt-6 flex-row rounded-[30px] border border-slate-200 bg-white px-4 py-5">
+    <View
+      className="mt-6 flex-row rounded-[30px] px-4 py-6"
+      style={{
+        backgroundColor: theme.surfaceAlt,
+        borderWidth: 1,
+        borderColor: theme.borderStrong,
+        ...getShadowStyle(theme),
+      }}
+    >
       {items.map((item, index) => {
         const Icon = item.icon
+        const valueColorClass =
+          item.id === 'elo' ? 'text-indigo-700' : item.id === 'streak' ? 'text-amber-600' : 'text-emerald-700'
+        const iconColor = item.id === 'elo' ? '#6366f1' : item.id === 'streak' ? '#f97316' : '#10b981'
 
         return (
           <View key={item.id} className="flex-1 flex-row items-stretch">
-            <View className="flex-1 items-center justify-center px-2">
-              <View className="flex-row items-center">
-                <Icon
-                  size={15}
-                  color={item.id === 'elo' ? '#6366f1' : item.id === 'streak' ? '#f97316' : '#10b981'}
-                  strokeWidth={iconStroke}
-                />
-                <Text className="ml-2 text-[11px] font-bold uppercase tracking-[1px] text-slate-500">{item.label}</Text>
+            <View className="flex-1 px-3">
+              <View className="flex-row items-center justify-center">
+                <Icon size={15} color={iconColor} strokeWidth={iconStroke} />
+                <Text className="ml-2 text-[11px] font-bold uppercase tracking-[1px]" style={{ color: theme.textMuted }}>
+                  {item.label}
+                </Text>
               </View>
-              <Text className={`mt-3 text-[24px] font-black ${item.accent}`}>{item.value}</Text>
+              <Text className={`mt-4 text-center text-[28px] font-black ${valueColorClass}`}>{item.value}</Text>
             </View>
-            {index < items.length - 1 ? <View className="my-2 w-px self-stretch bg-slate-200" /> : null}
+            {index < items.length - 1 ? <View className="my-1 w-px self-stretch" style={{ backgroundColor: theme.border }} /> : null}
           </View>
         )
       })}
@@ -786,13 +814,15 @@ function SectionHeader({
   title: string
   trailing?: string
 }) {
+  const theme = useAppTheme()
+
   return (
     <View className="mb-5 flex-row items-end justify-between">
       <View className="flex-1 pr-4">
-        <Text className="text-[11px] font-bold uppercase tracking-[2.8px] text-slate-400">{eyebrow}</Text>
-        <Text className="mt-2 text-[28px] font-black text-slate-950">{title}</Text>
+        <Text className="text-[11px] font-bold uppercase tracking-[2.8px]" style={{ color: theme.textSoft }}>{eyebrow}</Text>
+        <Text className="mt-2 text-[28px] font-black" style={{ color: theme.text }}>{title}</Text>
       </View>
-      {trailing ? <Text className="text-sm font-bold text-slate-500">{trailing}</Text> : null}
+      {trailing ? <Text className="text-sm font-bold" style={{ color: theme.textMuted }}>{trailing}</Text> : null}
     </View>
   )
 }
@@ -804,6 +834,7 @@ function CarouselDots({
   count: number
   activeIndex: number
 }) {
+  const theme = useAppTheme()
   const visibleCount = Math.min(count, 5)
 
   return (
@@ -811,9 +842,8 @@ function CarouselDots({
       {Array.from({ length: visibleCount }).map((_, index) => (
         <View
           key={index}
-          className={`rounded-full ${
-            index === activeIndex % visibleCount ? 'h-2 w-4 bg-slate-700' : 'h-2 w-2 bg-slate-300'
-          }`}
+          className={`rounded-full ${index === activeIndex % visibleCount ? 'h-2 w-4' : 'h-2 w-2'}`}
+          style={{ backgroundColor: index === activeIndex % visibleCount ? theme.primary : theme.borderStrong }}
         />
       ))}
     </View>
@@ -1741,6 +1771,7 @@ function SwipeStack<T>({
 }
 
 export default function HomeScreen() {
+  const theme = useAppTheme()
   const [personalizedIndex, setPersonalizedIndex] = useState(0)
   const [rescueIndex, setRescueIndex] = useState(0)
   const [courtIndex, setCourtIndex] = useState(0)
@@ -1754,8 +1785,8 @@ export default function HomeScreen() {
   const renderCourtCard = useCallback((item: FamiliarCourt) => <FamiliarCourtCard item={item} />, [])
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F8FAFC]" edges={['top']}>
-      <View className="flex-1">
+    <SafeAreaView className="flex-1" style={{ backgroundColor: theme.backgroundMuted }} edges={['top']}>
+      <View className="flex-1" style={{ backgroundColor: theme.backgroundMuted }}>
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: 160 }}
@@ -1812,11 +1843,11 @@ export default function HomeScreen() {
 
         <Pressable
           onPress={() => router.push('/create-session' as never)}
-          className="absolute bottom-8 right-5 flex-row items-center rounded-full bg-[#BEF264] px-8 py-5"
-          style={{ shadowColor: '#84cc16', shadowOpacity: 0.34, shadowRadius: 24, shadowOffset: { width: 0, height: 16 } }}
+          className="absolute bottom-8 right-5 flex-row items-center rounded-full px-8 py-5"
+          style={{ backgroundColor: theme.primary, shadowColor: theme.primaryStrong, shadowOpacity: 0.34, shadowRadius: 24, shadowOffset: { width: 0, height: 16 } }}
         >
-          <Plus size={20} color="#000000" strokeWidth={iconStroke} />
-          <Text className="ml-3 text-sm font-black uppercase tracking-[2.6px] text-black">Tạo kèo mới</Text>
+          <Plus size={20} color={theme.primaryContrast} strokeWidth={iconStroke} />
+          <Text className="ml-3 text-sm font-black uppercase tracking-[2.6px]" style={{ color: theme.primaryContrast }}>Tạo kèo mới</Text>
         </Pressable>
       </View>
     </SafeAreaView>

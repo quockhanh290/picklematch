@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react'
 import { Text, TouchableOpacity, View } from 'react-native'
 
-import { badgeToneClasses, type BadgeTone } from '@/lib/designSystem'
+import { appRadii, getTonePalette, type BadgeTone } from '@/lib/designSystem'
+import { useAppTheme } from '@/lib/theme-context'
 
 type Props = {
   label: string
@@ -28,22 +29,36 @@ export function AppChip({
   inactiveClassName,
   iconClassName = '',
 }: Props) {
-  const palette = badgeToneClasses[tone]
-  const activeClasses = active ? activeClassName ?? 'bg-emerald-600' : inactiveClassName ?? palette.wrap
-  const textClasses = active ? 'text-white' : palette.text
-  const Wrapper = onPress ? TouchableOpacity : TouchableOpacity
+  const theme = useAppTheme()
+  const palette = getTonePalette(theme, tone)
+  const stateClassName = active ? activeClassName ?? '' : inactiveClassName ?? ''
+  const activeStyle = active
+    ? {
+        backgroundColor: palette.activeBackgroundColor,
+        borderColor: palette.activeBackgroundColor,
+      }
+    : {
+        backgroundColor: palette.backgroundColor,
+        borderColor: palette.borderColor,
+      }
+  const textStyle = {
+    color: active ? palette.activeTextColor : palette.textColor,
+  }
 
   return (
-    <Wrapper
+    <TouchableOpacity
       activeOpacity={0.88}
       onPress={onPress}
       disabled={!onPress}
-      className={`rounded-full px-4 py-2.5 ${activeClasses} ${className}`}
+      className={`${appRadii.sm} border px-4 py-2.5 ${stateClassName} ${className}`}
+      style={activeStyle}
     >
       <View className="flex-row items-center">
         {icon ? <View className={`mr-1.5 ${iconClassName}`}>{icon}</View> : null}
-        <Text className={`text-sm font-semibold ${textClasses} ${labelClassName}`}>{label}</Text>
+        <Text className={`text-sm font-semibold ${labelClassName}`} style={textStyle}>
+          {label}
+        </Text>
       </View>
-    </Wrapper>
+    </TouchableOpacity>
   )
 }

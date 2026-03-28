@@ -1,4 +1,4 @@
-import { EmptyState, ScreenHeader } from '@/components/design'
+import { AppButton, EmptyState, ScreenHeader } from '@/components/design'
 import CommunityFeedbackPanel from '@/components/profile/CommunityFeedbackSection'
 import {
   ProfileHistoryList,
@@ -8,6 +8,7 @@ import {
   ProfileWinStreak,
 } from '@/components/profile/ProfileSections'
 import TrophyRoomSection from '@/components/profile/TrophyRoom'
+import { useAppTheme } from '@/lib/theme-context'
 import { getSkillLevelFromElo, getSkillLevelFromPlayer } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
 import { router, useFocusEffect } from 'expo-router'
@@ -49,6 +50,7 @@ const WIN_STREAK = {
 }
 
 export default function ProfileScreen() {
+  const theme = useAppTheme()
   const [checking, setChecking] = useState(true)
   const [loggedIn, setLoggedIn] = useState(false)
   const [player, setPlayer] = useState<Player | null>(null)
@@ -161,15 +163,15 @@ export default function ProfileScreen() {
 
   if (checking) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-stone-100" edges={['top']}>
-        <ActivityIndicator size="large" color="#16a34a" />
+      <SafeAreaView className="flex-1 items-center justify-center" style={{ backgroundColor: theme.backgroundMuted }} edges={['top']}>
+        <ActivityIndicator size="large" color={theme.primary} />
       </SafeAreaView>
     )
   }
 
   if (!loggedIn) {
     return (
-      <SafeAreaView className="flex-1 bg-stone-100" edges={['top']}>
+      <SafeAreaView className="flex-1" style={{ backgroundColor: theme.backgroundMuted }} edges={['top']}>
         <ScreenHeader
           eyebrow="Hồ sơ"
           title="Tài khoản của bạn"
@@ -181,20 +183,8 @@ export default function ProfileScreen() {
           description="Quản lý thông tin cá nhân và lịch sử tham gia kèo của bạn ở một nơi gọn gàng hơn."
         />
         <View className="mt-6 gap-3 px-5">
-          <TouchableOpacity
-            activeOpacity={0.9}
-            onPress={() => router.push('/login' as any)}
-            className="items-center justify-center rounded-[18px] bg-emerald-600 px-5 py-4"
-          >
-            <Text className="text-sm font-bold text-white">Đăng nhập</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            activeOpacity={0.9}
-            onPress={() => router.replace('/(tabs)')}
-            className="items-center justify-center rounded-[18px] border border-slate-200 bg-white px-5 py-4"
-          >
-            <Text className="text-sm font-bold text-slate-700">Về trang chủ</Text>
-          </TouchableOpacity>
+          <AppButton label="Đăng nhập" onPress={() => router.push('/login' as any)} />
+          <AppButton label="Về trang chủ" onPress={() => router.replace('/(tabs)')} variant="secondary" />
         </View>
       </SafeAreaView>
     )
@@ -202,15 +192,15 @@ export default function ProfileScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-stone-100" edges={['top']}>
-        <ActivityIndicator size="large" color="#16a34a" />
+      <SafeAreaView className="flex-1 items-center justify-center" style={{ backgroundColor: theme.backgroundMuted }} edges={['top']}>
+        <ActivityIndicator size="large" color={theme.primary} />
       </SafeAreaView>
     )
   }
 
   if (!player) {
     return (
-      <SafeAreaView className="flex-1 bg-stone-100" edges={['top']}>
+      <SafeAreaView className="flex-1" style={{ backgroundColor: theme.backgroundMuted }} edges={['top']}>
         <EmptyState
           icon={<CircleAlert size={28} color="#64748b" />}
           title="Không tìm thấy hồ sơ"
@@ -229,7 +219,7 @@ export default function ProfileScreen() {
   const placementPlayed = player.placement_matches_played ?? 0
 
   return (
-    <SafeAreaView className="flex-1 bg-stone-100" edges={['top']}>
+    <SafeAreaView className="flex-1" style={{ backgroundColor: theme.backgroundMuted }} edges={['top']}>
       <ScrollView contentContainerStyle={{ paddingBottom: 48 }}>
         <ScreenHeader
           eyebrow="Hồ sơ cá nhân"
@@ -293,9 +283,10 @@ export default function ProfileScreen() {
           <TouchableOpacity
             activeOpacity={0.9}
             onPress={logout}
-            className="mt-6 flex-row items-center justify-center rounded-[18px] border border-rose-100 bg-white px-5 py-4"
+            className="mt-6 flex-row items-center justify-center rounded-[18px] px-5 py-4"
+            style={{ borderWidth: 1, borderColor: theme.dangerSoft, backgroundColor: theme.surface }}
           >
-            <LogOut size={16} color="#be123c" />
+            <LogOut size={16} color={theme.danger} />
             <Text className="ml-2 text-sm font-bold text-rose-700">Đăng xuất</Text>
           </TouchableOpacity>
         </View>
