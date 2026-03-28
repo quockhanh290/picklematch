@@ -33,7 +33,7 @@ const MOCK_TRAITS: FeedbackTrait[] = [
   {
     key: 'toxic',
     icon: Frown,
-    label: 'Toxic',
+    label: 'Xấu tính',
     count: '-2 cảnh báo',
     context: 'Đôi lúc phản ứng gắt khi trận đấu căng hoặc tranh điểm.',
     tone: 'negative',
@@ -41,7 +41,7 @@ const MOCK_TRAITS: FeedbackTrait[] = [
   {
     key: 'late',
     icon: Timer,
-    label: 'Đi muộn',
+    label: 'Đến trễ',
     count: '-1 cảnh báo',
     context: 'Có vài lần đến sát giờ làm host phải chờ đội hình.',
     tone: 'negative',

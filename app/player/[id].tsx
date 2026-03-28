@@ -84,13 +84,13 @@ const FEEDBACK_META: Record<
   },
   toxic: {
     icon: Frown,
-    label: 'Toxic',
+    label: 'Xấu tính',
     context: 'Đôi lúc phản ứng căng khi trận đấu hoặc tranh điểm nóng lên.',
     tone: 'negative',
   },
   late: {
     icon: Timer,
-    label: 'Đi muộn',
+    label: 'Đến trễ',
     context: 'Có vài phản hồi về việc đến sát giờ hoặc làm đội hình chờ.',
     tone: 'negative',
   },
@@ -216,7 +216,9 @@ export default function PlayerProfile() {
 
     const { data } = await supabase
       .from('players')
-      .select('id, name, city, skill_label, self_assessed_level, elo, current_elo, is_provisional, placement_matches_played, sessions_joined, no_show_count, created_at, favorite_court_ids')
+      .select(
+        'id, name, city, skill_label, self_assessed_level, elo, current_elo, is_provisional, placement_matches_played, sessions_joined, no_show_count, created_at, favorite_court_ids',
+      )
       .eq('id', id)
       .single()
 
@@ -327,7 +329,13 @@ export default function PlayerProfile() {
             actions={isMe ? [{ label: 'Sửa hồ sơ', icon: 'edit', onPress: () => router.push('/edit-profile' as any) }] : []}
           />
 
-          <ProfileSkillHero elo={effectiveElo} title={skill.title} subtitle={skill.subtitle} description={skill.description} levelId={skill.id} />
+          <ProfileSkillHero
+            elo={effectiveElo}
+            title={skill.title}
+            subtitle={skill.subtitle}
+            description={skill.description}
+            levelId={skill.id}
+          />
 
           <ProfileStatsGrid
             reliability={reliability === null ? 'Mới' : `${reliability}%`}

@@ -1,76 +1,63 @@
-import { AppButton, AppChip, EmptyState, ScreenHeader, SectionCard, StatusBadge } from '@/components/design'
+import { EmptyState } from '@/components/design'
+import { getShortSkillLabel, getSkillLevelFromPlayer } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
 import { router, useLocalSearchParams } from 'expo-router'
 import type { LucideIcon } from 'lucide-react-native'
 import {
-  AlertTriangle,
-  Award,
-  CheckCircle2,
-  ClipboardList,
-  Flame,
-  Frown,
-  MapPin,
-  Scale,
+  AlertOctagon,
+  ArrowDown,
+  ArrowRight,
+  Check,
+  CheckCheck,
+  Clock,
+  Heart,
+  Hourglass,
+  MessageCircle,
+  ShieldAlert,
   ShieldCheck,
-  ShieldQuestion,
-  Swords,
-  Timer,
-  UserRoundX,
-  Users,
+  Trophy,
+  X,
+  Zap,
 } from 'lucide-react-native'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import {
+  ActivityIndicator,
+  Alert,
+  LayoutAnimation,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  UIManager,
+  View,
+} from 'react-native'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 type SkillValidation = 'weaker' | 'matched' | 'outclass'
 
-type TagOption = {
-  value: string
-  label: string
-  icon: LucideIcon
+type SessionRecord = {
+  id: string
+  status: string
+  host_id: string
+  slot?: {
+    end_time?: string | null
+  } | null
+  session_players: {
+    player_id: string
+    player?: {
+      name?: string | null
+      self_assessed_level?: string | null
+      skill_label?: string | null
+    } | null
+  }[]
 }
-
-type SkillOption = {
-  value: SkillValidation
-  label: string
-  icon: LucideIcon
-  tone: 'danger' | 'success' | 'info'
-}
-
-const PLAYER_TAGS_POSITIVE: TagOption[] = [
-  { value: 'fair_play', label: 'Chơi đẹp', icon: Award },
-  { value: 'on_time', label: 'Đúng giờ', icon: Flame },
-  { value: 'friendly', label: 'Thân thiện', icon: Users },
-  { value: 'skilled', label: 'Kỹ thuật tốt', icon: Swords },
-]
-
-const PLAYER_TAGS_NEGATIVE: TagOption[] = [
-  { value: 'toxic', label: 'Toxic', icon: Frown },
-  { value: 'late', label: 'Đi muộn', icon: Timer },
-  { value: 'dishonest', label: 'Gian lận điểm', icon: AlertTriangle },
-]
-
-const HOST_TAGS: TagOption[] = [
-  { value: 'good_description', label: 'Đúng mô tả kèo', icon: ClipboardList },
-  { value: 'well_organized', label: 'Tổ chức tốt', icon: ShieldCheck },
-  { value: 'fair_pairing', label: 'Xếp cặp công bằng', icon: Scale },
-]
-
-const HOST_TAGS_NEGATIVE: TagOption[] = [
-  { value: 'court_mismatch', label: 'Sân sai mô tả', icon: MapPin },
-  { value: 'poor_organization', label: 'Tổ chức kém', icon: ShieldQuestion },
-]
-
-const SKILL_OPTIONS: SkillOption[] = [
-  { value: 'weaker', label: 'Yếu hơn mác', icon: UserRoundX, tone: 'danger' },
-  { value: 'matched', label: 'Đúng trình', icon: CheckCircle2, tone: 'info' },
-  { value: 'outclass', label: 'Out trình', icon: Award, tone: 'info' },
-]
 
 type PlayerInSession = {
   player_id: string
   name: string
   is_host: boolean
+  self_assessed_level?: string | null
+  skill_label?: string | null
 }
 
 type RatingEntry = {
@@ -79,21 +66,39 @@ type RatingEntry = {
   skill_validation: SkillValidation
 }
 
-type SessionRecord = {
-  id: string
-  status: string
-  host_id: string
-  slot?: {
-    end_time?: string | null
-    court?: {
-      name?: string | null
-    } | null
-  } | null
-  session_players: {
-    player_id: string
-    player?: { name?: string | null } | null
-  }[]
+type SkillOption = {
+  value: SkillValidation
+  label: string
+  icon: LucideIcon
 }
+
+type TagOption = {
+  value: string
+  label: string
+  icon: LucideIcon
+  tone: 'positive' | 'warning'
+}
+
+const ICON_STROKE_WIDTH = 2.5
+
+const SKILL_OPTIONS: SkillOption[] = [
+  { value: 'weaker', label: 'Cần cố gắng', icon: ArrowDown },
+  { value: 'matched', label: 'Đúng Trình', icon: Check },
+  { value: 'outclass', label: 'Out trình', icon: Trophy },
+]
+
+const POSITIVE_TAGS: TagOption[] = [
+  { value: 'fair_play', label: 'Chơi đẹp', icon: Heart, tone: 'positive' },
+  { value: 'on_time', label: 'Đúng giờ', icon: Clock, tone: 'positive' },
+  { value: 'friendly', label: 'Thân thiện', icon: MessageCircle, tone: 'positive' },
+  { value: 'skilled', label: 'Kỹ thuật tốt', icon: Zap, tone: 'positive' },
+]
+
+const WARNING_TAGS: TagOption[] = [
+  { value: 'toxic', label: 'Xấu tính', icon: AlertOctagon, tone: 'warning' },
+  { value: 'late', label: 'Đến trễ', icon: Hourglass, tone: 'warning' },
+  { value: 'dishonest', label: 'Gian lận', icon: ShieldAlert, tone: 'warning' },
+]
 
 function createDefaultEntry(): RatingEntry {
   return {
@@ -103,40 +108,68 @@ function createDefaultEntry(): RatingEntry {
   }
 }
 
-function chipClasses(kind: 'positive' | 'negative' | 'skill') {
-  if (kind === 'positive') {
-    return {
-      active: 'bg-emerald-50',
-      text: 'text-emerald-700',
-      icon: '#047857',
-    }
-  }
-
-  if (kind === 'negative') {
-    return {
-      active: 'bg-rose-50',
-      text: 'text-rose-700',
-      icon: '#be123c',
-    }
-  }
-
-  return {
-    active: 'bg-sky-50',
-    text: 'text-sky-700',
-    icon: '#0369a1',
-  }
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true)
 }
 
-export default function RateSession() {
+function animateSelection() {
+  LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut)
+}
+
+function getInitials(name: string) {
+  const parts = name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+
+  if (!parts.length) return '?'
+  return parts.map((part) => part[0]?.toUpperCase() ?? '').join('')
+}
+
+function chipIconColor(active: boolean, tone: TagOption['tone']) {
+  if (!active) return '#64748b'
+  return tone === 'positive' ? '#047857' : '#e11d48'
+}
+
+function chipClassName(active: boolean, tone: TagOption['tone']) {
+  if (!active) {
+    return 'border border-slate-200 bg-white'
+  }
+
+  return tone === 'positive' ? 'border border-emerald-500 bg-emerald-50' : 'border border-rose-300 bg-rose-50'
+}
+
+function chipTextClassName(active: boolean, tone: TagOption['tone']) {
+  if (!active) {
+    return 'text-slate-500'
+  }
+
+  return tone === 'positive' ? 'text-emerald-700' : 'text-rose-600'
+}
+
+export default function RateSessionScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
+  const insets = useSafeAreaInsets()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [myId, setMyId] = useState<string | null>(null)
   const [players, setPlayers] = useState<PlayerInSession[]>([])
-  const [sessionName, setSessionName] = useState('')
-  const [sessionEndTime, setSessionEndTime] = useState<string | null>(null)
   const [ratings, setRatings] = useState<Record<string, RatingEntry>>({})
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [sessionEndTime, setSessionEndTime] = useState<string | null>(null)
+  const [completedCount, setCompletedCount] = useState(0)
   const [alreadyRated, setAlreadyRated] = useState(false)
+
+  const currentPlayer = players[currentIndex] ?? null
+  const currentEntry = currentPlayer ? (ratings[currentPlayer.player_id] ?? createDefaultEntry()) : createDefaultEntry()
+
+  const revealAt = useMemo(() => {
+    const base = sessionEndTime ? new Date(sessionEndTime) : new Date()
+    const next = new Date(base)
+    next.setHours(next.getHours() + 24)
+    return next.toISOString()
+  }, [sessionEndTime])
 
   const init = useCallback(async () => {
     const {
@@ -156,12 +189,11 @@ export default function RateSession() {
         `
         id, status, host_id,
         slot:slot_id (
-          end_time,
-          court:court_id ( name )
+          end_time
         ),
         session_players (
           player_id,
-          player:player_id ( name )
+          player:player_id ( name, self_assessed_level, skill_label )
         )
       `,
       )
@@ -170,40 +202,48 @@ export default function RateSession() {
 
     if (sessionError || !session) {
       setLoading(false)
-      Alert.alert('Không tải được kèo', sessionError?.message ?? 'Vui lòng thử lại sau.')
+      Alert.alert('Không tải được kèo', sessionError?.message ?? 'Vui lòng thử lại sau ít phút.')
       return
     }
 
     if (session.status !== 'done') {
-      Alert.alert('Kèo chưa kết thúc', 'Chỉ có thể đánh giá sau khi kèo đã kết thúc.')
+      Alert.alert('Kèo chưa kết thúc', 'Chỉ có thể đánh giá sau khi buổi chơi đã hoàn tất.')
       router.back()
       return
     }
 
-    const { data: existing } = await supabase.from('ratings').select('id').eq('session_id', id).eq('rater_id', user.id).limit(1)
+    const typedSession = session as unknown as SessionRecord
+    setSessionEndTime(typedSession.slot?.end_time ?? null)
 
-    if ((existing?.length ?? 0) > 0) {
+    const { data: existingRatings } = await supabase
+      .from('ratings')
+      .select('rated_id')
+      .eq('session_id', id)
+      .eq('rater_id', user.id)
+
+    const ratedIds = new Set((existingRatings ?? []).map((item: any) => item.rated_id))
+
+    const unratedPlayers = typedSession.session_players
+      .filter((item) => item.player_id !== user.id)
+      .filter((item) => !ratedIds.has(item.player_id))
+      .map((item) => ({
+        player_id: item.player_id,
+        name: item.player?.name?.trim() || 'Người chơi',
+        is_host: item.player_id === typedSession.host_id,
+        self_assessed_level: item.player?.self_assessed_level ?? null,
+        skill_label: item.player?.skill_label ?? null,
+      }))
+
+    if ((existingRatings?.length ?? 0) > 0 && unratedPlayers.length === 0) {
       setAlreadyRated(true)
       setLoading(false)
       return
     }
 
-    const typedSession = session as unknown as SessionRecord
-    setSessionName(typedSession.slot?.court?.name ?? 'Kèo pickleball')
-    setSessionEndTime(typedSession.slot?.end_time ?? null)
-
-    const others = typedSession.session_players
-      .filter((item) => item.player_id !== user.id)
-      .map((item) => ({
-        player_id: item.player_id,
-        name: item.player?.name?.trim() || 'Người chơi',
-        is_host: item.player_id === typedSession.host_id,
-      }))
-
-    setPlayers(others)
+    setPlayers(unratedPlayers)
 
     const initialRatings: Record<string, RatingEntry> = {}
-    others.forEach((player) => {
+    unratedPlayers.forEach((player) => {
       initialRatings[player.player_id] = createDefaultEntry()
     })
     setRatings(initialRatings)
@@ -211,17 +251,11 @@ export default function RateSession() {
   }, [id])
 
   useEffect(() => {
-    init()
+    void init()
   }, [init])
 
-  const revealAt = useMemo(() => {
-    const base = sessionEndTime ? new Date(sessionEndTime) : new Date()
-    const next = new Date(base)
-    next.setHours(next.getHours() + 24)
-    return next.toISOString()
-  }, [sessionEndTime])
-
   function toggleTag(playerId: string, tag: string) {
+    animateSelection()
     setRatings((prev) => {
       const current = prev[playerId] ?? createDefaultEntry()
       const nextTags = current.tags.includes(tag) ? current.tags.filter((item) => item !== tag) : [...current.tags, tag]
@@ -237,6 +271,7 @@ export default function RateSession() {
   }
 
   function toggleNoShow(playerId: string) {
+    animateSelection()
     setRatings((prev) => {
       const current = prev[playerId] ?? createDefaultEntry()
       const nextNoShow = !current.no_show
@@ -253,6 +288,7 @@ export default function RateSession() {
   }
 
   function setSkillValidation(playerId: string, value: SkillValidation) {
+    animateSelection()
     setRatings((prev) => ({
       ...prev,
       [playerId]: {
@@ -263,22 +299,21 @@ export default function RateSession() {
   }
 
   async function submit() {
-    if (!myId || !id) return
+    if (!myId || !id || !currentPlayer) return
 
     setSaving(true)
+    const entry = ratings[currentPlayer.player_id] ?? createDefaultEntry()
 
-    const inserts = Object.entries(ratings).map(([playerId, entry]) => ({
+    const { error: ratingError } = await supabase.from('ratings').insert({
       session_id: id,
       rater_id: myId,
-      rated_id: playerId,
+      rated_id: currentPlayer.player_id,
       tags: entry.no_show ? [] : entry.tags,
       no_show: entry.no_show,
       skill_validation: entry.skill_validation,
       is_hidden: true,
       reveal_at: revealAt,
-    }))
-
-    const { error: ratingError } = await supabase.from('ratings').insert(inserts)
+    })
 
     if (ratingError) {
       setSaving(false)
@@ -296,6 +331,16 @@ export default function RateSession() {
       return
     }
 
+    const nextCompleted = completedCount + 1
+    const hasNext = currentIndex < players.length - 1
+
+    if (hasNext) {
+      setCompletedCount(nextCompleted)
+      setCurrentIndex((prev) => prev + 1)
+      setSaving(false)
+      return
+    }
+
     setSaving(false)
     Alert.alert(
       'Đã gửi đánh giá',
@@ -304,30 +349,10 @@ export default function RateSession() {
     )
   }
 
-  function renderChip(option: TagOption | SkillOption, kind: 'positive' | 'negative' | 'skill', active: boolean, onPress: () => void) {
-    const palette = chipClasses(kind)
-    const Icon = option.icon
-
-    return (
-      <AppChip
-        key={option.value}
-        icon={<Icon size={15} color={active ? palette.icon : '#64748b'} />}
-        label={option.label}
-        tone={'tone' in option ? option.tone : kind === 'negative' ? 'danger' : kind === 'skill' ? 'info' : 'success'}
-        active={active}
-        onPress={onPress}
-        className="flex-row items-center rounded-[10px] px-3 py-2"
-        labelClassName={`text-[13px] font-bold ${active ? palette.text : 'text-slate-500'}`}
-        activeClassName={palette.active}
-        inactiveClassName="border border-slate-200 bg-white"
-      />
-    )
-  }
-
   if (loading) {
     return (
       <SafeAreaView className="flex-1 items-center justify-center bg-stone-100" edges={['top']}>
-        <ActivityIndicator size="large" color="#16a34a" />
+        <ActivityIndicator size="large" color="#059669" />
       </SafeAreaView>
     )
   }
@@ -335,165 +360,254 @@ export default function RateSession() {
   if (alreadyRated) {
     return (
       <SafeAreaView className="flex-1 bg-stone-100" edges={['top']}>
-        <ScreenHeader
-          eyebrow="Hoàn tất"
-          title="Bạn đã đánh giá rồi"
-          subtitle="Phản hồi của bạn đã được ghi nhận và sẽ mở khi đủ điều kiện double-blind."
-        />
-        <EmptyState
-          icon={<CheckCircle2 size={28} color="#059669" />}
-          title="Đánh giá đã được lưu"
-          description="Bạn có thể quay về trang chủ để tiếp tục tìm kèo mới."
-        />
-        <View className="px-5 pt-6">
-          <AppButton label="Về trang chủ" onPress={() => router.replace('/(tabs)' as any)} />
+        <View className="flex-1 px-5 pt-8">
+          <EmptyState
+            icon={<CheckCheck size={28} color="#059669" strokeWidth={ICON_STROKE_WIDTH} />}
+            title="Bạn đã đánh giá rồi"
+            description="Phản hồi của bạn đã được ghi nhận và sẽ mở khi đủ điều kiện double-blind."
+          />
+          <View className="pt-6">
+            <Pressable
+              onPress={() => router.replace('/(tabs)' as any)}
+              className="items-center justify-center rounded-[22px] bg-emerald-600 px-5 py-4"
+            >
+              <Text className="text-[15px] font-black text-white">Về trang chủ</Text>
+            </Pressable>
+          </View>
         </View>
       </SafeAreaView>
     )
   }
 
-  if (players.length === 0) {
+  if (!currentPlayer) {
     return (
       <SafeAreaView className="flex-1 bg-stone-100" edges={['top']}>
-        <ScreenHeader
-          eyebrow="Đánh giá"
-          title="Không có ai để đánh giá"
-          subtitle="Kèo này hiện không có người chơi nào khác ngoài bạn."
-        />
-        <EmptyState
-          icon={<Users size={28} color="#64748b" />}
-          title="Chưa có dữ liệu đánh giá"
-          description="Khi có đồng đội hoặc đối thủ trong kèo, bạn sẽ đánh giá được ở đây."
-        />
-        <View className="px-5 pt-6">
-          <AppButton label="Về trang chủ" onPress={() => router.replace('/(tabs)' as any)} />
+        <View className="flex-1 px-5 pt-8">
+          <EmptyState
+            icon={<CheckCheck size={28} color="#059669" strokeWidth={ICON_STROKE_WIDTH} />}
+            title="Đã hoàn tất đánh giá"
+            description="Bạn đã gửi xong tất cả đánh giá cho kèo này."
+          />
+          <View className="pt-6">
+            <Pressable
+              onPress={() => router.replace('/(tabs)' as any)}
+              className="items-center justify-center rounded-[22px] bg-emerald-600 px-5 py-4"
+            >
+              <Text className="text-[15px] font-black text-white">Về trang chủ</Text>
+            </Pressable>
+          </View>
         </View>
       </SafeAreaView>
     )
   }
+
+  const currentSkill = getSkillLevelFromPlayer(currentPlayer)
+  const skillLabel = getShortSkillLabel(currentSkill)
 
   return (
     <SafeAreaView className="flex-1 bg-stone-100" edges={['top']}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 48 }}>
-        <ScreenHeader
-          eyebrow="Sau trận đấu"
-          title="Đánh giá kèo"
-          subtitle={sessionName || 'Ghi lại cảm nhận của bạn để hệ thống cải thiện độ ghép kèo và độ tin cậy.'}
-        />
+      <View className="flex-1">
+        <View
+          className="absolute left-0 right-0 z-20 flex-row items-center justify-between px-5"
+          style={{ top: insets.top + 4 }}
+        >
+          <Pressable
+            onPress={() => router.back()}
+            className="h-10 w-10 items-center justify-center rounded-full bg-white/90"
+          >
+            <X size={20} color="#0f172a" strokeWidth={ICON_STROKE_WIDTH} />
+          </Pressable>
 
-        <View className="px-5">
-          {players.map((player) => {
-            const entry = ratings[player.player_id] ?? createDefaultEntry()
-
-            return (
-              <SectionCard key={player.player_id} className="mb-4">
-                <View className="flex-row items-start">
-                  <View className="mr-3 h-12 w-12 items-center justify-center rounded-full bg-emerald-100">
-                    <Text className="text-lg font-black text-emerald-700">{player.name?.[0]?.toUpperCase() ?? '?'}</Text>
-                  </View>
-
-                  <View className="flex-1">
-                    <View className="flex-row items-start justify-between">
-                      <View className="flex-1 pr-3">
-                        <Text className="text-base font-extrabold text-slate-950">{player.name}</Text>
-                        <View className="mt-2 flex-row flex-wrap gap-2">
-                          {player.is_host ? <StatusBadge label="Host" tone="info" /> : null}
-                          {entry.no_show ? <StatusBadge label="No-show" tone="danger" /> : <StatusBadge label="Đã tham gia" tone="success" />}
-                        </View>
-                      </View>
-
-                      <TouchableOpacity
-                        activeOpacity={0.88}
-                        className={`rounded-full px-4 py-2 ${entry.no_show ? 'bg-rose-100' : 'bg-slate-100'}`}
-                        onPress={() => toggleNoShow(player.player_id)}
-                      >
-                        <Text className={`text-xs font-extrabold uppercase tracking-[1px] ${entry.no_show ? 'text-rose-700' : 'text-slate-600'}`}>
-                          {entry.no_show ? 'Đã báo no-show' : 'Báo no-show'}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                </View>
-
-                {!entry.no_show ? (
-                  <>
-                    <View className="mt-5">
-                      <Text className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Skill Validation</Text>
-                      <Text className="mt-2 text-sm leading-6 text-slate-500">
-                        Chọn cảm nhận thực chiến của bạn về trình độ người chơi này so với mức đang hiển thị.
-                      </Text>
-                      <View className="mt-4 flex-row flex-wrap gap-2">
-                        {SKILL_OPTIONS.map((option) =>
-                          renderChip(option, 'skill', entry.skill_validation === option.value, () =>
-                            setSkillValidation(player.player_id, option.value),
-                          ),
-                        )}
-                      </View>
-                    </View>
-
-                    <View className="mt-5">
-                      <Text className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Tích cực</Text>
-                      <Text className="mt-2 text-sm leading-6 text-slate-500">
-                        Những điểm tốt bạn muốn ghi nhận để tăng độ tin cậy và độ khớp của hệ thống.
-                      </Text>
-                      <View className="mt-4 flex-row flex-wrap gap-2">
-                        {PLAYER_TAGS_POSITIVE.map((tag) =>
-                          renderChip(tag, 'positive', entry.tags.includes(tag.value), () =>
-                            toggleTag(player.player_id, tag.value),
-                          ),
-                        )}
-                        {player.is_host
-                          ? HOST_TAGS.map((tag) =>
-                              renderChip(tag, 'skill', entry.tags.includes(tag.value), () =>
-                                toggleTag(player.player_id, tag.value),
-                              ),
-                            )
-                          : null}
-                      </View>
-                    </View>
-
-                    <View className="mt-5">
-                      <Text className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Cảnh báo</Text>
-                      <Text className="mt-2 text-sm leading-6 text-slate-500">
-                        Chỉ chọn khi bạn thực sự gặp tình huống đó trong trận để đảm bảo đánh giá công bằng.
-                      </Text>
-                      <View className="mt-4 flex-row flex-wrap gap-2">
-                        {PLAYER_TAGS_NEGATIVE.map((tag) =>
-                          renderChip(tag, 'negative', entry.tags.includes(tag.value), () =>
-                            toggleTag(player.player_id, tag.value),
-                          ),
-                        )}
-                        {player.is_host
-                          ? HOST_TAGS_NEGATIVE.map((tag) =>
-                              renderChip(tag, 'negative', entry.tags.includes(tag.value), () =>
-                                toggleTag(player.player_id, tag.value),
-                              ),
-                            )
-                          : null}
-                      </View>
-                    </View>
-                  </>
-                ) : (
-                  <View className="mt-5 rounded-[22px] bg-rose-50 px-4 py-4">
-                    <Text className="text-sm leading-6 text-rose-700">
-                      Người chơi này sẽ bị ghi nhận no-show. Hệ thống sẽ áp dụng mức trừ độ tin cậy mạnh hơn và bỏ qua các tag khác.
-                    </Text>
-                  </View>
-                )}
-              </SectionCard>
-            )
-          })}
-
-          <SectionCard className="mb-5">
-            <Text className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Quyền riêng tư</Text>
-            <Text className="mt-2 text-sm leading-6 text-slate-500">
-              Đánh giá của bạn là ẩn danh và chỉ hiển thị sau 24 giờ hoặc khi cả hai bên hoàn thành.
+          <View className="rounded-full bg-white/80 px-3 py-1.5">
+            <Text className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">
+              {completedCount + 1}/{players.length}
             </Text>
-          </SectionCard>
-
-          <AppButton label={saving ? 'Đang gửi...' : 'Gửi đánh giá'} onPress={submit} loading={saving} />
+          </View>
         </View>
-      </ScrollView>
+
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingTop: insets.top + 34,
+            paddingBottom: 128 + insets.bottom,
+            paddingHorizontal: 20,
+          }}
+        >
+          <View className="items-center pb-6">
+            <View className="relative">
+              <View className="h-24 w-24 items-center justify-center rounded-[32px] bg-slate-900 shadow-sm">
+                <Text className="text-[30px] font-black text-white">{getInitials(currentPlayer.name)}</Text>
+              </View>
+              <View className="absolute -bottom-1 -right-1 h-8 w-8 items-center justify-center rounded-full border-2 border-stone-100 bg-lime-400">
+                <Check size={16} color="#14532d" strokeWidth={ICON_STROKE_WIDTH} />
+              </View>
+            </View>
+
+            <Text className="mt-4 text-center text-[28px] font-black text-slate-950">{currentPlayer.name}</Text>
+
+            <View className="mt-3 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2">
+              <Text className="text-[13px] font-bold text-emerald-700">{skillLabel}</Text>
+            </View>
+          </View>
+
+          <View className="rounded-[30px] bg-white px-5 py-5 shadow-sm">
+            <View>
+              <Text className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">Trình độ</Text>
+              <Text className="mt-2 text-[22px] font-black text-slate-950">Bạn thấy bạn ấy thế nào?</Text>
+              <View className="mt-4 flex-row gap-2">
+                {SKILL_OPTIONS.map((option) => {
+                  const active = currentEntry.skill_validation === option.value
+                  const Icon = option.icon
+
+                  return (
+                    <Pressable
+                      key={option.value}
+                      onPress={() => setSkillValidation(currentPlayer.player_id, option.value)}
+                      className={`flex-1 rounded-[20px] border px-3 py-3 ${active ? 'border-emerald-600 bg-emerald-600' : 'border-slate-200 bg-white'}`}
+                    >
+                      <View className="items-center">
+                        <Icon
+                          size={17}
+                          color={active ? '#ffffff' : '#22c55e'}
+                          strokeWidth={ICON_STROKE_WIDTH}
+                        />
+                        <Text
+                          className={`mt-2 text-center text-[12px] font-bold leading-4 ${active ? 'text-white' : 'text-slate-500'}`}
+                        >
+                          {option.label}
+                        </Text>
+                      </View>
+                    </Pressable>
+                  )
+                })}
+              </View>
+            </View>
+
+            <View className="mt-7">
+              <View className="flex-row items-center">
+                <Heart size={16} color="#059669" strokeWidth={ICON_STROKE_WIDTH} />
+                <Text className="ml-2 text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">
+                  Lời khen dành cho người chơi
+                </Text>
+              </View>
+
+              <View className="mt-4 flex-row flex-wrap gap-3">
+                {POSITIVE_TAGS.map((tag) => {
+                  const active = currentEntry.tags.includes(tag.value)
+                  const Icon = tag.icon
+
+                  return (
+                    <Pressable
+                      key={tag.value}
+                      onPress={() => toggleTag(currentPlayer.player_id, tag.value)}
+                      className={`flex-row items-center rounded-[18px] px-3.5 py-2.5 ${chipClassName(active, tag.tone)}`}
+                    >
+                      <Icon size={15} color={chipIconColor(active, tag.tone)} strokeWidth={ICON_STROKE_WIDTH} />
+                      <Text className={`ml-2 text-[13px] font-bold ${chipTextClassName(active, tag.tone)}`}>
+                        {tag.label}
+                      </Text>
+                    </Pressable>
+                  )
+                })}
+              </View>
+            </View>
+
+            <View className="mt-8">
+              <View className="flex-row items-center">
+                <ShieldAlert size={16} color="#f43f5e" strokeWidth={ICON_STROKE_WIDTH} />
+                <Text className="ml-2 text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">
+                  Cảnh báo (Chỉ chọn nếu thực sự gặp)
+                </Text>
+              </View>
+
+              <View className="mt-4 flex-row flex-wrap gap-3">
+                {WARNING_TAGS.map((tag) => {
+                  const active = currentEntry.tags.includes(tag.value)
+                  const Icon = tag.icon
+
+                  return (
+                    <Pressable
+                      key={tag.value}
+                      onPress={() => toggleTag(currentPlayer.player_id, tag.value)}
+                      className={`flex-row items-center rounded-[18px] px-3.5 py-2.5 ${chipClassName(active, tag.tone)}`}
+                    >
+                      <Icon size={15} color={chipIconColor(active, tag.tone)} strokeWidth={ICON_STROKE_WIDTH} />
+                      <Text className={`ml-2 text-[13px] font-bold ${chipTextClassName(active, tag.tone)}`}>
+                        {tag.label}
+                      </Text>
+                    </Pressable>
+                  )
+                })}
+              </View>
+            </View>
+
+            <Pressable
+              onPress={() => toggleNoShow(currentPlayer.player_id)}
+              className={`mt-8 flex-row items-center justify-center rounded-[22px] px-4 py-4 ${
+                currentEntry.no_show ? 'bg-rose-600' : 'bg-rose-50'
+              }`}
+            >
+              <ShieldAlert
+                size={17}
+                color={currentEntry.no_show ? '#ffffff' : '#e11d48'}
+                strokeWidth={ICON_STROKE_WIDTH}
+              />
+              <Text className={`ml-2 text-[14px] font-black ${currentEntry.no_show ? 'text-white' : 'text-rose-600'}`}>
+                {currentEntry.no_show ? 'Đã báo no-show' : 'Báo No-show'}
+              </Text>
+            </Pressable>
+
+            {currentEntry.no_show ? (
+              <View className="mt-4 rounded-[22px] border border-rose-200 bg-rose-50 px-4 py-4">
+                <Text className="text-[14px] leading-6 text-rose-700">
+                  Người chơi này sẽ bị ghi nhận no-show. Hệ thống sẽ áp dụng mức trừ độ tin cậy mạnh hơn và bỏ qua các tag khác.
+                </Text>
+              </View>
+            ) : null}
+
+            <View className="mt-5 rounded-[24px] border border-indigo-100 bg-indigo-50 px-4 py-4">
+              <View className="flex-row items-start">
+                <View className="mt-0.5">
+                  <ShieldCheck size={18} color="#4f46e5" strokeWidth={ICON_STROKE_WIDTH} />
+                </View>
+                <View className="ml-3 flex-1">
+                  <Text className="text-[14px] font-black text-slate-900">Đánh giá ẩn danh</Text>
+                  <Text className="mt-1 text-[13px] leading-5 text-slate-600">
+                    Phản hồi của bạn sẽ chỉ hiển thị sau 24 giờ hoặc khi cả hai bên hoàn thành đánh giá.
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        </ScrollView>
+
+        <View
+          className="border-t border-slate-200 bg-white px-5"
+          style={{ paddingTop: 10, paddingBottom: Math.max(insets.bottom, 10) }}
+        >
+          <View className="flex-row items-center justify-between">
+            <View className="mr-4 flex-1">
+              <Text className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">
+                Bạn đang đánh giá
+              </Text>
+              <Text className="mt-1.5 text-[28px] font-black leading-[30px] text-slate-950">{currentPlayer.name}</Text>
+            </View>
+
+            <Pressable
+              onPress={submit}
+              disabled={saving}
+              className={`min-w-[160px] flex-row items-center justify-center rounded-[22px] px-5 py-4 ${
+                saving ? 'bg-emerald-500/70' : 'bg-emerald-600'
+              }`}
+            >
+              <Text className="text-[14px] font-black uppercase tracking-[0.03em] text-white">
+                {saving ? 'Đang gửi' : 'Gửi đánh giá'}
+              </Text>
+              <ArrowRight size={18} color="#ffffff" strokeWidth={ICON_STROKE_WIDTH} style={{ marginLeft: 8 }} />
+            </Pressable>
+          </View>
+        </View>
+      </View>
     </SafeAreaView>
   )
 }

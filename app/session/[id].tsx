@@ -19,12 +19,13 @@ import {
 } from '@/lib/skillAssessment'
 import { getSkillLevelUi, getSkillTargetElo } from '@/lib/skillLevelUi'
 import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/lib/useAuth'
 import { insertNotification } from '@/lib/notifications'
 import * as Linking from 'expo-linking'
 import { router, useLocalSearchParams } from 'expo-router'
 import type { NearByCourt } from '@/lib/useNearbyCourts'
 import { Activity, ArrowLeft, BadgeCheck, Calendar, ChevronDown, ChevronUp, CircleDollarSign, Clock3, Flame, MapPin, Share2, Shield, ShieldAlert, Target, UserStar } from 'lucide-react-native'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
@@ -171,6 +172,23 @@ type MyPlayerRecord = {
   skill_label?: string | null
 }
 
+type SessionDetailCache = {
+  sessionId: string
+  session: SessionRecord
+  updatedAt: number
+}
+
+let sessionDetailCache: SessionDetailCache | null = null
+const SESSION_DETAIL_CACHE_FRESH_MS = 30_000
+const ENABLE_SESSION_DETAIL_TIMING_LOGS = false
+
+function logSessionDetailTiming(label: string, startedAt: number, extra?: Record<string, unknown>) {
+  if (!ENABLE_SESSION_DETAIL_TIMING_LOGS) return
+
+  const payload = extra ? ` ${JSON.stringify(extra)}` : ''
+  console.log(`[SessionDetail][timing] ${label}: ${Date.now() - startedAt}ms${payload}`)
+}
+
 function normalizeSessionRecord(raw: any): SessionRecord {
   return {
     ...raw,
@@ -193,6 +211,7 @@ function normalizeSessionRecord(raw: any): SessionRecord {
 
 export default function SessionDetail() {
   const { id, created } = useLocalSearchParams<{ id: string; created?: string }>()
+  const { userId, isLoading: isAuthLoading } = useAuth()
   const insets = useSafeAreaInsets()
   const [session, setSession] = useState<SessionRecord | null>(null)
   const [loading, setLoading] = useState(true)
@@ -231,11 +250,14 @@ export default function SessionDetail() {
   const [reportingHostIssue, setReportingHostIssue] = useState(false)
   const [hostIssueNote, setHostIssueNote] = useState('')
   const [pendingRequests, setPendingRequests] = useState<JoinRequestRecord[]>([])
+  const [pendingRequestsExpanded, setPendingRequestsExpanded] = useState(false)
+  const [loadingPendingRequests, setLoadingPendingRequests] = useState(false)
   const [joinModalVisible, setJoinModalVisible] = useState(false)
   const [introNote, setIntroNote] = useState('')
   const [refreshKey, setRefreshKey] = useState(0)
   const [showBookingDetails, setShowBookingDetails] = useState(false)
   const [showBookingEditor, setShowBookingEditor] = useState(false)
+  const fetchSessionInFlightRef = useRef<Promise<void> | null>(null)
 
   const fetchMyPlayer = useCallback(async (userId: string) => {
     const { data } = await supabase
@@ -247,58 +269,43 @@ export default function SessionDetail() {
     setMyPlayer((data as MyPlayerRecord | null) ?? null)
   }, [])
 
-  const fetchSession = useCallback(async (userId?: string | null) => {
-    setLoading(true)
-    await supabase.rpc('process_pending_session_completions', { p_session_id: id })
-    await supabase.rpc('process_overdue_session_closures', { p_session_id: id })
-
-    const fullSelect = `
-        id, elo_min, elo_max, max_players, status, results_status, results_submitted_at, results_confirmation_deadline, auto_closed_at, auto_closed_reason, require_approval, fill_deadline,
-        court_booking_status, booking_reference, booking_name, booking_phone, booking_notes, booking_confirmed_at,
-        host:host_id ( id, name, auto_accept, is_provisional, placement_matches_played, win_streak, reliability_score, sessions_joined, no_show_count, elo, current_elo, self_assessed_level, skill_label ),
-        slot:slot_id (
-          id, start_time, end_time, price,
-          court:court_id ( id, name, address, city, lat, lng, hours_open, hours_close, price_per_hour, booking_url, google_maps_url )
-          ),
-          session_players (
-            player_id, status, match_result, proposed_result, host_unprofessional_reported_at, host_unprofessional_report_note, result_confirmation_status, result_dispute_note,
-            player:player_id ( name, is_provisional, win_streak, reliability_score, sessions_joined, no_show_count, elo, current_elo, self_assessed_level, skill_label )
-          )
-        `
-
-    const legacySelect = `
-        id, elo_min, elo_max, max_players, status, require_approval, fill_deadline,
-        court_booking_status, booking_reference, booking_name, booking_phone, booking_notes, booking_confirmed_at,
-        host:host_id ( id, name, auto_accept, is_provisional, placement_matches_played, elo, current_elo, self_assessed_level, skill_label ),
-        slot:slot_id (
-          id, start_time, end_time, price,
-          court:court_id ( id, name, address, city, lat, lng, hours_open, hours_close, price_per_hour, booking_url, google_maps_url )
-        ),
-        session_players (
-          player_id, status, match_result,
-          player:player_id ( name, elo, current_elo, self_assessed_level, skill_label )
-        )
-      `
-
-    let { data, error }: { data: any; error: any } = await supabase
-      .from('sessions')
-      .select(fullSelect)
-      .eq('id', id)
-      .single()
-
-    if (error) {
-      const legacyResponse = await supabase
-        .from('sessions')
-        .select(legacySelect)
-        .eq('id', id)
-        .single()
-
-      data = legacyResponse.data
-      error = legacyResponse.error
+  const fetchSession = useCallback(async (userId?: string | null, options?: { showLoader?: boolean; runMaintenance?: boolean }) => {
+    if (fetchSessionInFlightRef.current) {
+      logSessionDetailTiming('fetch-deduped', Date.now())
+      await fetchSessionInFlightRef.current
+      return
     }
 
-    if (!error && data) {
-      const normalized = normalizeSessionRecord(data)
+    const run = async () => {
+    const startedAt = Date.now()
+    const showLoader = options?.showLoader ?? true
+    const runMaintenance = options?.runMaintenance ?? false
+
+    if (showLoader) {
+      setLoading(true)
+    }
+
+    if (runMaintenance) {
+      const maintenanceStartedAt = Date.now()
+      await Promise.all([
+        supabase.rpc('process_pending_session_completions', { p_session_id: id }),
+        supabase.rpc('process_overdue_session_closures', { p_session_id: id }),
+      ])
+      logSessionDetailTiming('maintenance-rpc', maintenanceStartedAt, { sessionId: id })
+    }
+
+    const mainQueryStartedAt = Date.now()
+    const { data: overview, error }: { data: any; error: any } = await supabase
+      .rpc('get_session_detail_overview', { p_session_id: id })
+    logSessionDetailTiming('session-main-query', mainQueryStartedAt, {
+      hasError: Boolean(error),
+      sessionId: id,
+    })
+
+    if (!error && overview?.session) {
+      const normalizeStartedAt = Date.now()
+      const normalized = normalizeSessionRecord(overview.session)
+      logSessionDetailTiming('session-normalize', normalizeStartedAt, { players: normalized.session_players?.length ?? 0 })
       setSession(normalized)
       setEditSelectedCourt(
         normalized.slot?.court
@@ -337,38 +344,30 @@ export default function SessionDetail() {
           ]),
         ),
       )
+      sessionDetailCache = {
+        sessionId: String(normalized.id),
+        session: normalized,
+        updatedAt: Date.now(),
+      }
+
+      if (showLoader) {
+        setLoading(false)
+      }
+
       const uid = userId ?? myId
       if (uid) {
-        const isEligibleForRating =
-          normalized.status === 'done' &&
-          (uid === normalized.host.id || (normalized.session_players ?? []).some((p) => p.player_id === uid))
+        const auxStartedAt = Date.now()
+        logSessionDetailTiming('session-aux-queries', auxStartedAt, {
+          hasJoinRequest: overview.viewer_request_status && overview.viewer_request_status !== 'none',
+          checkedRating: true,
+          isHost: uid === normalized.host.id,
+        })
 
-        const { data: reqData } = await supabase
-          .from('join_requests')
-          .select('status, host_response_template, intro_note')
-          .eq('match_id', normalized.id)
-          .eq('player_id', uid)
-          .maybeSingle()
-        setRequestStatus((reqData?.status as RequestStatus) ?? 'none')
-        setMyHostTemplate(reqData?.host_response_template ?? null)
-        setIntroNote(reqData?.intro_note ?? '')
+        setRequestStatus((overview.viewer_request_status as RequestStatus) ?? 'none')
+        setMyHostTemplate(overview.viewer_host_response_template ?? null)
+        setIntroNote(overview.viewer_intro_note ?? '')
+        setAlreadyRated(Boolean(overview.viewer_already_rated))
 
-        if (isEligibleForRating) {
-          const { data: ratingData } = await supabase
-            .from('ratings')
-            .select('id')
-            .eq('session_id', normalized.id)
-            .eq('rater_id', uid)
-            .limit(1)
-
-          setAlreadyRated((ratingData?.length ?? 0) > 0)
-        } else {
-          setAlreadyRated(false)
-        }
-
-        if (uid === normalized.host.id) {
-          await fetchPendingRequests(normalized.id)
-        }
       } else {
         setAlreadyRated(false)
         setRequestStatus('none')
@@ -394,25 +393,66 @@ export default function SessionDetail() {
       setSession(null)
     }
 
-    setLoading(false)
+    if (showLoader && !overview?.session) {
+      setLoading(false)
+    }
+    logSessionDetailTiming('fetch-total', startedAt, {
+      sessionId: id,
+      showLoader,
+      runMaintenance,
+      hasSession: Boolean(overview?.session),
+    })
+    }
+
+    fetchSessionInFlightRef.current = run()
+    try {
+      await fetchSessionInFlightRef.current
+    } finally {
+      fetchSessionInFlightRef.current = null
+    }
   }, [id, myId])
 
   useEffect(() => {
+    setMyId(userId ?? null)
+  }, [userId])
+
+  useEffect(() => {
     async function init() {
-      const { data: { user } } = await supabase.auth.getUser()
-      setMyId(user?.id ?? null)
-      if (user?.id) {
-        await fetchMyPlayer(user.id)
+      const initStartedAt = Date.now()
+      if (isAuthLoading) return
+
+      const activeUserId = userId ?? null
+      if (sessionDetailCache?.sessionId === String(id)) {
+        setSession(sessionDetailCache.session)
+        setLoading(false)
+        logSessionDetailTiming('cache-hit', initStartedAt, { sessionId: id })
+
+        if (Date.now() - sessionDetailCache.updatedAt < SESSION_DETAIL_CACHE_FRESH_MS) {
+          logSessionDetailTiming('cache-fresh-skip-network', initStartedAt, { sessionId: id })
+          return
+        }
+      }
+
+      if (activeUserId) {
+        const authUserStartedAt = Date.now()
+        await Promise.all([
+          fetchMyPlayer(activeUserId),
+          fetchSession(activeUserId, { showLoader: !sessionDetailCache, runMaintenance: false }),
+        ])
+        logSessionDetailTiming('init-auth-user', authUserStartedAt, { sessionId: id })
       } else {
         setMyPlayer(null)
+        await fetchSession(null, { showLoader: !sessionDetailCache, runMaintenance: false })
+        logSessionDetailTiming('init-no-user', initStartedAt, { sessionId: id })
       }
-      await fetchSession(user?.id ?? null)
     }
 
-    init()
-  }, [fetchMyPlayer, fetchSession])
+    void init()
+  }, [fetchMyPlayer, fetchSession, id, isAuthLoading, userId])
 
   async function fetchPendingRequests(sessionId: string) {
+    setLoadingPendingRequests(true)
+    const startedAt = Date.now()
     const { data } = await supabase
       .from('join_requests')
       .select(`
@@ -444,6 +484,19 @@ export default function SessionDetail() {
     })
 
     setPendingRequests(normalizedRequests)
+    setLoadingPendingRequests(false)
+    logSessionDetailTiming('pending-requests-query', startedAt, { sessionId, count: normalizedRequests.length })
+  }
+
+  async function togglePendingRequests() {
+    if (!session || !isHost) return
+
+    const nextExpanded = !pendingRequestsExpanded
+    setPendingRequestsExpanded(nextExpanded)
+
+    if (nextExpanded && pendingRequests.length === 0 && !loadingPendingRequests) {
+      await fetchPendingRequests(session.id)
+    }
   }
 
   function formatClockInput(dateStr?: string | null) {
@@ -1675,16 +1728,39 @@ export default function SessionDetail() {
         ))}
       </View>
 
-      {isHost && (
-        <HostRequestReview
-          requests={pendingRequests}
-          matchTargetElo={matchTargetElo}
-          onOpenPlayer={(playerId) => router.push({ pathname: '/player/[id]' as any, params: { id: playerId } })}
-          onAccept={approveRequest}
-          onReject={rejectRequest}
-          onReplyTemplate={replyWithTemplate}
-        />
-      )}
+      {isHost ? (
+        <View style={styles.hostActionsCard}>
+          <TouchableOpacity style={styles.pendingToggleBtn} onPress={togglePendingRequests} activeOpacity={0.9}>
+            <View style={styles.pendingToggleCopy}>
+              <Text style={styles.hostActionsTitle}>Yêu cầu tham gia</Text>
+              <Text style={styles.hostActionsSub}>
+                {pendingRequestsExpanded
+                  ? 'Đang hiển thị danh sách người chơi chờ duyệt.'
+                  : 'Mở khi cần để xem và duyệt các yêu cầu tham gia.'}
+              </Text>
+            </View>
+            {pendingRequestsExpanded ? <ChevronUp size={18} color="#0f172a" /> : <ChevronDown size={18} color="#0f172a" />}
+          </TouchableOpacity>
+
+          {pendingRequestsExpanded ? (
+            loadingPendingRequests ? (
+              <View className="items-center py-4">
+                <ActivityIndicator size="small" color="#059669" />
+                <Text className="mt-2 text-[13px] font-medium text-slate-500">Đang tải yêu cầu tham gia...</Text>
+              </View>
+            ) : (
+              <HostRequestReview
+                requests={pendingRequests}
+                matchTargetElo={matchTargetElo}
+                onOpenPlayer={(playerId) => router.push({ pathname: '/player/[id]' as any, params: { id: playerId } })}
+                onAccept={approveRequest}
+                onReject={rejectRequest}
+                onReplyTemplate={replyWithTemplate}
+              />
+            )
+          ) : null}
+        </View>
+      ) : null}
 
       {!isHost && isDone && myResultRow && session.results_status && session.results_status !== 'not_submitted' ? (
         <View style={styles.hostActionsCard}>
@@ -2447,6 +2523,15 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: 12,
+  },
+  pendingToggleBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  pendingToggleCopy: {
+    flex: 1,
   },
   hostActionsCopy: {
     flex: 1,

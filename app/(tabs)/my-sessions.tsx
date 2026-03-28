@@ -17,12 +17,14 @@ import {
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ActivityIndicator,
+  Animated,
   Pressable,
   RefreshControl,
   ScrollView,
   Share,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -99,13 +101,17 @@ function sessionsFingerprint(items: MySession[]) {
 
 export default function MySessions() {
   const { userId, isLoading: isAuthLoading } = useAuth()
+  const { width } = useWindowDimensions()
   const [sessions, setSessions] = useState<MySession[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [myId, setMyId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<SessionTab>('upcoming')
+  const [segmentWidth, setSegmentWidth] = useState(0)
   const initInFlightRef = useRef(false)
   const fetchInFlightRef = useRef<Promise<void> | null>(null)
+  const pagerRef = useRef<ScrollView | null>(null)
+  const scrollX = useRef(new Animated.Value(0)).current
 
   const hydrateCachedSessionsForLastUser = useCallback(async () => {
     const startedAt = Date.now()
@@ -144,10 +150,10 @@ export default function MySessions() {
     }
   }, [])
 
-  const hydrateCachedSessions = useCallback(async (userId: string) => {
+  const hydrateCachedSessions = useCallback(async (nextUserId: string) => {
     const startedAt = Date.now()
 
-    if (mySessionsCache?.userId === userId && mySessionsCache.sessions.length > 0) {
+    if (mySessionsCache?.userId === nextUserId && mySessionsCache.sessions.length > 0) {
       setSessions(mySessionsCache.sessions)
       setLoading(false)
       logTiming('cache-memory-hit', startedAt, { sessions: mySessionsCache.sessions.length })
@@ -162,8 +168,8 @@ export default function MySessions() {
       }
 
       const parsed = JSON.parse(raw) as MySessionsCache
-      if (parsed.userId !== userId || !Array.isArray(parsed.sessions) || parsed.sessions.length === 0) {
-        logTiming('cache-stale', startedAt, { cacheUserId: parsed.userId, requestedUserId: userId })
+      if (parsed.userId !== nextUserId || !Array.isArray(parsed.sessions) || parsed.sessions.length === 0) {
+        logTiming('cache-stale', startedAt, { cacheUserId: parsed.userId, requestedUserId: nextUserId })
         return false
       }
 
@@ -179,104 +185,107 @@ export default function MySessions() {
     }
   }, [])
 
-  const fetchMySessions = useCallback(async (userId: string, options?: { showLoader?: boolean; runMaintenance?: boolean }) => {
-    if (fetchInFlightRef.current) {
-      logTiming('fetch-deduped', Date.now())
-      await fetchInFlightRef.current
-      return
-    }
+  const fetchMySessions = useCallback(
+    async (nextUserId: string, options?: { showLoader?: boolean; runMaintenance?: boolean }) => {
+      if (fetchInFlightRef.current) {
+        logTiming('fetch-deduped', Date.now())
+        await fetchInFlightRef.current
+        return
+      }
 
-    const run = async () => {
-    const startedAt = Date.now()
-    const showLoader = options?.showLoader ?? false
-    const runMaintenance = options?.runMaintenance ?? false
+      const run = async () => {
+        const startedAt = Date.now()
+        const showLoader = options?.showLoader ?? false
+        const runMaintenance = options?.runMaintenance ?? false
 
-    if (showLoader) {
-      setLoading(true)
-    }
+        if (showLoader) {
+          setLoading(true)
+        }
 
-    if (runMaintenance) {
-      const maintenanceStartedAt = Date.now()
-      await Promise.all([
-        supabase.rpc('process_pending_session_completions'),
-        supabase.rpc('process_overdue_session_closures'),
-      ])
-      logTiming('maintenance-rpc', maintenanceStartedAt)
-    }
+        if (runMaintenance) {
+          const maintenanceStartedAt = Date.now()
+          await Promise.all([
+            supabase.rpc('process_pending_session_completions'),
+            supabase.rpc('process_overdue_session_closures'),
+          ])
+          logTiming('maintenance-rpc', maintenanceStartedAt)
+        }
 
-    const rpcStartedAt = Date.now()
-    const { data, error } = await supabase.rpc('get_my_sessions_overview')
-    logTiming('overview-rpc', rpcStartedAt, { rows: data?.length ?? 0, hasError: Boolean(error) })
+        const rpcStartedAt = Date.now()
+        const { data, error } = await supabase.rpc('get_my_sessions_overview')
+        logTiming('overview-rpc', rpcStartedAt, { rows: data?.length ?? 0, hasError: Boolean(error) })
 
-    if (error) {
-      console.warn('[MySessions] get_my_sessions_overview failed:', error.message)
-    }
+        if (error) {
+          console.warn('[MySessions] get_my_sessions_overview failed:', error.message)
+        }
 
-    const nextSessions: MySession[] = (data ?? []).map((session: any) => ({
-      id: session.id,
-      status: session.status,
-      court_booking_status: session.court_booking_status,
-      role: session.role,
-      request_status: session.request_status,
-      start_time: session.start_time,
-      end_time: session.end_time,
-      court_name: session.court_name ?? 'Kèo Pickleball',
-      court_city: session.court_city ?? '',
-      court_address: session.court_address ?? '',
-      host_name: session.host_name ?? (session.role === 'host' ? 'Bạn' : 'Ẩn danh'),
-      player_count: session.player_count ?? 0,
-      max_players: session.max_players ?? 0,
-    }))
+        const nextSessions: MySession[] = (data ?? []).map((session: any) => ({
+          id: session.id,
+          status: session.status,
+          court_booking_status: session.court_booking_status,
+          role: session.role,
+          request_status: session.request_status,
+          start_time: session.start_time,
+          end_time: session.end_time,
+          court_name: session.court_name ?? 'Kèo Pickleball',
+          court_city: session.court_city ?? '',
+          court_address: session.court_address ?? '',
+          host_name: session.host_name ?? (session.role === 'host' ? 'Bạn' : 'Ẩn danh'),
+          player_count: session.player_count ?? 0,
+          max_players: session.max_players ?? 0,
+        }))
 
-    nextSessions.sort((a, b) => {
-      const aTime = new Date(a.start_time).getTime()
-      const bTime = new Date(b.start_time).getTime()
-      const safeATime = Number.isNaN(aTime) ? Number.MAX_SAFE_INTEGER : aTime
-      const safeBTime = Number.isNaN(bTime) ? Number.MAX_SAFE_INTEGER : bTime
-      return safeATime - safeBTime
-    })
+        nextSessions.sort((a, b) => {
+          const aTime = new Date(a.start_time).getTime()
+          const bTime = new Date(b.start_time).getTime()
+          const safeATime = Number.isNaN(aTime) ? Number.MAX_SAFE_INTEGER : aTime
+          const safeBTime = Number.isNaN(bTime) ? Number.MAX_SAFE_INTEGER : bTime
+          return safeATime - safeBTime
+        })
 
-    mySessionsCache = {
-      userId,
-      sessions: nextSessions,
-      updatedAt: Date.now(),
-    }
+        mySessionsCache = {
+          userId: nextUserId,
+          sessions: nextSessions,
+          updatedAt: Date.now(),
+        }
 
-    try {
-      const persistStartedAt = Date.now()
-      await Promise.all([
-        AsyncStorage.setItem(MY_SESSIONS_CACHE_KEY, JSON.stringify(mySessionsCache)),
-        AsyncStorage.setItem(MY_SESSIONS_LAST_USER_KEY, userId),
-      ])
-      logTiming('cache-persist', persistStartedAt)
-    } catch (error) {
-      console.warn('[MySessions] cache persist failed:', error)
-    }
+        try {
+          const persistStartedAt = Date.now()
+          await Promise.all([
+            AsyncStorage.setItem(MY_SESSIONS_CACHE_KEY, JSON.stringify(mySessionsCache)),
+            AsyncStorage.setItem(MY_SESSIONS_LAST_USER_KEY, nextUserId),
+          ])
+          logTiming('cache-persist', persistStartedAt)
+        } catch (error) {
+          console.warn('[MySessions] cache persist failed:', error)
+        }
 
-    const nextFingerprint = sessionsFingerprint(nextSessions)
-    const currentFingerprint = sessionsFingerprint(sessions)
+        const nextFingerprint = sessionsFingerprint(nextSessions)
+        const currentFingerprint = sessionsFingerprint(sessions)
 
-    if (nextFingerprint !== currentFingerprint) {
-      setSessions(nextSessions)
-      logTiming('sessions-updated', startedAt, { changed: true, sessions: nextSessions.length })
-    } else {
-      logTiming('sessions-skipped-update', startedAt, { changed: false, sessions: nextSessions.length })
-    }
+        if (nextFingerprint !== currentFingerprint) {
+          setSessions(nextSessions)
+          logTiming('sessions-updated', startedAt, { changed: true, sessions: nextSessions.length })
+        } else {
+          logTiming('sessions-skipped-update', startedAt, { changed: false, sessions: nextSessions.length })
+        }
 
-    if (showLoader) {
-      setLoading(false)
-    }
+        if (showLoader) {
+          setLoading(false)
+        }
 
-    logTiming('fetch-total', startedAt, { sessions: nextSessions.length, runMaintenance, showLoader })
-    }
+        logTiming('fetch-total', startedAt, { sessions: nextSessions.length, runMaintenance, showLoader })
+      }
 
-    fetchInFlightRef.current = run()
-    try {
-      await fetchInFlightRef.current
-    } finally {
-      fetchInFlightRef.current = null
-    }
-  }, [sessions])
+      fetchInFlightRef.current = run()
+      try {
+        await fetchInFlightRef.current
+      } finally {
+        fetchInFlightRef.current = null
+      }
+    },
+    [sessions],
+  )
 
   const init = useCallback(async () => {
     if (initInFlightRef.current) {
@@ -286,45 +295,45 @@ export default function MySessions() {
 
     initInFlightRef.current = true
     try {
-    const initStartedAt = Date.now()
-    if (isAuthLoading) {
-      logTiming('auth-context-loading', initStartedAt)
-      return
-    }
-
-    if (!userId) {
-      setMyId(null)
-      setSessions([])
-      setLoading(false)
-      logTiming('init-no-user', initStartedAt)
-      return
-    }
-
-    setMyId(userId)
-
-    const hadBootstrapCache = mySessionsCache?.userId === userId && mySessionsCache.sessions.length > 0
-    if (hadBootstrapCache) {
-      const cacheAgeMs = Date.now() - (mySessionsCache?.updatedAt ?? 0)
-      if (cacheAgeMs < MY_SESSIONS_CACHE_FRESH_MS) {
-        logTiming('init-cache-fresh-skip-network', initStartedAt, { cacheAgeMs })
+      const initStartedAt = Date.now()
+      if (isAuthLoading) {
+        logTiming('auth-context-loading', initStartedAt)
         return
       }
 
-      void fetchMySessions(userId, { showLoader: false, runMaintenance: false })
-      logTiming('init-skip-second-cache-hydrate', initStartedAt)
-      return
-    }
+      if (!userId) {
+        setMyId(null)
+        setSessions([])
+        setLoading(false)
+        logTiming('init-no-user', initStartedAt)
+        return
+      }
 
-    const hydrated = await hydrateCachedSessions(userId)
-    if (hydrated) {
-      void fetchMySessions(userId, { showLoader: false, runMaintenance: false })
-      logTiming('init-from-cache', initStartedAt)
-      return
-    }
+      setMyId(userId)
 
-    await fetchMySessions(userId, { showLoader: true, runMaintenance: false })
-    setLoading(false)
-    logTiming('init-network', initStartedAt)
+      const hadBootstrapCache = mySessionsCache?.userId === userId && mySessionsCache.sessions.length > 0
+      if (hadBootstrapCache) {
+        const cacheAgeMs = Date.now() - (mySessionsCache?.updatedAt ?? 0)
+        if (cacheAgeMs < MY_SESSIONS_CACHE_FRESH_MS) {
+          logTiming('init-cache-fresh-skip-network', initStartedAt, { cacheAgeMs })
+          return
+        }
+
+        void fetchMySessions(userId, { showLoader: false, runMaintenance: false })
+        logTiming('init-skip-second-cache-hydrate', initStartedAt)
+        return
+      }
+
+      const hydrated = await hydrateCachedSessions(userId)
+      if (hydrated) {
+        void fetchMySessions(userId, { showLoader: false, runMaintenance: false })
+        logTiming('init-from-cache', initStartedAt)
+        return
+      }
+
+      await fetchMySessions(userId, { showLoader: true, runMaintenance: false })
+      setLoading(false)
+      logTiming('init-network', initStartedAt)
     } finally {
       initInFlightRef.current = false
     }
@@ -380,7 +389,7 @@ export default function MySessions() {
       return 'history'
     }
 
-    if (session.role === 'player' && session.request_status === 'pending') {
+    if (session.request_status === 'pending') {
       return 'pending'
     }
 
@@ -418,27 +427,58 @@ export default function MySessions() {
     router.push({ pathname: '/rate-session/[id]' as any, params: { id: sessionId } })
   }
 
-  const filteredSessions = sessions
-    .filter((session) => resolveTab(session) === activeTab)
-    .sort((a, b) => {
-      const aTime = new Date(a.start_time).getTime()
-      const bTime = new Date(b.start_time).getTime()
-      const safeATime = Number.isNaN(aTime) ? (activeTab === 'history' ? 0 : Number.MAX_SAFE_INTEGER) : aTime
-      const safeBTime = Number.isNaN(bTime) ? (activeTab === 'history' ? 0 : Number.MAX_SAFE_INTEGER) : bTime
+  const sessionsByTab = TAB_OPTIONS.reduce<Record<SessionTab, MySession[]>>(
+    (acc, tab) => {
+      acc[tab.key] = sessions
+        .filter((session) => resolveTab(session) === tab.key)
+        .sort((a, b) => {
+          const aTime = new Date(a.start_time).getTime()
+          const bTime = new Date(b.start_time).getTime()
+          const safeATime = Number.isNaN(aTime) ? (tab.key === 'history' ? 0 : Number.MAX_SAFE_INTEGER) : aTime
+          const safeBTime = Number.isNaN(bTime) ? (tab.key === 'history' ? 0 : Number.MAX_SAFE_INTEGER) : bTime
 
-      if (activeTab === 'history') {
-        return safeBTime - safeATime
-      }
+          if (tab.key === 'history') {
+            return safeBTime - safeATime
+          }
 
-      const bookingWeight =
-        Number(b.court_booking_status === 'confirmed') - Number(a.court_booking_status === 'confirmed')
+          const bookingWeight =
+            Number(b.court_booking_status === 'confirmed') - Number(a.court_booking_status === 'confirmed')
 
-      if (bookingWeight !== 0) {
-        return bookingWeight
-      }
+          if (bookingWeight !== 0) {
+            return bookingWeight
+          }
 
-      return safeATime - safeBTime
-    })
+          return safeATime - safeBTime
+        })
+
+      return acc
+    },
+    { upcoming: [], pending: [], history: [] },
+  )
+
+  function handleTabPress(tab: SessionTab) {
+    setActiveTab(tab)
+    const index = TAB_OPTIONS.findIndex((option) => option.key === tab)
+    pagerRef.current?.scrollTo({ x: index * width, animated: true })
+  }
+
+  function handlePagerMomentumEnd(offsetX: number) {
+    const index = Math.round(offsetX / width)
+    const nextTab = TAB_OPTIONS[index]?.key
+    if (nextTab && nextTab !== activeTab) {
+      setActiveTab(nextTab)
+    }
+  }
+
+  const indicatorWidth = segmentWidth > 0 ? segmentWidth / TAB_OPTIONS.length : 0
+  const indicatorTranslateX =
+    indicatorWidth > 0
+      ? scrollX.interpolate({
+          inputRange: TAB_OPTIONS.map((_, index) => index * width),
+          outputRange: TAB_OPTIONS.map((_, index) => index * indicatorWidth),
+          extrapolate: 'clamp',
+        })
+      : 0
 
   function EmptyState() {
     const config =
@@ -548,10 +588,14 @@ export default function MySessions() {
           <View className="mt-5 rounded-[24px] border border-amber-200 bg-amber-50 px-4 py-4">
             <View className="flex-row items-center">
               <Hourglass size={16} color="#b45309" strokeWidth={2.3} />
-              <Text className="ml-2 text-[14px] font-black text-amber-700">Đang chờ phản hồi</Text>
+              <Text className="ml-2 text-[14px] font-black text-amber-700">
+                {isHost ? 'Có người đang chờ bạn duyệt' : 'Đang chờ phản hồi'}
+              </Text>
             </View>
             <Text className="mt-2 text-[13px] leading-5 text-amber-700">
-              Host sẽ duyệt yêu cầu tham gia của bạn trong thời gian sớm nhất.
+              {isHost
+                ? 'Mở chi tiết kèo để xem và duyệt những người chơi vừa gửi yêu cầu tham gia.'
+                : 'Host sẽ duyệt yêu cầu tham gia của bạn trong thời gian sớm nhất.'}
             </Text>
           </View>
         ) : null}
@@ -623,33 +667,78 @@ export default function MySessions() {
             </Pressable>
           </View>
 
-          <View className="mt-6 rounded-[24px] bg-slate-100 p-1.5">
-            <View className="flex-row">
+          <View
+            className="mt-6 rounded-[24px] bg-slate-100 p-1.5"
+            onLayout={(event) => setSegmentWidth(event.nativeEvent.layout.width - 12)}
+          >
+            <View className="relative flex-row">
+              {indicatorWidth > 0 ? (
+                <Animated.View
+                  pointerEvents="none"
+                  style={[
+                    styles.segmentIndicator,
+                    {
+                      width: indicatorWidth,
+                      transform: [{ translateX: indicatorTranslateX }],
+                    },
+                  ]}
+                />
+              ) : null}
               {TAB_OPTIONS.map((tab) => {
-                const isActive = activeTab === tab.key
+                const index = TAB_OPTIONS.findIndex((option) => option.key === tab.key)
+                const animatedLabelColor =
+                  indicatorWidth > 0
+                    ? scrollX.interpolate({
+                        inputRange: TAB_OPTIONS.map((_, tabIndex) => tabIndex * width),
+                        outputRange: TAB_OPTIONS.map((_, tabIndex) =>
+                          tabIndex === index ? '#020617' : '#64748b',
+                        ),
+                        extrapolate: 'clamp',
+                      })
+                    : '#64748b'
 
                 return (
                   <Pressable
                     key={tab.key}
-                    onPress={() => setActiveTab(tab.key)}
-                    style={[styles.segmentButton, isActive ? styles.segmentButtonActive : styles.segmentButtonIdle]}
+                    onPress={() => handleTabPress(tab.key)}
+                    style={styles.segmentButton}
                   >
-                    <Text style={[styles.segmentLabel, isActive ? styles.segmentLabelActive : styles.segmentLabelIdle]}>
+                    <Animated.Text style={[styles.segmentLabel, { color: animatedLabelColor }]}>
                       {tab.label}
-                    </Text>
+                    </Animated.Text>
                   </Pressable>
                 )
               })}
             </View>
           </View>
 
-          <View className="mt-6">
-            {filteredSessions.length === 0 ? (
-              <EmptyState />
-            ) : (
-              filteredSessions.map((session) => <SessionCard key={`${activeTab}-${session.id}`} item={session} />)
+          <Animated.ScrollView
+            ref={pagerRef}
+            horizontal
+            pagingEnabled
+            snapToInterval={width}
+            decelerationRate="fast"
+            showsHorizontalScrollIndicator={false}
+            nestedScrollEnabled
+            scrollEventThrottle={16}
+            onScroll={Animated.event(
+              [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+              { useNativeDriver: false },
             )}
-          </View>
+            onMomentumScrollEnd={(event) => handlePagerMomentumEnd(event.nativeEvent.contentOffset.x)}
+            contentContainerStyle={{ paddingTop: 24 }}
+            style={{ marginHorizontal: -20 }}
+          >
+            {TAB_OPTIONS.map((tab) => (
+              <View key={tab.key} style={{ width, paddingHorizontal: 20 }}>
+                {sessionsByTab[tab.key].length === 0 ? (
+                  <EmptyState />
+                ) : (
+                  sessionsByTab[tab.key].map((session) => <SessionCard key={`${tab.key}-${session.id}`} item={session} />)
+                )}
+              </View>
+            ))}
+          </Animated.ScrollView>
         </ScrollView>
       )}
     </SafeAreaView>
@@ -663,16 +752,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 12,
   },
-  segmentButtonActive: {
+  segmentIndicator: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    borderRadius: 20,
     backgroundColor: '#ffffff',
     shadowColor: '#0f172a',
     shadowOpacity: 0.08,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
     elevation: 2,
-  },
-  segmentButtonIdle: {
-    backgroundColor: 'transparent',
   },
   segmentLabel: {
     textAlign: 'center',
