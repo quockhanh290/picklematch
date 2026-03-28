@@ -509,7 +509,7 @@ export default function MySessions() {
     )
   }
 
-  function SessionCard({ item }: { item: MySession }) {
+  function SessionCard({ item, tab }: { item: MySession; tab: SessionTab }) {
     const isHost = item.role === 'host'
     const isBooked = item.court_booking_status === 'confirmed'
     const progress = item.max_players > 0 ? Math.min(item.player_count / item.max_players, 1) : 0
@@ -584,7 +584,7 @@ export default function MySessions() {
           </View>
         </View>
 
-        {activeTab === 'pending' ? (
+        {tab === 'pending' ? (
           <View className="mt-5 rounded-[24px] border border-amber-200 bg-amber-50 px-4 py-4">
             <View className="flex-row items-center">
               <Hourglass size={16} color="#b45309" strokeWidth={2.3} />
@@ -600,7 +600,7 @@ export default function MySessions() {
           </View>
         ) : null}
 
-        {activeTab === 'upcoming' ? (
+        {tab === 'upcoming' ? (
           <View className="mt-5 flex-row gap-3">
             <Pressable
               onPress={() => openSessionDetail(item.id)}
@@ -620,7 +620,7 @@ export default function MySessions() {
           </View>
         ) : null}
 
-        {activeTab === 'history' ? (
+        {tab === 'history' ? (
           <Pressable
             onPress={() => (item.status === 'done' ? openRateSession(item.id) : openSessionDetail(item.id))}
             className={`mt-5 flex-row items-center justify-center rounded-[22px] px-4 py-4 ${item.status === 'done' ? 'bg-slate-950' : 'bg-slate-200'}`}
@@ -734,7 +734,9 @@ export default function MySessions() {
                 {sessionsByTab[tab.key].length === 0 ? (
                   <EmptyState />
                 ) : (
-                  sessionsByTab[tab.key].map((session) => <SessionCard key={`${tab.key}-${session.id}`} item={session} />)
+                  sessionsByTab[tab.key].map((session) => (
+                    <SessionCard key={`${tab.key}-${session.id}`} item={session} tab={tab.key} />
+                  ))
                 )}
               </View>
             ))}
