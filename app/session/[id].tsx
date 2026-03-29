@@ -1,82 +1,66 @@
-import DateTimePicker, { DateTimePickerAndroid, type DateTimePickerEvent } from '@react-native-community/datetimepicker'
-import { getShadowStyle } from '@/lib/designSystem'
-import { useAppTheme } from '@/lib/theme-context'
-import { HostRequestReview } from '@/components/session/HostRequestReview'
-import { EditCourtSelector } from '@/components/session/EditCourtSelector'
-import { JoinRequestModal } from '@/components/session/JoinRequestModal'
-import { SmartJoinButton } from '@/components/session/SmartJoinButton'
-import {
-  CREATE_SESSION_SKILL_INACTIVE_CLASSNAME,
-  CREATE_SESSION_SKILL_OPTIONS,
-} from '@/components/create-session/skillLevelOptions'
-import { getMatchStatus } from '@/lib/matchmaking'
-import { formatEstimatedCostPerPerson } from '@/lib/sessionPricing'
-import {
-  getSkillLevelFromElo,
-  getSkillLevelFromEloRange,
-  getSkillLevelFromPlayer,
-  getShortSkillLabel,
-  getSkillScoreFromEloRange,
-  getSkillScoreFromPlayer,
-} from '@/lib/skillAssessment'
-import { getSkillLevelUi, getSkillTargetElo } from '@/lib/skillLevelUi'
-import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/lib/useAuth'
-import { insertNotification } from '@/lib/notifications'
-import * as Linking from 'expo-linking'
 import { router, useLocalSearchParams } from 'expo-router'
-import type { NearByCourt } from '@/lib/useNearbyCourts'
-import { Activity, ArrowLeft, BadgeCheck, Calendar, ChevronDown, ChevronUp, CircleDollarSign, Clock3, Flame, MapPin, Share2, Shield, ShieldAlert, Target, UserStar } from 'lucide-react-native'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import * as Linking from 'expo-linking'
 import {
   ActivityIndicator,
   Alert,
-  InteractionManager,
-  Platform,
+  RefreshControl,
   ScrollView,
   Share,
-  StyleSheet,
-  Switch,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
+import {
+  ArrowRight,
+  CheckCircle2,
+  ChevronLeft,
+  Clock3,
+  CreditCard,
+  MapPin,
+  Repeat2,
+  Shield,
+  Share2,
+  Trophy,
+} from 'lucide-react-native'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
-type SessionRecord = {
-  id: string
-  elo_min: number
-  elo_max: number
-  max_players: number
-  status: string
-  results_status?: 'not_submitted' | 'pending_confirmation' | 'disputed' | 'finalized' | 'void'
-  results_submitted_at?: string | null
-  results_confirmation_deadline?: string | null
-  auto_closed_at?: string | null
-  auto_closed_reason?: string | null
-  require_approval: boolean
-  fill_deadline?: string | null
-  court_booking_status: 'confirmed' | 'unconfirmed'
-  booking_reference: string | null
-  booking_name: string | null
-  booking_phone: string | null
-  booking_notes: string | null
-  booking_confirmed_at: string | null
-  host: {
-    id: string
+import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/lib/useAuth'
+
+type SessionPlayer = {
+  player_id: string
+  team_no?: 1 | 2 | null
+  player: {
     name: string
-    auto_accept?: boolean
-    is_provisional?: boolean
-    placement_matches_played?: number
-    win_streak?: number | null
-    reliability_score?: number | null
-    sessions_joined?: number | null
-    no_show_count?: number | null
     elo?: number | null
     current_elo?: number | null
     self_assessed_level?: string | null
     skill_label?: string | null
+    reliability_score?: number | null
+    sessions_joined?: number | null
+    no_show_count?: number | null
+  } | null
+}
+
+type SessionDetailRecord = {
+  id: string
+  max_players: number
+  elo_min: number
+  elo_max: number
+  status: string
+  require_approval: boolean
+  court_booking_status: 'confirmed' | 'unconfirmed'
+  host: {
+    id: string
+    name: string
+    elo?: number | null
+    current_elo?: number | null
+    self_assessed_level?: string | null
+    skill_label?: string | null
+    reliability_score?: number | null
+    sessions_joined?: number | null
+    no_show_count?: number | null
   }
   slot: {
     id?: string
@@ -88,2950 +72,573 @@ type SessionRecord = {
       name: string
       address: string
       city: string
-      lat?: number | null
-      lng?: number | null
-      hours_open?: string | null
-      hours_close?: string | null
-      price_per_hour?: number | null
-      booking_url?: string | null
-      google_maps_url?: string | null
     }
   }
-  session_players: {
-    player_id: string
-    status: string
-    match_result?: 'pending' | 'win' | 'loss' | 'draw'
-    proposed_result?: 'pending' | 'win' | 'loss' | 'draw'
-    host_unprofessional_reported_at?: string | null
-    host_unprofessional_report_note?: string | null
-    result_confirmation_status?: 'not_submitted' | 'awaiting_player' | 'confirmed' | 'disputed'
-    result_dispute_note?: string | null
-    player: {
-      name: string
-      is_provisional?: boolean | null
-      win_streak?: number | null
-      reliability_score?: number | null
-      sessions_joined?: number | null
-      no_show_count?: number | null
-      elo?: number | null
-      current_elo?: number | null
-      self_assessed_level?: string | null
-      skill_label?: string | null
-    }
-  }[]
+  session_players: SessionPlayer[]
 }
 
-type RequestStatus = 'none' | 'pending' | 'accepted' | 'rejected'
-type JoinRequestRecord = {
-  id: string
-  player_id: string
-  status: RequestStatus
-  intro_note?: string | null
-  host_response_template?: string | null
-  player: {
-    name: string
-    elo?: number | null
-    current_elo?: number | null
-    self_assessed_level?: string | null
-    skill_label?: string | null
-    sessions_joined?: number | null
-    no_show_count?: number | null
-  }
-}
-
-type JoinRequestRow = {
-  id: string
-  player_id: string
-  status: RequestStatus
-  intro_note?: string | null
-  host_response_template?: string | null
-  player:
-    | {
-        name?: string | null
-        elo?: number | null
-        current_elo?: number | null
-        self_assessed_level?: string | null
-        skill_label?: string | null
-        sessions_joined?: number | null
-        no_show_count?: number | null
-      }
-    | {
-        name?: string | null
-        elo?: number | null
-        current_elo?: number | null
-        self_assessed_level?: string | null
-        skill_label?: string | null
-        sessions_joined?: number | null
-        no_show_count?: number | null
-      }[]
-    | null
-}
-type MyPlayerRecord = {
+type ArrangementPlayer = {
   id: string
   name: string
   elo: number
+  team: 1 | 2
+  reliability: number | null
+  skillTag: string
+}
+
+function safeNumber(value?: number | null) {
+  return Math.round(value ?? 0)
+}
+
+function getComparableElo(player?: {
+  elo?: number | null
   current_elo?: number | null
+} | null) {
+  return safeNumber(player?.current_elo ?? player?.elo ?? 0)
+}
+
+function getInitials(name?: string | null) {
+  return (name ?? '?')
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('')
+}
+
+function getReliability(player?: {
+  reliability_score?: number | null
+  sessions_joined?: number | null
+  no_show_count?: number | null
+} | null) {
+  if (player?.reliability_score != null) return Math.round(player.reliability_score)
+  const joined = player?.sessions_joined ?? 0
+  if (!joined) return null
+  const noShow = player?.no_show_count ?? 0
+  return Math.max(0, Math.min(100, Math.round(((joined - noShow) / joined) * 100)))
+}
+
+function getSkillTag(player?: {
   self_assessed_level?: string | null
   skill_label?: string | null
+  current_elo?: number | null
+  elo?: number | null
+} | null) {
+  const levelId = player?.self_assessed_level
+  if (levelId === 'level_1') return 'Mới chơi'
+  if (levelId === 'level_2') return 'Cơ bản'
+  if (levelId === 'level_3') return 'Cọ xát'
+  if (levelId === 'level_4') return 'Phong trào'
+  if (levelId === 'level_5') return 'Sân giải'
+
+  const legacy = player?.skill_label
+  if (legacy === 'beginner') return 'Mới chơi'
+  if (legacy === 'basic') return 'Cơ bản'
+  if (legacy === 'advanced') return 'Sân giải'
+
+  const elo = getComparableElo(player)
+  if (elo >= 1450) return 'Sân giải'
+  if (elo >= 1250) return 'Phong trào'
+  if (elo >= 1075) return 'Cọ xát'
+  if (elo >= 900) return 'Cơ bản'
+  return 'Mới chơi'
 }
 
-type SessionDetailCache = {
-  sessionId: string
-  session: SessionRecord
-  updatedAt: number
+function getSessionSkillLabel(eloMin: number, eloMax: number) {
+  const target = Math.round((eloMin + eloMax) / 2)
+  if (target >= 1450) return 'Sân giải'
+  if (target >= 1250) return 'Phong trào'
+  if (target >= 1075) return 'Cọ xát'
+  if (target >= 900) return 'Cơ bản'
+  return 'Mới chơi'
 }
 
-type SessionFetchInFlight = {
-  sessionId: string
-  promise: Promise<void>
+function formatTimeRange(start: string, end: string) {
+  const startDate = new Date(start)
+  const endDate = new Date(end)
+  const weekdays = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7']
+  const dateLabel = `${String(startDate.getDate()).padStart(2, '0')}/${String(startDate.getMonth() + 1).padStart(2, '0')}`
+  const timeLabel = `${String(startDate.getHours()).padStart(2, '0')}:${String(startDate.getMinutes()).padStart(2, '0')} → ${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`
+  return `${weekdays[startDate.getDay()]}, ${dateLabel} · ${timeLabel}`
 }
 
-let sessionDetailCache: SessionDetailCache | null = null
-const SESSION_DETAIL_CACHE_FRESH_MS = 30_000
-const ENABLE_SESSION_DETAIL_TIMING_LOGS = __DEV__
-
-function logSessionDetailTiming(label: string, startedAt: number, extra?: Record<string, unknown>) {
-  if (!ENABLE_SESSION_DETAIL_TIMING_LOGS) return
-
-  const durationMs = Date.now() - startedAt
-  const payload = extra ? ` ${JSON.stringify(extra)}` : ''
-  const prefix = durationMs >= 700 ? '[SessionDetail][slow]' : '[SessionDetail][timing]'
-  console.log(`${prefix} ${label}: ${durationMs}ms${payload}`)
+function formatPricePerPerson(totalPrice: number, maxPlayers: number) {
+  if (!totalPrice || !maxPlayers) return 'Miễn phí'
+  return `${Math.ceil(totalPrice / maxPlayers).toLocaleString('vi-VN')}đ/người`
 }
 
-function normalizeSessionRecord(raw: any): SessionRecord {
-  return {
-    ...raw,
-    results_status: raw?.results_status ?? 'not_submitted',
-    results_submitted_at: raw?.results_submitted_at ?? null,
-    results_confirmation_deadline: raw?.results_confirmation_deadline ?? null,
-    auto_closed_at: raw?.auto_closed_at ?? null,
-    auto_closed_reason: raw?.auto_closed_reason ?? null,
-      session_players: ((raw?.session_players ?? []) as any[]).map((player) => ({
-        ...player,
-        match_result: player?.match_result ?? 'pending',
-        proposed_result: player?.proposed_result ?? player?.match_result ?? 'pending',
-        host_unprofessional_reported_at: player?.host_unprofessional_reported_at ?? null,
-        host_unprofessional_report_note: player?.host_unprofessional_report_note ?? null,
-        result_confirmation_status: player?.result_confirmation_status ?? 'not_submitted',
-        result_dispute_note: player?.result_dispute_note ?? null,
-      })),
-  } as SessionRecord
-}
+function buildArrangementPlayers(session: SessionDetailRecord) {
+  const playersById = new Map<string, ArrangementPlayer>()
 
-export default function SessionDetail() {
-  const { id, created, navStartedAt, navSource } = useLocalSearchParams<{
-    id: string
-    created?: string
-    navStartedAt?: string
-    navSource?: string
-  }>()
-  const { userId, isLoading: isAuthLoading } = useAuth()
-  const theme = useAppTheme()
-  const insets = useSafeAreaInsets()
-  const [session, setSession] = useState<SessionRecord | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [joining, setJoining] = useState(false)
-  const [leaving, setLeaving] = useState(false)
-  const [requesting, setRequesting] = useState(false)
-  const [cancelling, setCancelling] = useState(false)
-  const [myId, setMyId] = useState<string | null>(null)
-  const [myPlayer, setMyPlayer] = useState<MyPlayerRecord | null>(null)
-  const [requestStatus, setRequestStatus] = useState<RequestStatus>('none')
-  const [myHostTemplate, setMyHostTemplate] = useState<string | null>(null)
-  const [alreadyRated, setAlreadyRated] = useState(false)
-  const [bookingReference, setBookingReference] = useState('')
-  const [bookingName, setBookingName] = useState('')
-  const [bookingPhone, setBookingPhone] = useState('')
-  const [bookingNotes, setBookingNotes] = useState('')
-  const [savingBooking, setSavingBooking] = useState(false)
-  const [isEditingSession, setIsEditingSession] = useState(false)
-  const [savingSessionEdit, setSavingSessionEdit] = useState(false)
-  const [editStartTime, setEditStartTime] = useState('')
-  const [editEndTime, setEditEndTime] = useState('')
-  const [editSessionDate, setEditSessionDate] = useState('')
-  const [editMaxPlayers, setEditMaxPlayers] = useState('')
-  const [editPrice, setEditPrice] = useState('')
-  const [editEloMin, setEditEloMin] = useState<number>(800)
-  const [editEloMax, setEditEloMax] = useState<number>(1500)
-  const [editRequireApproval, setEditRequireApproval] = useState(false)
-  const [editSelectedCourt, setEditSelectedCourt] = useState<NearByCourt | null>(null)
-  const [showEditDatePicker, setShowEditDatePicker] = useState(false)
-  const [showEditStartPicker, setShowEditStartPicker] = useState(false)
-  const [showEditEndPicker, setShowEditEndPicker] = useState(false)
-  const [savingResults, setSavingResults] = useState(false)
-  const [matchResults, setMatchResults] = useState<Record<string, 'pending' | 'win' | 'loss' | 'draw'>>({})
-  const [respondingToResult, setRespondingToResult] = useState(false)
-  const [disputeNote, setDisputeNote] = useState('')
-  const [reportingHostIssue, setReportingHostIssue] = useState(false)
-  const [hostIssueNote, setHostIssueNote] = useState('')
-  const [pendingRequests, setPendingRequests] = useState<JoinRequestRecord[]>([])
-  const [pendingRequestsExpanded, setPendingRequestsExpanded] = useState(false)
-  const [loadingPendingRequests, setLoadingPendingRequests] = useState(false)
-  const [joinModalVisible, setJoinModalVisible] = useState(false)
-  const [introNote, setIntroNote] = useState('')
-  const [refreshKey, setRefreshKey] = useState(0)
-  const [showBookingDetails, setShowBookingDetails] = useState(false)
-  const [showBookingEditor, setShowBookingEditor] = useState(false)
-  const fetchSessionInFlightRef = useRef<SessionFetchInFlight | null>(null)
-  const mountedAtRef = useRef(Date.now())
-  const firstContentLoggedRef = useRef(false)
-  const fetchGenerationRef = useRef(0)
+  playersById.set(session.host.id, {
+    id: session.host.id,
+    name: session.host.name,
+    elo: getComparableElo(session.host),
+    reliability: getReliability(session.host),
+    skillTag: getSkillTag(session.host),
+    team: 1,
+  })
 
-  useEffect(() => {
-    mountedAtRef.current = Date.now()
-    firstContentLoggedRef.current = false
-    fetchGenerationRef.current += 1
-    setSession(null)
-    setLoading(true)
-  }, [id])
-
-  const fetchMyPlayer = useCallback(async (userId: string) => {
-    const startedAt = Date.now()
-    const { data } = await supabase
-      .from('players')
-      .select('id, name, elo, current_elo, self_assessed_level, skill_label')
-      .eq('id', userId)
-      .maybeSingle()
-
-    setMyPlayer((data as MyPlayerRecord | null) ?? null)
-    logSessionDetailTiming('fetch-my-player', startedAt, { userId })
-  }, [])
-
-  const fetchSession = useCallback(async (userId?: string | null, options?: { showLoader?: boolean; runMaintenance?: boolean }) => {
-    if (fetchSessionInFlightRef.current?.sessionId === id) {
-      logSessionDetailTiming('fetch-deduped', Date.now(), { sessionId: id })
-      await fetchSessionInFlightRef.current.promise
-      return
-    }
-
-    const requestGeneration = fetchGenerationRef.current
-    const isStale = () => requestGeneration !== fetchGenerationRef.current
-
-    const run = async () => {
-    const startedAt = Date.now()
-    const showLoader = options?.showLoader ?? true
-    const runMaintenance = options?.runMaintenance ?? false
-
-    if (showLoader) {
-      setLoading(true)
-    }
-
-    if (runMaintenance) {
-      const maintenanceStartedAt = Date.now()
-      await Promise.all([
-        supabase.rpc('process_pending_session_completions', { p_session_id: id }),
-        supabase.rpc('process_overdue_session_closures', { p_session_id: id }),
-      ])
-      logSessionDetailTiming('maintenance-rpc', maintenanceStartedAt, { sessionId: id })
-    }
-
-    const mainQueryStartedAt = Date.now()
-    const { data: overview, error }: { data: any; error: any } = await supabase
-      .rpc('get_session_detail_overview', { p_session_id: id })
-    logSessionDetailTiming('session-main-query', mainQueryStartedAt, {
-      hasError: Boolean(error),
-      sessionId: id,
+  for (const entry of session.session_players ?? []) {
+    playersById.set(entry.player_id, {
+      id: entry.player_id,
+      name: entry.player?.name ?? 'Người chơi',
+      elo: getComparableElo(entry.player),
+      reliability: getReliability(entry.player),
+      skillTag: getSkillTag(entry.player),
+      team: entry.team_no === 2 ? 2 : 1,
     })
+  }
 
-    if (isStale()) {
-      logSessionDetailTiming('fetch-stale-discarded', startedAt, { sessionId: id, stage: 'after-main-query' })
-      return
-    }
+  const everyone = Array.from(playersById.values())
+  const hasPersistedTeams = (session.session_players ?? []).some((entry) => entry.team_no === 1 || entry.team_no === 2)
 
-    if (!error && overview?.session) {
-      const normalizeStartedAt = Date.now()
-      const normalized = normalizeSessionRecord(overview.session)
-      logSessionDetailTiming('session-normalize', normalizeStartedAt, { players: normalized.session_players?.length ?? 0 })
-      setSession(normalized)
-      setEditSelectedCourt(
-        normalized.slot?.court
-          ? {
-              id: normalized.slot.court.id ?? '',
-              name: normalized.slot.court.name,
-              address: normalized.slot.court.address,
-              city: normalized.slot.court.city,
-              lat: normalized.slot.court.lat ?? null,
-              lng: normalized.slot.court.lng ?? null,
-              hours_open: normalized.slot.court.hours_open ?? null,
-              hours_close: normalized.slot.court.hours_close ?? null,
-              price_per_hour: normalized.slot.court.price_per_hour ?? null,
-              booking_url: normalized.slot.court.booking_url ?? null,
-              google_maps_url: normalized.slot.court.google_maps_url ?? null,
-            }
-          : null,
-      )
-      setBookingReference(normalized.booking_reference ?? '')
-      setBookingName(normalized.booking_name ?? '')
-      setBookingPhone(normalized.booking_phone ?? '')
-      setBookingNotes(normalized.booking_notes ?? '')
-      setEditStartTime(formatClockInput(normalized.slot?.start_time))
-      setEditEndTime(formatClockInput(normalized.slot?.end_time))
-      setEditSessionDate(formatDateInput(normalized.slot?.start_time))
-      setEditMaxPlayers(String(normalized.max_players ?? ''))
-      setEditPrice(String(normalized.slot?.price ?? ''))
-      setEditEloMin(Number(normalized.elo_min ?? 800))
-      setEditEloMax(Number(normalized.elo_max ?? 1500))
-      setEditRequireApproval(Boolean(normalized.require_approval))
-      setMatchResults(
-        Object.fromEntries(
-          (normalized.session_players ?? []).map((player) => [
-            player.player_id,
-            (player.proposed_result ?? player.match_result ?? 'pending') as 'pending' | 'win' | 'loss' | 'draw',
-          ]),
-        ),
-      )
-      sessionDetailCache = {
-        sessionId: String(normalized.id),
-        session: normalized,
-        updatedAt: Date.now(),
-      }
+  if (hasPersistedTeams) {
+    return everyone
+  }
 
-      if (showLoader) {
-        setLoading(false)
-      }
+  const sorted = [...everyone].sort((a, b) => b.elo - a.elo || a.name.localeCompare(b.name, 'vi'))
+  const teamMap = new Map<string, 1 | 2>()
 
-      const uid = userId ?? null
-      if (uid) {
-        const auxStartedAt = Date.now()
-        logSessionDetailTiming('session-aux-queries', auxStartedAt, {
-          hasJoinRequest: overview.viewer_request_status && overview.viewer_request_status !== 'none',
-          checkedRating: true,
-          isHost: uid === normalized.host.id,
-        })
+  sorted.forEach((player, index) => {
+    teamMap.set(player.id, index % 2 === 0 ? 1 : 2)
+  })
 
-        setRequestStatus((overview.viewer_request_status as RequestStatus) ?? 'none')
-        setMyHostTemplate(overview.viewer_host_response_template ?? null)
-        setIntroNote(overview.viewer_intro_note ?? '')
-        setAlreadyRated(Boolean(overview.viewer_already_rated))
+  return everyone.map((player) => ({
+    ...player,
+    team: teamMap.get(player.id) ?? 1,
+  }))
+}
 
-      } else {
-        setAlreadyRated(false)
-        setRequestStatus('none')
-        setMyHostTemplate(null)
-      }
+function autoBalance(players: ArrangementPlayer[]) {
+  const sorted = [...players].sort((a, b) => b.elo - a.elo || a.name.localeCompare(b.name, 'vi'))
+  let totalA = 0
+  let totalB = 0
 
-      if (
-        normalized.results_status === 'pending_confirmation' &&
-        normalized.results_confirmation_deadline &&
-        new Date(normalized.results_confirmation_deadline).getTime() <= Date.now()
-      ) {
-        const { error: finalizeError } = await supabase.rpc('finalize_session_results', { p_session_id: normalized.id })
+  return sorted
+    .map((player) => {
+      const team: 1 | 2 = totalA <= totalB ? 1 : 2
+      if (team === 1) totalA += player.elo
+      else totalB += player.elo
+      return { ...player, team }
+    })
+    .sort((a, b) => a.name.localeCompare(b.name, 'vi'))
+}
 
-        if (isStale()) {
-          logSessionDetailTiming('fetch-stale-discarded', startedAt, { sessionId: id, stage: 'after-finalize' })
-          return
-        }
+export default function SessionDetailScreen() {
+  const { id } = useLocalSearchParams<{ id: string }>()
+  const { userId } = useAuth()
+  const insets = useSafeAreaInsets()
 
-        if (!finalizeError) {
-          await fetchSession(uid)
-          return
-        }
-      }
-    }
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [leaving, setLeaving] = useState(false)
+  const [savingArrangement, setSavingArrangement] = useState(false)
+  const [session, setSession] = useState<SessionDetailRecord | null>(null)
+  const [isArranging, setIsArranging] = useState(false)
+  const [arrangedPlayers, setArrangedPlayers] = useState<ArrangementPlayer[]>([])
+  const [savedTeams, setSavedTeams] = useState<Record<string, 1 | 2>>({})
+
+  const isHost = userId != null && userId === session?.host.id
+  const hasJoined = useMemo(
+    () => (session ? session.session_players.some((item) => item.player_id === userId) : false),
+    [session, userId],
+  )
+
+  const fetchSession = useCallback(async () => {
+    if (!id) return
+
+    const { data, error } = await supabase.rpc('get_session_detail_overview', { p_session_id: id })
 
     if (error) {
-      console.warn('[SessionDetail] fetchSession failed:', error.message)
+      Alert.alert('Không tải được kèo', error.message)
       setSession(null)
+      return
     }
 
-    if (showLoader && !overview?.session) {
-      setLoading(false)
-    }
-    logSessionDetailTiming('fetch-total', startedAt, {
-      sessionId: id,
-      showLoader,
-      runMaintenance,
-      hasSession: Boolean(overview?.session),
-    })
-    }
+    const nextSession = (data?.session ?? null) as SessionDetailRecord | null
+    setSession(nextSession)
 
-    const promise = run()
-    fetchSessionInFlightRef.current = {
-      sessionId: id,
-      promise,
-    }
-    try {
-      await promise
-    } finally {
-      if (fetchSessionInFlightRef.current?.promise === promise) {
-        fetchSessionInFlightRef.current = null
-      }
+    if (nextSession) {
+      const nextArrangement = buildArrangementPlayers(nextSession)
+      setArrangedPlayers(nextArrangement)
+      setSavedTeams(Object.fromEntries(nextArrangement.map((player) => [player.id, player.team])) as Record<string, 1 | 2>)
     }
   }, [id])
 
   useEffect(() => {
-    setMyId(userId ?? null)
-  }, [userId])
+    let mounted = true
 
-  useEffect(() => {
-    async function init() {
-      const initStartedAt = Date.now()
-      if (isAuthLoading) return
-
-      const activeUserId = userId ?? null
-      const hasFreshCacheForCurrentSession =
-        sessionDetailCache?.sessionId === String(id) &&
-        Date.now() - sessionDetailCache.updatedAt < SESSION_DETAIL_CACHE_FRESH_MS
-
-      if (sessionDetailCache?.sessionId === String(id)) {
-        setSession(sessionDetailCache.session)
-        setLoading(false)
-        logSessionDetailTiming('cache-hit', initStartedAt, { sessionId: id })
-
-        if (hasFreshCacheForCurrentSession) {
-          logSessionDetailTiming('cache-fresh-skip-network', initStartedAt, { sessionId: id })
-          return
-        }
-      }
-
-      if (activeUserId) {
-        const authUserStartedAt = Date.now()
-        await Promise.all([
-          fetchMyPlayer(activeUserId),
-          fetchSession(activeUserId, { showLoader: !hasFreshCacheForCurrentSession, runMaintenance: false }),
-        ])
-        logSessionDetailTiming('init-auth-user', authUserStartedAt, { sessionId: id })
-      } else {
-        setMyPlayer(null)
-        await fetchSession(null, { showLoader: !hasFreshCacheForCurrentSession, runMaintenance: false })
-        logSessionDetailTiming('init-no-user', initStartedAt, { sessionId: id })
-      }
+    async function run() {
+      setLoading(true)
+      await fetchSession()
+      if (mounted) setLoading(false)
     }
 
-    void init()
-  }, [fetchMyPlayer, fetchSession, id, isAuthLoading, userId])
-
-  useEffect(() => {
-    logSessionDetailTiming('screen-mounted', mountedAtRef.current, {
-      sessionId: id,
-      navSource: navSource ?? 'unknown',
-      hasNavStartedAt: Boolean(navStartedAt),
-    })
-  }, [id, navSource, navStartedAt])
-
-  useEffect(() => {
-    if (loading || !session || firstContentLoggedRef.current) return
-
-    firstContentLoggedRef.current = true
-
-    logSessionDetailTiming('content-ready-state', mountedAtRef.current, {
-      sessionId: id,
-      navSource: navSource ?? 'unknown',
-    })
-
-    const navStartedAtMs = navStartedAt ? Number(navStartedAt) : NaN
-    const task = InteractionManager.runAfterInteractions(() => {
-      const extra: Record<string, unknown> = {
-        sessionId: id,
-        navSource: navSource ?? 'unknown',
-      }
-
-      if (Number.isFinite(navStartedAtMs)) {
-        extra.tapToInteractiveMs = Date.now() - navStartedAtMs
-      }
-
-      logSessionDetailTiming('content-after-interactions', mountedAtRef.current, extra)
-    })
+    void run()
 
     return () => {
-      task.cancel()
+      mounted = false
     }
-  }, [id, loading, navSource, navStartedAt, session])
-
-  async function fetchPendingRequests(sessionId: string) {
-    setLoadingPendingRequests(true)
-    const startedAt = Date.now()
-    const { data } = await supabase
-      .from('join_requests')
-      .select(`
-        id, player_id, status, intro_note, host_response_template,
-        player:player_id ( name, elo, current_elo, self_assessed_level, skill_label, sessions_joined, no_show_count )
-      `)
-      .eq('match_id', sessionId)
-      .eq('status', 'pending')
-
-    const normalizedRequests: JoinRequestRecord[] = ((data as JoinRequestRow[] | null) ?? []).map((item) => {
-      const player = Array.isArray(item.player) ? item.player[0] : item.player
-
-      return {
-        id: item.id,
-        player_id: item.player_id,
-        status: item.status,
-        intro_note: item.intro_note ?? null,
-        host_response_template: item.host_response_template ?? null,
-        player: {
-          name: player?.name ?? 'Người chơi',
-          elo: player?.elo ?? null,
-          current_elo: player?.current_elo ?? null,
-          self_assessed_level: player?.self_assessed_level ?? null,
-          skill_label: player?.skill_label ?? null,
-          sessions_joined: player?.sessions_joined ?? null,
-          no_show_count: player?.no_show_count ?? null,
-        },
-      }
-    })
-
-    setPendingRequests(normalizedRequests)
-    setLoadingPendingRequests(false)
-    logSessionDetailTiming('pending-requests-query', startedAt, { sessionId, count: normalizedRequests.length })
-  }
-
-  async function togglePendingRequests() {
-    if (!session || !isHost) return
-
-    const nextExpanded = !pendingRequestsExpanded
-    setPendingRequestsExpanded(nextExpanded)
-
-    if (nextExpanded && pendingRequests.length === 0 && !loadingPendingRequests) {
-      await fetchPendingRequests(session.id)
-    }
-  }
-
-  function formatClockInput(dateStr?: string | null) {
-    if (!dateStr) return ''
-    const date = new Date(dateStr)
-    const hh = date.getHours().toString().padStart(2, '0')
-    const mm = date.getMinutes().toString().padStart(2, '0')
-    return `${hh}:${mm}`
-  }
-
-  function formatDateInput(dateStr?: string | null) {
-    if (!dateStr) return ''
-    const date = new Date(dateStr)
-    const yyyy = date.getFullYear()
-    const mm = String(date.getMonth() + 1).padStart(2, '0')
-    const dd = String(date.getDate()).padStart(2, '0')
-    return `${yyyy}-${mm}-${dd}`
-  }
-
-  function formatDateLabel(dateKey?: string | null) {
-    if (!dateKey) return 'Chọn ngày'
-    const date = new Date(`${dateKey}T00:00:00`)
-    return date.toLocaleDateString('vi-VN')
-  }
-
-  function applyClockToDate(dateStr: string, timeValue: string) {
-    const [hours, minutes] = timeValue.split(':').map((value) => parseInt(value, 10))
-    const date = new Date(dateStr)
-    date.setHours(hours || 0, minutes || 0, 0, 0)
-    return date
-  }
-
-  function buildDateWithClock(dateKey: string, timeValue: string) {
-    const [year, month, day] = dateKey.split('-').map((value) => parseInt(value, 10))
-    const [hours, minutes] = timeValue.split(':').map((value) => parseInt(value, 10))
-    const date = new Date()
-    date.setFullYear(year, (month || 1) - 1, day || 1)
-    date.setHours(hours || 0, minutes || 0, 0, 0)
-    return date
-  }
-
-  function pickerTimeValue(baseDate: string, timeValue: string) {
-    if (!timeValue || !isValidClockValue(timeValue)) return new Date(baseDate)
-    return applyClockToDate(baseDate, timeValue)
-  }
-
-  function isValidClockValue(value: string) {
-    return /^([01]\d|2[0-3]):([0-5]\d)$/.test(value)
-  }
-
-  function buildSessionUpdateSummary(changes: string[]) {
-    if (changes.length === 0) return 'Host vừa cập nhật một số thông tin của kèo.'
-    return `Host vừa cập nhật kèo: ${changes.join(', ')}. Vui lòng kiểm tra lại chi tiết kèo nhé.`
-  }
-
-  function hasBookingInfo() {
-    return [bookingReference, bookingName, bookingPhone, bookingNotes].some((value) => value.trim().length > 0)
-  }
-
-  function bookingStatusConfig(status: 'confirmed' | 'unconfirmed') {
-    if (status === 'confirmed') {
-      return {
-        bg: '#f0fdf4',
-        text: '#166534',
-        label: 'Sân đã chốt',
-      }
-    }
-
-    return {
-      bg: '#fffbeb',
-      text: '#92400e',
-      label: 'Sân chưa xác nhận',
-    }
-  }
-
-  async function openCourtBookingLink() {
-    const url =
-      editSelectedCourt?.booking_url ??
-      editSelectedCourt?.google_maps_url ??
-      session?.slot?.court?.booking_url ??
-      session?.slot?.court?.google_maps_url
-    if (!url) {
-      Alert.alert('Chưa có link đặt sân', 'Sân này chưa có link booking. Bạn vẫn có thể tự đặt rồi nhập thông tin booking bên dưới.')
-      return
-    }
-
-    try {
-      await Linking.openURL(url)
-    } catch {
-      Alert.alert('Không mở được link', 'Vui lòng thử lại hoặc mở link booking của sân theo cách khác.')
-    }
-  }
-
-  async function confirmCourtBooking() {
-    if (!session || !myId || myId !== session.host.id) return
-    if (!hasBookingInfo()) {
-      Alert.alert('Thiếu thông tin booking', 'Hãy nhập ít nhất một thông tin booking để xác nhận sân.')
-      return
-    }
-
-    setSavingBooking(true)
-    const confirmedAt = new Date().toISOString()
-    const payload: Pick<
-      SessionRecord,
-      'court_booking_status' | 'booking_reference' | 'booking_name' | 'booking_phone' | 'booking_notes' | 'booking_confirmed_at'
-    > = {
-      court_booking_status: 'confirmed',
-      booking_reference: bookingReference.trim() || null,
-      booking_name: bookingName.trim() || null,
-      booking_phone: bookingPhone.trim() || null,
-      booking_notes: bookingNotes.trim() || null,
-      booking_confirmed_at: confirmedAt,
-    }
-
-    const { error } = await supabase
-      .from('sessions')
-      .update(payload)
-      .eq('id', session.id)
-
-    setSavingBooking(false)
-
-    if (error) {
-      Alert.alert('Lỗi', error.message)
-      return
-    }
-
-    setSession((prev) => (prev ? { ...prev, ...payload } : prev))
-    Alert.alert('Đã xác nhận sân', 'Thông tin booking đã được lưu cho kèo này.')
-  }
-
-  async function saveSessionEdits() {
-    if (!session || !isHost) return
-
-    if (!editSessionDate) {
-      Alert.alert('Thiếu ngày chơi', 'Vui lòng chọn ngày cho kèo.')
-      return
-    }
-
-    if (!isValidClockValue(editStartTime) || !isValidClockValue(editEndTime)) {
-      Alert.alert('Giờ không hợp lệ', 'Vui lòng nhập giờ theo định dạng HH:MM.')
-      return
-    }
-
-    const nextMaxPlayers = parseInt(editMaxPlayers, 10)
-    const nextPrice = parseInt(editPrice.replace(/\D/g, ''), 10)
-    const nextEloMin = Number(editEloMin)
-    const nextEloMax = Number(editEloMax)
-    const nextCourtId = editSelectedCourt?.id ?? session.slot.court.id ?? null
-
-    if (session.court_booking_status !== 'confirmed' && !nextCourtId) {
-      Alert.alert('Thiếu sân chơi', 'Vui lòng chọn sân cho kèo trước khi lưu thay đổi.')
-      return
-    }
-
-    if (!nextMaxPlayers || nextMaxPlayers < session.session_players.length) {
-      Alert.alert('Số người không hợp lệ', 'Max players không được nhỏ hơn số người đang có trong kèo.')
-      return
-    }
-
-    if (nextEloMin > nextEloMax) {
-      Alert.alert('Trình độ không hợp lệ', 'Trình độ tối thiểu không thể cao hơn trình độ tối đa.')
-      return
-    }
-
-    const nextStart =
-      session.court_booking_status === 'confirmed'
-        ? new Date(session.slot.start_time)
-        : buildDateWithClock(editSessionDate, editStartTime)
-    const nextEnd =
-      session.court_booking_status === 'confirmed'
-        ? new Date(session.slot.end_time)
-        : buildDateWithClock(editSessionDate, editEndTime)
-
-    if (nextEnd <= nextStart) {
-      Alert.alert('Giờ kết thúc không hợp lệ', 'Giờ kết thúc phải sau giờ bắt đầu.')
-      return
-    }
-
-    const changedFields: string[] = []
-
-    if (editStartTime !== formatClockInput(session.slot.start_time) || editEndTime !== formatClockInput(session.slot.end_time)) {
-      changedFields.push(`giờ chơi ${editStartTime} → ${editEndTime}`)
-    }
-    if (session.court_booking_status !== 'confirmed' && editSessionDate !== formatDateInput(session.slot.start_time)) {
-      changedFields.push(`ngày chơi ${formatDateLabel(formatDateInput(session.slot.start_time))} → ${formatDateLabel(editSessionDate)}`)
-    }
-    if (
-      session.court_booking_status !== 'confirmed' &&
-      editSelectedCourt &&
-      editSelectedCourt.id &&
-      editSelectedCourt.id !== (session.slot.court.id ?? '')
-    ) {
-      changedFields.push(`sân ${session.slot.court.name} → ${editSelectedCourt.name}`)
-    }
-    if (nextMaxPlayers !== session.max_players) {
-      changedFields.push(`số chỗ ${session.max_players} → ${nextMaxPlayers}`)
-    }
-    if (nextPrice !== session.slot.price) {
-      changedFields.push(`gi? ${(session.slot.price ?? 0).toLocaleString('vi-VN')}? ? ${nextPrice.toLocaleString('vi-VN')}?`)
-    }
-    if (nextEloMin !== session.elo_min || nextEloMax !== session.elo_max) {
-      changedFields.push(`trình độ ${skillLabel(session.elo_min, session.elo_max)} → ${skillLabel(nextEloMin, nextEloMax)}`)
-    }
-    if (editRequireApproval !== session.require_approval) {
-      changedFields.push(editRequireApproval ? 'bật duyệt tay' : 'tắt duyệt tay')
-    }
-    if (changedFields.length === 0) {
-      setIsEditingSession(false)
-      Alert.alert('Không có thay đổi', 'Bạn chưa chỉnh sửa thông tin nào của kèo.')
-      return
-    }
-
-    setSavingSessionEdit(true)
-
-    const { data: updatedSlots, error: slotError } = await supabase
-      .from('court_slots')
-      .update({
-        court_id: nextCourtId,
-        start_time: nextStart.toISOString(),
-        end_time: nextEnd.toISOString(),
-        price: nextPrice,
-      })
-      .eq('id', (session as any).slot_id ?? (session as any).slot?.id)
-      .select('id, start_time, end_time, price')
-
-    if (slotError) {
-      setSavingSessionEdit(false)
-      Alert.alert('Lỗi', slotError.message)
-      return
-    }
-
-    if (!updatedSlots || updatedSlots.length === 0) {
-      setSavingSessionEdit(false)
-      Alert.alert('Không lưu được thay đổi', 'Host chưa có quyền cập nhật khung giờ của kèo này. Hãy chạy migration policy mới trong Supabase.')
-      return
-    }
-
-    const { data: updatedSessions, error: sessionError } = await supabase
-      .from('sessions')
-      .update({
-        max_players: nextMaxPlayers,
-        elo_min: nextEloMin,
-        elo_max: nextEloMax,
-        require_approval: editRequireApproval,
-        start_time: nextStart.toISOString(),
-        end_time: nextEnd.toISOString(),
-        total_cost: nextPrice,
-        cost_per_player: nextMaxPlayers > 0 ? Math.ceil(nextPrice / nextMaxPlayers) : null,
-      })
-      .eq('id', session.id)
-      .select('id, max_players, require_approval, elo_min, elo_max, court_booking_status')
-
-    setSavingSessionEdit(false)
-
-    if (sessionError) {
-      Alert.alert('Lỗi', sessionError.message)
-      return
-    }
-
-    if (!updatedSessions || updatedSessions.length === 0) {
-      Alert.alert('Không lưu được thay đổi', 'Host chưa có quyền cập nhật thông tin kèo này. Hãy chạy migration policy mới trong Supabase.')
-      return
-    }
-
-    const playerIdsToNotify = session.session_players
-      .filter((player) => player.player_id !== session.host.id)
-      .map((player) => player.player_id)
-
-    await Promise.all(
-      playerIdsToNotify.map((playerId) =>
-        insertNotification(
-          playerId,
-          'Kèo vừa được cập nhật',
-          buildSessionUpdateSummary(changedFields),
-          'session_updated',
-          `/session/${session.id}`,
-        )
-      )
-    )
-
-    await fetchSession(myId)
-    setIsEditingSession(false)
-    Alert.alert('Đã cập nhật kèo', 'Những người đã join kèo đã được thông báo về thay đổi mới.')
-  }
-
-  function handleEditTimeChange(field: 'start' | 'end') {
-    return (event: DateTimePickerEvent, selectedDate?: Date) => {
-      if (Platform.OS === 'android') {
-        if (field === 'start') {
-          setShowEditStartPicker(false)
-        } else {
-          setShowEditEndPicker(false)
-        }
-      }
-
-      if (event.type !== 'set' || !selectedDate) return
-
-      const nextValue = formatClockInput(selectedDate.toISOString())
-      if (field === 'start') {
-        setEditStartTime(nextValue)
-      } else {
-        setEditEndTime(nextValue)
-      }
-    }
-  }
-
-  function handleEditDateChange(event: DateTimePickerEvent, selectedDate?: Date) {
-    if (Platform.OS === 'android') {
-      setShowEditDatePicker(false)
-    }
-    if (event.type !== 'set' || !selectedDate) return
-    setEditSessionDate(formatDateInput(selectedDate.toISOString()))
-  }
-
-  function openEditTimePicker(field: 'start' | 'end') {
-    if (!session) return
-
-    const value =
-      field === 'start'
-        ? pickerTimeValue(session.slot.start_time, editStartTime)
-        : pickerTimeValue(session.slot.end_time, editEndTime)
-
-    if (Platform.OS === 'android') {
-      DateTimePickerAndroid.open({
-        value,
-        mode: 'time',
-        is24Hour: true,
-        onChange: handleEditTimeChange(field),
-      })
-      return
-    }
-
-    if (field === 'start') {
-      setShowEditDatePicker(false)
-      setShowEditEndPicker(false)
-      setShowEditStartPicker((prev) => !prev)
-    } else {
-      setShowEditDatePicker(false)
-      setShowEditStartPicker(false)
-      setShowEditEndPicker((prev) => !prev)
-    }
-  }
-
-  function openEditDatePicker() {
-    if (!session) return
-
-    const value = editSessionDate ? new Date(`${editSessionDate}T00:00:00`) : new Date(session.slot.start_time)
-
-    if (Platform.OS === 'android') {
-      DateTimePickerAndroid.open({
-        value,
-        mode: 'date',
-        onChange: handleEditDateChange,
-      })
-      return
-    }
-
-    setShowEditStartPicker(false)
-    setShowEditEndPicker(false)
-    setShowEditDatePicker((prev) => !prev)
-  }
-
-  function updateMatchResult(playerId: string, result: 'pending' | 'win' | 'loss' | 'draw') {
-    setMatchResults((prev) => ({
-      ...prev,
-      [playerId]: result,
-    }))
-  }
-
-  async function saveMatchResults() {
-    if (!session || !isHost) return
-
-    const payload = session.session_players.map((player) => ({
-      player_id: player.player_id,
-      result: matchResults[player.player_id] ?? player.proposed_result ?? player.match_result ?? 'pending',
-    }))
-
-    setSavingResults(true)
-
-    const { error } = await supabase.rpc('submit_session_results', {
-      p_session_id: session.id,
-      p_results: payload,
-    })
-
-    if (error) {
-      setSavingResults(false)
-      Alert.alert('Lỗi', error.message)
-      return
-    }
-
-    const playerIdsToNotify = session.session_players
-      .filter((player) => player.player_id !== session.host.id)
-      .map((player) => player.player_id)
-
-    await Promise.all(
-      playerIdsToNotify.map((playerId) =>
-        insertNotification(
-          playerId,
-          'Host ?? g?i k?t qu? tr?n',
-          'H?y x?c nh?n ho?c b?o sai k?t qu? trong chi ti?t k?o. K?t qu? s? t? ch?t sau 24h n?u kh?ng ai ph?n ??i.',
-          'session_results_submitted',
-          `/session/${session.id}`,
-        ),
+  }, [fetchSession])
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true)
+    await fetchSession()
+    setRefreshing(false)
+  }, [fetchSession])
+
+  const switchTeam = useCallback((playerId: string) => {
+    setArrangedPlayers((current) =>
+      current.map((player) =>
+        player.id === playerId
+          ? { ...player, team: player.team === 1 ? 2 : 1 }
+          : player,
       ),
     )
+  }, [])
 
-      setSession((prev) =>
-        prev
-          ? {
-              ...prev,
-              status: 'done',
-              results_status: 'pending_confirmation',
-              results_submitted_at: new Date().toISOString(),
-              results_confirmation_deadline: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-            session_players: prev.session_players.map((player) => ({
-              ...player,
-              proposed_result: matchResults[player.player_id] ?? player.proposed_result ?? player.match_result ?? 'pending',
-              result_confirmation_status: player.player_id === session.host.id ? 'confirmed' : 'awaiting_player',
-              result_dispute_note: null,
-            })),
-          }
-        : prev,
-    )
+  const onAutoBalance = useCallback(() => {
+    setArrangedPlayers((current) => autoBalance(current))
+  }, [])
 
-    setSavingResults(false)
-    Alert.alert('Đã gửi kết quả', 'Người chơi sẽ cần xác nhận kết quả. Achievement chỉ được tính sau khi đủ xác nhận hoặc hết thời hạn 24h mà không có tranh chấp.')
-  }
+  const onSaveArrangement = useCallback(async () => {
+    if (!session || !isHost) return
 
-  async function respondToSessionResult(response: 'confirmed' | 'disputed') {
-    if (!session || !myId || isHost) return
+    setSavingArrangement(true)
 
-    setRespondingToResult(true)
-
-    const { data, error } = await supabase.rpc('respond_to_session_result', {
+    const { error } = await supabase.rpc('save_session_teams', {
       p_session_id: session.id,
-      p_response: response,
-      p_note: response === 'disputed' ? disputeNote : null,
+      p_assignments: arrangedPlayers.map((player) => ({
+        player_id: player.id,
+        team_no: player.team,
+      })),
     })
 
-    setRespondingToResult(false)
+    setSavingArrangement(false)
 
     if (error) {
-      Alert.alert('Lỗi', error.message)
+      Alert.alert('Không lưu được đội', error.message)
       return
     }
 
-    if (response === 'disputed') {
-      await insertNotification(
-        session.host.id,
-        'Có tranh chấp kết quả trận',
-        `${myPlayer?.name ?? 'Một người chơi'} đã báo sai kết quả và yêu cầu host kiểm tra lại.`,
-        'session_results_disputed',
-        `/session/${session.id}`,
-      )
-    }
+    const nextSavedTeams = Object.fromEntries(arrangedPlayers.map((player) => [player.id, player.team])) as Record<string, 1 | 2>
+    setSavedTeams(nextSavedTeams)
+    setIsArranging(false)
+    Alert.alert('Đã lưu thay đổi', 'Đội hình đã được cập nhật.')
+    await fetchSession()
+  }, [arrangedPlayers, fetchSession, isHost, session])
 
-    if (data === 'finalized') {
-      Alert.alert('Kết quả đã chốt', 'Kết quả trận đã đủ điều kiện xác nhận và được chốt chính thức.')
-    } else if (response === 'confirmed') {
-      Alert.alert('Đã xác nhận', 'Hệ thống đã ghi nhận xác nhận của bạn. Chờ các người chơi còn lại hoặc hết thời hạn 24h.')
-    } else {
-      Alert.alert('Đã báo sai kết quả', 'Host đã được thông báo để kiểm tra lại.')
-    }
+  const leaveSession = useCallback(async () => {
+    if (!session || !userId) return
 
-    setDisputeNote('')
-    await fetchSession(myId)
-  }
-
-  async function reportHostUnprofessional() {
-    if (!session || !myId || isHost) return
-
-    setReportingHostIssue(true)
-    const { data, error } = await supabase.rpc('report_host_unprofessional', {
-      p_session_id: session.id,
-      p_note: hostIssueNote.trim() || null,
-    })
-
-    setReportingHostIssue(false)
-
-    if (!error) {
-      if (data === 'already_reported') {
-        Alert.alert('Đã báo trước đó', 'Bạn đã gửi báo cáo về host của kèo này rồi.')
-      } else {
-        Alert.alert('Đã gửi báo cáo', 'Hệ thống đã ghi nhận việc host không xác nhận kết quả đúng hạn.')
-      }
-
-      await fetchSession(myId)
-      return
-    }
-
-    if (error) {
-      Alert.alert('Lỗi', error.message)
-      return
-    }
-
-    if (data === 'already_reported') {
-      Alert.alert('Đã vô hiệu kèo', 'Đa số người chơi đã báo trận đấu không diễn ra. Kèo này đã bị vô hiệu.')
-    } else if (data === 'member_finalized') {
-      Alert.alert('Đã chốt bằng đồng thuận', 'Người chơi đã đủ đồng thuận để đóng kèo và mở bước hậu trận.')
-    } else {
-      Alert.alert('Đã gửi báo cáo', 'Báo cáo kết quả của bạn đã được ghi nhận.')
-    }
-
-    await fetchSession(myId)
-  }
-
-  async function directJoinSession() {
-    if (!myId) {
-      Alert.alert('Cần đăng nhập', 'Bạn cần đăng nhập để tham gia kèo này', [
-        { text: 'Huỷ', style: 'cancel' },
-        { text: 'Đăng nhập', onPress: () => router.push('/login') },
-      ])
-      return
-    }
-
-    if (!session) return
-
-    setJoining(true)
-    const { error } = await supabase.from('session_players').insert({
-      session_id: session.id,
-      player_id: myId,
-      status: 'confirmed',
-    })
-
-    if (!error) {
-      await supabase
-        .from('join_requests')
-        .update({ status: 'accepted' })
-        .eq('match_id', session.id)
-        .eq('player_id', myId)
-    }
-
-    setJoining(false)
-
-    if (error) {
-      Alert.alert('Lỗi', error.message)
-      return
-    }
-
-    Alert.alert('Tham gia thành công', 'Bạn đã vào kèo này rồi nhé.')
-    setRequestStatus('accepted')
-    await fetchSession(myId)
-  }
-
-  async function sendJoinRequest(mode: RequestStatus | 'waitlist', noteOverride?: string) {
-    if (!myId) {
-      Alert.alert('Cần đăng nhập', 'Bạn cần đăng nhập để gửi yêu cầu', [
-        { text: 'Huỷ', style: 'cancel' },
-        { text: 'Đăng nhập', onPress: () => router.push('/login') },
-      ])
-      return
-    }
-
-    if (!session) return
-
-    setRequesting(true)
-    const { error } = await supabase.from('join_requests').upsert(
-      {
-        match_id: session.id,
-        player_id: myId,
-        status: 'pending',
-        intro_note: noteOverride?.trim() || introNote.trim() || null,
-      },
-      {
-        onConflict: 'match_id,player_id',
-      }
-    )
-    setRequesting(false)
-
-    if (error) {
-      Alert.alert('Lỗi', error.message)
-      return
-    }
-
-    setRequestStatus('pending')
-    setJoinModalVisible(false)
-    setMyHostTemplate(null)
-    Alert.alert(
-      mode === 'waitlist' ? 'Đã đăng ký dự bị' : 'Đã gửi yêu cầu',
-      mode === 'waitlist' ? 'Host sẽ thấy bạn trong danh sách dự bị nếu có slot trống.' : 'Chờ host duyệt nhé.'
-    )
-
-    // Notify host
-    if (myPlayer) {
-      const slotTime = new Date(session.slot.start_time)
-        .toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
-      await insertNotification(
-        session.host.id,
-        mode === 'waitlist' ? 'Có người đăng ký dự bị' : 'Có người muốn join kèo!',
-        `${myPlayer.name} (Elo ${myPlayer.current_elo ?? myPlayer.elo}) gửi yêu cầu vào kèo lúc ${slotTime}`,
-        'join_request',
-        `/session/${session.id}`,
-      )
-    }
-  }
-
-  async function approveRequest(requestId: string, playerId: string) {
-    if (!session) return
-
-    const { error: reqErr } = await supabase
-      .from('join_requests')
-      .update({ status: 'accepted' })
-      .eq('id', requestId)
-    if (reqErr) {
-      console.warn('[approveRequest] update join_requests failed:', reqErr.message)
-      Alert.alert('Lỗi', reqErr.message)
-      return
-    }
-
-    const { error: playerErr } = await supabase.from('session_players').insert({
-      session_id: session.id,
-      player_id: playerId,
-      status: 'confirmed',
-    })
-    if (playerErr) {
-      console.warn('[approveRequest] insert session_players failed:', playerErr.message)
-      Alert.alert('Lỗi', playerErr.message)
-      return
-    }
-
-    // Optimistically remove from pending list immediately
-    setPendingRequests((prev) => prev.filter((r) => r.id !== requestId))
-
-    Alert.alert('Đã duyệt', 'Người chơi đã được thêm vào kèo.')
-
-    console.log('[approveRequest] sending notification to player:', playerId)
-    const slotTime = new Date(session.slot.start_time)
-      .toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
-    await insertNotification(
-      playerId,
-      'Được duyệt!',
-      `Bạn đã được chấp nhận vào kèo lúc ${slotTime}`,
-      'join_approved',
-      `/session/${session.id}`,
-    )
-    console.log('[approveRequest] notification sent')
-
-    await fetchSession(myId)
-  }
-
-  async function rejectRequest(requestId: string, playerId: string) {
-    if (!session) return
-
-    const { error } = await supabase
-      .from('join_requests')
-      .update({ status: 'rejected' })
-      .eq('id', requestId)
-    if (error) {
-      console.warn('[rejectRequest] failed:', error.message)
-      Alert.alert('Lỗi', error.message)
-      return
-    }
-
-    // Optimistically remove from pending list immediately
-    setPendingRequests((prev) => prev.filter((r) => r.id !== requestId))
-
-    Alert.alert('Đã từ chối.')
-
-    console.log('[rejectRequest] sending notification to player:', playerId)
-    await insertNotification(
-      playerId,
-      'Chưa phù hợp',
-      'Host đã từ chối yêu cầu tham gia',
-      'join_rejected',
-      `/session/${session.id}`,
-    )
-    console.log('[rejectRequest] notification sent')
-
-    await fetchSession(myId)
-  }
-
-  async function replyWithTemplate(requestId: string, playerId: string, template: string) {
-    if (!session) return
-
-    const { error } = await supabase
-      .from('join_requests')
-      .update({ host_response_template: template })
-      .eq('id', requestId)
-
-    if (error) {
-      Alert.alert('Lỗi', error.message)
-      return
-    }
-
-    setPendingRequests((prev) =>
-      prev.map((request) =>
-        request.id === requestId ? { ...request, host_response_template: template } : request
-      )
-    )
-
-    await insertNotification(
-      playerId,
-      'Host đã phản hồi yêu cầu',
-      template,
-      'join_request_reply',
-      `/session/${session.id}`,
-    )
-
-    Alert.alert('Đã gửi phản hồi', 'Template đã được lưu và gửi cho người chơi.')
-  }
-
-  async function leaveSession() {
-    if (!myId || !session) return
-
-    Alert.alert('Rời kèo?', 'Bạn chắc muốn rời kèo này không?', [
-      { text: 'Huỷ', style: 'cancel' },
+    Alert.alert('Rời kèo?', 'Bạn chắc chắn muốn rời kèo này?', [
+      { text: 'Ở lại', style: 'cancel' },
       {
         text: 'Rời kèo',
         style: 'destructive',
         onPress: async () => {
-          const leavingPlayer = session.session_players.find((p) => p.player_id === myId)
-          const slotTime = new Date(session.slot.start_time)
-            .toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
-
           setLeaving(true)
           const { error } = await supabase
             .from('session_players')
             .delete()
             .eq('session_id', session.id)
-            .eq('player_id', myId)
+            .eq('player_id', userId)
 
-          if (error) {
-            setLeaving(false)
-            Alert.alert('Lỗi', error.message)
-            return
-          }
-
-          await supabase
-            .from('join_requests')
-            .delete()
-            .eq('match_id', session.id)
-            .eq('player_id', myId)
-
-          if (session.host.id !== myId) {
-            await insertNotification(
-              session.host.id,
-              'Người chơi đã rời kèo',
-              `${leavingPlayer?.player?.name ?? 'Một người chơi'} đã rời kèo lúc ${slotTime}.`,
-              'player_left',
-              `/session/${session.id}`,
-            )
-          }
-
-          setSession(prev =>
-            prev
-              ? {
-                  ...prev,
-                  session_players: prev.session_players.filter(p => p.player_id !== myId),
-                }
-              : null
-          )
-
-          await new Promise(resolve => setTimeout(resolve, 500))
           setLeaving(false)
-          setRequestStatus('none')
-          setRefreshKey(k => k + 1)
-          await fetchSession(myId)
-        },
-      },
-    ])
-  }
-
-  async function cancelSession() {
-    if (!session) return
-
-    const isFull = session.session_players.length >= session.max_players
-    const playerIdsToNotify = session.session_players
-      .filter((p) => p.player_id !== session.host.id)
-      .map((p) => p.player_id)
-    const slotTime = new Date(session.slot.start_time)
-      .toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
-    const alertTitle = isFull ? 'Kèo đã đủ người' : 'Huỷ kèo?'
-    const alertMessage = isFull
-      ? 'Kèo đã đủ người chơi, huỷ kèo này sẽ ảnh hưởng đến tỷ lệ huỷ kèo của bạn. Bạn có chắc không?'
-      : 'Kèo sẽ bị huỷ và tất cả người chơi sẽ bị xoá. Không thể hoàn tác!'
-
-    Alert.alert(alertTitle, alertMessage, [
-      { text: 'Không', style: 'cancel' },
-      {
-        text: 'Huỷ kèo',
-        style: 'destructive',
-        onPress: async () => {
-          setCancelling(true)
-
-          await supabase.from('session_players').delete().eq('session_id', session.id)
-          await supabase.from('join_requests').delete().eq('match_id', session.id)
-
-          const { error } = await supabase
-            .from('sessions')
-            .update({
-              status: 'cancelled',
-              was_full_when_cancelled: isFull,
-            })
-            .eq('id', session.id)
-
-          setCancelling(false)
 
           if (error) {
-            Alert.alert('Lỗi', error.message)
+            Alert.alert('Không thể rời kèo', error.message)
             return
           }
 
-          await Promise.all(
-            playerIdsToNotify.map((playerId) =>
-              insertNotification(
-                playerId,
-                'Host đã huỷ kèo',
-                `Kèo lúc ${slotTime} đã bị host huỷ.`,
-                'session_cancelled',
-                `/session/${session.id}`,
-              )
-            )
-          )
-
-          Alert.alert('Đã huỷ kèo', 'Kèo của bạn đã được huỷ.', [
-            { text: 'OK', onPress: () => router.replace('/(tabs)' as any) },
-          ])
+          await fetchSession()
         },
       },
     ])
-  }
+  }, [fetchSession, session, userId])
 
-  function formatTime(start: string, end: string) {
-    const s = new Date(start)
-    const e = new Date(end)
-    const fmt = (d: Date) =>
-      `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
-    const weekday = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'][s.getDay()]
-    const day = `${s.getDate().toString().padStart(2, '0')}/${(s.getMonth() + 1).toString().padStart(2, '0')}`
-    return `${weekday}, ${day} · ${fmt(s)} → ${fmt(e)}`
-  }
-
-  function skillLabel(eloMin: number, eloMax: number) {
-    return getSkillLevelFromEloRange(eloMin, eloMax).title
-  }
-
-  function playerSkillMeta(player?: {
-    self_assessed_level?: string | null
-    skill_label?: string | null
-    current_elo?: number | null
-    elo?: number | null
-  } | null) {
-    const level = getSkillLevelFromPlayer(player) ?? getSkillLevelFromElo(player?.current_elo ?? player?.elo)
-    if (!level) return null
-
-    return {
-      level,
-      ui: getSkillLevelUi(level.id),
-    }
-  }
-
-  function getSkillTone(levelId?: string | null) {
-    const skillUi = getSkillLevelUi(levelId as any)
-    return {
-      bg: skillUi.tagClassName,
-      text: skillUi.textClassName,
-      border: skillUi.borderClassName,
-      icon: skillUi.iconColor,
-    }
-  }
-
-  function getReliabilityScore(player?: {
-    reliability_score?: number | null
-    sessions_joined?: number | null
-    no_show_count?: number | null
-  } | null) {
-    if (player?.reliability_score != null) return Math.round(player.reliability_score)
-    const joined = player?.sessions_joined ?? 0
-    if (!joined) return null
-    const noShow = player?.no_show_count ?? 0
-    return Math.max(0, Math.min(100, Math.round(((joined - noShow) / joined) * 100)))
-  }
-
-  function getReliabilityColor(score: number | null) {
-    if (score == null) return '#94a3b8'
-    if (score >= 90) return '#16a34a'
-    if (score >= 70) return '#ca8a04'
-    return '#dc2626'
-  }
-
+  const teamA = arrangedPlayers.filter((player) => player.team === 1)
+  const teamB = arrangedPlayers.filter((player) => player.team === 2)
+  const averageTeamA = teamA.length ? Math.round(teamA.reduce((sum, player) => sum + player.elo, 0) / teamA.length) : 0
+  const averageTeamB = teamB.length ? Math.round(teamB.reduce((sum, player) => sum + player.elo, 0) / teamB.length) : 0
+  const arrangementDirty = arrangedPlayers.some((player) => savedTeams[player.id] !== player.team)
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.center} edges={['top']}>
-        <ActivityIndicator size="large" color="#16a34a" />
+      <SafeAreaView className="flex-1 items-center justify-center bg-slate-50">
+        <ActivityIndicator size="large" color="#4f46e5" />
       </SafeAreaView>
     )
   }
 
   if (!session) {
     return (
-      <SafeAreaView style={styles.center} edges={['top']}>
-        <Text style={{ color: '#888' }}>Không tìm thấy kèo này</Text>
+      <SafeAreaView className="flex-1 items-center justify-center bg-slate-50 px-6">
+        <Text className="text-center text-base font-semibold text-slate-500">Không tìm thấy kèo này.</Text>
       </SafeAreaView>
     )
   }
 
-  const players = session.session_players ?? []
-  const isHost = myId === (session.host as any)?.id
-  const hasJoined = players.some(p => p.player_id === (myId ?? ''))
-  const nonHostPlayers = players.filter(p => p.player_id !== (session.host as any)?.id)
-  const court = session.slot?.court
-  const spotsLeft = session.max_players - players.length
-  const isDone = session.status === 'done'
-  const isPendingCompletion = session.status === 'pending_completion'
-  const isCancelled = session.status === 'cancelled'
-  const wasAutoClosed = Boolean(session.auto_closed_at)
-  const canRateSession = session.status === 'done' && (hasJoined || isHost)
-  const myResultRow = players.find((p) => p.player_id === (myId ?? '')) ?? null
-  const canReportHostIssue =
-    !isHost &&
-    hasJoined &&
-    (isPendingCompletion || wasAutoClosed) &&
-    !myResultRow?.host_unprofessional_reported_at
-  const bookingCfg = bookingStatusConfig(session.court_booking_status)
-  const matchTargetScore = getSkillScoreFromEloRange(session.elo_min, session.elo_max)
-  const mySkillScore = getSkillScoreFromPlayer(myPlayer)
-  const smartJoinStatus = mySkillScore == null
-    ? 'MATCHED'
-    : getMatchStatus(mySkillScore, matchTargetScore, players.length, session.max_players)
-  const matchTargetElo = getSkillTargetElo(session.elo_min, session.elo_max)
-  const sessionSkill = getSkillLevelFromEloRange(session.elo_min, session.elo_max)
-  const sessionSkillUi = getSkillLevelUi(sessionSkill.id)
-  const sessionShortSkill = getShortSkillLabel(sessionSkill)
-  const hostSkill = playerSkillMeta(session.host)
-  const hostSkillTone = getSkillTone(hostSkill?.level.id)
-  const hostReliability = getReliabilityScore(session.host)
-  const hostReliabilityColor = getReliabilityColor(hostReliability)
-  const hostWinStreak = session.host.win_streak ?? 0
-  const hostRequiresApproval = session.require_approval || !session.host.auto_accept
-  const showStickyFooter = !isDone && !isPendingCompletion && !isCancelled && (isHost || hasJoined)
+  const sessionSkillLabel = getSessionSkillLabel(session.elo_min, session.elo_max)
+  const spotsLeft = Math.max(0, session.max_players - arrangedPlayers.length)
 
-  function handleSmartJoinPress() {
-    if (smartJoinStatus === 'MATCHED' && !hostRequiresApproval) {
-      void directJoinSession()
-      return
-    }
-    setJoinModalVisible(true)
+  function renderPlayerRow(player: ArrangementPlayer, mode: 'normal' | 'arranging') {
+    return (
+      <View
+        key={`${mode}-${player.id}`}
+        className="rounded-[32px] border border-slate-100 bg-white px-5 py-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)]"
+      >
+        <View className="flex-row items-center gap-4">
+          <View className="relative h-16 w-16 items-center justify-center rounded-full border border-slate-100 bg-slate-100">
+            <Text className="text-[18px] font-black text-slate-800">{getInitials(player.name)}</Text>
+            <View className="absolute -bottom-1 -right-1 h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-white shadow-sm">
+              <Shield size={12} color="#10b981" strokeWidth={2.5} />
+            </View>
+          </View>
+
+          <View className="flex-1">
+            <Text className="text-[17px] font-black text-slate-950">{player.name}</Text>
+
+            <View className="mt-2 flex-row flex-wrap items-center gap-x-3 gap-y-1">
+              <Text className="text-[13px] font-bold text-slate-400">{`Elo ${player.elo}`}</Text>
+              <Text className="text-[13px] font-black text-orange-500">{player.skillTag}</Text>
+
+              {mode === 'normal' && player.reliability != null ? (
+                <Text className="text-[12px] font-semibold text-emerald-600">{`${player.reliability}% uy tín`}</Text>
+              ) : null}
+            </View>
+          </View>
+
+          {mode === 'arranging' ? (
+            <TouchableOpacity
+              className="h-14 w-14 items-center justify-center rounded-[22px] border border-slate-100 bg-slate-50"
+              onPress={() => switchTeam(player.id)}
+              activeOpacity={0.9}
+            >
+              <Repeat2 size={21} color="#4f46e5" strokeWidth={2.5} />
+            </TouchableOpacity>
+          ) : null}
+        </View>
+      </View>
+    )
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-    <ScrollView
-      key={refreshKey}
-      contentContainerStyle={{ paddingBottom: showStickyFooter ? 112 + insets.bottom : 48 }}
-    >
-      <View style={styles.topRow}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <View style={styles.topActionInline}>
-            <ArrowLeft size={16} color="#059669" />
-            <Text style={styles.backText}>Quay lại</Text>
-          </View>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.shareBtn}
-          onPress={() => {
-            const url = Linking.createURL(`/session/${id}`)
-            Share.share({ message: `Tham gia kèo pickleball này nhé! ${url}` })
-          }}
-        >
-          <View style={styles.topActionInline}>
-            <Share2 size={15} color="#047857" />
-            <Text style={styles.shareBtnText}>Chia sẻ</Text>
-          </View>
-        </TouchableOpacity>
-      </View>
-
-      {created === '1' && (
-        <View style={styles.successBanner}>
-          <Text style={styles.successBannerText}>Kèo đã được đăng. Chia sẻ link để mời người chơi.</Text>
-        </View>
-      )}
-      <View className="rounded-[28px] border p-5" style={{ backgroundColor: theme.surface, borderColor: theme.border, ...getShadowStyle(theme) }}>
-        <View className="flex-row flex-wrap items-center gap-2">
-          <View className={`flex-row items-center rounded-full border px-3 py-2 ${sessionSkillUi.tagClassName} ${sessionSkillUi.borderClassName}`}>
-            <sessionSkillUi.icon size={14} color={sessionSkillUi.iconColor} />
-            <Text className={`ml-2 text-[11px] font-bold uppercase tracking-[0.8px] ${sessionSkillUi.textClassName}`}>{sessionShortSkill}</Text>
-          </View>
-          <View className="flex-row items-center rounded-full border px-3 py-2" style={{ borderColor: theme.border, backgroundColor: theme.surfaceAlt }}>
-            <Target size={12} color={theme.textMuted} />
-            <Text className="ml-1.5 text-[11px] font-bold uppercase tracking-[0.8px]" style={{ color: theme.textMuted }}>{`${matchTargetElo} ELO`}</Text>
-          </View>
-          <View className="flex-row items-center rounded-full border px-3 py-2" style={{ borderColor: theme.border, backgroundColor: theme.surfaceAlt }}>
-            <Activity size={12} color={theme.textMuted} />
-            <Text className="ml-1.5 text-[11px] font-bold uppercase tracking-[0.8px]" style={{ color: theme.textMuted }}>{`${sessionSkillUi.duprValue} DUPR`}</Text>
-          </View>
-        </View>
-        <Text className="mt-7 text-[10px] font-extrabold uppercase tracking-[0.28em]" style={{ color: theme.textSoft }}>Session Detail</Text>
-        <View className="mt-3">
-          <View className="flex-1">
-            <Text className="text-[24px] font-black leading-8" style={{ color: theme.text }}>{court?.name}</Text>
-            <View className="mt-2 flex-row items-center">
-              <MapPin size={15} color={theme.textMuted} />
-              <Text className="ml-2 flex-1 text-[13px] font-medium leading-5" style={{ color: theme.textMuted }}>
-                {court?.address} · {court?.city}
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        <View
-          className="mt-3 self-start rounded-full border px-3 py-2"
-          style={{ backgroundColor: bookingCfg.bg, borderColor: bookingCfg.text }}
-        >
-          <View className="flex-row items-center gap-1.5">
-            {session.court_booking_status === 'confirmed' ? (
-              <BadgeCheck size={14} color={bookingCfg.text} />
-            ) : (
-              <ShieldAlert size={14} color={bookingCfg.text} />
-            )}
-            <Text className="text-[11px] font-bold uppercase tracking-[0.8px]" style={{ color: bookingCfg.text }}>
-              {bookingCfg.label}
-            </Text>
-          </View>
-        </View>
-
-        <View className="mt-5 rounded-[22px] border px-4 py-4" style={{ borderColor: theme.border, backgroundColor: theme.surfaceAlt }}>
-          <View className="flex-row items-center">
-            <View className="h-11 w-11 items-center justify-center rounded-full bg-indigo-100">
-              <Clock3 size={18} color="#4f46e5" />
-            </View>
-            <View className="ml-3 flex-1">
-              <Text className="text-[10px] font-bold uppercase tracking-[0.12em]" style={{ color: theme.textMuted }}>Thời gian</Text>
-              <Text className="mt-1 text-[13px] font-bold" style={{ color: theme.text }}>
-                {formatTime(session.slot.start_time, session.slot.end_time)}
-              </Text>
-            </View>
-          </View>
-
-          <View className="my-4 h-px" style={{ backgroundColor: theme.border }} />
-
-          <View className="flex-row items-center">
-            <View className="h-11 w-11 items-center justify-center rounded-full bg-amber-100">
-              <CircleDollarSign size={18} color="#ea580c" />
-            </View>
-            <View className="ml-3 flex-1">
-              <Text className="text-[10px] font-bold uppercase tracking-[0.12em]" style={{ color: theme.textMuted }}>Chi phí (dự kiến)</Text>
-              <Text className="mt-1 text-[13px] font-bold" style={{ color: theme.text }}>{formatEstimatedCostPerPerson(session.slot.price, session.max_players)}</Text>
-            </View>
-          </View>
-
-          {session.require_approval && (
-            <View className="flex-row items-center rounded-full border border-amber-200 bg-amber-50 px-3 py-2">
-              <ShieldAlert size={14} color="#b45309" />
-              <Text className="ml-2 text-[12px] font-extrabold text-amber-700">Kèo duyệt tay</Text>
-            </View>
-          )}
-        </View>
-
-        {(session.booking_reference || session.booking_name || session.booking_phone || session.booking_notes) && (
-          <View
-            className="mt-4 rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-3"
-          >
+    <SafeAreaView className="flex-1 bg-slate-50" edges={['top']}>
+      <ScrollView
+        className="flex-1"
+        stickyHeaderIndices={[0]}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void onRefresh()} />}
+        contentContainerStyle={{ paddingBottom: (isHost || hasJoined ? 112 : 48) + insets.bottom, paddingHorizontal: 20 }}
+      >
+        <View className="bg-white/85 pb-4 pt-2">
+          <View className="flex-row items-center justify-between">
             <TouchableOpacity
-              className="flex-row items-center justify-between"
-              onPress={() => setShowBookingDetails((prev) => !prev)}
-              activeOpacity={0.85}
+              className="h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white"
+              onPress={() => router.back()}
+              activeOpacity={0.9}
             >
-              <View className="flex-row items-center">
-                <BadgeCheck size={16} color="#64748b" />
-                <Text className="ml-2 text-[12px] font-extrabold text-slate-700">Thông tin booking</Text>
-              </View>
-
-              {showBookingDetails ? (
-                <ChevronUp size={16} color="#64748b" />
-              ) : (
-                <ChevronDown size={16} color="#64748b" />
-              )}
+              <ChevronLeft size={18} color="#0f172a" strokeWidth={2.5} />
             </TouchableOpacity>
 
-            {showBookingDetails ? (
-              <View className="mt-3 gap-1.5">
-                {session.booking_reference ? (
-                  <Text className="text-[12px] font-medium text-slate-600">Mã booking: {session.booking_reference}</Text>
-                ) : null}
-                {session.booking_name ? (
-                  <Text className="text-[12px] font-medium text-slate-600">Người đặt: {session.booking_name}</Text>
-                ) : null}
-                {session.booking_phone ? (
-                  <Text className="text-[12px] font-medium text-slate-600">Số điện thoại: {session.booking_phone}</Text>
-                ) : null}
-                {session.booking_notes ? (
-                  <Text className="text-[12px] font-medium text-slate-600">Ghi chú: {session.booking_notes}</Text>
-                ) : null}
-              </View>
-            ) : null}
-          </View>
-        )}
-      </View>
+            <Text className="text-[13px] font-black uppercase tracking-[0.28em] text-slate-900">Chi tiết kèo</Text>
 
-      <View className="mt-6 flex-row items-center justify-between">
-        <Text className="text-[11px] font-extrabold uppercase tracking-[0.24em] text-slate-500">
-          Người chơi · {players.length}/{session.max_players}
-        </Text>
-        {session.status === 'open' && spotsLeft > 0 ? (
-          <Text className="text-[12px] font-bold text-emerald-600">Còn {spotsLeft} chỗ</Text>
-        ) : null}
-        {session.status === 'open' && spotsLeft <= 0 ? (
-          <Text className="text-[12px] font-bold text-rose-600">Đã đủ người</Text>
-        ) : null}
-      </View>
-
-      <View className="mt-3 rounded-[24px] border p-3" style={{ backgroundColor: theme.surface, borderColor: theme.border, ...getShadowStyle(theme) }}>
-        <TouchableOpacity
-          className={`flex-row items-center rounded-[20px] border bg-slate-50 px-3 py-3 ${hostSkillTone.border}`}
-          onPress={() =>
-            router.push({ pathname: '/player/[id]' as any, params: { id: (session.host as any)?.id } })
-          }
-        >
-          <View style={styles.avatar} className="bg-slate-900">
-            <Text className="text-[16px] font-bold text-white">
-              {(session.host as any)?.name?.[0]?.toUpperCase() ?? '?'}
-            </Text>
-            {hostSkill ? (
-              <View
-                className="absolute -bottom-1 -right-1 h-5 w-5 items-center justify-center rounded-full bg-slate-100"
-                style={{ borderWidth: 3, borderColor: '#f8fafc' }}
-              >
-                <hostSkill.ui.icon size={10} color="#475569" />
-              </View>
-            ) : null}
-          </View>
-          <View className="ml-3 flex-1">
-            <View className="flex-row flex-wrap items-center gap-2">
-              <Text className="text-[14px] font-black text-slate-900">{(session.host as any)?.name}</Text>
-              <UserStar size={12} color="#64748b" />
-              {hostWinStreak >= 3 ? (
-                <View className="flex-row items-center rounded-full bg-orange-500 px-2 py-1">
-                  <Flame size={12} color="#ffffff" />
-                  <Text className="ml-1 text-[11px] font-extrabold text-white">{hostWinStreak}</Text>
-                </View>
-              ) : null}
-            </View>
-
-            {hostReliability != null ? (
-              <View className="mt-1 flex-row flex-wrap items-center gap-2">
-                <View className="flex-row items-center rounded-full bg-slate-100 px-2 py-1">
-                  <Shield size={12} color={hostReliabilityColor} />
-                  <Text className="ml-1 text-[11px] font-bold text-slate-600">{`${hostReliability}% uy tín`}</Text>
-                </View>
-              </View>
-            ) : null}
-          </View>
-          {hostSkill ? (
-            <View className="items-end gap-1">
-              <View className={`flex-row items-center rounded-full border px-3 py-2 ${getSkillTone(hostSkill.level.id).bg} ${getSkillTone(hostSkill.level.id).border}`}>
-                <hostSkill.ui.icon size={12} color={getSkillTone(hostSkill.level.id).icon} />
-                <Text className={`ml-1.5 text-[11px] font-extrabold ${getSkillTone(hostSkill.level.id).text}`}>
-                  {getShortSkillLabel(hostSkill.level)}
-                </Text>
-              </View>
-            </View>
-          ) : null}
-        </TouchableOpacity>
-
-        {nonHostPlayers.map((p) => {
-          const skill = playerSkillMeta(p.player)
-          const reliability = getReliabilityScore(p.player)
-          const reliabilityColor = getReliabilityColor(reliability)
-          const streak = p.player?.win_streak ?? 0
-          const skillTone = getSkillTone(skill?.level.id)
-
-          return (
             <TouchableOpacity
-              key={p.player_id}
-              className="mt-2 flex-row items-center rounded-[20px] border border-slate-100 bg-white px-3 py-3"
-              onPress={() => router.push({ pathname: '/player/[id]' as any, params: { id: p.player_id } })}
+              className="h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white"
+              onPress={() => {
+                const url = Linking.createURL(`/session/${id}`)
+                void Share.share({ message: `Tham gia kèo pickleball này nhé! ${url}` })
+              }}
+              activeOpacity={0.9}
             >
-              <View style={styles.avatar} className="border border-slate-200 bg-slate-50">
-                <Text className="text-[16px] font-bold text-slate-700">
-                  {(p.player as any)?.name?.[0]?.toUpperCase() ?? '?'}
-                </Text>
-                {skill ? (
-                  <View
-                    className="absolute -bottom-1 -right-1 h-5 w-5 items-center justify-center rounded-full bg-slate-100"
-                    style={{ borderWidth: 3, borderColor: '#ffffff' }}
-                  >
-                    <skill.ui.icon size={10} color="#475569" />
-                  </View>
-                ) : null}
+              <Share2 size={18} color="#0f172a" strokeWidth={2.5} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View className="mt-4 rounded-[32px] border border-slate-200 bg-white px-5 pb-5 pt-4 shadow-sm">
+          <View className="flex-row flex-wrap items-center gap-2">
+            <View className="flex-row items-center rounded-full border border-amber-200 bg-amber-50 px-3 py-2">
+              <Trophy size={14} color="#b45309" strokeWidth={2.5} />
+              <Text className="ml-2 text-[11px] font-black uppercase tracking-[0.9px] text-amber-700">{sessionSkillLabel}</Text>
+            </View>
+
+            <View className={`flex-row items-center rounded-full border px-3 py-2 ${session.court_booking_status === 'confirmed' ? 'border-emerald-200 bg-emerald-50' : 'border-amber-200 bg-amber-50'}`}>
+              <CheckCircle2 size={14} color={session.court_booking_status === 'confirmed' ? '#059669' : '#b45309'} strokeWidth={2.5} />
+              <Text className={`ml-2 text-[11px] font-black uppercase tracking-[0.9px] ${session.court_booking_status === 'confirmed' ? 'text-emerald-700' : 'text-amber-700'}`}>
+                {session.court_booking_status === 'confirmed' ? 'Sân đã chốt' : 'Sân chờ xác nhận'}
+              </Text>
+            </View>
+          </View>
+
+          <Text className="mt-5 text-[28px] font-black leading-9 text-slate-950">{session.slot.court.name}</Text>
+          <View className="mt-3 flex-row items-start gap-2">
+            <MapPin size={16} color="#64748b" strokeWidth={2.5} />
+            <Text className="flex-1 text-[14px] leading-6 text-slate-500">
+              {session.slot.court.address} · {session.slot.court.city}
+            </Text>
+          </View>
+
+          <View className="mt-5 rounded-[32px] border border-slate-200 bg-white p-5 shadow-sm">
+            <View className="flex-row items-center">
+              <View className="h-12 w-12 items-center justify-center rounded-full bg-indigo-100">
+                <Clock3 size={18} color="#4f46e5" strokeWidth={2.5} />
               </View>
               <View className="ml-3 flex-1">
-                <View className="flex-row flex-wrap items-center gap-2">
-                  <Text className="text-[14px] font-black text-slate-900">{(p.player as any)?.name ?? '?'}</Text>
-                  {streak >= 3 ? (
-                    <View className="flex-row items-center rounded-full bg-orange-500 px-2 py-1">
-                      <Flame size={12} color="#ffffff" />
-                      <Text className="ml-1 text-[11px] font-extrabold text-white">{streak}</Text>
-                    </View>
-                  ) : null}
-                </View>
-
-                {reliability != null ? (
-                  <View className="mt-1 flex-row flex-wrap items-center gap-2">
-                    <View className="flex-row items-center rounded-full bg-slate-100 px-2 py-1">
-                      <Shield size={12} color={reliabilityColor} />
-                      <Text className="ml-1 text-[11px] font-bold text-slate-600">{`${reliability}% uy tín`}</Text>
-                    </View>
-                  </View>
-                ) : null}
-              </View>
-
-              {skill ? (
-                <View className="items-end gap-1">
-                  <View className={`flex-row items-center rounded-full border px-3 py-2 ${skillTone.bg} ${skillTone.border}`}>
-                    <skill.ui.icon size={12} color={skillTone.icon} />
-                    <Text className={`ml-1.5 text-[11px] font-extrabold ${skillTone.text}`}>
-                      {getShortSkillLabel(skill.level)}
-                    </Text>
-                  </View>
-                </View>
-              ) : null}
-            </TouchableOpacity>
-          )
-        })}
-
-        {session.status === 'open' && Array.from({ length: Math.max(0, spotsLeft) }).map((_, i) => (
-          <View key={i} className="mt-2 flex-row items-center rounded-[20px] border border-dashed border-slate-200 bg-slate-50 px-3 py-3">
-            <View
-              style={[
-                styles.avatar,
-                { backgroundColor: '#e2e8f0', borderColor: '#94a3b8', borderWidth: 1.5 },
-              ]}
-            >
-              <Text className="text-[16px] font-bold text-slate-600">?</Text>
-            </View>
-            <Text className="ml-3 text-[13px] font-bold text-slate-400">Chờ người chơi...</Text>
-          </View>
-        ))}
-      </View>
-
-      {isHost ? (
-        <View style={styles.hostActionsCard}>
-          <TouchableOpacity style={styles.pendingToggleBtn} onPress={togglePendingRequests} activeOpacity={0.9}>
-            <View style={styles.pendingToggleCopy}>
-              <Text style={styles.hostActionsTitle}>Yêu cầu tham gia</Text>
-              <Text style={styles.hostActionsSub}>
-                {pendingRequestsExpanded
-                  ? 'Đang hiển thị danh sách người chơi chờ duyệt.'
-                  : 'Mở khi cần để xem và duyệt các yêu cầu tham gia.'}
-              </Text>
-            </View>
-            {pendingRequestsExpanded ? <ChevronUp size={18} color="#0f172a" /> : <ChevronDown size={18} color="#0f172a" />}
-          </TouchableOpacity>
-
-          {pendingRequestsExpanded ? (
-            loadingPendingRequests ? (
-              <View className="items-center py-4">
-                <ActivityIndicator size="small" color="#059669" />
-                <Text className="mt-2 text-[13px] font-medium text-slate-500">Đang tải yêu cầu tham gia...</Text>
-              </View>
-            ) : (
-              <HostRequestReview
-                requests={pendingRequests}
-                matchTargetElo={matchTargetElo}
-                onOpenPlayer={(playerId) => router.push({ pathname: '/player/[id]' as any, params: { id: playerId } })}
-                onAccept={approveRequest}
-                onReject={rejectRequest}
-                onReplyTemplate={replyWithTemplate}
-              />
-            )
-          ) : null}
-        </View>
-      ) : null}
-
-      {!isHost && isDone && myResultRow && session.results_status && session.results_status !== 'not_submitted' ? (
-        <View style={styles.hostActionsCard}>
-          <View style={styles.hostActionsHeader}>
-            <View style={styles.hostActionsCopy}>
-              <Text style={styles.hostActionsTitle}>Xác nhận kết quả trận</Text>
-              <Text style={styles.hostActionsSub}>
-                Host đã gửi kết quả cho kèo này. Bạn hãy xác nhận hoặc báo sai để tránh tính Elo và achievement sai.
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.resultCard}>
-            <Text style={styles.editFieldLabel}>Kết quả host gửi cho bạn</Text>
-            <Text style={styles.resultValueText}>
-              {(() => {
-                const value = myResultRow.proposed_result ?? myResultRow.match_result ?? 'pending'
-                if (value === 'win') return 'Thắng'
-                if (value === 'loss') return 'Thua'
-                if (value === 'draw') return 'Hoà'
-                return 'Chưa chốt'
-              })()}
-            </Text>
-            <Text style={styles.resultStatusText}>
-              {session.results_status === 'finalized'
-                ? 'Kết quả đã được chốt chính thức.'
-                : myResultRow.result_confirmation_status === 'confirmed'
-                  ? 'Bạn đã xác nhận kết quả này.'
-                  : myResultRow.result_confirmation_status === 'disputed'
-                    ? 'Bạn đã báo sai kết quả. Chờ host cập nhật lại.'
-                    : `Kết quả sẽ tự chốt sau 24h nếu không ai phản đối. Hạn chót: ${session.results_confirmation_deadline ? new Date(session.results_confirmation_deadline).toLocaleString('vi-VN') : '24h'}`}
-            </Text>
-          </View>
-
-          {session.results_status !== 'finalized' && myResultRow.result_confirmation_status !== 'confirmed' ? (
-            <>
-              <TextInput
-                style={[styles.bookingInput, styles.bookingNotesInput]}
-                placeholder="Nếu báo sai, hãy ghi ngắn lý do để host kiểm tra lại"
-                placeholderTextColor="#aaa"
-                multiline
-                value={disputeNote}
-                onChangeText={setDisputeNote}
-              />
-
-              <View style={styles.editRow}>
-                <TouchableOpacity
-                  style={[styles.bookingConfirmBtn, { flex: 1 }, respondingToResult && styles.bookingConfirmBtnDisabled]}
-                  onPress={() => respondToSessionResult('confirmed')}
-                  disabled={respondingToResult}
-                >
-                  <Text style={styles.bookingConfirmBtnText}>
-                    {respondingToResult ? 'Đang gửi...' : 'Xác nhận'}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.cancelBtn, { flex: 1, marginTop: 0 }, respondingToResult && styles.cancelBtnDisabled]}
-                  onPress={() => respondToSessionResult('disputed')}
-                  disabled={respondingToResult}
-                >
-                  <Text style={styles.cancelBtnText}>Báo sai kết quả</Text>
-                </TouchableOpacity>
-              </View>
-            </>
-          ) : null}
-        </View>
-      ) : null}
-
-      {canReportHostIssue ? (
-        <View style={styles.hostActionsCard}>
-          <View style={styles.hostActionsHeader}>
-            <View style={styles.hostActionsCopy}>
-              <Text style={styles.hostActionsTitle}>Báo host không chuyên nghiệp</Text>
-              <Text style={styles.hostActionsSub}>
-                Host vẫn chưa xác nhận kết quả đúng hạn. Bạn có thể gửi một báo cáo để hệ thống ghi nhận.
-              </Text>
-            </View>
-          </View>
-
-          <TextInput
-            style={[styles.bookingInput, styles.bookingNotesInput]}
-            placeholder="Ghi chú thêm nếu cần, ví dụ host không chốt kèo đúng hạn"
-            placeholderTextColor="#aaa"
-            multiline
-            value={hostIssueNote}
-            onChangeText={setHostIssueNote}
-          />
-
-          <TouchableOpacity
-            style={[styles.bookingConfirmBtn, reportingHostIssue && styles.bookingConfirmBtnDisabled]}
-            onPress={reportHostUnprofessional}
-            disabled={reportingHostIssue}
-          >
-            <Text style={styles.bookingConfirmBtnText}>
-              {reportingHostIssue ? 'Đang gửi...' : 'Báo host không chuyên nghiệp'}
-            </Text>
-          </TouchableOpacity>
-
-          <Text style={styles.resultStatusText}>
-            Nếu host vẫn không hoàn thành, hệ thống sẽ tự động đóng kèo với kết quả hòa để tránh treo session.
-          </Text>
-        </View>
-      ) : null}
-
-
-      {isHost && (isDone || isPendingCompletion) ? (
-        <View style={styles.hostActionsCard}>
-          <View style={styles.hostActionsHeader}>
-            <View style={styles.hostActionsCopy}>
-              <Text style={styles.hostActionsTitle}>Kết quả trận</Text>
-              <Text style={styles.hostActionsSub}>
-                Chọn kết quả cho từng người rồi gửi sang bước xác nhận. Achievement chỉ được tính sau khi người chơi xác nhận hoặc hết 24h mà không ai tranh chấp.
-              </Text>
-            </View>
-          </View>
-
-          {players.map((player) => {
-            const currentResult = matchResults[player.player_id] ?? player.proposed_result ?? player.match_result ?? 'pending'
-            const playerName =
-              player.player_id === session.host.id ? session.host.name : (player.player as any)?.name ?? 'Người chơi'
-
-            return (
-              <View key={`result-${player.player_id}`} style={styles.resultCard}>
-                <Text style={styles.resultPlayerName}>{playerName}</Text>
-                <Text style={styles.resultStatusText}>
-                  {player.result_confirmation_status === 'confirmed'
-                    ? 'Đã xác nhận'
-                    : player.result_confirmation_status === 'disputed'
-                      ? `Đang tranh chấp${player.result_dispute_note ? ` · ${player.result_dispute_note}` : ''}`
-                      : player.player_id === session.host.id
-                        ? 'Host'
-                        : 'Chờ người chơi xác nhận'}
+                <Text className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-400">Thời gian</Text>
+                <Text className="mt-1 text-[14px] font-bold leading-5 text-slate-900">
+                  {formatTimeRange(session.slot.start_time, session.slot.end_time)}
                 </Text>
-                <View style={styles.optionPillRow}>
-                  {[
-                    { value: 'win', label: 'Thắng' },
-                    { value: 'loss', label: 'Thua' },
-                    { value: 'draw', label: 'Hoà' },
-                    { value: 'pending', label: 'Chưa chốt' },
-                  ].map((option) => (
-                    <TouchableOpacity
-                      key={`${player.player_id}-${option.value}`}
-                      style={[styles.optionPill, currentResult === option.value && styles.optionPillActive]}
-                      onPress={() => updateMatchResult(player.player_id, option.value as 'pending' | 'win' | 'loss' | 'draw')}
-                    >
-                      <Text style={[styles.optionPillText, currentResult === option.value && styles.optionPillTextActive]}>
-                        {option.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
+              </View>
+            </View>
+
+            <View className="my-4 h-px bg-slate-100" />
+
+            <View className="flex-row items-center">
+              <View className="h-12 w-12 items-center justify-center rounded-full bg-orange-100">
+                <CreditCard size={18} color="#ea580c" strokeWidth={2.5} />
+              </View>
+              <View className="ml-3 flex-1">
+                <Text className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-400">Chi phí</Text>
+                <Text className="mt-1 text-[14px] font-bold text-slate-900">
+                  {formatPricePerPerson(session.slot.price, session.max_players)}
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        <View className="mt-6 flex-row items-center justify-between gap-3">
+          <View className="flex-1">
+            <Text className="text-[22px] font-black text-slate-950">{`Người chơi • ${arrangedPlayers.length}/${session.max_players}`}</Text>
+            {session.status === 'open' && spotsLeft > 0 ? (
+              <Text className="mt-1 text-[13px] font-bold text-emerald-600">
+                {spotsLeft === 1 ? 'Còn 1 chỗ cuối' : `Còn ${spotsLeft} chỗ trống`}
+              </Text>
+            ) : (
+              <Text className="mt-1 text-[13px] font-medium text-slate-500">Danh sách hiện tại của kèo này.</Text>
+            )}
+          </View>
+
+          {isHost ? (
+            <TouchableOpacity
+              className={`min-w-[140px] flex-row items-center justify-center rounded-[24px] px-5 py-4 shadow-sm ${
+                isArranging ? 'bg-slate-900' : 'bg-slate-100'
+              }`}
+              onPress={() => setIsArranging((prev) => !prev)}
+              activeOpacity={0.9}
+            >
+              {isArranging ? <Repeat2 size={16} color="#ffffff" strokeWidth={2.5} /> : null}
+              <Text className={`text-[12px] font-black uppercase tracking-[0.08em] ${isArranging ? 'text-white' : 'text-slate-700'}`}>
+                {isArranging ? ' XONG' : 'Sắp xếp đội'}
+              </Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
+
+        {isHost && isArranging ? (
+          <View className="mt-4 gap-3">
+            <View className="rounded-[28px] border border-dashed border-indigo-200 bg-indigo-50 px-5 py-5">
+              <Text className="text-[13px] leading-7 text-indigo-600">
+                Nhấn vào biểu tượng đổi đội để chuyển người chơi giữa Team A và Team B.
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              className="self-start rounded-[20px] bg-indigo-600 px-5 py-3 shadow-sm"
+              onPress={onAutoBalance}
+              activeOpacity={0.9}
+            >
+              <Text className="text-[12px] font-black uppercase tracking-[0.08em] text-white">Chia đội tự động</Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
+
+        <View className="mt-3">
+          {isArranging ? (
+            <>
+              <View className="mt-6 gap-6">
+                <View>
+                  <View className="mb-4 flex-row items-center justify-between px-2">
+                    <Text className="text-[18px] font-black uppercase tracking-[0.14em] text-slate-900">TEAM A</Text>
+                    <View className="rounded-2xl border border-slate-200 bg-white px-4 py-2">
+                      <Text className="text-[12px] font-black uppercase tracking-[0.04em] text-slate-400">{`AVG ELO: ${averageTeamA}`}</Text>
+                    </View>
+                  </View>
+                  <View className="gap-3">
+                    {teamA.length > 0 ? teamA.map((player) => renderPlayerRow(player, 'arranging')) : null}
+                  </View>
+                </View>
+
+                <View>
+                  <View className="mb-4 flex-row items-center justify-between px-2">
+                    <Text className="text-[18px] font-black uppercase tracking-[0.14em] text-slate-900">TEAM B</Text>
+                    <View className="rounded-2xl border border-slate-200 bg-white px-4 py-2">
+                      <Text className="text-[12px] font-black uppercase tracking-[0.04em] text-slate-400">{`AVG ELO: ${averageTeamB}`}</Text>
+                    </View>
+                  </View>
+                  <View className="gap-3">
+                    {teamB.length > 0 ? teamB.map((player) => renderPlayerRow(player, 'arranging')) : null}
+                  </View>
                 </View>
               </View>
-            )
-          })}
+            </>
+          ) : (
+            <View className="gap-3">
+              {arrangedPlayers.map((player) => renderPlayerRow(player, 'normal'))}
 
-          <TouchableOpacity
-            style={[styles.bookingConfirmBtn, savingResults && styles.bookingConfirmBtnDisabled]}
-            onPress={saveMatchResults}
-            disabled={savingResults}
-          >
-            <Text style={styles.bookingConfirmBtnText}>
-              {savingResults ? 'Đang gửi kết quả...' : session.results_status === 'disputed' ? 'Gửi lại kết quả đã sửa' : 'Gửi kết quả để xác nhận'}
-            </Text>
-          </TouchableOpacity>
+              {Array.from({ length: spotsLeft }).map((_, index) => (
+                <View
+                  key={`empty-slot-${index}`}
+                  className="rounded-3xl border border-dashed border-slate-200 bg-slate-50 px-4 py-5"
+                >
+                  <View className="flex-row items-center gap-3">
+                    <View className="h-14 w-14 items-center justify-center rounded-full border border-dashed border-slate-300 bg-white">
+                      <Text className="text-[18px] font-black text-slate-400">?</Text>
+                    </View>
+                    <Text className="text-[14px] font-bold text-slate-400">Chờ người chơi...</Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+      </ScrollView>
+
+      {(isHost || hasJoined) ? (
+        <View
+          className="border-t border-slate-200 bg-white/95 px-5 pb-4 pt-4"
+          style={{ paddingBottom: Math.max(insets.bottom, 16) }}
+        >
+          {isHost ? (
+            <TouchableOpacity
+              className={`h-14 flex-row items-center justify-center gap-3 rounded-full px-6 ${
+                arrangementDirty ? 'bg-[#059669]' : 'bg-emerald-500'
+              }`}
+              onPress={onSaveArrangement}
+              disabled={savingArrangement}
+              activeOpacity={0.9}
+            >
+              <Text className="text-[15px] font-black uppercase tracking-[0.08em] text-white">
+                {savingArrangement ? 'ĐANG LƯU...' : 'LƯU THAY ĐỔI'}
+              </Text>
+              <ArrowRight size={20} color="#ffffff" strokeWidth={2.5} />
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              className="h-14 items-center justify-center rounded-2xl border border-rose-100 bg-rose-50"
+              onPress={() => void leaveSession()}
+              disabled={leaving}
+              activeOpacity={0.9}
+            >
+              <Text className="text-[15px] font-black uppercase tracking-[0.08em] text-rose-600">
+                {leaving ? 'ĐANG RỜI...' : 'RỜI KÈO'}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       ) : null}
-
-      {canRateSession && alreadyRated ? (
-        <View style={styles.doneStateBtn}>
-          <Text style={styles.doneStateText}>Bạn đã đánh giá kèo này</Text>
-        </View>
-      ) : canRateSession ? (
-        <TouchableOpacity
-          style={styles.rateBtn}
-          onPress={() =>
-            router.push({
-              pathname: '/rate-session/[id]' as any,
-              params: { id: session.id },
-            })
-          }
-        >
-          <Text style={styles.rateBtnText}>⭐ Đánh giá kèo này</Text>
-        </TouchableOpacity>
-      ) : isDone ? (
-        <View style={styles.fullBtn}>
-          <Text style={styles.fullBtnText}>Kèo đã kết thúc</Text>
-        </View>
-      ) : isPendingCompletion ? (
-        <View style={styles.pendingBtn}>
-          <Text style={styles.pendingBtnText}>Kèo đang chờ host xác nhận kết quả</Text>
-        </View>
-      ) : isCancelled ? (
-        <View style={styles.fullBtn}>
-          <Text style={styles.fullBtnText}>Kèo đã bị huỷ</Text>
-        </View>
-      ) : (
-        <>
-          {!isHost && (
-            hasJoined ? (
-              null
-            ) : (
-              <SmartJoinButton
-                matchStatus={smartJoinStatus}
-                requestStatus={requestStatus}
-                hostResponseTemplate={myHostTemplate}
-                loading={joining || requesting}
-                onPress={handleSmartJoinPress}
-              />
-            )
-          )}
-
-          {isHost && (
-            <>
-              {isEditingSession ? (
-                <View style={styles.hostActionsCard}>
-                  <View style={styles.hostActionsHeader}>
-                    <View style={styles.hostActionsCopy}>
-                      <Text style={styles.hostActionsTitle}>Chỉnh sửa kèo</Text>
-                      <Text style={styles.hostActionsSub}>
-                        Khi lưu thay đổi, người đã join kèo sẽ nhận được notification cập nhật.
-                      </Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.editSessionForm}>
-                    {session.court_booking_status !== 'confirmed' ? (
-                      <EditCourtSelector selectedCourt={editSelectedCourt} onCourtSelect={setEditSelectedCourt} />
-                    ) : null}
-
-                    {session.court_booking_status !== 'confirmed' ? (
-                      <View style={styles.editSectionCard}>
-                        <Text style={styles.editSectionEyebrow}>Ngày & giờ chơi</Text>
-                        <TouchableOpacity style={styles.editDateCard} onPress={openEditDatePicker} activeOpacity={0.92}>
-                          <View style={styles.editDateIconWrap}>
-                            <Calendar size={18} color="#4f46e5" />
-                          </View>
-                          <View style={styles.editDateCopy}>
-                            <Text style={styles.editDateLabel}>Ngày chơi</Text>
-                            <Text style={styles.editDateValue}>{formatDateLabel(editSessionDate)}</Text>
-                          </View>
-                        </TouchableOpacity>
-                        {Platform.OS !== 'android' && showEditDatePicker && session ? (
-                          <View style={styles.inlinePickerCard}>
-                            <DateTimePicker
-                              value={editSessionDate ? new Date(`${editSessionDate}T00:00:00`) : new Date(session.slot.start_time)}
-                              mode="date"
-                              display="spinner"
-                              themeVariant="light"
-                              locale="vi-VN"
-                              onChange={handleEditDateChange}
-                            />
-                          </View>
-                        ) : null}
-
-                        <View style={styles.editTimeRow}>
-                          <TouchableOpacity style={styles.editTimeCard} onPress={() => openEditTimePicker('start')} activeOpacity={0.92}>
-                            <Text style={styles.editTimeEyebrow}>Bắt đầu</Text>
-                            <Text style={styles.editTimeValue}>{editStartTime || '11:00'}</Text>
-                            <View style={styles.editTimeWatermark}>
-                              <Clock3 size={52} color="#312e81" />
-                            </View>
-                          </TouchableOpacity>
-
-                          <TouchableOpacity style={styles.editTimeCard} onPress={() => openEditTimePicker('end')} activeOpacity={0.92}>
-                            <Text style={styles.editTimeEyebrow}>Kết thúc</Text>
-                            <Text style={styles.editTimeValue}>{editEndTime || '13:30'}</Text>
-                            <View style={styles.editTimeWatermark}>
-                              <Clock3 size={52} color="#312e81" />
-                            </View>
-                          </TouchableOpacity>
-                        </View>
-                        {Platform.OS !== 'android' && showEditStartPicker && session ? (
-                          <View style={styles.inlinePickerCard}>
-                            <DateTimePicker
-                              value={pickerTimeValue(session.slot.start_time, editStartTime)}
-                              mode="time"
-                              is24Hour
-                              display="spinner"
-                              themeVariant="light"
-                              locale="vi-VN"
-                              onChange={handleEditTimeChange('start')}
-                            />
-                          </View>
-                        ) : null}
-                        {Platform.OS !== 'android' && showEditEndPicker && session ? (
-                          <View style={styles.inlinePickerCard}>
-                            <DateTimePicker
-                              value={pickerTimeValue(session.slot.end_time, editEndTime)}
-                              mode="time"
-                              is24Hour
-                              display="spinner"
-                              themeVariant="light"
-                              locale="vi-VN"
-                              onChange={handleEditTimeChange('end')}
-                            />
-                          </View>
-                        ) : null}
-                      </View>
-                    ) : (
-                      <View style={styles.lockedFieldCard}>
-                        <Text style={styles.lockedFieldTitle}>Kèo đã chốt sân</Text>
-                        <Text style={styles.lockedFieldText}>
-                          Ngày chơi và khung giờ đã được khóa để tránh lệch với booking sân đã xác nhận.
-                        </Text>
-                      </View>
-                    )}
-
-                    <View style={styles.editSectionCard}>
-                      <Text style={styles.editSectionEyebrow}>Cấu hình kèo</Text>
-                      <Text style={styles.editBlockTitle}>Số người chơi</Text>
-                      <View style={styles.editPlayerOptionsRow}>
-                        {[2, 4, 6, 8].map((num) => {
-                          const active = editMaxPlayers === String(num)
-                          return (
-                            <TouchableOpacity
-                              key={`edit-player-${num}`}
-                              activeOpacity={0.92}
-                              onPress={() => setEditMaxPlayers(String(num))}
-                              style={[styles.editPlayerOption, active && styles.editPlayerOptionActive]}
-                            >
-                              <Text style={[styles.editPlayerOptionText, active && styles.editPlayerOptionTextActive]}>{num}</Text>
-                            </TouchableOpacity>
-                          )
-                        })}
-                      </View>
-
-                      <Text style={styles.editSectionEyebrow}>Chi phí</Text>
-                      <View style={styles.editPriceInputWrap}>
-                        <CircleDollarSign size={18} color="#64748b" />
-                        <TextInput
-                          style={styles.editPriceInput}
-                          placeholder="120000"
-                          placeholderTextColor="#94a3b8"
-                          keyboardType="number-pad"
-                          value={editPrice}
-                          onChangeText={setEditPrice}
-                        />
-                      </View>
-                      <Text style={styles.editPriceHint}>
-                        {formatEstimatedCostPerPerson(Number(editPrice.replace(/\D/g, '')), Number(editMaxPlayers))}
-                      </Text>
-                    </View>
-
-                    <View style={styles.editSectionCard}>
-                      <Text style={styles.editSectionEyebrow}>Trình độ tối thiểu</Text>
-                      <View style={styles.editSkillOptionGrid}>
-                        {CREATE_SESSION_SKILL_OPTIONS.map((option) => {
-                          const Icon = option.icon
-                          const active = editEloMin === option.elo
-                          return (
-                            <TouchableOpacity
-                              key={`min-${option.id}`}
-                              activeOpacity={0.92}
-                              onPress={() => setEditEloMin(option.elo)}
-                              className={`flex-row items-center gap-1.5 rounded-[12px] border px-3 py-2.5 ${active ? `${option.activeClassName}` : CREATE_SESSION_SKILL_INACTIVE_CLASSNAME}`}
-                            >
-                              <Icon size={15} color={active ? option.iconColor : "#64748b"} />
-                              <Text className={`text-[13px] ${active ? `${option.textClassName} font-bold` : 'font-medium text-slate-500'}`}>
-                                {option.label}
-                              </Text>
-                            </TouchableOpacity>
-                          )
-                        })}
-                      </View>
-                    </View>
-
-                    <View style={styles.editSectionCard}>
-                      <Text style={styles.editSectionEyebrow}>Trình độ tối đa</Text>
-                      <View style={styles.editSkillOptionGrid}>
-                        {CREATE_SESSION_SKILL_OPTIONS.map((option) => {
-                          const Icon = option.icon
-                          const active = editEloMax === option.elo
-                          return (
-                            <TouchableOpacity
-                              key={`max-${option.id}`}
-                              activeOpacity={0.92}
-                              onPress={() => setEditEloMax(option.elo)}
-                              className={`flex-row items-center gap-1.5 rounded-[12px] border px-3 py-2.5 ${active ? `${option.activeClassName}` : CREATE_SESSION_SKILL_INACTIVE_CLASSNAME}`}
-                            >
-                              <Icon size={15} color={active ? option.iconColor : "#64748b"} />
-                              <Text className={`text-[13px] ${active ? `${option.textClassName} font-bold` : 'font-medium text-slate-500'}`}>
-                                {option.label}
-                              </Text>
-                            </TouchableOpacity>
-                          )
-                        })}
-                      </View>
-                    </View>
-
-                    <View style={styles.editSwitchRow}>
-                      <View style={styles.editSwitchCopy}>
-                        <Text style={styles.editSwitchTitle}>Duyệt tay</Text>
-                        <Text style={styles.editSwitchSub}>
-                          Nếu bật, mọi yêu cầu mới sẽ cần host xét duyệt thay vì vào thẳng.
-                        </Text>
-                      </View>
-                      <Switch
-                        value={editRequireApproval}
-                        onValueChange={setEditRequireApproval}
-                        trackColor={{ false: "#cbd5e1", true: "#86efac" }}
-                        thumbColor="#ffffff"
-                      />
-                    </View>
-
-                    <TouchableOpacity
-                      style={[styles.editSaveBtn, savingSessionEdit && styles.bookingConfirmBtnDisabled]}
-                      onPress={saveSessionEdits}
-                      disabled={savingSessionEdit}
-                    >
-                      <Text style={styles.editSaveBtnText}>
-                        {savingSessionEdit ? 'Đang lưu thay đổi...' : 'Lưu thay đổi kèo'}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ) : null}
-
-                {session.court_booking_status !== 'confirmed' && (
-                  <View style={styles.bookingEditorWrap}>
-                    <TouchableOpacity
-                      style={styles.bookingEditorToggle}
-                      onPress={() => setShowBookingEditor((prev) => !prev)}
-                      activeOpacity={0.92}
-                    >
-                      <Text style={styles.bookingEditorToggleText}>Cập nhật trạng thái sân</Text>
-                      {showBookingEditor ? <ChevronUp size={16} color="#047857" /> : <ChevronDown size={16} color="#047857" />}
-                    </TouchableOpacity>
-                  <View style={[styles.bookingEditorCard, !showBookingEditor && styles.bookingEditorCardHidden]}>
-                  <Text style={styles.bookingEditorText}>
-                    Cập nhật trạng thái sân thành đã xác nhận sau khi bạn có thông tin booking.
-                  </Text>
-                  <TouchableOpacity style={styles.bookingOpenBtn} onPress={openCourtBookingLink}>
-                    <Text style={styles.bookingOpenBtnText}>Mở link booking của sân</Text>
-                  </TouchableOpacity>
-                  <TextInput
-                    style={styles.bookingInput}
-                    placeholder="Mã booking / mã đặt sân"
-                    placeholderTextColor="#aaa"
-                    value={bookingReference}
-                    onChangeText={setBookingReference}
-                  />
-                  <TextInput
-                    style={styles.bookingInput}
-                    placeholder="Tên người đặt"
-                    placeholderTextColor="#aaa"
-                    value={bookingName}
-                    onChangeText={setBookingName}
-                  />
-                  <TextInput
-                    style={styles.bookingInput}
-                    placeholder="Số điện thoại booking"
-                    placeholderTextColor="#aaa"
-                    keyboardType="phone-pad"
-                    value={bookingPhone}
-                    onChangeText={setBookingPhone}
-                  />
-                  <TextInput
-                    style={[styles.bookingInput, styles.bookingNotesInput]}
-                    placeholder="Ghi chú booking"
-                    placeholderTextColor="#aaa"
-                    multiline
-                    value={bookingNotes}
-                    onChangeText={setBookingNotes}
-                  />
-                  <TouchableOpacity
-                    style={[styles.bookingConfirmBtn, savingBooking && styles.bookingConfirmBtnDisabled]}
-                    onPress={confirmCourtBooking}
-                    disabled={savingBooking}
-                  >
-                    <Text style={styles.bookingConfirmBtnText}>
-                      {savingBooking ? 'Đang lưu...' : 'Xác nhận đã đặt sân'}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-                  </View>
-              )}
-            </>
-          )}
-        </>
-      )}
-
-      <JoinRequestModal
-        visible={joinModalVisible}
-        mode={smartJoinStatus}
-        introNote={introNote}
-        setIntroNote={setIntroNote}
-        loading={requesting}
-        onClose={() => setJoinModalVisible(false)}
-        onSubmit={() => void sendJoinRequest(smartJoinStatus === 'WAITLIST' ? 'waitlist' : 'pending')}
-      />
-    </ScrollView>
-    {showStickyFooter ? (
-      <View
-        className="flex-row gap-3 border-t border-slate-200 bg-white/95 p-4"
-        style={{ marginHorizontal: -20, paddingHorizontal: 20, paddingBottom: Math.max(insets.bottom, 16) }}
-      >
-        {isHost ? (
-          <>
-            <TouchableOpacity
-              className="h-12 flex-1 items-center justify-center rounded-[14px] border border-rose-100 bg-rose-50"
-              onPress={cancelSession}
-              disabled={cancelling}
-              activeOpacity={0.9}
-            >
-              <Text className="text-[14px] font-bold text-rose-600">
-                {cancelling ? 'Đang huỷ...' : 'Huỷ kèo'}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              className="h-12 flex-[1.5] items-center justify-center rounded-[14px] bg-emerald-600"
-              onPress={() => setIsEditingSession((prev) => !prev)}
-              activeOpacity={0.9}
-            >
-              <Text className="text-[14px] font-bold text-white">
-                {isEditingSession ? 'Đóng chỉnh sửa' : 'Chỉnh sửa kèo'}
-              </Text>
-            </TouchableOpacity>
-          </>
-        ) : hasJoined ? (
-          <TouchableOpacity
-            className="h-12 flex-1 items-center justify-center rounded-[14px] border border-rose-100 bg-rose-50"
-            onPress={leaveSession}
-            disabled={leaving}
-            activeOpacity={0.9}
-          >
-            <Text className="text-[14px] font-bold text-rose-600">
-              {leaving ? 'Đang rời...' : 'Rời kèo'}
-            </Text>
-          </TouchableOpacity>
-        ) : null}
-      </View>
-    ) : null}
     </SafeAreaView>
   )
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f4', paddingHorizontal: 20 },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5f5f4' },
-  heroCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 28,
-    padding: 20,
-    marginBottom: 18,
-    shadowColor: '#0f172a',
-    shadowOpacity: 0.06,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 3,
-  },
-  eyebrow: {
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: '#64748b',
-    marginBottom: 8,
-  },
-  heroBadgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
-  heroMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 },
-  backBtn: { },
-  backText: { fontSize: 14, color: '#16a34a', fontWeight: '600' },
-  courtTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 8 },
-  courtName: { fontSize: 24, fontWeight: '900', color: '#020617', flex: 1 },
-  address: { fontSize: 14, color: '#64748b', lineHeight: 20, flex: 1 },
-  topActionInline: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  approvalBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#fefce8',
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-  },
-  approvalBadgeText: { fontSize: 13, color: '#92400e', fontWeight: '600' },
-  bookingBadge: {
-    alignSelf: 'flex-start',
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-  },
-  bookingBadgeText: { fontSize: 13, fontWeight: '700' },
-  bookingInfoCard: {
-    backgroundColor: '#f8fafc',
-    borderRadius: 20,
-    padding: 14,
-    marginBottom: 14,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-  },
-  bookingInfoTitle: { fontSize: 15, fontWeight: '800', color: '#0f172a', marginBottom: 8 },
-  bookingInfoText: { fontSize: 13, color: '#475569', lineHeight: 20, marginBottom: 4 },
-  sessionInfoBlock: { backgroundColor: '#f8fafc', borderRadius: 20, padding: 14, gap: 10, borderWidth: 1, borderColor: '#e2e8f0' },
-  sessionInfoPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  sessionInfoText: { flex: 1, fontSize: 13, fontWeight: '700', color: '#0f172a', lineHeight: 18 },
-  sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, marginBottom: 14 },
-  sectionTitle: { fontSize: 18, fontWeight: '800', color: '#0f172a' },
-  spotsLeft: { color: '#16a34a', fontWeight: '700', fontSize: 13 },
-  spotsFull: { color: '#dc2626', fontWeight: '800', fontSize: 13 },
-  playersCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 28,
-    padding: 16,
-    marginBottom: 8,
-    shadowColor: '#0f172a',
-    shadowOpacity: 0.05,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 2,
-  },
-  playerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12, backgroundColor: '#f8fafc', borderRadius: 18, padding: 12 },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    position: 'relative',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  avatarText: { fontSize: 16, fontWeight: '700', color: '#047857' },
-  playerCopy: { flex: 1, marginRight: 12 },
-  playerNameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  playerName: { fontSize: 15, color: '#0f172a', flexShrink: 1, fontWeight: '700' },
-  hostIconBadge: { width: 24, height: 24, borderRadius: 999, backgroundColor: '#dcfce7', alignItems: 'center', justifyContent: 'center' },
-  provisionalIconBadge: { backgroundColor: '#fffbeb', width: 24, height: 24, borderRadius: 999, alignItems: 'center', justifyContent: 'center' },
-  playerSkillChip: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#ffffff', borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 7, maxWidth: '44%' },
-  playerSkillChipText: { flexShrink: 1, fontSize: 11, fontWeight: '800', color: '#334155' },
-  requestCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f9fafb',
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 10,
-  },
-  requestLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
-  requestName: { fontSize: 15, fontWeight: '600', color: '#111', marginBottom: 2 },
-  requestMeta: { fontSize: 13, color: '#888' },
-  requestActions: { flexDirection: 'row', gap: 8 },
-  resultCard: {
-    backgroundColor: '#f8fafc',
-    borderRadius: 18,
-    padding: 14,
-    gap: 10,
-  },
-  resultPlayerName: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#0f172a',
-  },
-  resultValueText: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#0f172a',
-  },
-  resultStatusText: {
-    fontSize: 13,
-    lineHeight: 18,
-    color: '#64748b',
-  },
-  approveBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#f0fdf4',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  approveBtnText: { fontSize: 16, color: '#16a34a', fontWeight: '700' },
-  rejectBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#fef2f2',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  rejectBtnText: { fontSize: 16, color: '#dc2626', fontWeight: '700' },
-  joinBtn: {
-    backgroundColor: '#16a34a',
-    borderRadius: 14,
-    height: 54,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 32,
-  },
-  joinBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  leaveBtn: {
-    borderWidth: 1.5,
-    borderColor: '#dc2626',
-    borderRadius: 18,
-    height: 56,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 32,
-    backgroundColor: '#fff',
-  },
-  leaveBtnText: { color: '#dc2626', fontSize: 16, fontWeight: '600' },
-  rateBtn: {
-    backgroundColor: '#fefce8',
-    borderWidth: 1.5,
-    borderColor: '#fbbf24',
-    borderRadius: 18,
-    height: 56,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 32,
-  },
-  rateBtnText: { color: '#92400e', fontSize: 16, fontWeight: '700' },
-  doneStateBtn: {
-    backgroundColor: '#f0fdf4',
-    borderWidth: 1.5,
-    borderColor: '#86efac',
-    borderRadius: 18,
-    height: 56,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 32,
-  },
-  doneStateText: { color: '#166534', fontSize: 16, fontWeight: '700' },
-  fullBtn: {
-    backgroundColor: '#f3f4f6',
-    borderRadius: 18,
-    height: 56,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 32,
-  },
-  fullBtnText: { color: '#888', fontSize: 16, fontWeight: '600' },
-  pendingBtn: {
-    backgroundColor: '#fefce8',
-    borderRadius: 14,
-    height: 54,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 32,
-  },
-  pendingBtnText: { color: '#92400e', fontSize: 15, fontWeight: '600' },
-  hostActionsCard: {
-      backgroundColor: '#ffffff',
-      borderRadius: 20,
-      padding: 16,
-      marginTop: 24,
-      gap: 14,
-      borderWidth: 1,
-      borderColor: '#e2e8f0',
-  },
-  hostActionsHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  pendingToggleBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  pendingToggleCopy: {
-    flex: 1,
-  },
-  hostActionsCopy: {
-    flex: 1,
-  },
-  hostActionsTitle: {
-      fontSize: 16,
-      fontWeight: '800',
-      color: '#0f172a',
-      marginBottom: 6,
-  },
-  hostActionsSub: {
-      fontSize: 13,
-      lineHeight: 20,
-      color: '#64748b',
-  },
-  editToggleBtn: {
-    borderWidth: 1.5,
-    borderColor: '#16a34a',
-    borderRadius: 999,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    backgroundColor: '#ecfdf5',
-  },
-  editToggleBtnText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#16a34a',
-  },
-  editSessionForm: {
-    gap: 14,
-  },
-  editSectionCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-  },
-  editSectionEyebrow: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#94a3b8',
-    textTransform: 'uppercase',
-    letterSpacing: 1.2,
-    marginLeft: 4,
-    marginBottom: 12,
-  },
-  editBlockTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#0f172a',
-    marginBottom: 12,
-  },
-  editDateCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    backgroundColor: '#f8fafc',
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  editDateIconWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: 999,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#e0e7ff',
-  },
-  editDateCopy: {
-    flex: 1,
-  },
-  editDateLabel: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#94a3b8',
-    textTransform: 'uppercase',
-    letterSpacing: 1.2,
-  },
-  editDateValue: {
-    marginTop: 4,
-    fontSize: 14,
-    fontWeight: '900',
-    color: '#0f172a',
-  },
-  inlinePickerCard: {
-    marginTop: 10,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    borderRadius: 16,
-    backgroundColor: '#f8fafc',
-    alignItems: 'center',
-    paddingVertical: 6,
-  },
-  editTimeRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 12,
-  },
-  editTimeCard: {
-    flex: 1,
-    position: 'relative',
-    overflow: 'hidden',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#f1f5f9',
-    backgroundColor: '#f8fafc',
-    padding: 12,
-  },
-  editTimeEyebrow: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#94a3b8',
-    textTransform: 'uppercase',
-    letterSpacing: 1.2,
-    zIndex: 1,
-  },
-  editTimeValue: {
-    marginTop: 6,
-    fontSize: 22,
-    fontWeight: '900',
-    color: '#312e81',
-    zIndex: 1,
-  },
-  editTimeWatermark: {
-    position: 'absolute',
-    right: -6,
-    bottom: -6,
-    opacity: 0.1,
-  },
-  editPlayerOptionsRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 16,
-  },
-  editPlayerOption: {
-    flex: 1,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    backgroundColor: '#ffffff',
-    paddingVertical: 12,
-  },
-  editPlayerOptionActive: {
-    borderColor: '#10b981',
-    backgroundColor: '#ecfdf5',
-  },
-  editPlayerOptionText: {
-    textAlign: 'center',
-    fontSize: 14,
-    fontWeight: '900',
-    color: '#475569',
-  },
-  editPlayerOptionTextActive: {
-    color: '#047857',
-  },
-  editPriceInputWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    backgroundColor: '#f8fafc',
-    borderRadius: 14,
-    paddingHorizontal: 14,
-  },
-  editPriceInput: {
-    flex: 1,
-    height: 48,
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#0f172a',
-  },
-  editPriceHint: {
-    marginTop: 12,
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#64748b',
-  },
-  editSkillOptionGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  editSkillOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    borderRadius: 12,
-    borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  editSkillOptionInactive: {
-    backgroundColor: '#f8fafc',
-    borderColor: '#e2e8f0',
-    opacity: 0.8,
-  },
-  editSkillOptionActive: {
-    backgroundColor: '#ecfdf5',
-    borderColor: '#86efac',
-  },
-  editSkillOptionText: {
-    fontSize: 13,
-  },
-  editSkillOptionTextInactive: {
-    color: '#64748b',
-    fontWeight: '500',
-  },
-  editSkillOptionTextActive: {
-    color: '#047857',
-    fontWeight: '700',
-  },
-  editRow: {
-      flexDirection: 'row',
-      gap: 10,
-  },
-  editField: {
-      flex: 1,
-  },
-  optionPillRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  optionPill: {
-      borderWidth: 1,
-      borderColor: '#e2e8f0',
-      borderRadius: 12,
-      paddingHorizontal: 12,
-      paddingVertical: 10,
-      backgroundColor: '#f8fafc',
-  },
-  optionPillActive: {
-      borderColor: '#10b981',
-      backgroundColor: '#ecfdf5',
-  },
-  optionPillText: {
-      fontSize: 13,
-      color: '#64748b',
-      fontWeight: '500',
-  },
-  optionPillTextActive: {
-      color: '#047857',
-      fontWeight: '700',
-  },
-  lockedFieldCard: {
-      borderWidth: 1,
-      borderColor: '#a7f3d0',
-      backgroundColor: '#ecfdf5',
-      borderRadius: 16,
-      padding: 16,
-  },
-  lockedFieldTitle: {
-      fontSize: 14,
-      fontWeight: '800',
-      color: '#064e3b',
-      marginBottom: 6,
-  },
-  lockedFieldText: {
-      fontSize: 12,
-      lineHeight: 18,
-      color: '#047857',
-  },
-  editFieldLabel: {
-      fontSize: 10,
-      fontWeight: '800',
-      color: '#94a3b8',
-      marginBottom: 10,
-      textTransform: 'uppercase',
-      letterSpacing: 1.2,
-  },
-  timePickerBtn: {
-      borderWidth: 1,
-      borderColor: '#e2e8f0',
-      borderRadius: 16,
-      paddingHorizontal: 14,
-      height: 64,
-      backgroundColor: '#f8fafc',
-      justifyContent: 'center',
-  },
-  timePickerText: {
-      fontSize: 20,
-      color: '#312e81',
-      fontWeight: '900',
-  },
-  editSwitchRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 12,
-      borderWidth: 1,
-      borderColor: '#e2e8f0',
-      borderRadius: 16,
-      padding: 14,
-      backgroundColor: '#ffffff',
-  },
-  editSwitchCopy: {
-      flex: 1,
-  },
-  editSwitchTitle: {
-      fontSize: 14,
-      fontWeight: '700',
-      color: '#0f172a',
-      marginBottom: 4,
-  },
-  editSwitchSub: {
-      fontSize: 12,
-      lineHeight: 18,
-      color: '#64748b',
-  },
-  editSaveBtn: {
-      backgroundColor: '#059669',
-      borderRadius: 14,
-      height: 56,
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginTop: 4,
-  },
-  editSaveBtnText: {
-      color: '#fff',
-      fontSize: 16,
-      fontWeight: '700',
-      letterSpacing: 0.2,
-  },
-  bookingEditorWrap: {
-      marginTop: 24,
-      gap: 10,
-  },
-  bookingEditorToggle: {
-      borderWidth: 1,
-      borderColor: '#a7f3d0',
-      borderRadius: 16,
-      backgroundColor: '#ecfdf5',
-      minHeight: 52,
-      paddingHorizontal: 16,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-  },
-  bookingEditorToggleText: {
-      fontSize: 14,
-      fontWeight: '700',
-      color: '#047857',
-  },
-  bookingEditorCard: {
-      backgroundColor: '#ffffff',
-      borderRadius: 20,
-      padding: 16,
-      gap: 12,
-      borderWidth: 1,
-      borderColor: '#e2e8f0',
-  },
-  bookingEditorCardHidden: {
-      display: 'none',
-  },
-  bookingEditorText: { fontSize: 13, color: '#64748b', lineHeight: 20 },
-  bookingOpenBtn: {
-      backgroundColor: '#16a34a',
-      borderRadius: 14,
-      height: 52,
-      alignItems: 'center',
-      justifyContent: 'center',
-  },
-  bookingOpenBtnText: { color: '#fff', fontSize: 14, fontWeight: '700' },
-  bookingInput: {
-      borderWidth: 1,
-      borderColor: '#e2e8f0',
-      borderRadius: 16,
-      paddingHorizontal: 14,
-      height: 52,
-      fontSize: 14,
-      color: '#0f172a',
-      backgroundColor: '#f8fafc',
-  },
-  bookingNotesInput: { height: 90, paddingTop: 14, textAlignVertical: 'top' },
-  bookingConfirmBtn: {
-      backgroundColor: '#059669',
-      borderRadius: 14,
-      height: 54,
-      alignItems: 'center',
-      justifyContent: 'center',
-  },
-  bookingConfirmBtnDisabled: { opacity: 0.7 },
-  bookingConfirmBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  hostNote: {
-    backgroundColor: '#ecfdf5',
-    borderRadius: 20,
-    padding: 16,
-    alignItems: 'center',
-    marginTop: 32,
-  },
-  hostNoteText: { color: '#16a34a', fontSize: 14, fontWeight: '600' },
-  cancelBtn: {
-    borderWidth: 1.5,
-    borderColor: '#dc2626',
-    borderRadius: 18,
-    height: 56,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 12,
-    backgroundColor: '#fff',
-  },
-  cancelBtnDisabled: { borderColor: '#fca5a5', opacity: 0.6 },
-  cancelBtnText: { color: '#dc2626', fontSize: 16, fontWeight: '600' },
-
-  topRow:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, marginTop: 4 },
-  shareBtn:      { borderWidth: 1.5, borderColor: '#16a34a', borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: '#ecfdf5' },
-  shareBtnText:  { fontSize: 13, color: '#047857', fontWeight: '700' },
-  successBanner: { backgroundColor: '#dcfce7', borderRadius: 20, padding: 14, marginBottom: 16 },
-  successBannerText: { fontSize: 13, color: '#166534', fontWeight: '700', textAlign: 'center', lineHeight: 18 },
-})

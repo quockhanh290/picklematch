@@ -80,7 +80,7 @@ const USERS = [
   {
     key: 'hostConfirmed',
     email: 'host.confirmed@picklematch.vn',
-    phone: '+84901111111',
+    phone: '+84990000001',
     name: 'Minh Tú',
     city: 'Hồ Chí Minh',
     level: 'level_4',
@@ -99,7 +99,7 @@ const USERS = [
   {
     key: 'hostApproval',
     email: 'host.approval@picklematch.vn',
-    phone: '+84902222222',
+    phone: '+84990000002',
     name: 'Thu Trang',
     city: 'Hồ Chí Minh',
     level: 'level_3',
@@ -118,7 +118,7 @@ const USERS = [
   {
     key: 'matchedPlayer',
     email: 'player.matched@picklematch.vn',
-    phone: '+84903333333',
+    phone: '+84990000003',
     name: 'Kevin',
     city: 'Hồ Chí Minh',
     level: 'level_4',
@@ -137,7 +137,7 @@ const USERS = [
   {
     key: 'lowerSkillPlayer',
     email: 'player.lower@picklematch.vn',
-    phone: '+84904444444',
+    phone: '+84990000004',
     name: 'Bảo Ngọc',
     city: 'Hồ Chí Minh',
     level: 'level_2',
@@ -156,7 +156,7 @@ const USERS = [
   {
     key: 'waitlistPlayer',
     email: 'player.waitlist@picklematch.vn',
-    phone: '+84905555555',
+    phone: '+84990000005',
     name: 'Đức Anh',
     city: 'Hồ Chí Minh',
     level: 'level_5',
@@ -175,7 +175,7 @@ const USERS = [
   {
     key: 'provisionalHost',
     email: 'host.provisional@picklematch.vn',
-    phone: '+84906666666',
+    phone: '+84990000006',
     name: 'Phương Linh',
     city: 'Hồ Chí Minh',
     level: 'level_2',
@@ -194,7 +194,7 @@ const USERS = [
   {
     key: 'socialPlayer',
     email: 'player.social@picklematch.vn',
-    phone: '+84907777777',
+    phone: '+84990000007',
     name: 'Hoàng Nam',
     city: 'Hồ Chí Minh',
     level: 'level_3',
@@ -575,7 +575,7 @@ async function seedSlotsAndSessions(authUsers) {
       court_booking_status: 'confirmed',
       booking_reference: 'TB-BOOK-001',
       booking_name: 'Minh Tú',
-      booking_phone: '+84901111111',
+      booking_phone: '+84990000001',
       booking_notes: 'Đã cọc sân',
       booking_confirmed_at: new Date().toISOString(),
       was_full_when_cancelled: false,
@@ -625,7 +625,7 @@ async function seedSlotsAndSessions(authUsers) {
       court_booking_status: 'confirmed',
       booking_reference: 'TD-BOOK-002',
       booking_name: 'Minh Tú',
-      booking_phone: '+84901111111',
+      booking_phone: '+84990000001',
       booking_notes: 'Slot premium',
       booking_confirmed_at: new Date().toISOString(),
       was_full_when_cancelled: false,
@@ -650,7 +650,7 @@ async function seedSlotsAndSessions(authUsers) {
       court_booking_status: 'confirmed',
       booking_reference: 'VP-BOOK-003',
       booking_name: 'Thu Trang',
-      booking_phone: '+84902222222',
+      booking_phone: '+84990000002',
       booking_notes: 'Vừa xong kèo để test rating',
       booking_confirmed_at: isoAt(-2, 12, 0),
       was_full_when_cancelled: false,
@@ -675,7 +675,7 @@ async function seedSlotsAndSessions(authUsers) {
       court_booking_status: 'confirmed',
       booking_reference: 'TB-BOOK-004',
       booking_name: 'Minh Tú',
-      booking_phone: '+84901111111',
+      booking_phone: '+84990000001',
       booking_notes: 'Cancelled after full',
       booking_confirmed_at: new Date().toISOString(),
       was_full_when_cancelled: true,
@@ -700,7 +700,7 @@ async function seedSlotsAndSessions(authUsers) {
       court_booking_status: 'confirmed',
       booking_reference: 'TB-BOOK-005',
       booking_name: 'Phương Linh',
-      booking_phone: '+84906666666',
+      booking_phone: '+84990000006',
       booking_notes: 'Host provisional để test badge',
       booking_confirmed_at: new Date().toISOString(),
       was_full_when_cancelled: false,
@@ -725,7 +725,7 @@ async function seedSlotsAndSessions(authUsers) {
       court_booking_status: 'confirmed',
       booking_reference: 'TD-BOOK-006',
       booking_name: 'Minh Tú',
-      booking_phone: '+84901111111',
+      booking_phone: '+84990000001',
       booking_notes: 'Kèo cũ để seed review profile',
       booking_confirmed_at: isoAt(-8, 10, 0),
       was_full_when_cancelled: false,
@@ -753,7 +753,7 @@ async function seedSlotsAndSessions(authUsers) {
       court_booking_status: 'confirmed',
       booking_reference: 'VP-BOOK-007',
       booking_name: 'Thu Trang',
-      booking_phone: '+84902222222',
+      booking_phone: '+84990000002',
       booking_notes: 'Host da gui ket qua, dang cho xac nhan.',
       booking_confirmed_at: isoAt(-2, 8, 0),
       was_full_when_cancelled: false,
@@ -781,7 +781,7 @@ async function seedSlotsAndSessions(authUsers) {
       court_booking_status: 'confirmed',
       booking_reference: 'TD-BOOK-008',
       booking_name: 'Minh Tu',
-      booking_phone: '+84901111111',
+      booking_phone: '+84990000001',
       booking_notes: 'Dang co player dispute ket qua.',
       booking_confirmed_at: isoAt(-3, 11, 0),
       was_full_when_cancelled: false,
@@ -809,7 +809,7 @@ async function seedSlotsAndSessions(authUsers) {
       court_booking_status: 'confirmed',
       booking_reference: 'TB-BOOK-009',
       booking_name: 'Thu Trang',
-      booking_phone: '+84902222222',
+      booking_phone: '+84990000002',
       booking_notes: 'Dang cho host xac nhan ket qua.',
       booking_confirmed_at: isoAt(-2, 9, 0),
       was_full_when_cancelled: false,
@@ -841,7 +841,7 @@ async function seedSlotsAndSessions(authUsers) {
       court_booking_status: 'confirmed',
       booking_reference: 'VP-BOOK-010',
       booking_name: 'Thu Trang',
-      booking_phone: '+84902222222',
+      booking_phone: '+84990000002',
       booking_notes: 'He thong auto-close vi host chua submit.',
       booking_confirmed_at: isoAt(-4, 10, 0),
       was_full_when_cancelled: false,
@@ -871,14 +871,23 @@ async function seedSlotsAndSessions(authUsers) {
       court_booking_status: 'confirmed',
       booking_reference: 'TB-BOOK-011',
       booking_name: 'Minh Tu',
-      booking_phone: '+84901111111',
+      booking_phone: '+84990000001',
       booking_notes: 'Nguoi choi bao tran khong dien ra.',
       booking_confirmed_at: isoAt(-5, 9, 0),
       was_full_when_cancelled: false,
     },
   ]
 
-  const { error: sessionError } = await supabase.from('sessions').upsert(sessions)
+  const normalizedSessions = sessions.map((session) => ({
+    results_status: session.status === 'done' ? 'finalized' : 'not_submitted',
+    results_submitted_at: null,
+    results_confirmation_deadline: null,
+    ghost_session_reported_at: null,
+    finalized_by: null,
+    ...session,
+  }))
+
+  const { error: sessionError } = await supabase.from('sessions').upsert(normalizedSessions)
   if (sessionError) throw sessionError
 }
 
@@ -1038,7 +1047,17 @@ async function seedSessionPlayersAndRequests(authUsers) {
     },
   ]
 
-  const { error: playersError } = await supabase.from('session_players').insert(sessionPlayers)
+  const normalizedSessionPlayers = sessionPlayers.map((player) => ({
+    proposed_result: 'pending',
+    match_result: 'pending',
+    result_confirmation_status: 'not_submitted',
+    member_reported_result: 'pending',
+    member_reported_at: null,
+    member_report_note: null,
+    ...player,
+  }))
+
+  const { error: playersError } = await supabase.from('session_players').insert(normalizedSessionPlayers)
   if (playersError) throw playersError
 
   const joinRequests = [
