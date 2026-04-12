@@ -16,7 +16,7 @@ export default function LoginScreen() {
 
   function nextRouteForPlayer(player: any) {
     if (!player) return '/profile-setup'
-    if (!player.self_assessed_level) return '/skill-assessment'
+    if (!player.onboarding_completed || !player.self_assessed_level) return '/onboarding'
     return '/(tabs)'
   }
 

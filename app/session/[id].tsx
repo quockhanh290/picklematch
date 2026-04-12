@@ -25,6 +25,10 @@ import {
 } from 'lucide-react-native'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
+import { JoinRequestModal } from '@/components/session/JoinRequestModal'
+import { SmartJoinButton } from '@/components/session/SmartJoinButton'
+import { getEloBandByLegacySkillLabel, getEloBandForElo, getEloBandForSessionRange, getShortLabelForLevelId } from '@/lib/eloSystem'
+import { getMatchStatus, type MatchStatus } from '@/lib/matchmaking'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/lib/useAuth'
 
@@ -51,9 +55,14 @@ type SessionDetailRecord = {
   status: string
   require_approval: boolean
   court_booking_status: 'confirmed' | 'unconfirmed'
+  booking_reference?: string | null
+  booking_name?: string | null
+  booking_phone?: string | null
+  booking_notes?: string | null
   host: {
     id: string
     name: string
+    auto_accept?: boolean | null
     elo?: number | null
     current_elo?: number | null
     self_assessed_level?: string | null
@@ -84,6 +93,14 @@ type ArrangementPlayer = {
   team: 1 | 2
   reliability: number | null
   skillTag: string
+}
+
+type RequestStatus = 'none' | 'pending' | 'accepted' | 'rejected'
+
+type ViewerPlayer = {
+  id: string
+  elo?: number | null
+  current_elo?: number | null
 }
 
 function safeNumber(value?: number | null) {
@@ -125,32 +142,17 @@ function getSkillTag(player?: {
   elo?: number | null
 } | null) {
   const levelId = player?.self_assessed_level
-  if (levelId === 'level_1') return 'Mới chơi'
-  if (levelId === 'level_2') return 'Cơ bản'
-  if (levelId === 'level_3') return 'Cọ xát'
-  if (levelId === 'level_4') return 'Phong trào'
-  if (levelId === 'level_5') return 'Sân giải'
+  if (levelId) return getShortLabelForLevelId(levelId)
 
   const legacy = player?.skill_label
-  if (legacy === 'beginner') return 'Mới chơi'
-  if (legacy === 'basic') return 'Cơ bản'
-  if (legacy === 'advanced') return 'Sân giải'
+  if (legacy) return getEloBandByLegacySkillLabel(legacy).shortLabel
 
   const elo = getComparableElo(player)
-  if (elo >= 1450) return 'Sân giải'
-  if (elo >= 1250) return 'Phong trào'
-  if (elo >= 1075) return 'Cọ xát'
-  if (elo >= 900) return 'Cơ bản'
-  return 'Mới chơi'
+  return getEloBandForElo(elo)?.shortLabel ?? 'Cọ xát'
 }
 
 function getSessionSkillLabel(eloMin: number, eloMax: number) {
-  const target = Math.round((eloMin + eloMax) / 2)
-  if (target >= 1450) return 'Sân giải'
-  if (target >= 1250) return 'Phong trào'
-  if (target >= 1075) return 'Cọ xát'
-  if (target >= 900) return 'Cơ bản'
-  return 'Mới chơi'
+  return getEloBandForSessionRange(eloMin, eloMax).shortLabel
 }
 
 function formatTimeRange(start: string, end: string) {
@@ -158,8 +160,8 @@ function formatTimeRange(start: string, end: string) {
   const endDate = new Date(end)
   const weekdays = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7']
   const dateLabel = `${String(startDate.getDate()).padStart(2, '0')}/${String(startDate.getMonth() + 1).padStart(2, '0')}`
-  const timeLabel = `${String(startDate.getHours()).padStart(2, '0')}:${String(startDate.getMinutes()).padStart(2, '0')} → ${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`
-  return `${weekdays[startDate.getDay()]}, ${dateLabel} · ${timeLabel}`
+  const timeLabel = `${String(startDate.getHours()).padStart(2, '0')}:${String(startDate.getMinutes()).padStart(2, '0')} ? ${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`
+  return `${weekdays[startDate.getDay()]}, ${dateLabel} ? ${timeLabel}`
 }
 
 function formatPricePerPerson(totalPrice: number, maxPlayers: number) {
@@ -238,6 +240,13 @@ export default function SessionDetailScreen() {
   const [isArranging, setIsArranging] = useState(false)
   const [arrangedPlayers, setArrangedPlayers] = useState<ArrangementPlayer[]>([])
   const [savedTeams, setSavedTeams] = useState<Record<string, 1 | 2>>({})
+  const [viewerPlayer, setViewerPlayer] = useState<ViewerPlayer | null>(null)
+  const [requestStatus, setRequestStatus] = useState<RequestStatus>('none')
+  const [hostResponseTemplate, setHostResponseTemplate] = useState<string | null>(null)
+  const [introNote, setIntroNote] = useState('')
+  const [joinModalVisible, setJoinModalVisible] = useState(false)
+  const [joining, setJoining] = useState(false)
+  const [requesting, setRequesting] = useState(false)
 
   const isHost = userId != null && userId === session?.host.id
   const hasJoined = useMemo(
@@ -258,13 +267,23 @@ export default function SessionDetailScreen() {
 
     const nextSession = (data?.session ?? null) as SessionDetailRecord | null
     setSession(nextSession)
+    setRequestStatus((data?.viewer_request_status as RequestStatus | null) ?? 'none')
+    setHostResponseTemplate((data?.viewer_host_response_template as string | null) ?? null)
+    setIntroNote((data?.viewer_intro_note as string | null) ?? '')
 
     if (nextSession) {
       const nextArrangement = buildArrangementPlayers(nextSession)
       setArrangedPlayers(nextArrangement)
       setSavedTeams(Object.fromEntries(nextArrangement.map((player) => [player.id, player.team])) as Record<string, 1 | 2>)
     }
-  }, [id])
+
+    if (userId) {
+      const { data: viewerData } = await supabase.from('players').select('id, elo, current_elo').eq('id', userId).single()
+      setViewerPlayer((viewerData as ViewerPlayer | null) ?? null)
+    } else {
+      setViewerPlayer(null)
+    }
+  }, [id, userId])
 
   useEffect(() => {
     let mounted = true
@@ -382,6 +401,99 @@ export default function SessionDetailScreen() {
 
   const sessionSkillLabel = getSessionSkillLabel(session.elo_min, session.elo_max)
   const spotsLeft = Math.max(0, session.max_players - arrangedPlayers.length)
+  const viewerElo = getComparableElo(viewerPlayer)
+  const matchStatus: MatchStatus = getMatchStatus(viewerElo, session.elo_min, arrangedPlayers.length, session.max_players)
+  const hostRequiresApproval = session.require_approval || Boolean(session.host.auto_accept === false)
+  const canShowJoinActions = !isHost && !hasJoined && session.status === 'open'
+  const hasBookingDetails = Boolean(
+    session.booking_reference || session.booking_name || session.booking_phone || session.booking_notes,
+  )
+
+  const directJoinSession = useCallback(async () => {
+    if (!userId) {
+      Alert.alert('Cần đăng nhập', 'Bạn cần đăng nhập để tham gia kèo.', [
+        { text: 'Để sau', style: 'cancel' },
+        { text: 'Đăng nhập', onPress: () => router.push('/login') },
+      ])
+      return
+    }
+
+    if (!session) return
+
+    setJoining(true)
+    const { error } = await supabase.from('session_players').insert({
+      session_id: session.id,
+      player_id: userId,
+      status: 'confirmed',
+    })
+
+    if (!error) {
+      await supabase
+        .from('join_requests')
+        .update({ status: 'accepted' })
+        .eq('match_id', session.id)
+        .eq('player_id', userId)
+    }
+
+    setJoining(false)
+
+    if (error) {
+      Alert.alert('Không thể tham gia kèo', error.message)
+      return
+    }
+
+    setRequestStatus('accepted')
+    setJoinModalVisible(false)
+    Alert.alert('Tham gia thành công', 'Bạn đã vào kèo này rồi nhé.')
+    await fetchSession()
+  }, [fetchSession, session, userId])
+
+  const sendJoinRequest = useCallback(async () => {
+    if (!userId) {
+      Alert.alert('Cần đăng nhập', 'Bạn cần đăng nhập để gửi yêu cầu.', [
+        { text: 'Để sau', style: 'cancel' },
+        { text: 'Đăng nhập', onPress: () => router.push('/login') },
+      ])
+      return
+    }
+
+    if (!session) return
+
+    setRequesting(true)
+    const { error } = await supabase.from('join_requests').upsert(
+      {
+        match_id: session.id,
+        player_id: userId,
+        status: 'pending',
+        intro_note: introNote.trim() || null,
+      },
+      { onConflict: 'match_id,player_id' }
+    )
+    setRequesting(false)
+
+    if (error) {
+      Alert.alert('Không thể gửi yêu cầu', error.message)
+      return
+    }
+
+    setRequestStatus('pending')
+    setHostResponseTemplate(null)
+    setJoinModalVisible(false)
+    Alert.alert(
+      matchStatus === 'WAITLIST' ? 'Đã đăng ký dự bị' : 'Đã gửi yêu cầu',
+      matchStatus === 'WAITLIST' ? 'Host sẽ thấy bạn trong danh sách dự bị nếu có chỗ trống.' : 'Chờ host duyệt nhé.'
+    )
+    await fetchSession()
+  }, [fetchSession, introNote, matchStatus, session, userId])
+
+  function handleSmartJoinPress() {
+    if (matchStatus === 'MATCHED' && !hostRequiresApproval) {
+      void directJoinSession()
+      return
+    }
+
+    setJoinModalVisible(true)
+  }
 
   function renderPlayerRow(player: ArrangementPlayer, mode: 'normal' | 'arranging') {
     return (
@@ -430,7 +542,10 @@ export default function SessionDetailScreen() {
         className="flex-1"
         stickyHeaderIndices={[0]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void onRefresh()} />}
-        contentContainerStyle={{ paddingBottom: (isHost || hasJoined ? 112 : 48) + insets.bottom, paddingHorizontal: 20 }}
+        contentContainerStyle={{
+          paddingBottom: (isHost || hasJoined || canShowJoinActions ? 112 : 48) + insets.bottom,
+          paddingHorizontal: 20,
+        }}
       >
         <View className="bg-white/85 pb-4 pt-2">
           <View className="flex-row items-center justify-between">
@@ -476,7 +591,7 @@ export default function SessionDetailScreen() {
           <View className="mt-3 flex-row items-start gap-2">
             <MapPin size={16} color="#64748b" strokeWidth={2.5} />
             <Text className="flex-1 text-[14px] leading-6 text-slate-500">
-              {session.slot.court.address} · {session.slot.court.city}
+              {session.slot.court.address} ? {session.slot.court.city}
             </Text>
           </View>
 
@@ -500,13 +615,72 @@ export default function SessionDetailScreen() {
                 <CreditCard size={18} color="#ea580c" strokeWidth={2.5} />
               </View>
               <View className="ml-3 flex-1">
-                <Text className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-400">Chi phí</Text>
+                <Text className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-400">Chi ph?</Text>
                 <Text className="mt-1 text-[14px] font-bold text-slate-900">
                   {formatPricePerPerson(session.slot.price, session.max_players)}
                 </Text>
               </View>
             </View>
           </View>
+
+          {isHost && hasBookingDetails ? (
+            <View className="mt-5 rounded-[32px] border border-slate-200 bg-slate-50 p-5">
+              <View className="flex-row items-center justify-between gap-3">
+                <View>
+                  <Text className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-400">
+                    Thông tin đặt sân
+                  </Text>
+                  <Text className="mt-1 text-[15px] font-bold text-slate-900">
+                    Chỉ host nhìn thấy phần này để tiện check sân.
+                  </Text>
+                </View>
+
+                <View
+                  className={`rounded-full px-3 py-2 ${
+                    session.court_booking_status === 'confirmed' ? 'bg-emerald-100' : 'bg-amber-100'
+                  }`}
+                >
+                  <Text
+                    className={`text-[11px] font-black uppercase tracking-[0.08em] ${
+                      session.court_booking_status === 'confirmed' ? 'text-emerald-700' : 'text-amber-700'
+                    }`}
+                  >
+                    {session.court_booking_status === 'confirmed' ? 'Đã chốt sân' : 'Chờ xác nhận'}
+                  </Text>
+                </View>
+              </View>
+
+              <View className="mt-4 gap-3">
+                {session.booking_reference ? (
+                  <View className="rounded-[22px] bg-white px-4 py-3">
+                    <Text className="text-[11px] font-black uppercase tracking-[0.08em] text-slate-400">Mã đặt sân</Text>
+                    <Text className="mt-1 text-[14px] font-bold text-slate-900">{session.booking_reference}</Text>
+                  </View>
+                ) : null}
+
+                {session.booking_name ? (
+                  <View className="rounded-[22px] bg-white px-4 py-3">
+                    <Text className="text-[11px] font-black uppercase tracking-[0.08em] text-slate-400">Tên đặt sân</Text>
+                    <Text className="mt-1 text-[14px] font-bold text-slate-900">{session.booking_name}</Text>
+                  </View>
+                ) : null}
+
+                {session.booking_phone ? (
+                  <View className="rounded-[22px] bg-white px-4 py-3">
+                    <Text className="text-[11px] font-black uppercase tracking-[0.08em] text-slate-400">Số điện thoại</Text>
+                    <Text className="mt-1 text-[14px] font-bold text-slate-900">{session.booking_phone}</Text>
+                  </View>
+                ) : null}
+
+                {session.booking_notes ? (
+                  <View className="rounded-[22px] bg-white px-4 py-3">
+                    <Text className="text-[11px] font-black uppercase tracking-[0.08em] text-slate-400">Ghi chú</Text>
+                    <Text className="mt-1 text-[14px] leading-6 text-slate-700">{session.booking_notes}</Text>
+                  </View>
+                ) : null}
+              </View>
+            </View>
+          ) : null}
         </View>
 
         <View className="mt-6 flex-row items-center justify-between gap-3">
@@ -606,7 +780,7 @@ export default function SessionDetailScreen() {
         </View>
       </ScrollView>
 
-      {(isHost || hasJoined) ? (
+      {(isHost || hasJoined || canShowJoinActions) ? (
         <View
           className="border-t border-slate-200 bg-white/95 px-5 pb-4 pt-4"
           style={{ paddingBottom: Math.max(insets.bottom, 16) }}
@@ -625,7 +799,7 @@ export default function SessionDetailScreen() {
               </Text>
               <ArrowRight size={20} color="#ffffff" strokeWidth={2.5} />
             </TouchableOpacity>
-          ) : (
+          ) : hasJoined ? (
             <TouchableOpacity
               className="h-14 items-center justify-center rounded-2xl border border-rose-100 bg-rose-50"
               onPress={() => void leaveSession()}
@@ -636,9 +810,28 @@ export default function SessionDetailScreen() {
                 {leaving ? 'ĐANG RỜI...' : 'RỜI KÈO'}
               </Text>
             </TouchableOpacity>
+          ) : (
+            <SmartJoinButton
+              matchStatus={matchStatus}
+              requestStatus={requestStatus}
+              hostResponseTemplate={hostResponseTemplate}
+              loading={joining || requesting}
+              onPress={handleSmartJoinPress}
+            />
           )}
         </View>
       ) : null}
+
+      <JoinRequestModal
+        visible={joinModalVisible}
+        mode={matchStatus}
+        introNote={introNote}
+        setIntroNote={setIntroNote}
+        loading={requesting}
+        onClose={() => setJoinModalVisible(false)}
+        onSubmit={() => void sendJoinRequest()}
+      />
     </SafeAreaView>
   )
 }
+

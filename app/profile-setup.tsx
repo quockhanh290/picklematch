@@ -35,7 +35,10 @@ export default function ProfileSetup() {
       name,
       city,
       skill_label: 'beginner',
-      elo: 800,
+      skill_tier: 'beginner',
+      elo: 1000,
+      current_elo: 1000,
+      onboarding_completed: false,
     })
 
     setLoading(false)
@@ -45,7 +48,7 @@ export default function ProfileSetup() {
       return
     }
 
-    router.replace('/skill-assessment')
+    router.replace('/onboarding')
   }
 
   return (
@@ -54,7 +57,7 @@ export default function ProfileSetup() {
         <ScreenHeader
           eyebrow="Bắt đầu"
           title="Tạo hồ sơ của bạn"
-          subtitle="Điền vài thông tin cơ bản trước, rồi mình sẽ giúp bạn xác nhận trình độ ở bước tiếp theo."
+          subtitle="Điền vài thông tin cơ bản trước, rồi app sẽ gợi ý mức khởi điểm phù hợp cho bạn ở bước tiếp theo."
         />
 
         <View className="px-5">
@@ -77,7 +80,7 @@ export default function ProfileSetup() {
 
           <SectionCard title="Bước tiếp theo" className="mb-6">
             <Text className="text-sm leading-6 text-slate-500">
-              Sau bước này, bạn sẽ chọn mức trình độ thực chiến để hệ thống gán Elo khởi điểm và đánh dấu tài khoản provisional.
+              Sau bước này, bạn sẽ trả lời vài câu hỏi ngắn về thói quen chơi. Hệ thống sẽ tự đề xuất mức khởi điểm và đánh dấu tài khoản provisional để tiếp tục hiệu chỉnh sau vài trận đầu.
             </Text>
           </SectionCard>
 

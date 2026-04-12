@@ -1,4 +1,13 @@
 import { supabase } from './supabase'
+import {
+  ELO_BANDS,
+  getEloBandByLevelId,
+  getEloBandByLegacySkillLabel,
+  getEloBandByTier,
+  getEloBandForElo,
+  getEloBandForSessionRange,
+  getShortLabelForLevelId,
+} from './eloSystem'
 
 export type SkillAssessmentLevel = {
   id: 'level_1' | 'level_2' | 'level_3' | 'level_4' | 'level_5'
@@ -17,8 +26,8 @@ export const SKILL_ASSESSMENT_LEVELS: SkillAssessmentLevel[] = [
     subtitle: 'Newbie',
     dupr: 'DUPR: Dưới 2.5',
     description:
-      'Mới cầm vợt được vài buổi. Thường xuyên đánh hụt bóng hoặc đánh bóng bay ra ngoài sân. Chưa rành luật tính điểm và hay đứng sai vị trí.',
-    starting_elo: 800,
+      'Mới làm quen pickleball, còn đang học luật, giữ bóng và vào nhịp.',
+    starting_elo: ELO_BANDS[0].seedElo,
     legacy_skill_label: 'beginner',
   },
   {
@@ -27,8 +36,8 @@ export const SKILL_ASSESSMENT_LEVELS: SkillAssessmentLevel[] = [
     subtitle: 'Beginner',
     dupr: 'DUPR: 2.5 - 3.0',
     description:
-      'Đã biết giao bóng qua lưới an toàn. Có thể đánh qua lại (rally) liên tục ở tốc độ chậm. Rất hay đánh hỏng khi đối thủ vung vợt đánh mạnh hoặc bóng đi chìm.',
-    starting_elo: 1000,
+      'Đã chơi được các pha bóng cơ bản, nhưng độ ổn định chưa cao.',
+    starting_elo: ELO_BANDS[1].seedElo,
     legacy_skill_label: 'basic',
   },
   {
@@ -37,8 +46,8 @@ export const SKILL_ASSESSMENT_LEVELS: SkillAssessmentLevel[] = [
     subtitle: 'Lower Intermediate',
     dupr: 'DUPR: 3.25 - 3.5',
     description:
-      'Đánh bóng qua lại tự tin ở tốc độ khá. Rất thích đứng cuối sân đánh mạnh (Banger/Drive). Đang tập tành lên lưới gò bóng ngắn (Dink) nhưng tỷ lệ tự đánh hỏng vẫn còn cao. Hay luống cuống với quả thứ 3 (3rd shot drop).',
-    starting_elo: 1150,
+      'Đã đánh khá đều, giữ rally tốt và bắt đầu quen nhịp thi đấu.',
+    starting_elo: ELO_BANDS[2].seedElo,
     legacy_skill_label: 'intermediate',
   },
   {
@@ -47,8 +56,8 @@ export const SKILL_ASSESSMENT_LEVELS: SkillAssessmentLevel[] = [
     subtitle: 'Upper Intermediate',
     dupr: 'DUPR: 3.75 - 4.25',
     description:
-      'Kỹ thuật toàn diện. Làm chủ được kỹ thuật Dink trên lưới, biết lốp bóng qua đầu và đập bóng (Smash) uy lực. Giao tiếp nhịp nhàng, biết cách lót bóng che lỗi cho đồng đội.',
-    starting_elo: 1300,
+      'Chơi chắc tay, biết kiểm soát nhiều tình huống và đánh cân với nhóm phong trào mạnh.',
+    starting_elo: ELO_BANDS[3].seedElo,
     legacy_skill_label: 'intermediate',
   },
   {
@@ -57,8 +66,8 @@ export const SKILL_ASSESSMENT_LEVELS: SkillAssessmentLevel[] = [
     subtitle: 'Advanced',
     dupr: 'DUPR: 4.5 trở lên',
     description:
-      'Từng có giải phong trào hoặc bán chuyên. Kiểm soát nhịp độ trận đấu cực tốt, không mắc lỗi tự đánh hỏng vô duyên. Sở hữu các cú đánh mang tính sát thương và chiến thuật dồn ép đối thủ rõ ràng.',
-    starting_elo: 1500,
+      'Đánh nghiêm túc, xử lý ổn định dưới áp lực và có thể chơi ở mặt bằng giải phong trào.',
+    starting_elo: ELO_BANDS[4].seedElo,
     legacy_skill_label: 'advanced',
   },
 ]
@@ -69,60 +78,45 @@ export function getSkillLevelById(levelId?: string | null) {
 }
 
 export function getSkillLevelFromLegacyLabel(skillLabel?: string | null) {
-  switch (skillLabel) {
-    case 'beginner':
-      return SKILL_ASSESSMENT_LEVELS[0]
-    case 'basic':
-      return SKILL_ASSESSMENT_LEVELS[1]
-    case 'advanced':
-      return SKILL_ASSESSMENT_LEVELS[4]
-    case 'intermediate':
-    default:
-      return SKILL_ASSESSMENT_LEVELS[2]
-  }
+  const band = getEloBandByLegacySkillLabel(skillLabel)
+  return getSkillLevelById(band.levelId) ?? SKILL_ASSESSMENT_LEVELS[2]
+}
+
+export function getSkillLevelFromTier(skillTier?: string | null) {
+  const band = getEloBandByTier(skillTier)
+  return getSkillLevelById(band?.levelId) ?? null
 }
 
 export function getSkillLevelFromPlayer(
-  player?: { self_assessed_level?: string | null; skill_label?: string | null } | null
+  player?: {
+    self_assessed_level?: string | null
+    skill_tier?: string | null
+    current_elo?: number | null
+    elo?: number | null
+    skill_label?: string | null
+  } | null
 ) {
   return (
     getSkillLevelById(player?.self_assessed_level) ??
+    getSkillLevelFromTier(player?.skill_tier) ??
+    getSkillLevelFromElo(player?.current_elo ?? player?.elo) ??
     getSkillLevelFromLegacyLabel(player?.skill_label)
   )
 }
 
 export function getSkillLevelFromElo(elo?: number | null) {
   if (elo == null) return null
-  if (elo < 900) return SKILL_ASSESSMENT_LEVELS[0]
-  if (elo < 1075) return SKILL_ASSESSMENT_LEVELS[1]
-  if (elo < 1250) return SKILL_ASSESSMENT_LEVELS[2]
-  if (elo < 1450) return SKILL_ASSESSMENT_LEVELS[3]
-  return SKILL_ASSESSMENT_LEVELS[4]
+  const band = getEloBandForElo(elo)
+  return getSkillLevelById(band?.levelId) ?? SKILL_ASSESSMENT_LEVELS[2]
 }
 
 export function getSkillLevelFromEloRange(eloMin: number, eloMax: number) {
-  if (eloMax <= 850) return SKILL_ASSESSMENT_LEVELS[0]
-  if (eloMax <= 1050) return SKILL_ASSESSMENT_LEVELS[1]
-  if (eloMax <= 1200) return SKILL_ASSESSMENT_LEVELS[2]
-  if (eloMax <= 1400) return SKILL_ASSESSMENT_LEVELS[3]
-  return SKILL_ASSESSMENT_LEVELS[4]
+  const band = getEloBandForSessionRange(eloMin, eloMax)
+  return getSkillLevelById(band?.levelId) ?? SKILL_ASSESSMENT_LEVELS[2]
 }
 
 export function getShortSkillLabel(level?: SkillAssessmentLevel | null) {
-  switch (level?.id) {
-    case 'level_1':
-      return 'Mới chơi'
-    case 'level_2':
-      return 'Cơ bản'
-    case 'level_3':
-      return 'Cọ xát'
-    case 'level_4':
-      return 'Phong trào'
-    case 'level_5':
-      return 'Săn giải'
-    default:
-      return 'Cọ xát'
-  }
+  return getShortLabelForLevelId(level?.id)
 }
 
 export function getSkillScoreFromLevelId(levelId?: string | null) {
@@ -137,12 +131,16 @@ export function getSkillScoreFromLegacyLabel(skillLabel?: string | null) {
 }
 
 export function getSkillScoreFromPlayer(
-  player?: { self_assessed_level?: string | null; skill_label?: string | null } | null
+  player?: {
+    self_assessed_level?: string | null
+    skill_tier?: string | null
+    current_elo?: number | null
+    elo?: number | null
+    skill_label?: string | null
+  } | null
 ) {
-  return (
-    getSkillScoreFromLevelId(player?.self_assessed_level) ??
-    getSkillScoreFromLegacyLabel(player?.skill_label)
-  )
+  const level = getSkillLevelFromPlayer(player)
+  return level ? SKILL_ASSESSMENT_LEVELS.findIndex((item) => item.id === level.id) + 1 : null
 }
 
 export function getSkillScoreFromEloRange(eloMin: number, eloMax: number) {
@@ -172,6 +170,7 @@ export async function saveSkillAssessment(levelId: SkillAssessmentLevel['id']) {
     is_provisional: true,
     placement_matches_played: 0,
     skill_label: level.legacy_skill_label,
+    skill_tier: getEloBandByLevelId(level.id)?.tier ?? 'intermediate',
     elo: level.starting_elo,
   }
 

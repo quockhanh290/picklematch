@@ -1,6 +1,7 @@
 import { CreateSessionStep1 } from '@/components/create-session/CreateSessionStep1'
 import { CreateSessionStep2 } from '@/components/create-session/CreateSessionStep2'
 import { CreateSessionStep3 } from '@/components/create-session/CreateSessionStep3'
+import { CREATE_SESSION_ELO_LEVELS } from '@/lib/eloSystem'
 import { supabase } from '@/lib/supabase'
 import { type NearByCourt, useNearbyCourts } from '@/lib/useNearbyCourts'
 import * as Linking from 'expo-linking'
@@ -9,14 +10,6 @@ import { ArrowLeft } from 'lucide-react-native'
 import { useCallback, useEffect, useState } from 'react'
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-
-const ELO_LEVELS = [
-  { elo: 800 },
-  { elo: 1000 },
-  { elo: 1150 },
-  { elo: 1300 },
-  { elo: 1500 },
-]
 
 function fmtDuration(start: Date, end: Date): string {
   const mins = Math.round((end.getTime() - start.getTime()) / 60_000)
@@ -72,8 +65,8 @@ export default function CreateSession() {
   const [timeError, setTimeError] = useState<string | null>(null)
 
   const [maxPlayers, setMaxPlayers] = useState(4)
-  const [eloMin, setEloMin] = useState(ELO_LEVELS[0].elo)
-  const [eloMax, setEloMax] = useState(ELO_LEVELS[4].elo)
+  const [eloMin, setEloMin] = useState(CREATE_SESSION_ELO_LEVELS[0].elo)
+  const [eloMax, setEloMax] = useState(CREATE_SESSION_ELO_LEVELS[4].elo)
   const [deadlineHours, setDeadlineHours] = useState(4)
   const [requireApproval, setRequireApproval] = useState(false)
   const [totalCostStr, setTotalCostStr] = useState('')
@@ -187,8 +180,8 @@ export default function CreateSession() {
   }
 
   function goToStep3FromNew() {
-    const minElo = ELO_LEVELS[minSkill - 1].elo
-    const maxElo = ELO_LEVELS[maxSkill - 1].elo
+    const minElo = CREATE_SESSION_ELO_LEVELS[minSkill - 1].elo
+    const maxElo = CREATE_SESSION_ELO_LEVELS[maxSkill - 1].elo
 
     if (minElo > maxElo) {
       Alert.alert('Lỗi', 'Trình độ tối thiểu không thể cao hơn trình độ tối đa.')

@@ -7,6 +7,6 @@ export function getMatchStatus(
   maxSlots: number
 ): MatchStatus {
   if (currentSlots >= maxSlots) return 'WAITLIST'
-  if (userElo >= matchElo - 0.5) return 'MATCHED'
+  if (userElo >= matchElo) return 'MATCHED'
   return 'LOWER_SKILL'
 }

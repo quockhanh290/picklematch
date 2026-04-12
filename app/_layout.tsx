@@ -17,7 +17,7 @@ export default function RootLayout() {
             <Stack.Screen name="login" options={{ headerShown: false }} />
             <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
             <Stack.Screen name="profile-setup" options={{ presentation: 'modal' }} />
-            <Stack.Screen name="skill-assessment" options={{ headerShown: false }} />
+            <Stack.Screen name="onboarding" options={{ headerShown: false }} />
           </Stack>
         </NotificationsProvider>
       </AppThemeProvider>

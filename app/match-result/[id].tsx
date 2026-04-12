@@ -1,15 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router'
 import {
-  ArrowLeft,
-  ArrowRight,
-  MinusCircle,
-  PlusCircle,
-  Star,
-  Timer3,
-  Trophy,
-} from 'lucide-react-native'
-import { useEffect, useMemo, useRef, useState } from 'react'
-import {
+  ActivityIndicator,
   Alert,
   Animated,
   LayoutAnimation,
@@ -21,11 +12,49 @@ import {
   View,
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
+import {
+  ArrowLeft,
+  ArrowRight,
+  MinusCircle,
+  PlusCircle,
+  Timer,
+  Trophy,
+} from 'lucide-react-native'
+import { useEffect, useMemo, useRef, useState } from 'react'
+
+import { supabase } from '@/lib/supabase'
 
 const ICON_STROKE_WIDTH = 2.5
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true)
+}
+
+type SessionPlayerRecord = {
+  player_id: string
+  status?: string | null
+  team_no?: 1 | 2 | null
+  player?: {
+    name?: string | null
+  } | null
+}
+
+type MatchSessionRecord = {
+  id: string
+  status: string
+  results_status?: string | null
+  host?: {
+    id?: string
+    name?: string | null
+  } | null
+  slot?: {
+    start_time?: string | null
+    end_time?: string | null
+    court?: {
+      name?: string | null
+    } | null
+  } | null
+  session_players: SessionPlayerRecord[]
 }
 
 type TeamPlayer = {
@@ -45,53 +74,73 @@ type TeamSummary = {
     button: string
     buttonSoft: string
     subtext: string
+    widgetText: string
   }
   players: TeamPlayer[]
 }
 
-const MATCH_CONTEXT = {
-  courtName: 'The Dinker Club - Court 03',
-  dateLabel: 'Chủ nhật, 29/03/2026',
-  timeLabel: '19:30 - 21:00',
-}
-
-const TEAMS: TeamSummary[] = [
-  {
-    id: 'A',
-    name: 'Team Emerald',
-    theme: {
-      border: '#10b981',
-      tint: '#ecfdf5',
-      text: '#065f46',
-      button: '#059669',
-      buttonSoft: '#d1fae5',
-      subtext: '#047857',
-    },
-    players: [
-      { id: 'a1', name: 'Minh Anh', avatar: 'MA', accent: '#a7f3d0' },
-      { id: 'a2', name: 'Hoàng Phúc', avatar: 'HP', accent: '#6ee7b7' },
-    ],
+const TEAM_VISUALS = {
+  A: {
+    border: '#10b981',
+    tint: '#ecfdf5',
+    text: '#065f46',
+    button: '#059669',
+    buttonSoft: '#d1fae5',
+    subtext: '#047857',
+    widgetText: '#34d399',
+    accentPalette: ['#a7f3d0', '#6ee7b7', '#d1fae5', '#bbf7d0'],
   },
-  {
-    id: 'B',
-    name: 'Team Indigo',
-    theme: {
-      border: '#6366f1',
-      tint: '#eef2ff',
-      text: '#312e81',
-      button: '#4f46e5',
-      buttonSoft: '#e0e7ff',
-      subtext: '#4338ca',
-    },
-    players: [
-      { id: 'b1', name: 'Khánh Vy', avatar: 'KV', accent: '#c7d2fe' },
-      { id: 'b2', name: 'Gia Bảo', avatar: 'GB', accent: '#a5b4fc' },
-    ],
+  B: {
+    border: '#6366f1',
+    tint: '#eef2ff',
+    text: '#312e81',
+    button: '#4f46e5',
+    buttonSoft: '#e0e7ff',
+    subtext: '#4338ca',
+    widgetText: '#a5b4fc',
+    accentPalette: ['#c7d2fe', '#a5b4fc', '#e0e7ff', '#c4b5fd'],
   },
-]
+} as const
 
 function clampScore(value: number) {
   return Math.max(0, Math.min(99, value))
+}
+
+function getInitials(name: string) {
+  const parts = name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+
+  if (!parts.length) return '?'
+  return parts.map((part) => part[0]?.toUpperCase() ?? '').join('')
+}
+
+function getDateLabel(value?: string | null) {
+  if (!value) return 'Chưa rõ ngày thi đấu'
+
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return 'Chưa rõ ngày thi đấu'
+
+  return date.toLocaleDateString('vi-VN', {
+    weekday: 'long',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  })
+}
+
+function getTimeRangeLabel(start?: string | null, end?: string | null) {
+  if (!start || !end) return 'Chưa rõ thời gian'
+
+  const startDate = new Date(start)
+  const endDate = new Date(end)
+  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) return 'Chưa rõ thời gian'
+
+  const startClock = startDate.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+  const endClock = endDate.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+  return `${startClock} - ${endClock}`
 }
 
 function getEloSwing(diff: number) {
@@ -101,6 +150,62 @@ function getEloSwing(diff: number) {
 function getStreakLabel(scoreA: number, scoreB: number) {
   if (scoreA === scoreB) return '0 STREAK'
   return '+1 STREAK'
+}
+
+function buildTeams(session: MatchSessionRecord | null) {
+  const players = (session?.session_players ?? [])
+    .filter((item) => item.status !== 'rejected')
+    .map((item) => ({
+      id: item.player_id,
+      name: item.player?.name?.trim() || 'Người chơi',
+      teamNo: item.team_no,
+    }))
+
+  const hasSavedTeams = players.some((player) => player.teamNo === 1 || player.teamNo === 2)
+  const distributed = hasSavedTeams
+    ? players.map((player, index) => ({
+        ...player,
+        teamNo: player.teamNo === 2 ? 2 : 1,
+        index,
+      }))
+    : players.map((player, index) => ({
+        ...player,
+        teamNo: index % 2 === 0 ? 1 : 2,
+        index,
+      }))
+
+  const teamAPlayers = distributed
+    .filter((player) => player.teamNo === 1)
+    .map((player, index) => ({
+      id: player.id,
+      name: player.name,
+      avatar: getInitials(player.name),
+      accent: TEAM_VISUALS.A.accentPalette[index % TEAM_VISUALS.A.accentPalette.length],
+    }))
+
+  const teamBPlayers = distributed
+    .filter((player) => player.teamNo === 2)
+    .map((player, index) => ({
+      id: player.id,
+      name: player.name,
+      avatar: getInitials(player.name),
+      accent: TEAM_VISUALS.B.accentPalette[index % TEAM_VISUALS.B.accentPalette.length],
+    }))
+
+  return [
+    {
+      id: 'A' as const,
+      name: 'Team A',
+      theme: TEAM_VISUALS.A,
+      players: teamAPlayers,
+    },
+    {
+      id: 'B' as const,
+      name: 'Team B',
+      theme: TEAM_VISUALS.B,
+      players: teamBPlayers,
+    },
+  ]
 }
 
 function PlayerChip({ player }: { player: TeamPlayer }) {
@@ -204,8 +309,11 @@ function ScorePanel({
 export default function MatchResultEntryScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const insets = useSafeAreaInsets()
-  const [scoreA, setScoreA] = useState(9)
-  const [scoreB, setScoreB] = useState(7)
+  const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+  const [session, setSession] = useState<MatchSessionRecord | null>(null)
+  const [scoreA, setScoreA] = useState(0)
+  const [scoreB, setScoreB] = useState(0)
 
   const entryFade = useRef(new Animated.Value(0)).current
   const entryTranslate = useRef(new Animated.Value(18)).current
@@ -226,13 +334,63 @@ export default function MatchResultEntryScreen() {
     ]).start()
   }, [entryFade, entryTranslate])
 
+  useEffect(() => {
+    let mounted = true
+
+    async function loadSession() {
+      if (!id) {
+        if (mounted) setLoading(false)
+        return
+      }
+
+      setLoading(true)
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (!user) {
+        router.replace('/login' as any)
+        return
+      }
+
+      const { data, error } = await supabase.rpc('get_session_detail_overview', {
+        p_session_id: id,
+      })
+
+      if (error) {
+        Alert.alert('Không tải được trận đấu', error.message)
+        if (mounted) {
+          setSession(null)
+          setLoading(false)
+        }
+        return
+      }
+
+      const nextSession = (data?.session ?? null) as MatchSessionRecord | null
+
+      if (mounted) {
+        setSession(nextSession)
+        setLoading(false)
+      }
+    }
+
+    void loadSession()
+
+    return () => {
+      mounted = false
+    }
+  }, [id])
+
+  const teams = useMemo(() => buildTeams(session), [session])
+
   const winner = useMemo(() => {
     if (scoreA === scoreB) {
       return null
     }
 
-    return scoreA > scoreB ? TEAMS[0] : TEAMS[1]
-  }, [scoreA, scoreB])
+    return scoreA > scoreB ? teams[0] : teams[1]
+  }, [scoreA, scoreB, teams])
 
   useEffect(() => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut)
@@ -262,10 +420,73 @@ export default function MatchResultEntryScreen() {
     setScoreB((current) => clampScore(current + delta))
   }
 
-  function onConfirm() {
+  async function onConfirm() {
+    if (!session || !id) return
+
+    if (!teams[0].players.length || !teams[1].players.length) {
+      Alert.alert('Thiếu đội hình', 'Trận này chưa có đủ người chơi ở cả hai đội để gửi kết quả.')
+      return
+    }
+
+    if (scoreA === scoreB) {
+      Alert.alert('Điểm số chưa hợp lệ', 'Vui lòng nhập kết quả có đội thắng rõ ràng trước khi xác nhận.')
+      return
+    }
+
+    const payload = [...teams[0].players, ...teams[1].players].map((player) => {
+      const belongsToWinner = winner?.players.some((entry) => entry.id === player.id) ?? false
+      return {
+        player_id: player.id,
+        result: belongsToWinner ? 'win' : 'loss',
+      }
+    })
+
+    setSubmitting(true)
+
+    const { error } = await supabase.rpc('submit_session_results', {
+      p_session_id: id,
+      p_results: payload,
+    })
+
+    setSubmitting(false)
+
+    if (error) {
+      Alert.alert('Chưa thể gửi kết quả', error.message)
+      return
+    }
+
     Alert.alert(
-      'Xác nhận kết quả',
-      `Đã ghi nhận tạm thời ${TEAMS[0].name} ${scoreA} - ${scoreB} ${TEAMS[1].name} cho trận ${id ?? 'match-demo'}.`,
+      'Đã gửi kết quả',
+      `Kết quả ${teams[0].name} ${scoreA} - ${scoreB} ${teams[1].name} đã được gửi đến người chơi để xác nhận.`,
+      [
+        {
+          text: 'Đóng',
+          onPress: () => router.back(),
+        },
+      ],
+    )
+  }
+
+  if (loading) {
+    return (
+      <SafeAreaView className="flex-1 items-center justify-center bg-[#f6f7fb]" edges={['top']}>
+        <ActivityIndicator color="#059669" />
+        <Text className="mt-4 text-[14px] font-black text-slate-500">Đang tải trận đấu...</Text>
+      </SafeAreaView>
+    )
+  }
+
+  if (!session) {
+    return (
+      <SafeAreaView className="flex-1 items-center justify-center bg-[#f6f7fb] px-6" edges={['top']}>
+        <Text className="text-center text-[22px] font-black text-slate-950">Không tìm thấy trận đấu</Text>
+        <Text className="mt-3 text-center text-[15px] font-semibold leading-6 text-slate-500">
+          Trận này có thể đã bị xóa hoặc bạn không còn quyền truy cập.
+        </Text>
+        <Pressable onPress={() => router.back()} className="mt-6 rounded-2xl bg-slate-900 px-5 py-3">
+          <Text className="text-[14px] font-black uppercase text-white">Quay lại</Text>
+        </Pressable>
+      </SafeAreaView>
     )
   }
 
@@ -286,9 +507,9 @@ export default function MatchResultEntryScreen() {
 
           <Text className="text-[20px] font-black text-slate-950">Nhập kết quả</Text>
 
-          <View className="h-12 w-12 items-center justify-center rounded-full bg-white/50">
+          <View className="h-12 min-w-12 items-center justify-center rounded-full bg-white/50 px-3">
             <Text className="text-[11px] font-black uppercase tracking-[1.4px] text-slate-400">
-              #{String(id ?? '01').slice(0, 2)}
+              #{session.id.slice(0, 4).toUpperCase()}
             </Text>
           </View>
         </View>
@@ -318,27 +539,29 @@ export default function MatchResultEntryScreen() {
               </Text>
             </View>
             <Text className="mt-5 text-center text-[28px] font-black leading-[32px] text-slate-950">
-              {MATCH_CONTEXT.courtName}
+              {session.slot?.court?.name ?? 'Kèo Pickleball'}
             </Text>
             <Text className="mt-3 text-center text-[15px] font-black text-slate-500">
-              {MATCH_CONTEXT.dateLabel}
+              {getDateLabel(session.slot?.start_time)}
             </Text>
             <View className="mt-2 flex-row items-center">
-              <Timer3 color="#64748b" size={16} strokeWidth={ICON_STROKE_WIDTH} />
-              <Text className="ml-2 text-[15px] font-black text-slate-600">{MATCH_CONTEXT.timeLabel}</Text>
+              <Timer color="#64748b" size={16} strokeWidth={ICON_STROKE_WIDTH} />
+              <Text className="ml-2 text-[15px] font-black text-slate-600">
+                {getTimeRangeLabel(session.slot?.start_time, session.slot?.end_time)}
+              </Text>
             </View>
           </View>
 
           <View className="mt-6 rounded-[40px] bg-white px-5 py-5">
             <View className="flex-row gap-4">
               <ScorePanel
-                team={TEAMS[0]}
+                team={teams[0]}
                 score={scoreA}
                 onIncrease={() => adjustScore('A', 1)}
                 onDecrease={() => adjustScore('A', -1)}
               />
               <ScorePanel
-                team={TEAMS[1]}
+                team={teams[1]}
                 score={scoreB}
                 onIncrease={() => adjustScore('B', 1)}
                 onDecrease={() => adjustScore('B', -1)}
@@ -365,7 +588,9 @@ export default function MatchResultEntryScreen() {
                 <Text className="text-[11px] font-black uppercase tracking-[1.4px] text-slate-400">
                   Estimated ELO Change
                 </Text>
-                <Text className="mt-3 text-[26px] font-black text-emerald-400">{eloLabel}</Text>
+                <Text className="mt-3 text-[26px] font-black" style={{ color: winner?.theme.widgetText ?? '#86efac' }}>
+                  {eloLabel}
+                </Text>
                 <Text className="mt-1 text-[12px] font-black text-slate-500">{eloDetail}</Text>
               </View>
 
@@ -385,16 +610,15 @@ export default function MatchResultEntryScreen() {
 
             <View className="mt-5 rounded-[30px] bg-emerald-50 px-4 py-4">
               <View className="flex-row items-center justify-between">
-                <Text className="text-[18px] font-black text-emerald-900">{TEAMS[0].name}</Text>
-                <View className="flex-row items-center rounded-full bg-white/80 px-3 py-1.5">
-                  <Star color="#047857" size={15} strokeWidth={ICON_STROKE_WIDTH} />
-                  <Text className="ml-1.5 text-[11px] font-black uppercase tracking-[1.3px] text-emerald-700">
-                    Avg Host Sync
+                <Text className="text-[18px] font-black text-emerald-900">{teams[0].name}</Text>
+                <View className="rounded-full bg-white/80 px-3 py-1.5">
+                  <Text className="text-[11px] font-black uppercase tracking-[1.3px] text-emerald-700">
+                    {teams[0].players.length} người
                   </Text>
                 </View>
               </View>
               <View className="mt-4">
-                {TEAMS[0].players.map((player) => (
+                {teams[0].players.map((player) => (
                   <View key={player.id} className="mb-3 last:mb-0">
                     <PlayerChip player={player} />
                   </View>
@@ -403,9 +627,16 @@ export default function MatchResultEntryScreen() {
             </View>
 
             <View className="mt-4 rounded-[30px] bg-indigo-50 px-4 py-4">
-              <Text className="text-[18px] font-black text-indigo-950">{TEAMS[1].name}</Text>
+              <View className="flex-row items-center justify-between">
+                <Text className="text-[18px] font-black text-indigo-950">{teams[1].name}</Text>
+                <View className="rounded-full bg-white/80 px-3 py-1.5">
+                  <Text className="text-[11px] font-black uppercase tracking-[1.3px] text-indigo-700">
+                    {teams[1].players.length} người
+                  </Text>
+                </View>
+              </View>
               <View className="mt-4">
-                {TEAMS[1].players.map((player) => (
+                {teams[1].players.map((player) => (
                   <View key={player.id} className="mb-3 last:mb-0">
                     <PlayerChip player={player} />
                   </View>
@@ -421,15 +652,20 @@ export default function MatchResultEntryScreen() {
         >
           <Pressable
             accessibilityRole="button"
-            onPress={onConfirm}
-            className="flex-row items-center justify-center rounded-2xl bg-[#059669] px-5 py-4"
+            onPress={() => {
+              void onConfirm()
+            }}
+            disabled={submitting}
+            className={`flex-row items-center justify-center rounded-2xl px-5 py-4 ${submitting ? 'bg-emerald-400' : 'bg-[#059669]'}`}
           >
             <Text className="text-[15px] font-black uppercase tracking-[1.2px] text-white">
-              Confirm &amp; Update ELO
+              {submitting ? 'Đang gửi kết quả...' : 'Confirm & Update ELO'}
             </Text>
-            <View className="ml-2">
-              <ArrowRight color="#ffffff" size={18} strokeWidth={ICON_STROKE_WIDTH} />
-            </View>
+            {!submitting ? (
+              <View className="ml-2">
+                <ArrowRight color="#ffffff" size={18} strokeWidth={ICON_STROKE_WIDTH} />
+              </View>
+            ) : null}
           </Pressable>
           <Text className="mt-3 text-center text-[12px] font-black leading-[18px] text-slate-500">
             Kết quả sẽ được gửi đến tất cả thành viên để xác nhận tính công bằng.

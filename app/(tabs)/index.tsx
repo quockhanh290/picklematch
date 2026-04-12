@@ -7,6 +7,7 @@ import {
   Heart,
   Hand,
   Home,
+  LayoutList,
   MapPin,
   Plus,
   ShieldCheck,
@@ -28,6 +29,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
+import { getEloRangeForLevel, getEloBandForSessionRange } from '@/lib/eloSystem'
 import { getSkillLevelUi, getSkillTargetElo } from '@/lib/skillLevelUi'
 import { getShadowStyle } from '@/lib/designSystem'
 import type { SkillAssessmentLevel } from '@/lib/skillAssessment'
@@ -164,6 +166,26 @@ type MySessionOverviewRow = {
   start_time: string
 }
 
+type PendingMatchRaw = {
+  id: string
+  status: 'pending_completion' | 'done' | 'open' | 'cancelled'
+  results_status?: 'not_submitted' | 'pending_confirmation' | 'disputed' | 'finalized' | 'void' | null
+  slot: HomeSessionRelation<{
+    start_time: string
+    end_time: string
+    court: HomeSessionRelation<{
+      name: string
+    }>
+  }>
+}
+
+type PendingMatch = {
+  id: string
+  courtName: string
+  timeLabel: string
+  endTime: string
+}
+
 type MatchSession = {
   id: string
   title: string
@@ -197,18 +219,12 @@ const iconStroke = 2.7
 const screenWidth = Dimensions.get('window').width
 const carouselCardWidth = screenWidth - 40
 const carouselGap = 14
+const pendingCardWidth = screenWidth - 88
+const pendingCardGap = 14
 const SMART_MATCH_CARD_HEIGHT = 520
 const COURT_CARD_HEIGHT = 256
 const CAROUSEL_SECTION_HEIGHT = 536
 const COURT_CAROUSEL_HEIGHT = 272
-
-function getEloRangeForLevel(levelId: SkillAssessmentLevel['id']) {
-  if (levelId === 'level_1') return { elo_min: 800, elo_max: 950 }
-  if (levelId === 'level_2') return { elo_min: 950, elo_max: 1150 }
-  if (levelId === 'level_3') return { elo_min: 1150, elo_max: 1300 }
-  if (levelId === 'level_4') return { elo_min: 1300, elo_max: 1500 }
-  return { elo_min: 1500, elo_max: 1700 }
-}
 
 function formatTimeLabel(startTime: string, endTime: string) {
   const startDate = new Date(startTime)
@@ -224,6 +240,17 @@ function formatTimeLabel(startTime: string, endTime: string) {
   const endClock = `${pad(endDate.getHours())}:${pad(endDate.getMinutes())}`
 
   return `${dateLabel} · ${startClock} - ${endClock}`
+}
+
+function formatPendingResultTimeLabel(endTime: string) {
+  const endDate = new Date(endTime)
+  if (Number.isNaN(endDate.getTime())) {
+    return 'Trận đấu đã kết thúc'
+  }
+
+  const weekdayLabels = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
+  const pad = (value: number) => value.toString().padStart(2, '0')
+  return `Kết thúc ${weekdayLabels[endDate.getDay()]}, ${pad(endDate.getDate())}/${pad(endDate.getMonth() + 1)} · ${pad(endDate.getHours())}:${pad(endDate.getMinutes())}`
 }
 
 function formatPriceLabel(totalPrice: number, maxPlayers: number) {
@@ -268,11 +295,7 @@ function formatCountdownLabelFromStartTime(startTime: string) {
 function getLevelIdFromSession(session: Pick<HomeSessionRecord, 'elo_min' | 'elo_max' | 'host'>): SkillAssessmentLevel['id'] {
   const hostLevel = session.host?.self_assessed_level as SkillAssessmentLevel['id'] | undefined
   if (hostLevel) return hostLevel
-  if (session.elo_max <= 950) return 'level_1'
-  if (session.elo_max <= 1150) return 'level_2'
-  if (session.elo_max <= 1300) return 'level_3'
-  if (session.elo_max <= 1500) return 'level_4'
-  return 'level_5'
+  return getEloBandForSessionRange(session.elo_min, session.elo_max).levelId
 }
 const COURT_FALLBACK_IMAGES = [
   'https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=1200&q=80',
@@ -1496,6 +1519,110 @@ const CarouselCard = memo(function CarouselCard({
   )
 })
 
+const PendingMatchResultCard = memo(function PendingMatchResultCard({
+  item,
+}: {
+  item: PendingMatch
+}) {
+  return (
+    <View
+      className="mb-8 flex-row items-center gap-4 overflow-hidden rounded-[32px] border border-amber-200 bg-amber-50 p-5"
+      style={{
+        width: pendingCardWidth,
+        shadowColor: '#d97706',
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        shadowOffset: { width: 0, height: 8 },
+        elevation: 3,
+      }}
+    >
+      <View className="absolute -right-8 -top-10 h-28 w-28 rounded-full bg-amber-400/10" />
+
+      <View
+        className="h-12 w-12 items-center justify-center rounded-2xl bg-amber-500"
+        style={{
+          shadowColor: '#f59e0b',
+          shadowOpacity: 0.18,
+          shadowRadius: 10,
+          shadowOffset: { width: 0, height: 6 },
+          elevation: 4,
+        }}
+      >
+        <LayoutList size={22} color="#ffffff" strokeWidth={2.5} />
+      </View>
+
+      <View className="min-w-0 flex-1">
+        <Text className="text-[14px] font-black text-amber-900">Cần nhập kết quả</Text>
+        <Text className="mt-2 truncate text-[11px] font-bold uppercase tracking-tight text-amber-700/60">
+          {item.courtName}
+        </Text>
+        <Text className="mt-1 text-[13px] font-semibold text-amber-900">{item.timeLabel}</Text>
+      </View>
+
+      <Pressable
+        onPress={() => router.push({ pathname: '/match-result/[id]' as any, params: { id: item.id } })}
+        className="rounded-xl bg-slate-900 px-4 py-2.5"
+      >
+        <Text className="text-[11px] font-black uppercase text-white">NHẬP NGAY</Text>
+      </Pressable>
+    </View>
+  )
+})
+
+function PendingMatchResultCarousel({
+  items,
+  activeIndex,
+  onIndexChange,
+}: {
+  items: PendingMatch[]
+  activeIndex: number
+  onIndexChange: (index: number) => void
+}) {
+  if (items.length === 1) {
+    return (
+      <View className="mt-6">
+        <PendingMatchResultCard item={items[0]} />
+      </View>
+    )
+  }
+
+  return (
+    <View className="mt-6">
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        decelerationRate="fast"
+        snapToInterval={pendingCardWidth + pendingCardGap}
+        snapToAlignment="start"
+        disableIntervalMomentum
+        contentContainerStyle={{ paddingRight: 28 }}
+        onScroll={(event) => {
+          const offsetX = event.nativeEvent.contentOffset.x
+          const nextIndex = Math.round(offsetX / (pendingCardWidth + pendingCardGap))
+          onIndexChange(nextIndex)
+        }}
+        scrollEventThrottle={16}
+      >
+        {items.map((item, index) => (
+          <View key={item.id} style={{ marginRight: index === items.length - 1 ? 0 : pendingCardGap }}>
+            <PendingMatchResultCard item={item} />
+          </View>
+        ))}
+      </ScrollView>
+
+      <View className="-mt-3 flex-row items-center justify-between px-1">
+        <CarouselDots count={items.length} activeIndex={activeIndex} />
+        <View className="flex-row items-center rounded-full bg-amber-100 px-3 py-1.5">
+          <Hand size={14} color="#92400e" strokeWidth={2.5} />
+          <Text className="ml-1.5 text-[10px] font-black uppercase tracking-[1.4px] text-amber-800">
+            Vuốt để xem thêm
+          </Text>
+        </View>
+      </View>
+    </View>
+  )
+}
+
 function SwipeStack<T>({
   items,
   containerHeight,
@@ -1557,6 +1684,7 @@ function SwipeStack<T>({
 export default function HomeScreen() {
   const theme = useAppTheme()
   const { userId, isLoading: isAuthLoading } = useAuth()
+  const [pendingMatchIndex, setPendingMatchIndex] = useState(0)
   const [personalizedIndex, setPersonalizedIndex] = useState(0)
   const [rescueIndex, setRescueIndex] = useState(0)
   const [courtIndex, setCourtIndex] = useState(0)
@@ -1565,6 +1693,7 @@ export default function HomeScreen() {
   const [profile, setProfile] = useState<HomeProfile | null>(null)
   const [playerStats, setPlayerStats] = useState<PlayerStatsRecord | null>(null)
   const [nextMatch, setNextMatch] = useState<MatchSession | null>(null)
+  const [pendingMatches, setPendingMatches] = useState<PendingMatch[]>([])
   const [personalizedSessions, setPersonalizedSessions] = useState<MatchSession[]>([])
   const [rescueSessions, setRescueSessions] = useState<MatchSession[]>([])
   const [familiarCourts, setFamiliarCourts] = useState<FamiliarCourt[]>([])
@@ -1611,18 +1740,39 @@ export default function HomeScreen() {
             .maybeSingle()
         : Promise.resolve({ data: null })
 
+      const pendingMatchesPromise = userId
+        ? supabase
+            .from('sessions')
+            .select(
+              `
+              id, status, results_status,
+              slot:slot_id (
+                start_time, end_time,
+                court:court_id ( name )
+              )
+            `,
+            )
+            .eq('host_id', userId)
+            .eq('results_status', 'not_submitted')
+            .in('status', ['pending_completion', 'done'])
+            .order('created_at', { ascending: false })
+            .limit(8)
+        : Promise.resolve({ data: [] })
+
       const overviewPromise = userId ? supabase.rpc('get_my_sessions_overview') : Promise.resolve({ data: [] })
 
-      const [openSessionsResult, profileResult, playerStatsResult, overviewResult] = await Promise.all([
+      const [openSessionsResult, profileResult, playerStatsResult, pendingMatchesResult, overviewResult] = await Promise.all([
         openSessionsPromise,
         profilePromise,
         playerStatsPromise,
+        pendingMatchesPromise,
         overviewPromise,
       ])
 
       const openSessions = ((openSessionsResult.data ?? []) as unknown as HomeSessionRecordRaw[]).map(normalizeHomeSessionRecord)
       const nextProfile = (profileResult.data ?? null) as HomeProfile | null
       const nextPlayerStats = (playerStatsResult.data ?? null) as PlayerStatsRecord | null
+      const pendingRows = (pendingMatchesResult.data ?? []) as PendingMatchRaw[]
       const overviewRows = (overviewResult.data ?? []) as MySessionOverviewRow[]
       const viewerElo = nextProfile?.current_elo ?? nextProfile?.elo ?? null
 
@@ -1643,8 +1793,28 @@ export default function HomeScreen() {
         ) ??
         null
 
+      const nextPendingMatches = pendingRows
+        .map((item) => {
+          const slot = normalizeRelation(item.slot)
+          const court = normalizeRelation(slot?.court ?? null)
+          const endTime = slot?.end_time ?? ''
+
+          return {
+            id: item.id,
+            courtName: court?.name ?? 'Kèo Pickleball',
+            timeLabel: formatPendingResultTimeLabel(endTime),
+            endTime,
+          }
+        })
+        .filter((item) => {
+          const endMs = Date.parse(item.endTime)
+          return !Number.isNaN(endMs) && endMs < Date.now()
+        })
+        .sort((left, right) => Date.parse(right.endTime) - Date.parse(left.endTime))
+
       setProfile(nextProfile)
       setPlayerStats(nextPlayerStats)
+      setPendingMatches(nextPendingMatches)
       setNextMatch(
         liveNextSession
           ? mapLiveSessionToMatchSession(liveNextSession, {
@@ -1678,6 +1848,7 @@ export default function HomeScreen() {
       setProfile(null)
       setPlayerStats(null)
       setNextMatch(null)
+      setPendingMatches([])
       setPersonalizedSessions([])
       setRescueSessions([])
       setFamiliarCourts([])
@@ -1722,6 +1893,14 @@ export default function HomeScreen() {
           <HomeGreetingHeader name={profile?.name ?? 'Bạn'} statusPrompt={statusPrompt} />
 
           <DashboardStatsStrip items={dashboardStats} />
+
+          {pendingMatches.length > 0 ? (
+            <PendingMatchResultCarousel
+              items={pendingMatches}
+              activeIndex={pendingMatchIndex}
+              onIndexChange={setPendingMatchIndex}
+            />
+          ) : null}
 
           {nextMatch ? (
             <View className="mt-8">

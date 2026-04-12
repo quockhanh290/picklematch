@@ -1,4 +1,5 @@
 import { AppButton, AppInput, EmptyState, ScreenHeader, SectionCard, StatusBadge } from '@/components/design'
+import { getEloBandByLegacySkillLabel, getEloBandByLevelId } from '@/lib/eloSystem'
 import { router } from 'expo-router'
 import { useEffect, useRef, useState } from 'react'
 import { ActivityIndicator, Alert, FlatList, ScrollView, Switch, Text, TouchableOpacity, View } from 'react-native'
@@ -13,17 +14,7 @@ const CITIES = ['Hồ Chí Minh', 'Hà Nội', 'Đà Nẵng', 'Cần Thơ', 'H�
 type Court = { id: string; name: string; address: string; city: string }
 
 function inferLevelIdFromLegacySkill(skillLabel?: string | null): SkillAssessmentLevel['id'] {
-  switch (skillLabel) {
-    case 'beginner':
-      return 'level_1'
-    case 'basic':
-      return 'level_2'
-    case 'advanced':
-      return 'level_5'
-    case 'intermediate':
-    default:
-      return 'level_3'
-  }
+  return getEloBandByLegacySkillLabel(skillLabel).levelId
 }
 
 export default function EditProfile() {
@@ -160,7 +151,7 @@ export default function EditProfile() {
 
     const selectedLevel = SKILL_ASSESSMENT_LEVELS.find((level) => level.id === selectedLevelId)
     const skillChanged = selectedLevelId !== originalLevelId
-    const newElo = selectedLevel?.starting_elo ?? 1150
+    const newElo = getEloBandByLevelId(selectedLevelId)?.seedElo ?? selectedLevel?.starting_elo ?? 1150
 
     setSaving(true)
 

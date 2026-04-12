@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { getSkillLevelFromEloRange, getSkillLevelFromPlayer } from '@/lib/skillAssessment'
 import { getSkillLevelUi, getSkillTargetElo } from '@/lib/skillLevelUi'
 import { supabase } from '@/lib/supabase'
@@ -14,6 +15,7 @@ import {
 import { useCallback, useEffect, useState } from 'react'
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Pressable,
   RefreshControl,
@@ -50,6 +52,22 @@ type Session = {
 
 type QuickFilterId = 'nearby' | 'recent' | 'level3' | 'rescue'
 
+type PlayerQueueProfile = {
+  id: string
+  city?: string | null
+  current_elo?: number | null
+  elo?: number | null
+  self_assessed_level?: string | null
+  skill_label?: string | null
+  favorite_court_ids?: string[] | null
+}
+
+const SMART_QUEUE_STORAGE_PREFIX = '@picklematch/smart-queue:'
+
+function getSmartQueueKey(userId: string) {
+  return `${SMART_QUEUE_STORAGE_PREFIX}${userId}`
+}
+
 const QUICK_FILTERS: { id: QuickFilterId; label: string }[] = [
   { id: 'nearby', label: 'Gần tôi' },
   { id: 'recent', label: 'Gần đây' },
@@ -83,6 +101,14 @@ function buildSearchIndex(session: Session) {
     .filter(Boolean)
     .join(' ')
     .toLowerCase()
+}
+
+function normalizeText(value?: string | null) {
+  return (value ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
 }
 
 function computeMatchScore(session: Session, rescueMode: boolean, level3Mode: boolean) {
@@ -240,6 +266,11 @@ export default function FindSession() {
     level3: false,
     rescue: false,
   })
+  const [playerProfile, setPlayerProfile] = useState<PlayerQueueProfile | null>(null)
+  const [smartQueueEnabled, setSmartQueueEnabled] = useState(false)
+  const [smartQueueHydrated, setSmartQueueHydrated] = useState(false)
+
+  const smartQueueStorageKey = playerProfile?.id ? getSmartQueueKey(playerProfile.id) : null
 
   const fetchSessions = useCallback(async () => {
     setLoading(true)
@@ -279,17 +310,48 @@ export default function FindSession() {
     fetchSessions()
   }, [fetchSessions])
 
+  const fetchPlayerProfile = useCallback(async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      setPlayerProfile(null)
+      setSmartQueueEnabled(false)
+      setSmartQueueHydrated(true)
+      return
+    }
+
+    const [{ data: profile }, storedFlag] = await Promise.all([
+      supabase
+        .from('players')
+        .select('id, city, current_elo, elo, self_assessed_level, skill_label, favorite_court_ids')
+        .eq('id', user.id)
+        .single(),
+      AsyncStorage.getItem(getSmartQueueKey(user.id)),
+    ])
+
+    setPlayerProfile((profile as PlayerQueueProfile | null) ?? null)
+    setSmartQueueEnabled(storedFlag === '1')
+    setSmartQueueHydrated(true)
+  }, [])
+
+  useEffect(() => {
+    void fetchPlayerProfile()
+  }, [fetchPlayerProfile])
+
   useFocusEffect(
     useCallback(() => {
       fetchSessions()
-    }, [fetchSessions]),
+      void fetchPlayerProfile()
+    }, [fetchPlayerProfile, fetchSessions]),
   )
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true)
-    await fetchSessions()
+    await Promise.all([fetchSessions(), fetchPlayerProfile()])
     setRefreshing(false)
-  }, [fetchSessions])
+  }, [fetchPlayerProfile, fetchSessions])
 
   const toggleQuickFilter = useCallback((filterId: QuickFilterId) => {
     setQuickFilters((current) => {
@@ -308,6 +370,56 @@ export default function FindSession() {
   }, [])
 
   const activeFiltersCount = Object.values(quickFilters).filter(Boolean).length
+
+  const applySmartQueueFilters = useCallback(
+    async (enabled: boolean) => {
+      if (!playerProfile?.id) {
+        Alert.alert(
+          'Cần hoàn thiện hồ sơ',
+          'Smart Queue cần thành phố và mức trình gần đúng để ưu tiên kèo hợp gu hơn.',
+          [
+            { text: 'Để sau', style: 'cancel' },
+            { text: 'Chỉnh hồ sơ', onPress: () => router.push('/edit-profile' as never) },
+          ],
+        )
+        return
+      }
+
+      if (!enabled) {
+        setSmartQueueEnabled(false)
+        setQuickFilters({ nearby: false, recent: false, level3: false, rescue: false })
+        setQuery('')
+        if (smartQueueStorageKey) {
+          await AsyncStorage.setItem(smartQueueStorageKey, '0')
+        }
+        return
+      }
+
+      const playerLevel = getSkillLevelFromPlayer(playerProfile)
+      const nextQuery = playerProfile.city?.trim() ?? ''
+      const normalizedCity = normalizeText(playerProfile.city)
+      const canUseNearbyFilter = normalizedCity.includes('ho chi minh') || normalizedCity.includes('thu duc')
+
+      setSortMode('match')
+      setQuery(nextQuery)
+      setQuickFilters({
+        nearby: canUseNearbyFilter,
+        recent: true,
+        level3: playerLevel?.id === 'level_3',
+        rescue: false,
+      })
+      setSmartQueueEnabled(true)
+      if (smartQueueStorageKey) {
+        await AsyncStorage.setItem(smartQueueStorageKey, '1')
+      }
+    },
+    [playerProfile, smartQueueStorageKey],
+  )
+
+  useEffect(() => {
+    if (!smartQueueHydrated || !playerProfile?.id) return
+    void applySmartQueueFilters(smartQueueEnabled)
+  }, [applySmartQueueFilters, playerProfile?.id, smartQueueEnabled, smartQueueHydrated])
 
   const filteredSessions = sessions
     .filter((session) => {
@@ -381,7 +493,7 @@ export default function FindSession() {
           className="flex-row items-center gap-2 rounded-full bg-emerald-600 px-4 py-2.5 active:scale-[0.98]"
         >
           <SlidersHorizontal size={14} color="#ffffff" strokeWidth={2.5} />
-          <Text className="text-[12px] font-black text-white">BỘ LỌC</Text>
+          <Text className="text-[12px] font-black text-white">B? L?C</Text>
         </Pressable>
 
         {QUICK_FILTERS.map((filter) => {
@@ -445,10 +557,24 @@ export default function FindSession() {
           Bật Smart Queue để nhận cảnh báo ngay khi có trận vừa trình, vừa giờ, vừa khoảng cách bạn đang săn.
         </Text>
 
-        <Pressable className="mt-5 flex-row items-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 active:scale-[0.98]">
+        <Pressable
+          onPress={() => void applySmartQueueFilters(!smartQueueEnabled)}
+          disabled={!smartQueueHydrated}
+          className={`mt-5 flex-row items-center gap-2 rounded-2xl px-5 py-3 active:scale-[0.98] ${
+            !smartQueueHydrated ? 'bg-slate-400 opacity-70' : smartQueueEnabled ? 'bg-slate-900' : 'bg-indigo-600'
+          }`}
+        >
           <Sparkles size={16} color="#ffffff" strokeWidth={2.5} />
-          <Text className="text-[12px] font-black uppercase tracking-widest text-white">Bật Smart Queue</Text>
+          <Text className="text-[12px] font-black uppercase tracking-widest text-white">
+            {smartQueueEnabled ? 'Tắt Smart Queue' : 'Bật Smart Queue'}
+          </Text>
         </Pressable>
+
+        {smartQueueEnabled ? (
+          <Text className="mt-3 text-center text-xs font-bold uppercase tracking-widest text-slate-500">
+            Đang ưu tiên kèo gần {playerProfile?.city?.trim() || 'gu của bạn'} và khớp nhịp chơi hiện tại
+          </Text>
+        ) : null}
       </View>
     </View>
   )
