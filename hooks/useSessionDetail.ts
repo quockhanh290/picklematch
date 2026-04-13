@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 export type SessionPlayer = {
   player_id: string
   team_no?: 1 | 2 | null
+  elo_snapshot?: number | null
   status?: string | null
   match_result?: string | null
   proposed_result?: string | null
@@ -32,6 +33,9 @@ export type SessionDetailRecord = {
   results_status?: string | null
   results_submitted_at?: string | null
   results_confirmation_deadline?: string | null
+  is_ranked?: boolean | null
+  elo_processed?: boolean | null
+  elo_skip_reason?: string | null
   require_approval: boolean
   court_booking_status: 'confirmed' | 'unconfirmed'
   booking_reference?: string | null

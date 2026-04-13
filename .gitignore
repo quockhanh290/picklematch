@@ -41,3 +41,11 @@ app-example
 # generated native folders
 /ios
 /android
+
+# test and debug artifacts
+playwright-report/
+test-results/
+courts_output/
+tmp_*/
+tmp_*.tsx
+*.log

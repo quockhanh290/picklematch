@@ -239,6 +239,7 @@ export default function CreateSession() {
         slot_id: newSlot.id,
         elo_min: eloMin,
         elo_max: eloMax,
+        is_ranked: true,
         max_players: maxPlayers,
         status: 'open',
         fill_deadline: fillDeadline.toISOString(),
