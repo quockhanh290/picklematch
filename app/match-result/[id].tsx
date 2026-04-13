@@ -314,6 +314,7 @@ export default function MatchResultEntryScreen() {
   const [session, setSession] = useState<MatchSessionRecord | null>(null)
   const [scoreA, setScoreA] = useState(0)
   const [scoreB, setScoreB] = useState(0)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
   const entryFade = useRef(new Animated.Value(0)).current
   const entryTranslate = useRef(new Animated.Value(18)).current
@@ -354,6 +355,10 @@ export default function MatchResultEntryScreen() {
         return
       }
 
+      if (mounted) {
+        setCurrentUserId(user.id)
+      }
+
       const { data, error } = await supabase.rpc('get_session_detail_overview', {
         p_session_id: id,
       })
@@ -368,6 +373,21 @@ export default function MatchResultEntryScreen() {
       }
 
       const nextSession = (data?.session ?? null) as MatchSessionRecord | null
+
+      if (nextSession?.host?.id && nextSession.host.id !== user.id) {
+        Alert.alert('Chỉ host mới được nhập kết quả', 'Bạn có thể xem trận này, nhưng chỉ host mới có thể gửi kết quả cuối cùng.', [
+          {
+            text: 'Quay lại',
+            onPress: () => router.back(),
+          },
+        ])
+
+        if (mounted) {
+          setSession(null)
+          setLoading(false)
+        }
+        return
+      }
 
       if (mounted) {
         setSession(nextSession)
@@ -422,6 +442,11 @@ export default function MatchResultEntryScreen() {
 
   async function onConfirm() {
     if (!session || !id) return
+
+    if (!currentUserId || session.host?.id !== currentUserId) {
+      Alert.alert('Chỉ host mới được nhập kết quả', 'Kết quả trận chỉ có thể được gửi bởi host của kèo này.')
+      return
+    }
 
     if (!teams[0].players.length || !teams[1].players.length) {
       Alert.alert('Thiếu đội hình', 'Trận này chưa có đủ người chơi ở cả hai đội để gửi kết quả.')
