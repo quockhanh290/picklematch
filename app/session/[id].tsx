@@ -160,8 +160,8 @@ function formatTimeRange(start: string, end: string) {
   const endDate = new Date(end)
   const weekdays = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7']
   const dateLabel = `${String(startDate.getDate()).padStart(2, '0')}/${String(startDate.getMonth() + 1).padStart(2, '0')}`
-  const timeLabel = `${String(startDate.getHours()).padStart(2, '0')}:${String(startDate.getMinutes()).padStart(2, '0')} ? ${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`
-  return `${weekdays[startDate.getDay()]}, ${dateLabel} ? ${timeLabel}`
+  const timeLabel = `${String(startDate.getHours()).padStart(2, '0')}:${String(startDate.getMinutes()).padStart(2, '0')} - ${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`
+  return `${weekdays[startDate.getDay()]}, ${dateLabel} • ${timeLabel}`
 }
 
 function formatPricePerPerson(totalPrice: number, maxPlayers: number) {
@@ -591,7 +591,7 @@ export default function SessionDetailScreen() {
           <View className="mt-3 flex-row items-start gap-2">
             <MapPin size={16} color="#64748b" strokeWidth={2.5} />
             <Text className="flex-1 text-[14px] leading-6 text-slate-500">
-              {session.slot.court.address} ? {session.slot.court.city}
+              {session.slot.court.address} • {session.slot.court.city}
             </Text>
           </View>
 
@@ -615,7 +615,7 @@ export default function SessionDetailScreen() {
                 <CreditCard size={18} color="#ea580c" strokeWidth={2.5} />
               </View>
               <View className="ml-3 flex-1">
-                <Text className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-400">Chi ph?</Text>
+                <Text className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-400">Chi phí</Text>
                 <Text className="mt-1 text-[14px] font-bold text-slate-900">
                   {formatPricePerPerson(session.slot.price, session.max_players)}
                 </Text>
@@ -735,9 +735,9 @@ export default function SessionDetailScreen() {
               <View className="mt-6 gap-6">
                 <View>
                   <View className="mb-4 flex-row items-center justify-between px-2">
-                    <Text className="text-[18px] font-black uppercase tracking-[0.14em] text-slate-900">TEAM A</Text>
+                    <Text className="text-[18px] font-black uppercase tracking-[0.14em] text-slate-900">ĐỘI A</Text>
                     <View className="rounded-2xl border border-slate-200 bg-white px-4 py-2">
-                      <Text className="text-[12px] font-black uppercase tracking-[0.04em] text-slate-400">{`AVG ELO: ${averageTeamA}`}</Text>
+                      <Text className="text-[12px] font-black uppercase tracking-[0.04em] text-slate-400">{`ELO TB: ${averageTeamA}`}</Text>
                     </View>
                   </View>
                   <View className="gap-3">
@@ -747,9 +747,9 @@ export default function SessionDetailScreen() {
 
                 <View>
                   <View className="mb-4 flex-row items-center justify-between px-2">
-                    <Text className="text-[18px] font-black uppercase tracking-[0.14em] text-slate-900">TEAM B</Text>
+                    <Text className="text-[18px] font-black uppercase tracking-[0.14em] text-slate-900">ĐỘI B</Text>
                     <View className="rounded-2xl border border-slate-200 bg-white px-4 py-2">
-                      <Text className="text-[12px] font-black uppercase tracking-[0.04em] text-slate-400">{`AVG ELO: ${averageTeamB}`}</Text>
+                      <Text className="text-[12px] font-black uppercase tracking-[0.04em] text-slate-400">{`ELO TB: ${averageTeamB}`}</Text>
                     </View>
                   </View>
                   <View className="gap-3">
@@ -834,4 +834,3 @@ export default function SessionDetailScreen() {
     </SafeAreaView>
   )
 }
-
