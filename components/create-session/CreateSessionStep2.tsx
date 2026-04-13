@@ -31,6 +31,10 @@ type Props = {
   setDeadlineHours: (hours: number) => void
   requireApproval: boolean
   setRequireApproval: (value: boolean) => void
+  isRanked: boolean
+  setIsRanked: (value: boolean) => void
+  canToggleRanked: boolean
+  rankedHelperText: string | null
   totalCostStr: string
   setTotalCostStr: (value: string) => void
   costPerPerson: number
@@ -178,6 +182,10 @@ export function CreateSessionStep2({
   setDeadlineHours,
   requireApproval,
   setRequireApproval,
+  isRanked,
+  setIsRanked,
+  canToggleRanked,
+  rankedHelperText,
   totalCostStr,
   setTotalCostStr,
   costPerPerson,
@@ -399,6 +407,34 @@ export function CreateSessionStep2({
               value={!requireApproval}
               onValueChange={(value) => setRequireApproval(!value)}
               trackColor={{ false: '#cbd5e1', true: '#86efac' }}
+              thumbColor="#ffffff"
+            />
+          </View>
+        </View>
+
+        <View className="mt-3 rounded-[16px] border border-slate-200 bg-white p-3.5">
+          <View className="flex-row items-center justify-between gap-3">
+            <View className="flex-1 flex-row items-start gap-3">
+              <View className="mt-0.5 h-9 w-9 items-center justify-center rounded-[12px] bg-amber-50">
+                <ShieldCheck size={18} color="#d97706" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-[14px] font-bold text-slate-900">Kèo tính Elo</Text>
+                <Text className="mt-0.5 text-[12px] leading-snug text-slate-500">
+                  Bật để trận này cập nhật Elo khi kết quả được chốt. Tắt nếu đây là kèo giao lưu hoặc không muốn ảnh hưởng xếp hạng.
+                </Text>
+                {rankedHelperText ? (
+                  <Text className={`mt-2 text-[12px] font-medium ${canToggleRanked ? 'text-slate-500' : 'text-amber-700'}`}>
+                    {rankedHelperText}
+                  </Text>
+                ) : null}
+              </View>
+            </View>
+            <Switch
+              value={isRanked}
+              onValueChange={setIsRanked}
+              disabled={!canToggleRanked}
+              trackColor={{ false: '#cbd5e1', true: '#fcd34d' }}
               thumbColor="#ffffff"
             />
           </View>

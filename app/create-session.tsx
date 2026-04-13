@@ -69,6 +69,9 @@ export default function CreateSession() {
   const [eloMax, setEloMax] = useState(CREATE_SESSION_ELO_LEVELS[4].elo)
   const [deadlineHours, setDeadlineHours] = useState(4)
   const [requireApproval, setRequireApproval] = useState(false)
+  const [isRanked, setIsRanked] = useState(true)
+  const [canToggleRanked, setCanToggleRanked] = useState(false)
+  const [rankedHelperText, setRankedHelperText] = useState<string | null>('Đang kiểm tra quyền dùng kèo tính Elo...')
   const [totalCostStr, setTotalCostStr] = useState('')
   const [minSkill, setMinSkill] = useState(1)
   const [maxSkill, setMaxSkill] = useState(5)
@@ -124,6 +127,49 @@ export default function CreateSession() {
     setTimeError(validateEnd(endTime, startTime))
   }, [endTime, startTime, validateEnd, validateStart])
 
+  useEffect(() => {
+    let mounted = true
+
+    async function loadRankedEligibility() {
+      const { data: authData } = await supabase.auth.getUser()
+      const user = authData.user
+
+      if (!user) {
+        if (!mounted) return
+        setIsRanked(false)
+        setCanToggleRanked(false)
+        setRankedHelperText('Đăng nhập để chọn kèo có tính Elo.')
+        return
+      }
+
+      const { data: playerRow } = await supabase
+        .from('players')
+        .select('onboarding_completed')
+        .eq('id', user.id)
+        .single()
+
+      const onboardingCompleted = Boolean(playerRow?.onboarding_completed)
+
+      if (!mounted) return
+
+      setCanToggleRanked(onboardingCompleted)
+      if (!onboardingCompleted) {
+        setIsRanked(false)
+        setRankedHelperText('Hoàn tất onboarding để dùng kèo tính Elo.')
+        return
+      }
+
+      setIsRanked(true)
+      setRankedHelperText('Bạn có thể bật hoặc tắt Elo cho kèo này trước khi đăng.')
+    }
+
+    void loadRankedEligibility()
+
+    return () => {
+      mounted = false
+    }
+  }, [])
+
   function defaultPickerValue(type: 'start' | 'end'): Date {
     const base = selectedDate ?? new Date()
     const next = new Date(base)
@@ -151,8 +197,8 @@ export default function CreateSession() {
     const url = selectedCourt?.booking_url ?? selectedCourt?.google_maps_url
     if (!url) {
       Alert.alert(
-        '\u0043\u0068\u01b0\u0061\u0020\u0063\u00f3\u0020\u006c\u0069\u006e\u006b\u0020\u0111\u1eb7\u0074\u0020\u0073\u00e2\u006e',
-        '\u0053\u00e2\u006e\u0020\u006e\u00e0\u0079\u0020\u0063\u0068\u01b0\u0061\u0020\u0063\u00f3\u0020\u006c\u0069\u006e\u006b\u0020\u0062\u006f\u006f\u006b\u0069\u006e\u0067\u002e\u0020\u0042\u1ea1\u006e\u0020\u0076\u1eab\u006e\u0020\u0063\u00f3\u0020\u0074\u0068\u1ec3\u0020\u0074\u1ef1\u0020\u0111\u1eb7\u0074\u0020\u0072\u1ed3\u0069\u0020\u006e\u0068\u1ead\u0070\u0020\u0074\u0068\u00f4\u006e\u0067\u0020\u0074\u0069\u006e\u0020\u0062\u00ea\u006e\u0020\u0064\u01b0\u1edb\u0069\u002e',
+        'Chưa có link đặt sân',
+        'Sân này chưa có link booking. Bạn vẫn có thể tự đặt rồi nhập thông tin bên dưới.',
       )
       return
     }
@@ -161,8 +207,8 @@ export default function CreateSession() {
       await Linking.openURL(url)
     } catch {
       Alert.alert(
-        '\u004b\u0068\u00f4\u006e\u0067\u0020\u006d\u1edf\u0020\u0111\u01b0\u1ee3\u0063\u0020\u006c\u0069\u006e\u006b',
-        '\u0056\u0075\u0069\u0020\u006c\u00f2\u006e\u0067\u0020\u0074\u0068\u1eed\u0020\u006c\u1ea1\u0069\u0020\u0068\u006f\u1eb7\u0063\u0020\u006d\u1edf\u0020\u006c\u0069\u006e\u006b\u0020\u0062\u006f\u006f\u006b\u0069\u006e\u0067\u0020\u0063\u1ee7\u0061\u0020\u0073\u00e2\u006e\u0020\u0074\u0068\u0065\u006f\u0020\u0063\u00e1\u0063\u0068\u0020\u006b\u0068\u00e1\u0063\u002e',
+        'Không mở được link',
+        'Vui lòng thử lại hoặc mở link booking của sân theo cách khác.',
       )
     }
   }
@@ -239,7 +285,7 @@ export default function CreateSession() {
         slot_id: newSlot.id,
         elo_min: eloMin,
         elo_max: eloMax,
-        is_ranked: true,
+        is_ranked: isRanked,
         max_players: maxPlayers,
         status: 'open',
         fill_deadline: fillDeadline.toISOString(),
@@ -367,6 +413,10 @@ export default function CreateSession() {
           setDeadlineHours={setDeadlineHours}
           requireApproval={requireApproval}
           setRequireApproval={setRequireApproval}
+          isRanked={isRanked}
+          setIsRanked={setIsRanked}
+          canToggleRanked={canToggleRanked}
+          rankedHelperText={rankedHelperText}
           totalCostStr={totalCostStr}
           setTotalCostStr={setTotalCostStr}
           costPerPerson={costPerPerson}
