@@ -210,6 +210,26 @@ const USERS = [
     host_reputation: 0,
     earned_badges: ['Friendly'],
   },
+  {
+    key: 'freshOnboardingUser',
+    email: 'player.fresh@picklematch.vn',
+    phone: '+84990000008',
+    name: 'Ngoc Mai',
+    city: 'Ho Chi Minh',
+    level: 'level_1',
+    skill_label: 'beginner',
+    elo: 800,
+    current_elo: 800,
+    auto_accept: false,
+    is_provisional: true,
+    placement_matches_played: 0,
+    sessions_joined: 0,
+    no_show_count: 0,
+    reliability_score: 100,
+    host_reputation: 0,
+    earned_badges: [],
+    seedPlayer: false,
+  },
 ]
 
 function isoAt(dayOffset, hour, minute) {
@@ -392,7 +412,7 @@ async function seedPlayerStatsAndAchievements(authUsers) {
 }
 
 async function seedPlayers(authUsers) {
-  const rows = USERS.map((userDef) => ({
+  const rows = USERS.filter((userDef) => userDef.seedPlayer !== false).map((userDef) => ({
     id: authUsers[userDef.key].id,
     phone: userDef.phone,
     name: userDef.name,
@@ -1318,6 +1338,7 @@ async function main() {
   }
 
   console.log('\nSuggested test flows:')
+  console.log(`- Fresh onboarding user: player.fresh@picklematch.vn / ${DUMMY_PASSWORD}`)
   console.log(`- Home open confirmed: ${IDS.sessions.openConfirmed}`)
   console.log(`- Approval flow: ${IDS.sessions.openApproval}`)
   console.log(`- Full session / waitlist: ${IDS.sessions.fullConfirmed}`)
