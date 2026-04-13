@@ -1,13 +1,12 @@
 import { AppButton, AppInput, EmptyState, ScreenHeader, SectionCard, StatusBadge } from '@/components/design'
-import { getEloBandByLegacySkillLabel, getEloBandByLevelId } from '@/lib/eloSystem'
+import { getEloBandByLegacySkillLabel, getEloBandByLevelId, getUserDescriptionForLevelId } from '@/lib/eloSystem'
+import { getSkillLevelById, type SkillAssessmentLevel } from '@/lib/skillAssessment'
+import { supabase } from '@/lib/supabase'
 import { router } from 'expo-router'
+import { MapPin } from 'lucide-react-native'
 import { useEffect, useRef, useState } from 'react'
 import { ActivityIndicator, Alert, FlatList, ScrollView, Switch, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-
-import { SKILL_ASSESSMENT_LEVELS, type SkillAssessmentLevel } from '@/lib/skillAssessment'
-import { supabase } from '@/lib/supabase'
-import { MapPin } from 'lucide-react-native'
 
 const CITIES = ['Hồ Chí Minh', 'Hà Nội', 'Đà Nẵng', 'Cần Thơ', 'Hải Phòng']
 
@@ -25,7 +24,6 @@ export default function EditProfile() {
   const [name, setName] = useState('')
   const [city, setCity] = useState('')
   const [selectedLevelId, setSelectedLevelId] = useState<SkillAssessmentLevel['id']>('level_3')
-  const [originalLevelId, setOriginalLevelId] = useState<SkillAssessmentLevel['id']>('level_3')
   const [autoAccept, setAutoAccept] = useState(false)
 
   const [keyword, setKeyword] = useState('')
@@ -37,7 +35,7 @@ export default function EditProfile() {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    init()
+    void init()
   }, [])
 
   useEffect(() => {
@@ -59,6 +57,10 @@ export default function EditProfile() {
       setCourts(data ?? [])
       setSearching(false)
     }, 400)
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
   }, [keyword])
 
   async function init() {
@@ -87,7 +89,6 @@ export default function EditProfile() {
         (data.self_assessed_level as SkillAssessmentLevel['id'] | null) ?? inferLevelIdFromLegacySkill(data.skill_label)
 
       setSelectedLevelId(levelId)
-      setOriginalLevelId(levelId)
       setAutoAccept(Boolean(data.auto_accept))
 
       const ids: string[] = data.favorite_court_ids ?? []
@@ -121,24 +122,15 @@ export default function EditProfile() {
     setFavCourts((prev) => prev.filter((court) => court.id !== courtId))
   }
 
-  function handleSelectLevel(levelId: SkillAssessmentLevel['id']) {
-    if (levelId === selectedLevelId) return
-
-    if (levelId !== originalLevelId) {
-      const nextLevel = SKILL_ASSESSMENT_LEVELS.find((level) => level.id === levelId)
-
-      Alert.alert(
-        'Đổi trình độ tự đánh giá?',
-        `Nếu chuyển sang "${nextLevel?.title ?? 'mức mới'}", tài khoản của bạn sẽ bị reset về placement mode và số placement matches sẽ được tính lại từ đầu. Bạn có muốn tiếp tục không?`,
-        [
-          { text: 'Giữ nguyên', style: 'cancel' },
-          { text: 'Xác nhận đổi', onPress: () => setSelectedLevelId(levelId) },
-        ],
-      )
-      return
-    }
-
-    setSelectedLevelId(levelId)
+  function handleRedoAssessment() {
+    Alert.alert(
+      'Làm lại bài đánh giá?',
+      'Mức hiện tại sẽ được giữ nguyên cho tới khi bạn hoàn thành bài đánh giá mới. Sau đó hệ thống sẽ cập nhật mức khởi điểm phù hợp hơn.',
+      [
+        { text: 'Để sau', style: 'cancel' },
+        { text: 'Bắt đầu', onPress: () => router.push('/onboarding' as any) },
+      ],
+    )
   }
 
   async function save() {
@@ -149,26 +141,13 @@ export default function EditProfile() {
 
     if (!myId) return
 
-    const selectedLevel = SKILL_ASSESSMENT_LEVELS.find((level) => level.id === selectedLevelId)
-    const skillChanged = selectedLevelId !== originalLevelId
-    const newElo = getEloBandByLevelId(selectedLevelId)?.seedElo ?? selectedLevel?.starting_elo ?? 1150
-
     setSaving(true)
 
-    const updates: Record<string, any> = {
+    const updates = {
       name: name.trim(),
       city,
-      self_assessed_level: selectedLevelId,
-      skill_label: selectedLevel?.legacy_skill_label ?? 'intermediate',
-      current_elo: newElo,
-      elo: newElo,
       favorite_court_ids: favCourtIds,
       auto_accept: autoAccept,
-    }
-
-    if (skillChanged) {
-      updates.is_provisional = true
-      updates.placement_matches_played = 0
     }
 
     const { error } = await supabase.from('players').update(updates).eq('id', myId)
@@ -180,18 +159,12 @@ export default function EditProfile() {
       return
     }
 
-    if (skillChanged) {
-      setOriginalLevelId(selectedLevelId)
-    }
-
-    Alert.alert(
-      'Đã lưu',
-      skillChanged
-        ? 'Hồ sơ đã được cập nhật. Trình độ mới đã áp dụng và tài khoản của bạn đã quay lại placement mode.'
-        : 'Hồ sơ của bạn đã được cập nhật.',
-      [{ text: 'OK', onPress: () => router.back() }],
-    )
+    Alert.alert('Đã lưu', 'Hồ sơ của bạn đã được cập nhật.', [{ text: 'OK', onPress: () => router.back() }])
   }
+
+  const currentLevel = getSkillLevelById(selectedLevelId)
+  const currentBand = getEloBandByLevelId(selectedLevelId)
+  const currentDescription = getUserDescriptionForLevelId(selectedLevelId)
 
   if (loading) {
     return (
@@ -205,9 +178,9 @@ export default function EditProfile() {
     <SafeAreaView className="flex-1 bg-stone-100" edges={['top']}>
       <ScrollView contentContainerStyle={{ paddingBottom: 48 }}>
         <ScreenHeader
-          eyebrow="Cá nhân hoá"
+          eyebrow="Cá nhân hóa"
           title="Chỉnh sửa hồ sơ"
-          subtitle="Cập nhật thông tin cá nhân, level tự đánh giá và các sân bạn hay chơi để ghép kèo chuẩn hơn."
+          subtitle="Cập nhật thông tin cá nhân, cách Smart Join xử lý kèo và những sân bạn hay chơi."
         />
 
         <View className="px-5">
@@ -237,35 +210,31 @@ export default function EditProfile() {
           </SectionCard>
 
           <SectionCard
-            title="Trình độ tự đánh giá"
-            subtitle="Nếu bạn đổi mức trình độ, tài khoản sẽ bị reset về placement mode. App sẽ hỏi xác nhận trước khi áp dụng thay đổi."
+            title="Mức chơi hiện tại"
+            subtitle="Đây là mức khởi điểm để ghép kèo dễ chịu hơn. Hệ thống sẽ tiếp tục tinh chỉnh sau vài trận và phản hồi thực tế."
             className="mb-4"
           >
-            <View className="gap-3">
-              {SKILL_ASSESSMENT_LEVELS.map((level) => {
-                const isSelected = selectedLevelId === level.id
-
-                return (
-                  <TouchableOpacity
-                    key={level.id}
-                    activeOpacity={0.9}
-                    className={`rounded-[24px] border p-4 ${isSelected ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 bg-white'}`}
-                    onPress={() => handleSelectLevel(level.id)}
-                  >
-                    <View className="flex-row items-start justify-between">
-                      <Text className={`flex-1 pr-3 text-base font-extrabold ${isSelected ? 'text-emerald-800' : 'text-slate-900'}`}>
-                        {level.title}
-                      </Text>
-                      <StatusBadge label={level.dupr} tone={isSelected ? 'success' : 'neutral'} />
-                    </View>
-                    <Text className="mt-2 text-sm font-semibold text-slate-500">
-                      {level.subtitle} · Elo {level.starting_elo}
-                    </Text>
-                    <Text className="mt-3 text-sm leading-6 text-slate-500">{level.description}</Text>
-                  </TouchableOpacity>
-                )
-              })}
+            <View className="rounded-[24px] border border-emerald-200 bg-emerald-50 p-4">
+              <View className="flex-row items-start justify-between">
+                <View className="flex-1 pr-3">
+                  <Text className="text-base font-extrabold text-emerald-900">{currentBand?.shortLabel ?? currentLevel?.title ?? 'Cọ xát'}</Text>
+                  <Text className="mt-2 text-sm font-semibold text-emerald-700">
+                    {currentBand ? `Elo ${currentBand.seedElo} · ${currentBand.eloMin}-${currentBand.eloMax}` : 'Mức khởi điểm hiện tại'}
+                  </Text>
+                </View>
+                <StatusBadge label="Mức hiện tại" tone="success" />
+              </View>
+              <Text className="mt-3 text-sm leading-6 text-emerald-800">
+                {currentDescription ?? currentLevel?.description ?? 'Hệ thống sẽ tiếp tục hiệu chỉnh mức chơi này khi bạn có thêm trận và phản hồi thực tế.'}
+              </Text>
             </View>
+
+            <TouchableOpacity activeOpacity={0.9} className="mt-4 rounded-[20px] bg-slate-900 px-4 py-4" onPress={handleRedoAssessment}>
+              <Text className="text-center text-sm font-extrabold text-white">Làm lại bài đánh giá</Text>
+              <Text className="mt-2 text-center text-sm leading-6 text-slate-300">
+                Dùng lại 7 câu hỏi onboarding để hệ thống ước lượng mức khởi điểm mới cho bạn.
+              </Text>
+            </TouchableOpacity>
           </SectionCard>
 
           <SectionCard title="Smart Join" subtitle="Thiết lập cách hệ thống xử lý người chơi phù hợp trình độ khi họ muốn vào kèo của bạn." className="mb-4">

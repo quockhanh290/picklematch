@@ -1,0 +1,146 @@
+import { useCallback, useEffect, useState } from 'react'
+import { Alert } from 'react-native'
+
+import { supabase } from '@/lib/supabase'
+
+export type SessionPlayer = {
+  player_id: string
+  team_no?: 1 | 2 | null
+  status?: string | null
+  match_result?: string | null
+  proposed_result?: string | null
+  result_confirmation_status?: string | null
+  result_dispute_note?: string | null
+  player: {
+    name: string
+    elo?: number | null
+    current_elo?: number | null
+    self_assessed_level?: string | null
+    skill_label?: string | null
+    reliability_score?: number | null
+    sessions_joined?: number | null
+    no_show_count?: number | null
+  } | null
+}
+
+export type SessionDetailRecord = {
+  id: string
+  max_players: number
+  elo_min: number
+  elo_max: number
+  status: string
+  results_status?: string | null
+  results_submitted_at?: string | null
+  results_confirmation_deadline?: string | null
+  require_approval: boolean
+  court_booking_status: 'confirmed' | 'unconfirmed'
+  booking_reference?: string | null
+  booking_name?: string | null
+  booking_phone?: string | null
+  booking_notes?: string | null
+  host: {
+    id: string
+    name: string
+    auto_accept?: boolean | null
+    elo?: number | null
+    current_elo?: number | null
+    self_assessed_level?: string | null
+    skill_label?: string | null
+    reliability_score?: number | null
+    sessions_joined?: number | null
+    no_show_count?: number | null
+  }
+  slot: {
+    id?: string
+    start_time: string
+    end_time: string
+    price: number
+    court: {
+      id?: string
+      name: string
+      address: string
+      city: string
+    }
+  }
+  session_players: SessionPlayer[]
+}
+
+export type RequestStatus = 'none' | 'pending' | 'accepted' | 'rejected'
+
+export type ViewerPlayer = {
+  id: string
+  elo?: number | null
+  current_elo?: number | null
+}
+
+export function useSessionDetail(id?: string, userId?: string | null) {
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [session, setSession] = useState<SessionDetailRecord | null>(null)
+  const [viewerPlayer, setViewerPlayer] = useState<ViewerPlayer | null>(null)
+  const [requestStatus, setRequestStatus] = useState<RequestStatus>('none')
+  const [hostResponseTemplate, setHostResponseTemplate] = useState<string | null>(null)
+  const [introNote, setIntroNote] = useState('')
+
+  const fetchSession = useCallback(async () => {
+    if (!id) return
+
+    const { data, error } = await supabase.rpc('get_session_detail_overview', { p_session_id: id })
+
+    if (error) {
+      Alert.alert('Không tải được kèo', error.message)
+      setSession(null)
+      return
+    }
+
+    const nextSession = (data?.session ?? null) as SessionDetailRecord | null
+    setSession(nextSession)
+    setRequestStatus((data?.viewer_request_status as RequestStatus | null) ?? 'none')
+    setHostResponseTemplate((data?.viewer_host_response_template as string | null) ?? null)
+    setIntroNote((data?.viewer_intro_note as string | null) ?? '')
+
+    if (userId) {
+      const { data: viewerData } = await supabase.from('players').select('id, elo, current_elo').eq('id', userId).single()
+      setViewerPlayer((viewerData as ViewerPlayer | null) ?? null)
+    } else {
+      setViewerPlayer(null)
+    }
+  }, [id, userId])
+
+  useEffect(() => {
+    let mounted = true
+
+    async function run() {
+      setLoading(true)
+      await fetchSession()
+      if (mounted) setLoading(false)
+    }
+
+    void run()
+
+    return () => {
+      mounted = false
+    }
+  }, [fetchSession])
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true)
+    await fetchSession()
+    setRefreshing(false)
+  }, [fetchSession])
+
+  return {
+    loading,
+    refreshing,
+    session,
+    viewerPlayer,
+    requestStatus,
+    setRequestStatus,
+    hostResponseTemplate,
+    setHostResponseTemplate,
+    introNote,
+    setIntroNote,
+    fetchSession,
+    onRefresh,
+  }
+}

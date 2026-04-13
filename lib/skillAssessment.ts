@@ -1,4 +1,3 @@
-import { supabase } from './supabase'
 import {
   ELO_BANDS,
   getEloBandByLevelId,
@@ -8,6 +7,7 @@ import {
   getEloBandForSessionRange,
   getShortLabelForLevelId,
 } from './eloSystem'
+import { supabase } from './supabase'
 
 export type SkillAssessmentLevel = {
   id: 'level_1' | 'level_2' | 'level_3' | 'level_4' | 'level_5'
@@ -22,51 +22,46 @@ export type SkillAssessmentLevel = {
 export const SKILL_ASSESSMENT_LEVELS: SkillAssessmentLevel[] = [
   {
     id: 'level_1',
-    title: 'Mới bóc tem',
-    subtitle: 'Newbie',
+    title: 'Mới chơi',
+    subtitle: 'Bắt đầu làm quen',
     dupr: 'DUPR: Dưới 2.5',
-    description:
-      'Mới làm quen pickleball, còn đang học luật, giữ bóng và vào nhịp.',
+    description: 'Mới làm quen pickleball, còn đang học luật, giữ bóng và vào nhịp.',
     starting_elo: ELO_BANDS[0].seedElo,
     legacy_skill_label: 'beginner',
   },
   {
     id: 'level_2',
-    title: 'Biết điều bóng',
-    subtitle: 'Beginner',
+    title: 'Cơ bản',
+    subtitle: 'Đã chơi những pha cơ bản',
     dupr: 'DUPR: 2.5 - 3.0',
-    description:
-      'Đã chơi được các pha bóng cơ bản, nhưng độ ổn định chưa cao.',
+    description: 'Đã chơi được các pha bóng cơ bản, nhưng độ ổn định chưa cao.',
     starting_elo: ELO_BANDS[1].seedElo,
     legacy_skill_label: 'basic',
   },
   {
     id: 'level_3',
-    title: 'Chiến thần cọ xát',
-    subtitle: 'Lower Intermediate',
+    title: 'Cọ xát',
+    subtitle: 'Đã vào nhịp thi đấu',
     dupr: 'DUPR: 3.25 - 3.5',
-    description:
-      'Đã đánh khá đều, giữ rally tốt và bắt đầu quen nhịp thi đấu.',
+    description: 'Đã đánh khá đều, giữ rally tốt và bắt đầu quen nhịp thi đấu.',
     starting_elo: ELO_BANDS[2].seedElo,
     legacy_skill_label: 'intermediate',
   },
   {
     id: 'level_4',
-    title: 'Tay vợt phong trào',
-    subtitle: 'Upper Intermediate',
+    title: 'Phong trào',
+    subtitle: 'Kiểm soát được nhiều tình huống',
     dupr: 'DUPR: 3.75 - 4.25',
-    description:
-      'Chơi chắc tay, biết kiểm soát nhiều tình huống và đánh cân với nhóm phong trào mạnh.',
+    description: 'Chơi chắc tay, biết kiểm soát nhiều tình huống và đánh cân với nhóm phong trào mạnh.',
     starting_elo: ELO_BANDS[3].seedElo,
     legacy_skill_label: 'intermediate',
   },
   {
     id: 'level_5',
-    title: 'Thợ săn giải thưởng',
-    subtitle: 'Advanced',
+    title: 'Sân giải',
+    subtitle: 'Chơi nghiêm túc, chịu áp lực tốt',
     dupr: 'DUPR: 4.5 trở lên',
-    description:
-      'Đánh nghiêm túc, xử lý ổn định dưới áp lực và có thể chơi ở mặt bằng giải phong trào.',
+    description: 'Đánh nghiêm túc, xử lý ổn định dưới áp lực và có thể chơi ở mặt bằng giải phong trào.',
     starting_elo: ELO_BANDS[4].seedElo,
     legacy_skill_label: 'advanced',
   },
@@ -94,7 +89,7 @@ export function getSkillLevelFromPlayer(
     current_elo?: number | null
     elo?: number | null
     skill_label?: string | null
-  } | null
+  } | null,
 ) {
   return (
     getSkillLevelById(player?.self_assessed_level) ??
@@ -137,7 +132,7 @@ export function getSkillScoreFromPlayer(
     current_elo?: number | null
     elo?: number | null
     skill_label?: string | null
-  } | null
+  } | null,
 ) {
   const level = getSkillLevelFromPlayer(player)
   return level ? SKILL_ASSESSMENT_LEVELS.findIndex((item) => item.id === level.id) + 1 : null

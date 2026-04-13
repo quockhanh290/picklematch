@@ -1,6 +1,6 @@
 import { AppButton, EmptyState, ScreenHeader } from '@/components/design'
-import CommunityFeedbackPanel from '@/components/profile/CommunityFeedbackSection'
 import type { FeedbackTrait } from '@/components/profile/CommunityFeedbackSection'
+import CommunityFeedbackPanel from '@/components/profile/CommunityFeedbackSection'
 import {
   ProfileHistoryList,
   ProfileIdentityCard,
@@ -8,8 +8,8 @@ import {
   ProfileStatsGrid,
   ProfileWinStreak,
 } from '@/components/profile/ProfileSections'
-import TrophyRoomSection from '@/components/profile/TrophyRoom'
 import type { TrophyBadge } from '@/components/profile/TrophyRoom'
+import TrophyRoomSection from '@/components/profile/TrophyRoom'
 import { getSkillLevelFromElo, getSkillLevelFromPlayer } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
 import { useAppTheme } from '@/lib/theme-context'
@@ -255,11 +255,11 @@ export default function ProfileScreen() {
     }
 
     const counts: Record<string, number> = {}
-    ;(data ?? []).forEach((rating: any) => {
-      rating.tags?.forEach((tag: string) => {
-        counts[tag] = (counts[tag] ?? 0) + 1
+      ; (data ?? []).forEach((rating: any) => {
+        rating.tags?.forEach((tag: string) => {
+          counts[tag] = (counts[tag] ?? 0) + 1
+        })
       })
-    })
 
     setRatingTags(counts)
   }, [])

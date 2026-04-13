@@ -11,7 +11,8 @@
     "test": "node --experimental-strip-types --experimental-specifier-resolution=node tests/domain-logic.test.mts",
     "lint": "expo lint",
     "check:encoding": "node ./scripts/check-encoding.mjs",
-    "seed:dummy": "node ./scripts/seed-dummy-data.mjs"
+    "seed:dummy": "node ./scripts/seed-dummy-data.mjs",
+    "smoke:backend": "node ./scripts/smoke-backend.mjs"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

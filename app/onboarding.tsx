@@ -183,8 +183,8 @@ export default function OnboardingScreen() {
     <SafeAreaView style={styles.screen}>
       <View style={styles.hero}>
         <Text style={styles.eyebrow}>Onboarding</Text>
-        <Text style={styles.title}>Để mình ước lượng mức chơi ban đầu cho bạn</Text>
-        <Text style={styles.subtitle}>7 câu ngắn, trả lời theo cảm giác thật trên sân để app ghép kèo dễ chịu hơn.</Text>
+        <Text style={styles.title}>Để mình ước lượng mức khởi điểm phù hợp cho bạn</Text>
+        <Text style={styles.subtitle}>7 câu ngắn, trả lời theo cảm giác thật trên sân để app ghép kèo dễ chịu hơn. Hệ thống sẽ còn tiếp tục tinh chỉnh sau vài trận đầu.</Text>
 
         <View style={styles.progressMeta}>
           <Text style={styles.progressCount}>
@@ -278,7 +278,7 @@ export default function OnboardingScreen() {
             <Text style={styles.completionTitle}>{completionTier}</Text>
             {completionDescription ? <Text style={styles.completionSummary}>{completionDescription}</Text> : null}
             <Text style={styles.completionText}>
-              Hệ thống đã ghi nhận trình độ của bạn. Elo sẽ chính xác hơn sau 5 trận đầu tiên.
+              Hệ thống đã ghi nhận mức khởi điểm của bạn. Elo sẽ chính xác hơn sau 5 trận đầu tiên và tiếp tục được tinh chỉnh bằng kết quả thực tế.
             </Text>
             <ActivityIndicator color="#0f9f6e" style={{ marginTop: 16 }} />
           </View>

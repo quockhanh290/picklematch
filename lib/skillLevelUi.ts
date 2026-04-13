@@ -61,7 +61,7 @@ export const SKILL_LEVEL_UI: Record<SkillAssessmentLevel['id'], SkillTierUi> = {
     duprValue: '4.0',
   },
   level_5: {
-    shortLabel: 'Săn giải',
+    shortLabel: 'Sân giải',
     icon: Trophy,
     tagClassName: 'bg-sky-50',
     textClassName: 'text-sky-700',

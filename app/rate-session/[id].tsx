@@ -19,7 +19,7 @@ import {
   X,
   Zap,
 } from 'lucide-react-native'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
@@ -38,6 +38,7 @@ type SkillValidation = 'weaker' | 'matched' | 'outclass'
 type SessionRecord = {
   id: string
   status: string
+  results_status?: string | null
   host_id: string
   slot?: {
     end_time?: string | null
@@ -164,13 +165,6 @@ export default function RateSessionScreen() {
   const currentPlayer = players[currentIndex] ?? null
   const currentEntry = currentPlayer ? (ratings[currentPlayer.player_id] ?? createDefaultEntry()) : createDefaultEntry()
 
-  const revealAt = useMemo(() => {
-    const base = sessionEndTime ? new Date(sessionEndTime) : new Date()
-    const next = new Date(base)
-    next.setHours(next.getHours() + 24)
-    return next.toISOString()
-  }, [sessionEndTime])
-
   const init = useCallback(async () => {
     const {
       data: { user },
@@ -187,7 +181,7 @@ export default function RateSessionScreen() {
       .from('sessions')
       .select(
         `
-        id, status, host_id,
+        id, status, results_status, host_id,
         slot:slot_id (
           end_time
         ),
@@ -208,6 +202,13 @@ export default function RateSessionScreen() {
 
     if (session.status !== 'done') {
       Alert.alert('Kèo chưa kết thúc', 'Chỉ có thể đánh giá sau khi buổi chơi đã hoàn tất.')
+      router.back()
+      return
+    }
+
+    if (session.results_status !== 'finalized') {
+      setLoading(false)
+      Alert.alert('Kết quả trận chưa được chốt', 'Bạn chỉ có thể đánh giá sau khi kết quả trận đã được xác nhận xong.')
       router.back()
       return
     }
@@ -304,15 +305,12 @@ export default function RateSessionScreen() {
     setSaving(true)
     const entry = ratings[currentPlayer.player_id] ?? createDefaultEntry()
 
-    const { error: ratingError } = await supabase.from('ratings').insert({
-      session_id: id,
-      rater_id: myId,
-      rated_id: currentPlayer.player_id,
-      tags: entry.no_show ? [] : entry.tags,
-      no_show: entry.no_show,
-      skill_validation: entry.skill_validation,
-      is_hidden: true,
-      reveal_at: revealAt,
+    const { error: ratingError } = await supabase.rpc('submit_rating', {
+      p_session_id: id,
+      p_rated_id: currentPlayer.player_id,
+      p_tags: entry.tags,
+      p_no_show: entry.no_show,
+      p_skill_validation: entry.skill_validation,
     })
 
     if (ratingError) {
