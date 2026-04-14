@@ -267,7 +267,7 @@ export default function PlayerProfile() {
 
           {favCourts.length > 0 ? (
             <View className="mt-6 rounded-[24px] border border-slate-200 bg-white p-5">
-              <Text className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Favorite Courts</Text>
+              <Text className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Sân ưa thích</Text>
               <Text className="mt-2 text-2xl font-black text-slate-900">Sân hay chơi</Text>
               <View className="mt-4 gap-3">
                 {favCourts.map((court) => (

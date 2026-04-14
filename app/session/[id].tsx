@@ -2,6 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router'
 import * as Linking from 'expo-linking'
 import {
   ActivityIndicator,
+  Alert,
   RefreshControl,
   ScrollView,
   Share,
@@ -207,8 +208,15 @@ export default function SessionDetailScreen() {
             <TouchableOpacity
               className="h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white"
               onPress={() => {
-                const url = Linking.createURL(`/session/${id}`)
-                void Share.share({ message: `Tham gia kèo pickleball này nhé! ${url}` })
+                void (async () => {
+                  try {
+                    const url = Linking.createURL(`/session/${id}`)
+                    await Share.share({ message: `Tham gia kèo pickleball này nhé! ${url}` })
+                  } catch (error) {
+                    console.warn('[SessionDetail] Failed to share session:', error)
+                    Alert.alert('Không thể chia sẻ', 'Vui lòng thử lại sau ít phút.')
+                  }
+                })()
               }}
               activeOpacity={0.9}
             >

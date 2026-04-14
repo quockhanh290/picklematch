@@ -301,7 +301,7 @@ export default function ConfirmSessionResultScreen() {
             <Text className="mt-2 text-sm font-semibold text-slate-500">
               {isMemberFallbackFlow
                 ? 'Bạn có thể báo kết quả mình ghi nhận hoặc cho biết trận không diễn ra.'
-                : `${session.host.name ?? 'Chủ kèo'} đã gửi kết quả cho bạn xác nhận`}
+                : 'Vui lòng kiểm tra kỹ kết quả này và xác nhận hoặc phản hồi nếu có sai lệch.'}
             </Text>
 
             <View

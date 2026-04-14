@@ -539,8 +539,14 @@ export default function FindSession() {
     <View className="px-6 pb-4 pt-6">
       <View className="flex-row items-center justify-between gap-4">
         <View className="flex-1">
-          <Text className="text-[24px] font-black text-slate-950">Kết quả phù hợp ({filteredSessions.length})</Text>
-          <Text className="mt-1 text-sm text-slate-500">Khám phá các kèo có điểm match cao nhất cho gu chơi của bạn.</Text>
+          <Text className="text-[24px] font-black text-slate-950">
+            {loading ? 'Đang tải kết quả phù hợp' : `Kết quả phù hợp (${filteredSessions.length})`}
+          </Text>
+          <Text className="mt-1 text-sm text-slate-500">
+            {loading
+              ? 'Hệ thống đang làm mới danh sách kèo hợp gu cho bạn.'
+              : 'Khám phá các kèo có điểm match cao nhất cho gu chơi của bạn.'}
+          </Text>
         </View>
 
         <Pressable
