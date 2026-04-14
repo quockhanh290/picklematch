@@ -195,7 +195,6 @@ export default function EditProfile() {
                   onChangeText={setCity}
                   placeholder="Ví dụ: TP. Hồ Chí Minh"
                 />
-                <Text className="mb-2 text-sm font-bold text-slate-900">Thành phố</Text>
                 <View className="flex-row flex-wrap gap-2">
                   {CITIES.map((item) => {
                     const isActive = city.trim().toLowerCase() === item.toLowerCase()
