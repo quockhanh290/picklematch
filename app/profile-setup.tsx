@@ -1,4 +1,5 @@
 import { AppButton, AppInput, ScreenHeader, SectionCard } from '@/components/design'
+import { getEloBandByLegacySkillLabel } from '@/lib/eloSystem'
 import { supabase } from '@/lib/supabase'
 import { router } from 'expo-router'
 import { useState } from 'react'
@@ -9,6 +10,7 @@ export default function ProfileSetup() {
   const [name, setName] = useState('')
   const [city, setCity] = useState('')
   const [loading, setLoading] = useState(false)
+  const defaultBand = getEloBandByLegacySkillLabel('beginner')
 
   async function saveProfile() {
     if (!name || !city) {
@@ -34,10 +36,10 @@ export default function ProfileSetup() {
       phone: user.phone || null,
       name,
       city,
-      skill_label: 'beginner',
-      skill_tier: 'beginner',
-      elo: 1000,
-      current_elo: 1000,
+      skill_label: defaultBand.legacySkillLabel,
+      skill_tier: defaultBand.tier,
+      elo: defaultBand.seedElo,
+      current_elo: defaultBand.seedElo,
       onboarding_completed: false,
     })
 

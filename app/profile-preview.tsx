@@ -12,6 +12,7 @@ import type { TrophyBadge } from '@/components/profile/TrophyRoom'
 import TrophyRoomSection from '@/components/profile/TrophyRoom'
 import {
   buildCommunityTraits,
+  calculateReliabilityScore,
   clearCurrentPlayerProfileCache,
   fetchCurrentPlayerProfileData,
   type ProfilePlayer as Player,
@@ -98,11 +99,6 @@ export default function ProfileScreen() {
     return `${weekday} ${day} · ${hh}:${mm}`
   }
 
-  function reliabilityScore() {
-    if (!player || !player.sessions_joined) return null
-    return Math.round(((player.sessions_joined - player.no_show_count) / player.sessions_joined) * 100)
-  }
-
   function reliabilityTone(score: number | null) {
     if (score === null) return 'text-slate-700'
     if (score >= 90) return 'text-emerald-700'
@@ -167,7 +163,7 @@ export default function ProfileScreen() {
   const calibratedSkill = getSkillLevelFromElo(effectiveElo)
   const fallbackSkill = getSkillLevelFromPlayer(player)
   const skill = calibratedSkill ?? fallbackSkill
-  const reliability = reliabilityScore()
+  const reliability = calculateReliabilityScore(player.sessions_joined, player.no_show_count)
   const hostedCount = hostedSessionsCount
   const placementPlayed = player.placement_matches_played ?? 0
   const currentWinStreak = playerStats?.current_win_streak ?? 0

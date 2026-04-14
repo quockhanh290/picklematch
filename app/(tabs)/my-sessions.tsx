@@ -58,11 +58,14 @@ type MySessionsCache = {
   updatedAt: number
 }
 
-let mySessionsCache: MySessionsCache | null = null
-const MY_SESSIONS_CACHE_KEY = 'my_sessions_overview_cache_v1'
+const mySessionsCacheByUser = new Map<string, MySessionsCache>()
 const MY_SESSIONS_LAST_USER_KEY = 'my_sessions_last_user_id_v1'
 const ENABLE_MY_SESSIONS_TIMING_LOGS = false
 const MY_SESSIONS_CACHE_FRESH_MS = 30_000
+
+function getMySessionsCacheKey(userId: string) {
+  return `my_sessions_overview_cache_v1:${userId}`
+}
 
 const TAB_OPTIONS: { key: SessionTab; label: string }[] = [
   { key: 'upcoming', label: 'Sắp đánh' },
@@ -168,19 +171,48 @@ function MySessionCard({
   const isBooked = item.court_booking_status === 'confirmed'
   const progress = item.max_players > 0 ? Math.min(item.player_count / item.max_players, 1) : 0
   const address = [item.court_address, item.court_city].filter(Boolean).join(', ')
+  const cardStyle = useMemo(
+    () => ({
+      backgroundColor: theme.surface,
+      borderColor: theme.border,
+      ...getShadowStyle(theme),
+    }),
+    [theme],
+  )
+  const bookedBadgeStyle = useMemo(() => ({ backgroundColor: theme.primarySoft }), [theme])
+  const idBadgeStyle = useMemo(() => ({ backgroundColor: theme.surfaceAlt }), [theme])
+  const metaCardStyle = useMemo(() => ({ backgroundColor: theme.surfaceAlt }), [theme])
+  const progressTrackStyle = useMemo(() => ({ backgroundColor: theme.surfaceAlt }), [theme])
+  const progressFillStyle = useMemo(
+    () => ({ width: `${Math.max(progress * 100, 8)}%` as `${number}%`, backgroundColor: theme.primary }),
+    [progress, theme],
+  )
+  const pendingCardStyle = useMemo(
+    () => ({ borderColor: theme.warning, backgroundColor: theme.warningSoft }),
+    [theme],
+  )
+  const primaryActionStyle = useMemo(
+    () => ({ borderColor: theme.border, backgroundColor: theme.surface }),
+    [theme],
+  )
+  const secondaryActionStyle = useMemo(() => ({ backgroundColor: theme.accent }), [theme])
+  const historyActionStyle = useMemo(
+    () => ({ backgroundColor: item.status === 'done' ? theme.text : theme.surfaceAlt }),
+    [item.status, theme],
+  )
 
   return (
     <Pressable
       onPress={() => onOpenSessionDetail(item.id)}
       className="mb-4 rounded-[32px] border p-5 active:scale-[0.98]"
-      style={{ backgroundColor: theme.surface, borderColor: theme.border, ...getShadowStyle(theme) }}
+      style={cardStyle}
     >
       <View className="flex-row items-start justify-between">
         <View className="mr-3 flex-1 flex-row flex-wrap items-center gap-2">
           <StatusBadge label={isHost ? 'Bạn là chủ kèo' : 'Bạn là người chơi'} tone={isHost ? 'info' : 'neutral'} />
 
           {isBooked ? (
-            <View className="rounded-full px-3 py-2" style={{ backgroundColor: theme.primarySoft }}>
+            <View className="rounded-full px-3 py-2" style={bookedBadgeStyle}>
               <View className="flex-row items-center">
                 <CheckCircle2 size={13} color={theme.primary} strokeWidth={2.4} />
                 <Text className="ml-1.5 text-[10px] font-black uppercase tracking-[0.12em]" style={{ color: theme.primaryStrong }}>
@@ -191,7 +223,7 @@ function MySessionCard({
           ) : null}
         </View>
 
-        <View className="rounded-full px-3 py-2" style={{ backgroundColor: theme.surfaceAlt }}>
+        <View className="rounded-full px-3 py-2" style={idBadgeStyle}>
           <Text className="text-[10px] font-black uppercase tracking-[0.12em]" style={{ color: theme.textMuted }}>
             #{item.id.slice(0, 6)}
           </Text>
@@ -203,7 +235,7 @@ function MySessionCard({
         {address ? <Text className="mt-2 text-[14px]" style={{ color: theme.textMuted }}>{address}</Text> : null}
       </View>
 
-      <View className="mt-5 rounded-[22px] px-4 py-3" style={{ backgroundColor: theme.surfaceAlt }}>
+      <View className="mt-5 rounded-[22px] px-4 py-3" style={metaCardStyle}>
         <View className="flex-row flex-wrap items-center gap-4">
           <View className="flex-row items-center">
             <CalendarDays size={15} color={theme.textMuted} strokeWidth={2.3} />
@@ -230,13 +262,13 @@ function MySessionCard({
           <Text className="text-[12px] font-bold" style={{ color: theme.textSoft }}>{Math.round(progress * 100)}%</Text>
         </View>
 
-        <View className="mt-3 h-2 overflow-hidden rounded-full" style={{ backgroundColor: theme.surfaceAlt }}>
-          <View className="h-2 rounded-full" style={{ width: `${Math.max(progress * 100, 8)}%`, backgroundColor: theme.primary }} />
+        <View className="mt-3 h-2 overflow-hidden rounded-full" style={progressTrackStyle}>
+          <View className="h-2 rounded-full" style={progressFillStyle} />
         </View>
       </View>
 
       {tab === 'pending' ? (
-        <View className="mt-5 rounded-[24px] border px-4 py-4" style={{ borderColor: theme.warning, backgroundColor: theme.warningSoft }}>
+        <View className="mt-5 rounded-[24px] border px-4 py-4" style={pendingCardStyle}>
           <View className="flex-row items-center">
             <Hourglass size={16} color={theme.warning} strokeWidth={2.3} />
             <Text className="ml-2 text-[14px] font-black" style={{ color: theme.warning }}>
@@ -256,7 +288,7 @@ function MySessionCard({
           <Pressable
             onPress={() => onOpenSessionDetail(item.id)}
             className="flex-1 flex-row items-center justify-center rounded-[22px] border px-4 py-4"
-            style={{ borderColor: theme.border, backgroundColor: theme.surface }}
+            style={primaryActionStyle}
           >
             {isHost ? <Edit3 size={16} color={theme.text} strokeWidth={2.3} /> : <FileText size={16} color={theme.text} strokeWidth={2.3} />}
             <Text className="ml-2 text-[14px] font-black" style={{ color: theme.text }}>{isHost ? 'Sửa kèo' : 'Chi tiết'}</Text>
@@ -265,7 +297,7 @@ function MySessionCard({
           <Pressable
             onPress={() => void onShare(item)}
             className="flex-1 flex-row items-center justify-center rounded-[22px] px-4 py-4"
-            style={{ backgroundColor: theme.accent }}
+            style={secondaryActionStyle}
           >
             <Share2 size={16} color="#000000" strokeWidth={2.3} />
             <Text className="ml-2 text-[14px] font-black text-black">Chia sẻ</Text>
@@ -277,7 +309,7 @@ function MySessionCard({
         <Pressable
           onPress={() => (item.status === 'done' ? onOpenRateSession(item.id) : onOpenSessionDetail(item.id))}
           className="mt-5 flex-row items-center justify-center rounded-[22px] px-4 py-4"
-          style={{ backgroundColor: item.status === 'done' ? theme.text : theme.surfaceAlt }}
+          style={historyActionStyle}
         >
           <Star size={16} color={item.status === 'done' ? theme.accent : theme.textMuted} strokeWidth={2.3} />
           <Text className="ml-2 text-[14px] font-black" style={{ color: item.status === 'done' ? theme.primaryContrast : theme.textMuted }}>
@@ -299,6 +331,7 @@ export default function MySessions() {
   const [myId, setMyId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<SessionTab>('upcoming')
   const [segmentWidth, setSegmentWidth] = useState(0)
+  const [isPagerDragging, setIsPagerDragging] = useState(false)
   const initInFlightRef = useRef(false)
   const fetchInFlightRef = useRef<Promise<void> | null>(null)
   const sessionsRef = useRef<MySession[]>([])
@@ -312,20 +345,25 @@ export default function MySessions() {
   const hydrateCachedSessionsForLastUser = useCallback(async () => {
     const startedAt = Date.now()
 
-    if (mySessionsCache?.sessions.length) {
-      setSessions(mySessionsCache.sessions)
+    const [lastUserId] = await Promise.all([AsyncStorage.getItem(MY_SESSIONS_LAST_USER_KEY)])
+    const memoryCache = lastUserId ? mySessionsCacheByUser.get(lastUserId) ?? null : null
+
+    if (memoryCache?.sessions.length) {
+      setSessions(memoryCache.sessions)
       setLoading(false)
-      logTiming('bootstrap-memory-cache-hit', startedAt, { sessions: mySessionsCache.sessions.length })
+      logTiming('bootstrap-memory-cache-hit', startedAt, { sessions: memoryCache.sessions.length })
       return
     }
 
     try {
-      const [lastUserId, raw] = await Promise.all([
-        AsyncStorage.getItem(MY_SESSIONS_LAST_USER_KEY),
-        AsyncStorage.getItem(MY_SESSIONS_CACHE_KEY),
-      ])
+      if (!lastUserId) {
+        logTiming('bootstrap-cache-miss', startedAt)
+        return
+      }
 
-      if (!lastUserId || !raw) {
+      const raw = await AsyncStorage.getItem(getMySessionsCacheKey(lastUserId))
+
+      if (!raw) {
         logTiming('bootstrap-cache-miss', startedAt)
         return
       }
@@ -336,7 +374,7 @@ export default function MySessions() {
         return
       }
 
-      mySessionsCache = parsed
+      mySessionsCacheByUser.set(parsed.userId, parsed)
       setSessions(parsed.sessions)
       setLoading(false)
       logTiming('bootstrap-storage-cache-hit', startedAt, { sessions: parsed.sessions.length })
@@ -348,16 +386,17 @@ export default function MySessions() {
 
   const hydrateCachedSessions = useCallback(async (nextUserId: string) => {
     const startedAt = Date.now()
+    const memoryCache = mySessionsCacheByUser.get(nextUserId) ?? null
 
-    if (mySessionsCache?.userId === nextUserId && mySessionsCache.sessions.length > 0) {
-      setSessions(mySessionsCache.sessions)
+    if (memoryCache?.sessions.length) {
+      setSessions(memoryCache.sessions)
       setLoading(false)
-      logTiming('cache-memory-hit', startedAt, { sessions: mySessionsCache.sessions.length })
+      logTiming('cache-memory-hit', startedAt, { sessions: memoryCache.sessions.length })
       return true
     }
 
     try {
-      const raw = await AsyncStorage.getItem(MY_SESSIONS_CACHE_KEY)
+      const raw = await AsyncStorage.getItem(getMySessionsCacheKey(nextUserId))
       if (!raw) {
         logTiming('cache-miss', startedAt, { layer: 'storage' })
         return false
@@ -369,7 +408,7 @@ export default function MySessions() {
         return false
       }
 
-      mySessionsCache = parsed
+      mySessionsCacheByUser.set(parsed.userId, parsed)
       setSessions(parsed.sessions)
       setLoading(false)
       logTiming('cache-storage-hit', startedAt, { sessions: parsed.sessions.length })
@@ -439,16 +478,17 @@ export default function MySessions() {
           return safeATime - safeBTime
         })
 
-        mySessionsCache = {
+        const nextCache = {
           userId: nextUserId,
           sessions: nextSessions,
           updatedAt: Date.now(),
         }
+        mySessionsCacheByUser.set(nextUserId, nextCache)
 
         try {
           const persistStartedAt = Date.now()
           await Promise.all([
-            AsyncStorage.setItem(MY_SESSIONS_CACHE_KEY, JSON.stringify(mySessionsCache)),
+            AsyncStorage.setItem(getMySessionsCacheKey(nextUserId), JSON.stringify(nextCache)),
             AsyncStorage.setItem(MY_SESSIONS_LAST_USER_KEY, nextUserId),
           ])
           logTiming('cache-persist', persistStartedAt)
@@ -507,9 +547,10 @@ export default function MySessions() {
 
       setMyId(userId)
 
-      const hadBootstrapCache = mySessionsCache?.userId === userId && mySessionsCache.sessions.length > 0
+      const bootstrapCache = mySessionsCacheByUser.get(userId) ?? null
+      const hadBootstrapCache = Boolean(bootstrapCache?.sessions.length)
       if (hadBootstrapCache) {
-        const cacheAgeMs = Date.now() - (mySessionsCache?.updatedAt ?? 0)
+        const cacheAgeMs = Date.now() - (bootstrapCache?.updatedAt ?? 0)
         if (cacheAgeMs < MY_SESSIONS_CACHE_FRESH_MS) {
           logTiming('init-cache-fresh-skip-network', initStartedAt, { cacheAgeMs })
           return
@@ -689,6 +730,7 @@ export default function MySessions() {
         </View>
       ) : (
         <ScrollView
+          scrollEnabled={!isPagerDragging}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 36 }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.info} />}
@@ -768,11 +810,17 @@ export default function MySessions() {
             showsHorizontalScrollIndicator={false}
             nestedScrollEnabled
             scrollEventThrottle={16}
+            directionalLockEnabled
+            onScrollBeginDrag={() => setIsPagerDragging(true)}
+            onScrollEndDrag={() => setIsPagerDragging(false)}
             onScroll={Animated.event(
               [{ nativeEvent: { contentOffset: { x: scrollX } } }],
               { useNativeDriver: false },
             )}
-            onMomentumScrollEnd={(event) => handlePagerMomentumEnd(event.nativeEvent.contentOffset.x)}
+            onMomentumScrollEnd={(event) => {
+              setIsPagerDragging(false)
+              handlePagerMomentumEnd(event.nativeEvent.contentOffset.x)
+            }}
             contentContainerStyle={{ paddingTop: 24 }}
             style={{ marginHorizontal: -20 }}
           >

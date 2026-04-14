@@ -110,7 +110,7 @@ export default function HomeScreen() {
             title="Dành riêng cho bạn"
             items={personalizedSessions}
             activeIndex={personalizedIndex}
-            containerHeight={CAROUSEL_SECTION_HEIGHT || SMART_MATCH_CARD_HEIGHT}
+            containerHeight={CAROUSEL_SECTION_HEIGHT}
             onIndexChange={setPersonalizedIndex}
             renderCard={renderPersonalizedCard}
           />
@@ -121,7 +121,7 @@ export default function HomeScreen() {
             title="Cứu nét khẩn cấp"
             items={rescueSessions}
             activeIndex={rescueIndex}
-            containerHeight={CAROUSEL_SECTION_HEIGHT || SMART_MATCH_CARD_HEIGHT}
+            containerHeight={CAROUSEL_SECTION_HEIGHT}
             onIndexChange={setRescueIndex}
             renderCard={renderRescueCard}
           />
@@ -132,7 +132,7 @@ export default function HomeScreen() {
             title="Sân quen của bạn"
             items={familiarCourts}
             activeIndex={courtIndex}
-            containerHeight={COURT_CAROUSEL_HEIGHT || COURT_CARD_HEIGHT}
+            containerHeight={COURT_CAROUSEL_HEIGHT}
             onIndexChange={setCourtIndex}
             renderCard={renderCourtCard}
           />

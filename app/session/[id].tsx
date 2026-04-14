@@ -59,7 +59,7 @@ export default function SessionDetailScreen() {
     onRefresh,
   } = useSessionDetail(id, userId)
 
-  const isHost = userId != null && userId === session?.host.id
+  const isHost = userId !== null && userId !== undefined && userId === session?.host.id
   const hasJoined = useMemo(
     () => (session ? session.session_players.some((item) => item.player_id === userId) : false),
     [session, userId],
@@ -132,7 +132,9 @@ export default function SessionDetailScreen() {
     (
       session.results_status === 'pending_confirmation' ||
       session.results_status === 'disputed' ||
-      ((session.results_status === 'not_submitted' || session.results_status == null) &&
+      ((session.results_status === 'not_submitted' ||
+        session.results_status === null ||
+        session.results_status === undefined) &&
         (session.status === 'pending_completion' || session.status === 'done'))
     )
 
@@ -157,7 +159,9 @@ export default function SessionDetailScreen() {
               <Text className="text-[13px] font-bold text-slate-400">{`Elo ${player.elo}`}</Text>
               <Text className="text-[13px] font-black text-orange-500">{player.skillTag}</Text>
 
-              {mode === 'normal' && player.reliability != null ? (
+              {mode === 'normal' &&
+              player.reliability !== null &&
+              player.reliability !== undefined ? (
                 <Text className="text-[12px] font-semibold text-emerald-600">{`${player.reliability}% uy tín`}</Text>
               ) : null}
             </View>

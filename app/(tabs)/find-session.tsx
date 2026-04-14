@@ -611,15 +611,18 @@ export default function FindSession() {
           data={filteredSessions}
           keyExtractor={(item) => item.id}
           renderItem={({ item, index }) => (
-            <View className={index === 0 ? 'px-6 pb-1' : 'px-6'}>
-              {index === 0 ? listIntro : null}
+            <View className={index === 0 ? 'px-6 pt-6 pb-1' : 'px-6'}>
               <SearchResultCard session={item} rescueMode={quickFilters.rescue} />
             </View>
           )}
-          ListHeaderComponent={stickyHeader}
-          ListEmptyComponent={listIntro}
+          ListHeaderComponent={
+            <View>
+              {stickyHeader}
+              {filteredSessions.length > 0 ? listIntro : null}
+            </View>
+          }
+          ListEmptyComponent={null}
           ListFooterComponent={smartQueueFooter}
-          stickyHeaderIndices={[0]}
           contentContainerStyle={{ paddingBottom: 12 }}
           showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#059669" />}

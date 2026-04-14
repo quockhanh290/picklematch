@@ -83,28 +83,16 @@ type ApplicantRow = {
   status: 'pending' | 'accepted' | 'rejected'
   intro_note?: string | null
   host_response_template?: string | null
-  player:
-    | {
-        name?: string | null
-        elo?: number | null
-        current_elo?: number | null
-        self_assessed_level?: string | null
-        skill_label?: string | null
-        sessions_joined?: number | null
-        no_show_count?: number | null
-        reliability_score?: number | null
-      }
-    | {
-        name?: string | null
-        elo?: number | null
-        current_elo?: number | null
-        self_assessed_level?: string | null
-        skill_label?: string | null
-        sessions_joined?: number | null
-        no_show_count?: number | null
-        reliability_score?: number | null
-      }[]
-    | null
+  player: {
+    name?: string | null
+    elo?: number | null
+    current_elo?: number | null
+    self_assessed_level?: string | null
+    skill_label?: string | null
+    sessions_joined?: number | null
+    no_show_count?: number | null
+    reliability_score?: number | null
+  } | null
 }
 
 function getInitials(name: string) {
@@ -363,8 +351,6 @@ export default function HostReviewCenterScreen() {
 
     const nextSession = (overview?.session ?? null) as SessionOverview | null
     const nextApplicants: ApplicantRecord[] = ((requestRows as ApplicantRow[] | null) ?? []).map((item) => {
-      const player = Array.isArray(item.player) ? item.player[0] : item.player
-
       return {
         id: item.id,
         player_id: item.player_id,
@@ -372,14 +358,14 @@ export default function HostReviewCenterScreen() {
         intro_note: item.intro_note ?? null,
         host_response_template: item.host_response_template ?? null,
         player: {
-          name: player?.name ?? 'Người chơi',
-          elo: player?.elo ?? null,
-          current_elo: player?.current_elo ?? null,
-          self_assessed_level: player?.self_assessed_level ?? null,
-          skill_label: player?.skill_label ?? null,
-          sessions_joined: player?.sessions_joined ?? null,
-          no_show_count: player?.no_show_count ?? null,
-          reliability_score: player?.reliability_score ?? null,
+          name: item.player?.name ?? 'Người chơi',
+          elo: item.player?.elo ?? null,
+          current_elo: item.player?.current_elo ?? null,
+          self_assessed_level: item.player?.self_assessed_level ?? null,
+          skill_label: item.player?.skill_label ?? null,
+          sessions_joined: item.player?.sessions_joined ?? null,
+          no_show_count: item.player?.no_show_count ?? null,
+          reliability_score: item.player?.reliability_score ?? null,
         },
       }
     })

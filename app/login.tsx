@@ -4,48 +4,19 @@ import { router } from 'expo-router'
 import { useState } from 'react'
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native'
 
+const DevLoginSection =
+  __DEV__ ? (require('../components/auth/DevLoginSection').default as typeof import('../components/auth/DevLoginSection').default) : null
+
 export default function LoginScreen() {
   const [phone, setPhone] = useState('')
   const [otp, setOtp] = useState('')
   const [step, setStep] = useState<'phone' | 'otp'>('phone')
   const [loading, setLoading] = useState(false)
 
-  const [devEmail, setDevEmail] = useState('')
-  const [devPassword, setDevPassword] = useState('')
-  const [devLoading, setDevLoading] = useState(false)
-
   function nextRouteForPlayer(player: any) {
     if (!player) return '/profile-setup'
     if (!player.onboarding_completed || !player.self_assessed_level) return '/onboarding'
     return '/(tabs)'
-  }
-
-  async function devSignIn() {
-    if (!devEmail || !devPassword) return
-
-    setDevLoading(true)
-    const { error } = await supabase.auth.signInWithPassword({
-      email: devEmail,
-      password: devPassword,
-    })
-    setDevLoading(false)
-
-    if (error) {
-      Alert.alert('Dev login lỗi', error.message)
-      return
-    }
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user?.id) {
-      Alert.alert('Lỗi', 'Không lấy được thông tin tài khoản sau khi xác nhận OTP.')
-      return
-    }
-
-    const { data: player } = await supabase.from('players').select('*').eq('id', user.id).single()
-    router.replace(nextRouteForPlayer(player) as any)
   }
 
   async function sendOTP() {
@@ -145,28 +116,7 @@ export default function LoginScreen() {
             )}
           </SectionCard>
 
-          {__DEV__ ? (
-            <SectionCard title="Dev only" subtitle="Đăng nhập nhanh bằng tài khoản email/password dành cho môi trường phát triển." className="mb-4">
-              <View className="gap-4">
-                <AppInput
-                  label="Email"
-                  placeholder="Email"
-                  autoCapitalize="none"
-                  keyboardType="email-address"
-                  value={devEmail}
-                  onChangeText={setDevEmail}
-                />
-                <AppInput
-                  label="Password"
-                  placeholder="Password"
-                  secureTextEntry
-                  value={devPassword}
-                  onChangeText={setDevPassword}
-                />
-                <AppButton label="Đăng nhập (dev)" onPress={devSignIn} loading={devLoading} variant="secondary" />
-              </View>
-            </SectionCard>
-          ) : null}
+          {DevLoginSection ? <DevLoginSection nextRouteForPlayer={nextRouteForPlayer} /> : null}
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

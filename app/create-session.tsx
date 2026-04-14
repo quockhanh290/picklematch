@@ -7,7 +7,7 @@ import { type NearByCourt, useNearbyCourts } from '@/lib/useNearbyCourts'
 import * as Linking from 'expo-linking'
 import { useRouter } from 'expo-router'
 import { ArrowLeft } from 'lucide-react-native'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
@@ -86,6 +86,9 @@ export default function CreateSession() {
   const [bookingPhone, setBookingPhone] = useState('')
   const [bookingNotes, setBookingNotes] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const totalCost = useMemo(() => parseTotalCost(totalCostStr), [totalCostStr])
+  const costPerPerson = totalCost > 0 ? Math.ceil(totalCost / maxPlayers) : 0
+  const duration = startTime && endTime && endTime > startTime ? fmtDuration(startTime, endTime) : null
 
   const validateStart = useCallback((time: Date): string | null => {
     const now = new Date()
@@ -261,8 +264,6 @@ export default function CreateSession() {
       return
     }
 
-    const totalCost = parseTotalCost(totalCostStr)
-
     const fillDeadline = new Date(Date.now() + deadlineHours * 3_600_000)
     const { data: newSessionId, error: createError } = await supabase.rpc('create_session_with_host', {
       p_court_id: selectedCourt.id,
@@ -296,10 +297,6 @@ export default function CreateSession() {
       params: { id: newSessionId, created: '1' },
     } as never)
   }
-
-  const totalCost = parseTotalCost(totalCostStr)
-  const costPerPerson = totalCost > 0 ? Math.ceil(totalCost / maxPlayers) : 0
-  const duration = startTime && endTime && endTime > startTime ? fmtDuration(startTime, endTime) : null
 
   if (step === 1) {
     return (
