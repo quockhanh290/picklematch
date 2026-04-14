@@ -173,10 +173,12 @@ export default function OnboardingScreen() {
         throw new Error(error.message)
       }
 
+      if (!isMountedRef.current) return
       setCompletionTier(getSimpleTierLabel(tier))
       setCompletionDescription(getUserDescriptionForTier(tier))
     } catch (error) {
       console.warn('[Onboarding] submit failed:', error)
+      if (!isMountedRef.current) return
       setErrorVisible(true)
       setSubmitting(false)
     }

@@ -1,12 +1,31 @@
 import '../global.css'
-import { Stack } from 'expo-router'
+import { Stack, useRouter, useSegments } from 'expo-router'
 import { NotificationsProvider } from '@/lib/NotificationsContext'
 import { AppThemeProvider } from '@/lib/theme-context'
 import { useAuth } from '@/lib/useAuth'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
+import { useEffect } from 'react'
 
 export default function RootLayout() {
-  const { userId } = useAuth()
+  const { userId, isLoading } = useAuth()
+  const segments = useSegments()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (isLoading) return
+
+    const firstSegment = segments[0] ?? ''
+    const isPublicRoute = firstSegment === 'login'
+
+    if (!userId && !isPublicRoute) {
+      router.replace('/login')
+      return
+    }
+
+    if (userId && isPublicRoute) {
+      router.replace('/(tabs)')
+    }
+  }, [isLoading, router, segments, userId])
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

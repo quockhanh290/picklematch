@@ -13,7 +13,7 @@ import {
   TrendingUp,
   Users,
 } from 'lucide-react-native'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
@@ -435,42 +435,45 @@ export default function FindSession() {
     void applySmartQueueFilters(true)
   }, [applySmartQueueFilters, playerProfile?.id, smartQueueHydrated])
 
-  const filteredSessions = sessions
-    .filter((session) => {
-      const search = query.trim().toLowerCase()
-      const searchMatches = !search || buildSearchIndex(session).includes(search)
-      if (!searchMatches) return false
+  const filteredSessions = useMemo(() => {
+    const normalizedSearch = normalizeText(query)
 
-      if (quickFilters.level3 && getSkillLevelFromEloRange(session.elo_min, session.elo_max).id !== 'level_3') {
-        return false
-      }
+    return sessions
+      .filter((session) => {
+        const searchMatches = !normalizedSearch || buildSearchIndex(session).includes(normalizedSearch)
+        if (!searchMatches) return false
 
-      if (quickFilters.rescue && session.max_players - session.player_count > 2) {
-        return false
-      }
+        if (quickFilters.level3 && getSkillLevelFromEloRange(session.elo_min, session.elo_max).id !== 'level_3') {
+          return false
+        }
 
-      if (quickFilters.recent) {
-        const hoursUntilStart = (new Date(session.slot?.start_time ?? 0).getTime() - Date.now()) / 3600000
-        if (hoursUntilStart < 0 || hoursUntilStart > 48) return false
-      }
+        if (quickFilters.rescue && session.max_players - session.player_count > 2) {
+          return false
+        }
 
-      if (quickFilters.nearby) {
-        const city = normalizeText(session.slot?.court?.city)
-        if (!city.includes('ho chi minh') && !city.includes('thu duc')) return false
-      }
+        if (quickFilters.recent) {
+          const hoursUntilStart = (new Date(session.slot?.start_time ?? 0).getTime() - Date.now()) / 3600000
+          if (hoursUntilStart < 0 || hoursUntilStart > 48) return false
+        }
 
-      return true
-    })
-    .sort((left, right) => {
-      if (sortMode === 'time') {
-        return new Date(left.slot?.start_time ?? 0).getTime() - new Date(right.slot?.start_time ?? 0).getTime()
-      }
+        if (quickFilters.nearby) {
+          const city = normalizeText(session.slot?.court?.city)
+          if (!city.includes('ho chi minh') && !city.includes('thu duc')) return false
+        }
 
-      return (
-        computeMatchScore(right, quickFilters.rescue, quickFilters.level3) -
-        computeMatchScore(left, quickFilters.rescue, quickFilters.level3)
-      )
-    })
+        return true
+      })
+      .sort((left, right) => {
+        if (sortMode === 'time') {
+          return new Date(left.slot?.start_time ?? 0).getTime() - new Date(right.slot?.start_time ?? 0).getTime()
+        }
+
+        return (
+          computeMatchScore(right, quickFilters.rescue, quickFilters.level3) -
+          computeMatchScore(left, quickFilters.rescue, quickFilters.level3)
+        )
+      })
+  }, [query, quickFilters, sessions, sortMode])
 
   const stickyHeader = (
     <View className="border-b border-slate-100 bg-white/80 px-6 pb-4 pt-12">

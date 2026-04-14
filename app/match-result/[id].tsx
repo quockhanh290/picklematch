@@ -148,8 +148,8 @@ function getEloSwing(diff: number) {
 }
 
 function getStreakLabel(scoreA: number, scoreB: number) {
-  if (scoreA === scoreB) return '0 STREAK'
-  return '+1 STREAK'
+  if (scoreA === scoreB) return '0 CHUỖI'
+  return '+1 CHUỖI'
 }
 
 function buildTeams(session: MatchSessionRecord | null) {
@@ -195,13 +195,13 @@ function buildTeams(session: MatchSessionRecord | null) {
   return [
     {
       id: 'A' as const,
-      name: 'Team A',
+      name: 'Đội A',
       theme: TEAM_VISUALS.A,
       players: teamAPlayers,
     },
     {
       id: 'B' as const,
-      name: 'Team B',
+      name: 'Đội B',
       theme: TEAM_VISUALS.B,
       players: teamBPlayers,
     },
@@ -282,7 +282,7 @@ function ScorePanel({
           {score}
         </Text>
         <Text className="mt-3 text-center text-[13px] font-black uppercase tracking-[1.6px]" style={{ color: team.theme.subtext }}>
-          Final Score
+          Điểm cuối
         </Text>
       </View>
 
@@ -375,12 +375,16 @@ export default function MatchResultEntryScreen() {
       const nextSession = (data?.session ?? null) as MatchSessionRecord | null
 
       if (nextSession?.host?.id && nextSession.host.id !== user.id) {
-        Alert.alert('Chỉ host mới được nhập kết quả', 'Bạn có thể xem trận này, nhưng chỉ host mới có thể gửi kết quả cuối cùng.', [
-          {
-            text: 'Quay lại',
-            onPress: () => router.back(),
-          },
-        ])
+        Alert.alert(
+          'Chỉ host mới được nhập kết quả',
+          'Bạn có thể xem trận này, nhưng chỉ host mới có thể gửi kết quả cuối cùng.',
+          [
+            {
+              text: 'Quay lại',
+              onPress: () => router.back(),
+            },
+          ],
+        )
 
         if (mounted) {
           setSession(null)
@@ -442,8 +446,9 @@ export default function MatchResultEntryScreen() {
 
   async function onConfirm() {
     if (!session || !id) return
+    const currentSession = session
 
-    if (!currentUserId || session.host?.id !== currentUserId) {
+    if (!currentUserId || currentSession.host?.id !== currentUserId) {
       Alert.alert('Chỉ host mới được nhập kết quả', 'Kết quả trận chỉ có thể được gửi bởi host của kèo này.')
       return
     }
@@ -455,6 +460,19 @@ export default function MatchResultEntryScreen() {
 
     if (scoreA === scoreB) {
       Alert.alert('Điểm số chưa hợp lệ', 'Vui lòng nhập kết quả có đội thắng rõ ràng trước khi xác nhận.')
+      return
+    }
+
+    const assignedPlayerIds = new Set([...teams[0].players, ...teams[1].players].map((player) => player.id))
+    const unassignedConfirmedPlayers = (currentSession.session_players ?? []).filter(
+      (item) => item.status === 'confirmed' && !assignedPlayerIds.has(item.player_id),
+    )
+
+    if (unassignedConfirmedPlayers.length > 0) {
+      Alert.alert(
+        'Còn người chưa xếp đội',
+        'Vẫn còn người chơi đã xác nhận nhưng chưa được xếp vào đội. Vui lòng chia đội đầy đủ trước khi gửi kết quả.',
+      )
       return
     }
 

@@ -20,14 +20,12 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   ActivityIndicator,
-  Animated,
+  FlatList,
   Pressable,
   RefreshControl,
-  ScrollView,
   Share,
   StyleSheet,
   Text,
-  useWindowDimensions,
   View,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -60,7 +58,6 @@ type MySessionsCache = {
 
 const mySessionsCacheByUser = new Map<string, MySessionsCache>()
 const MY_SESSIONS_LAST_USER_KEY = 'my_sessions_last_user_id_v1'
-const ENABLE_MY_SESSIONS_TIMING_LOGS = false
 const MY_SESSIONS_CACHE_FRESH_MS = 30_000
 
 function getMySessionsCacheKey(userId: string) {
@@ -72,18 +69,6 @@ const TAB_OPTIONS: { key: SessionTab; label: string }[] = [
   { key: 'pending', label: 'Chờ duyệt' },
   { key: 'history', label: 'Lịch sử' },
 ]
-
-function isValidDate(value?: string | null) {
-  if (!value) return false
-  return !Number.isNaN(new Date(value).getTime())
-}
-
-function logTiming(label: string, startedAt: number, extra?: Record<string, unknown>) {
-  if (!ENABLE_MY_SESSIONS_TIMING_LOGS) return
-
-  const payload = extra ? ` ${JSON.stringify(extra)}` : ''
-  console.log(`[MySessions][timing] ${label}: ${Date.now() - startedAt}ms${payload}`)
-}
 
 function sessionsFingerprint(items: MySession[]) {
   return JSON.stringify(
@@ -324,98 +309,63 @@ function MySessionCard({
 export default function MySessions() {
   const theme = useAppTheme()
   const { userId, isLoading: isAuthLoading } = useAuth()
-  const { width } = useWindowDimensions()
   const [sessions, setSessions] = useState<MySession[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [myId, setMyId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<SessionTab>('upcoming')
-  const [segmentWidth, setSegmentWidth] = useState(0)
-  const [isPagerDragging, setIsPagerDragging] = useState(false)
   const initInFlightRef = useRef(false)
   const fetchInFlightRef = useRef<Promise<void> | null>(null)
   const sessionsRef = useRef<MySession[]>([])
-  const pagerRef = useRef<ScrollView | null>(null)
-  const scrollX = useRef(new Animated.Value(0)).current
 
   useEffect(() => {
     sessionsRef.current = sessions
   }, [sessions])
 
   const hydrateCachedSessionsForLastUser = useCallback(async () => {
-    const startedAt = Date.now()
-
-    const [lastUserId] = await Promise.all([AsyncStorage.getItem(MY_SESSIONS_LAST_USER_KEY)])
+    const lastUserId = await AsyncStorage.getItem(MY_SESSIONS_LAST_USER_KEY)
     const memoryCache = lastUserId ? mySessionsCacheByUser.get(lastUserId) ?? null : null
 
     if (memoryCache?.sessions.length) {
       setSessions(memoryCache.sessions)
       setLoading(false)
-      logTiming('bootstrap-memory-cache-hit', startedAt, { sessions: memoryCache.sessions.length })
       return
     }
 
+    if (!lastUserId) return
+
     try {
-      if (!lastUserId) {
-        logTiming('bootstrap-cache-miss', startedAt)
-        return
-      }
-
       const raw = await AsyncStorage.getItem(getMySessionsCacheKey(lastUserId))
-
-      if (!raw) {
-        logTiming('bootstrap-cache-miss', startedAt)
-        return
-      }
-
+      if (!raw) return
       const parsed = JSON.parse(raw) as MySessionsCache
-      if (parsed.userId !== lastUserId || !Array.isArray(parsed.sessions) || parsed.sessions.length === 0) {
-        logTiming('bootstrap-cache-stale', startedAt, { cacheUserId: parsed.userId, lastUserId })
-        return
-      }
-
+      if (parsed.userId !== lastUserId || !Array.isArray(parsed.sessions) || parsed.sessions.length === 0) return
       mySessionsCacheByUser.set(parsed.userId, parsed)
       setSessions(parsed.sessions)
       setLoading(false)
-      logTiming('bootstrap-storage-cache-hit', startedAt, { sessions: parsed.sessions.length })
     } catch (error) {
       console.warn('[MySessions] bootstrap cache hydrate failed:', error)
-      logTiming('bootstrap-cache-error', startedAt)
     }
   }, [])
 
   const hydrateCachedSessions = useCallback(async (nextUserId: string) => {
-    const startedAt = Date.now()
     const memoryCache = mySessionsCacheByUser.get(nextUserId) ?? null
-
     if (memoryCache?.sessions.length) {
       setSessions(memoryCache.sessions)
       setLoading(false)
-      logTiming('cache-memory-hit', startedAt, { sessions: memoryCache.sessions.length })
       return true
     }
 
     try {
       const raw = await AsyncStorage.getItem(getMySessionsCacheKey(nextUserId))
-      if (!raw) {
-        logTiming('cache-miss', startedAt, { layer: 'storage' })
-        return false
-      }
-
+      if (!raw) return false
       const parsed = JSON.parse(raw) as MySessionsCache
-      if (parsed.userId !== nextUserId || !Array.isArray(parsed.sessions) || parsed.sessions.length === 0) {
-        logTiming('cache-stale', startedAt, { cacheUserId: parsed.userId, requestedUserId: nextUserId })
-        return false
-      }
-
+      if (parsed.userId !== nextUserId || !Array.isArray(parsed.sessions) || parsed.sessions.length === 0) return false
       mySessionsCacheByUser.set(parsed.userId, parsed)
       setSessions(parsed.sessions)
       setLoading(false)
-      logTiming('cache-storage-hit', startedAt, { sessions: parsed.sessions.length })
       return true
     } catch (error) {
       console.warn('[MySessions] cache hydrate failed:', error)
-      logTiming('cache-error', startedAt)
       return false
     }
   }, [])
@@ -423,33 +373,24 @@ export default function MySessions() {
   const fetchMySessions = useCallback(
     async (nextUserId: string, options?: { showLoader?: boolean; runMaintenance?: boolean }) => {
       if (fetchInFlightRef.current) {
-        logTiming('fetch-deduped', Date.now())
         await fetchInFlightRef.current
         return
       }
 
       const run = async () => {
-        const startedAt = Date.now()
         const showLoader = options?.showLoader ?? false
         const runMaintenance = options?.runMaintenance ?? false
 
-        if (showLoader) {
-          setLoading(true)
-        }
+        if (showLoader) setLoading(true)
 
         if (runMaintenance) {
-          const maintenanceStartedAt = Date.now()
           await Promise.all([
             supabase.rpc('process_pending_session_completions'),
             supabase.rpc('process_overdue_session_closures'),
           ])
-          logTiming('maintenance-rpc', maintenanceStartedAt)
         }
 
-        const rpcStartedAt = Date.now()
         const { data, error } = await supabase.rpc('get_my_sessions_overview')
-        logTiming('overview-rpc', rpcStartedAt, { rows: data?.length ?? 0, hasError: Boolean(error) })
-
         if (error) {
           console.warn('[MySessions] get_my_sessions_overview failed:', error.message)
         }
@@ -486,31 +427,21 @@ export default function MySessions() {
         mySessionsCacheByUser.set(nextUserId, nextCache)
 
         try {
-          const persistStartedAt = Date.now()
           await Promise.all([
             AsyncStorage.setItem(getMySessionsCacheKey(nextUserId), JSON.stringify(nextCache)),
             AsyncStorage.setItem(MY_SESSIONS_LAST_USER_KEY, nextUserId),
           ])
-          logTiming('cache-persist', persistStartedAt)
         } catch (error) {
           console.warn('[MySessions] cache persist failed:', error)
         }
 
         const nextFingerprint = sessionsFingerprint(nextSessions)
         const currentFingerprint = sessionsFingerprint(sessionsRef.current)
-
         if (nextFingerprint !== currentFingerprint) {
           setSessions(nextSessions)
-          logTiming('sessions-updated', startedAt, { changed: true, sessions: nextSessions.length })
-        } else {
-          logTiming('sessions-skipped-update', startedAt, { changed: false, sessions: nextSessions.length })
         }
 
-        if (showLoader) {
-          setLoading(false)
-        }
-
-        logTiming('fetch-total', startedAt, { sessions: nextSessions.length, runMaintenance, showLoader })
+        if (showLoader) setLoading(false)
       }
 
       fetchInFlightRef.current = run()
@@ -524,53 +455,36 @@ export default function MySessions() {
   )
 
   const init = useCallback(async () => {
-    if (initInFlightRef.current) {
-      logTiming('init-deduped', Date.now())
-      return
-    }
-
+    if (initInFlightRef.current) return
     initInFlightRef.current = true
+
     try {
-      const initStartedAt = Date.now()
-      if (isAuthLoading) {
-        logTiming('auth-context-loading', initStartedAt)
-        return
-      }
+      if (isAuthLoading) return
 
       if (!userId) {
         setMyId(null)
         setSessions([])
         setLoading(false)
-        logTiming('init-no-user', initStartedAt)
         return
       }
 
       setMyId(userId)
 
       const bootstrapCache = mySessionsCacheByUser.get(userId) ?? null
-      const hadBootstrapCache = Boolean(bootstrapCache?.sessions.length)
-      if (hadBootstrapCache) {
-        const cacheAgeMs = Date.now() - (bootstrapCache?.updatedAt ?? 0)
-        if (cacheAgeMs < MY_SESSIONS_CACHE_FRESH_MS) {
-          logTiming('init-cache-fresh-skip-network', initStartedAt, { cacheAgeMs })
-          return
-        }
-
+      if (bootstrapCache?.sessions.length) {
+        const cacheAgeMs = Date.now() - bootstrapCache.updatedAt
+        if (cacheAgeMs < MY_SESSIONS_CACHE_FRESH_MS) return
         void fetchMySessions(userId, { showLoader: false, runMaintenance: false })
-        logTiming('init-skip-second-cache-hydrate', initStartedAt)
         return
       }
 
       const hydrated = await hydrateCachedSessions(userId)
       if (hydrated) {
         void fetchMySessions(userId, { showLoader: false, runMaintenance: false })
-        logTiming('init-from-cache', initStartedAt)
         return
       }
 
-      await fetchMySessions(userId, { showLoader: true, runMaintenance: false })
-      setLoading(false)
-      logTiming('init-network', initStartedAt)
+      await fetchMySessions(userId, { showLoader: true, runMaintenance: true })
     } finally {
       initInFlightRef.current = false
     }
@@ -585,51 +499,36 @@ export default function MySessions() {
   }, [init])
 
   const onRefresh = useCallback(async () => {
-    if (!myId) return
+    if (!userId) return
     setRefreshing(true)
-    await fetchMySessions(myId, { showLoader: false, runMaintenance: true })
-    setRefreshing(false)
-  }, [fetchMySessions, myId])
+    try {
+      await fetchMySessions(userId, { showLoader: false, runMaintenance: true })
+    } finally {
+      setRefreshing(false)
+    }
+  }, [fetchMySessions, userId])
 
   function formatDatePart(value: string) {
-    if (!isValidDate(value)) {
-      return 'Chưa cập nhật ngày'
-    }
-
-    return new Date(value).toLocaleDateString('vi-VN', {
-      weekday: 'short',
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    })
+    const date = new Date(value)
+    const weekday = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][date.getDay()]
+    const day = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}`
+    return `${weekday} ${day}`
   }
 
   function formatTimeRange(start: string, end: string) {
-    if (!isValidDate(start) || !isValidDate(end)) {
-      return 'Chưa cập nhật giờ'
-    }
-
     const startDate = new Date(start)
     const endDate = new Date(end)
-
-    return `${startDate.toLocaleTimeString('vi-VN', {
-      hour: '2-digit',
-      minute: '2-digit',
-    })} - ${endDate.toLocaleTimeString('vi-VN', {
-      hour: '2-digit',
-      minute: '2-digit',
-    })}`
+    const startHour = startDate.getHours().toString().padStart(2, '0')
+    const startMinute = startDate.getMinutes().toString().padStart(2, '0')
+    const endHour = endDate.getHours().toString().padStart(2, '0')
+    const endMinute = endDate.getMinutes().toString().padStart(2, '0')
+    return `${startHour}:${startMinute} - ${endHour}:${endMinute}`
   }
 
   function resolveTab(session: MySession): SessionTab {
-    if (session.status === 'pending_completion' || session.status === 'done' || session.status === 'cancelled') {
-      return 'history'
-    }
-
-    if (session.request_status === 'pending') {
-      return 'pending'
-    }
-
+    if (session.role === 'host' && session.request_status === 'pending') return 'pending'
+    if (session.role === 'player' && session.request_status === 'pending') return 'pending'
+    if (session.status === 'done' || session.status === 'cancelled') return 'history'
     return 'upcoming'
   }
 
@@ -676,20 +575,13 @@ export default function MySessions() {
               const safeATime = Number.isNaN(aTime) ? (tab.key === 'history' ? 0 : Number.MAX_SAFE_INTEGER) : aTime
               const safeBTime = Number.isNaN(bTime) ? (tab.key === 'history' ? 0 : Number.MAX_SAFE_INTEGER) : bTime
 
-              if (tab.key === 'history') {
-                return safeBTime - safeATime
-              }
+              if (tab.key === 'history') return safeBTime - safeATime
 
               const bookingWeight =
                 Number(b.court_booking_status === 'confirmed') - Number(a.court_booking_status === 'confirmed')
-
-              if (bookingWeight !== 0) {
-                return bookingWeight
-              }
-
+              if (bookingWeight !== 0) return bookingWeight
               return safeATime - safeBTime
             })
-
           return acc
         },
         { upcoming: [], pending: [], history: [] },
@@ -697,29 +589,7 @@ export default function MySessions() {
     [sessions],
   )
 
-  function handleTabPress(tab: SessionTab) {
-    setActiveTab(tab)
-    const index = TAB_OPTIONS.findIndex((option) => option.key === tab)
-    pagerRef.current?.scrollTo({ x: index * width, animated: true })
-  }
-
-  function handlePagerMomentumEnd(offsetX: number) {
-    const index = Math.round(offsetX / width)
-    const nextTab = TAB_OPTIONS[index]?.key
-    if (nextTab && nextTab !== activeTab) {
-      setActiveTab(nextTab)
-    }
-  }
-
-  const indicatorWidth = segmentWidth > 0 ? segmentWidth / TAB_OPTIONS.length : 0
-  const indicatorTranslateX =
-    indicatorWidth > 0
-      ? scrollX.interpolate({
-          inputRange: TAB_OPTIONS.map((_, index) => index * width),
-          outputRange: TAB_OPTIONS.map((_, index) => index * indicatorWidth),
-          extrapolate: 'clamp',
-        })
-      : 0
+  const activeSessions = sessionsByTab[activeTab]
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: theme.background }} edges={['top']}>
@@ -729,124 +599,70 @@ export default function MySessions() {
           <Text className="mt-4 text-[14px] font-semibold" style={{ color: theme.textMuted }}>Đang tải kèo của bạn...</Text>
         </View>
       ) : (
-        <ScrollView
-          scrollEnabled={!isPagerDragging}
+        <FlatList
+          data={activeSessions}
+          keyExtractor={(item) => `${activeTab}-${item.id}`}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 36 }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.info} />}
-        >
-          <View className="flex-row items-start justify-between">
-            <View className="mr-4 flex-1">
-              <View className="flex-row items-center">
-                <Calendar size={14} color={theme.textMuted} strokeWidth={2.5} />
-                <Text className="ml-2 text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: theme.textMuted }}>
-                  LỊCH CHƠI CỦA BẠN
-                </Text>
+          ListHeaderComponent={
+            <View>
+              <View className="flex-row items-start justify-between">
+                <View className="mr-4 flex-1">
+                  <View className="flex-row items-center">
+                    <Calendar size={14} color={theme.textMuted} strokeWidth={2.5} />
+                    <Text className="ml-2 text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: theme.textMuted }}>
+                      LỊCH CHƠI CỦA BẠN
+                    </Text>
+                  </View>
+                  <Text className="mt-3 text-[32px] font-black leading-[36px]" style={{ color: theme.text }}>Kèo của tôi</Text>
+                </View>
+
+                <Pressable
+                  onPress={() => void handleShare()}
+                  className="h-12 w-12 items-center justify-center rounded-2xl border"
+                  style={{ borderColor: theme.border, backgroundColor: theme.surface, ...getShadowStyle(theme) }}
+                >
+                  <Share2 size={18} color={theme.text} strokeWidth={2.3} />
+                </Pressable>
               </View>
-              <Text className="mt-3 text-[32px] font-black leading-[36px]" style={{ color: theme.text }}>Kèo của tôi</Text>
-            </View>
 
-            <Pressable
-              onPress={() => void handleShare()}
-              className="h-12 w-12 items-center justify-center rounded-2xl border"
-              style={{ borderColor: theme.border, backgroundColor: theme.surface, ...getShadowStyle(theme) }}
-            >
-              <Share2 size={18} color={theme.text} strokeWidth={2.3} />
-            </Pressable>
-          </View>
-
-          <View
-            className="mt-6 rounded-[24px] p-1.5"
-            style={{ backgroundColor: theme.surfaceAlt }}
-            onLayout={(event) => setSegmentWidth(event.nativeEvent.layout.width - 12)}
-          >
-            <View className="relative flex-row">
-              {indicatorWidth > 0 ? (
-                <Animated.View
-                  pointerEvents="none"
-                  style={[
-                    styles.segmentIndicator,
-                    {
-                      width: indicatorWidth,
-                      transform: [{ translateX: indicatorTranslateX }],
-                    },
-                  ]}
-                />
-              ) : null}
-              {TAB_OPTIONS.map((tab) => {
-                const index = TAB_OPTIONS.findIndex((option) => option.key === tab.key)
-                const animatedLabelColor =
-                  indicatorWidth > 0
-                    ? scrollX.interpolate({
-                        inputRange: TAB_OPTIONS.map((_, tabIndex) => tabIndex * width),
-                        outputRange: TAB_OPTIONS.map((_, tabIndex) =>
-                          tabIndex === index ? '#020617' : '#64748b',
-                        ),
-                        extrapolate: 'clamp',
-                      })
-                    : '#64748b'
-
-                return (
-                  <Pressable
-                    key={tab.key}
-                    onPress={() => handleTabPress(tab.key)}
-                    style={styles.segmentButton}
-                  >
-                    <Animated.Text style={[styles.segmentLabel, { color: animatedLabelColor }]}>
-                      {tab.label}
-                    </Animated.Text>
-                  </Pressable>
-                )
-              })}
-            </View>
-          </View>
-
-          <Animated.ScrollView
-            ref={pagerRef}
-            horizontal
-            pagingEnabled
-            snapToInterval={width}
-            decelerationRate="fast"
-            showsHorizontalScrollIndicator={false}
-            nestedScrollEnabled
-            scrollEventThrottle={16}
-            directionalLockEnabled
-            onScrollBeginDrag={() => setIsPagerDragging(true)}
-            onScrollEndDrag={() => setIsPagerDragging(false)}
-            onScroll={Animated.event(
-              [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-              { useNativeDriver: false },
-            )}
-            onMomentumScrollEnd={(event) => {
-              setIsPagerDragging(false)
-              handlePagerMomentumEnd(event.nativeEvent.contentOffset.x)
-            }}
-            contentContainerStyle={{ paddingTop: 24 }}
-            style={{ marginHorizontal: -20 }}
-          >
-            {TAB_OPTIONS.map((tab) => (
-              <View key={tab.key} style={{ width, paddingHorizontal: 20 }}>
-                {sessionsByTab[tab.key].length === 0 ? (
-                  <MySessionsEmptyStateCard activeTab={tab.key} theme={theme} />
-                ) : (
-                  sessionsByTab[tab.key].map((session) => (
-                    <MySessionCard
-                      key={`${tab.key}-${session.id}`}
-                      item={session}
-                      tab={tab.key}
-                      theme={theme}
-                      onOpenSessionDetail={openSessionDetail}
-                      onOpenRateSession={openRateSession}
-                      onShare={handleShare}
-                      formatDatePart={formatDatePart}
-                      formatTimeRange={formatTimeRange}
-                    />
-                  ))
-                )}
+              <View className="mt-6 rounded-[24px] p-1.5" style={{ backgroundColor: theme.surfaceAlt }}>
+                <View className="flex-row gap-1.5">
+                  {TAB_OPTIONS.map((tab) => {
+                    const active = tab.key === activeTab
+                    return (
+                      <Pressable
+                        key={tab.key}
+                        onPress={() => setActiveTab(tab.key)}
+                        style={[styles.segmentButton, active ? styles.segmentButtonActive : null]}
+                      >
+                        <Text style={[styles.segmentLabel, { color: active ? '#020617' : '#64748b' }]}>
+                          {tab.label}
+                        </Text>
+                      </Pressable>
+                    )
+                  })}
+                </View>
               </View>
-            ))}
-          </Animated.ScrollView>
-        </ScrollView>
+
+              <View className="pt-6" />
+            </View>
+          }
+          ListEmptyComponent={<MySessionsEmptyStateCard activeTab={activeTab} theme={theme} />}
+          renderItem={({ item }) => (
+            <MySessionCard
+              item={item}
+              tab={activeTab}
+              theme={theme}
+              onOpenSessionDetail={openSessionDetail}
+              onOpenRateSession={openRateSession}
+              onShare={handleShare}
+              formatDatePart={formatDatePart}
+              formatTimeRange={formatTimeRange}
+            />
+          )}
+        />
       )}
     </SafeAreaView>
   )
@@ -859,11 +675,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 12,
   },
-  segmentIndicator: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: 0,
+  segmentButtonActive: {
     borderRadius: 20,
     backgroundColor: '#ffffff',
     shadowColor: '#0f172a',

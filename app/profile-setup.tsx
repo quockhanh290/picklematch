@@ -40,7 +40,6 @@ export default function ProfileSetup() {
       skill_tier: defaultBand.tier,
       elo: defaultBand.seedElo,
       current_elo: defaultBand.seedElo,
-      onboarding_completed: false,
     })
 
     setLoading(false)
