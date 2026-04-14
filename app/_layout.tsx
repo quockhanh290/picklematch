@@ -3,16 +3,31 @@ import { Stack, useRouter, useSegments } from 'expo-router'
 import { NotificationsProvider } from '@/lib/NotificationsContext'
 import { AppThemeProvider } from '@/lib/theme-context'
 import { useAuth } from '@/lib/useAuth'
+import { useFonts } from 'expo-font'
+import * as SplashScreen from 'expo-splash-screen'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { useEffect } from 'react'
+
+void SplashScreen.preventAutoHideAsync()
 
 export default function RootLayout() {
   const { userId, isLoading } = useAuth()
   const segments = useSegments()
   const router = useRouter()
+  const [fontsLoaded] = useFonts({
+    'PlusJakartaSans-Regular': require('../assets/fonts/PlusJakartaSans-Regular.ttf'),
+    'PlusJakartaSans-Bold': require('../assets/fonts/PlusJakartaSans-Bold.ttf'),
+    'PlusJakartaSans-ExtraBoldItalic': require('../assets/fonts/PlusJakartaSans-ExtraBoldItalic.ttf'),
+  })
 
   useEffect(() => {
-    if (isLoading) return
+    if (fontsLoaded) {
+      SplashScreen.hideAsync()
+    }
+  }, [fontsLoaded])
+
+  useEffect(() => {
+    if (isLoading || !fontsLoaded) return
 
     const firstSegment = segments[0] ?? ''
     const isPublicRoute = firstSegment === 'login'
@@ -25,7 +40,11 @@ export default function RootLayout() {
     if (userId && isPublicRoute) {
       router.replace('/(tabs)')
     }
-  }, [isLoading, router, segments, userId])
+  }, [fontsLoaded, isLoading, router, segments, userId])
+
+  if (!fontsLoaded) {
+    return null
+  }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

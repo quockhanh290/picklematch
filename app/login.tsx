@@ -1,16 +1,70 @@
-import { AppButton, AppInput, SectionCard } from '@/components/design'
 import { supabase } from '@/lib/supabase'
-import { useAppTheme } from '@/lib/theme-context'
 import { router } from 'expo-router'
-import { ArrowLeft, ShieldCheck } from 'lucide-react-native'
+import { ShieldCheck, Smartphone } from 'lucide-react-native'
+import DevLoginSection from '@/components/auth/DevLoginSection'
+import { StatusBar } from 'expo-status-bar'
 import { useState } from 'react'
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import {
+  Alert,
+  ImageBackground,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native'
 
-const DevLoginSection =
-  __DEV__ ? (require('../components/auth/DevLoginSection').default as typeof import('../components/auth/DevLoginSection').default) : null
+const HERO_IMAGE = require('../assets/images/login-electric-court-hero.png')
+
+const ELECTRIC = {
+  emerald: '#059669',
+  emeraldDark: '#047857',
+  lime: '#ADFF2F',
+  sky: '#E0F2FE',
+  skySoft: '#DCE9FF',
+  ink: '#020617',
+  smoke: '#F8FAFC',
+  white: '#FFFFFF',
+}
+
+function OTPDots({ value }: { value: string }) {
+  return (
+    <View className="flex-row justify-between">
+      {Array.from({ length: 6 }).map((_, index) => {
+        const digit = value[index]
+
+        return (
+          <View
+            key={index}
+            className="h-14 w-14 items-center justify-center rounded-full"
+            style={{
+              backgroundColor: ELECTRIC.skySoft,
+              borderWidth: digit ? 1.5 : 0,
+              borderColor: digit ? ELECTRIC.emerald : 'transparent',
+            }}
+          >
+            <Text
+              style={{
+                color: ELECTRIC.ink,
+                fontSize: 22,
+                fontWeight: '900',
+              }}
+            >
+              {digit ?? ''}
+            </Text>
+          </View>
+        )
+      })}
+    </View>
+  )
+}
 
 export default function LoginScreen() {
-  const theme = useAppTheme()
+  const insets = useSafeAreaInsets()
   const [phone, setPhone] = useState('')
   const [otp, setOtp] = useState('')
   const [step, setStep] = useState<'phone' | 'otp'>('phone')
@@ -23,13 +77,13 @@ export default function LoginScreen() {
   }
 
   async function sendOTP() {
-    if (!phone || phone.length < 9) {
+    if (!phone || phone.replace(/\D/g, '').length < 9) {
       Alert.alert('Lỗi', 'Vui lòng nhập số điện thoại hợp lệ')
       return
     }
 
     setLoading(true)
-    const formattedPhone = '+84' + phone.replace(/^0/, '')
+    const formattedPhone = '+84' + phone.replace(/\D/g, '').replace(/^0/, '')
     const { error } = await supabase.auth.signInWithOtp({ phone: formattedPhone })
     setLoading(false)
 
@@ -39,17 +93,17 @@ export default function LoginScreen() {
     }
 
     setStep('otp')
-    Alert.alert('Đã gửi', 'Kiểm tra tin nhắn SMS của bạn')
+    Alert.alert('Đã gửi mã', 'Kiểm tra SMS để nhập mã xác thực của bạn')
   }
 
   async function verifyOTP() {
     if (!otp || otp.length < 6) {
-      Alert.alert('Lỗi', 'Nhập mã 6 số từ SMS')
+      Alert.alert('Lỗi', 'Nhập đủ 6 số OTP từ SMS')
       return
     }
 
     setLoading(true)
-    const formattedPhone = '+84' + phone.replace(/^0/, '')
+    const formattedPhone = '+84' + phone.replace(/\D/g, '').replace(/^0/, '')
     const { error } = await supabase.auth.verifyOtp({
       phone: formattedPhone,
       token: otp,
@@ -58,7 +112,7 @@ export default function LoginScreen() {
     setLoading(false)
 
     if (error) {
-      Alert.alert('Lỗi', 'Mã OTP không đúng, thử lại nhé')
+      Alert.alert('Lỗi', 'Mã OTP không đúng, vui lòng thử lại')
       return
     }
 
@@ -67,7 +121,7 @@ export default function LoginScreen() {
     } = await supabase.auth.getUser()
 
     if (!user?.id) {
-      Alert.alert('Lỗi', 'Không lấy được thông tin tài khoản sau khi xác nhận OTP.')
+      Alert.alert('Lỗi', 'Không lấy được thông tin tài khoản sau khi xác thực OTP.')
       return
     }
 
@@ -75,188 +129,422 @@ export default function LoginScreen() {
     router.replace(nextRouteForPlayer(player) as any)
   }
 
-  const formattedPhonePreview = phone ? `+84 ${phone.replace(/\s+/g, '')}` : '+84'
+  const sanitizedPhone = phone.replace(/\D/g, '')
+  const formattedPhonePreview = sanitizedPhone ? `+84 ${sanitizedPhone.replace(/^0/, '')}` : '+84'
+  const primaryAction = step === 'phone' ? sendOTP : verifyOTP
+  const heroTopPadding = Math.max(insets.top, Platform.OS === 'ios' ? 18 : 14) + 8
+  const heroMinHeight = 458 + Math.min(insets.top, 28)
+  const cardOverlap = 62 + Math.min(insets.top, 10)
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: theme.backgroundMuted }}
+      style={{ flex: 1, backgroundColor: ELECTRIC.smoke }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ScrollView contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
-        <View className="px-5 pb-2 pt-4">
-          <View className="flex-row items-center justify-between">
-            <Pressable
-              onPress={() => router.back()}
-              className="h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white"
-              style={{ opacity: 0.96 }}
-            >
-              <ArrowLeft size={20} color={theme.text} />
-            </Pressable>
-            <Text className="text-lg font-black text-slate-950">Đăng nhập</Text>
-            <View className="h-12 w-12" />
+      <StatusBar style="light" translucent backgroundColor="transparent" />
+      <ScrollView
+        bounces={false}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: Math.max(insets.bottom, 16) }}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={{ minHeight: heroMinHeight, backgroundColor: ELECTRIC.ink }}>
+          <ImageBackground
+            source={HERO_IMAGE}
+            resizeMode="cover"
+            style={StyleSheet.absoluteFillObject}
+            imageStyle={{ opacity: 0.62 }}
+          />
+          <View
+            style={{
+              position: 'absolute',
+              inset: 0,
+              backgroundColor: '#030817',
+            }}
+          />
+          <View
+            style={{
+              ...StyleSheet.absoluteFillObject,
+              backgroundColor: 'rgba(3,8,23,0.55)',
+            }}
+          />
+          <View
+            style={{
+              position: 'absolute',
+              top: heroTopPadding + 4,
+              left: 26,
+              width: 74,
+              height: 74,
+              borderRadius: 999,
+              backgroundColor: 'rgba(255,255,255,0.08)',
+              shadowColor: '#FFFFFF',
+              shadowOpacity: 0.35,
+              shadowRadius: 36,
+              shadowOffset: { width: 0, height: 0 },
+            }}
+          />
+          <View
+            style={{
+              position: 'absolute',
+              top: heroTopPadding + 4,
+              right: 26,
+              width: 74,
+              height: 74,
+              borderRadius: 999,
+              backgroundColor: 'rgba(255,255,255,0.08)',
+              shadowColor: '#FFFFFF',
+              shadowOpacity: 0.35,
+              shadowRadius: 36,
+              shadowOffset: { width: 0, height: 0 },
+            }}
+          />
+          {[
+            { top: heroTopPadding + 20, left: 34 },
+            { top: heroTopPadding + 20, left: 50 },
+            { top: heroTopPadding + 20, left: 66 },
+            { top: heroTopPadding + 36, left: 26 },
+            { top: heroTopPadding + 36, left: 42 },
+            { top: heroTopPadding + 36, left: 58 },
+            { top: heroTopPadding + 36, left: 74 },
+            { top: heroTopPadding + 52, left: 34 },
+            { top: heroTopPadding + 52, left: 50 },
+            { top: heroTopPadding + 52, left: 66 },
+            { top: heroTopPadding + 20, right: 34 },
+            { top: heroTopPadding + 20, right: 50 },
+            { top: heroTopPadding + 20, right: 66 },
+            { top: heroTopPadding + 36, right: 26 },
+            { top: heroTopPadding + 36, right: 42 },
+            { top: heroTopPadding + 36, right: 58 },
+            { top: heroTopPadding + 36, right: 74 },
+            { top: heroTopPadding + 52, right: 34 },
+            { top: heroTopPadding + 52, right: 50 },
+            { top: heroTopPadding + 52, right: 66 },
+          ].map((dot, index) => (
+            <View
+              key={index}
+              style={{
+                position: 'absolute',
+                width: 9,
+                height: 9,
+                borderRadius: 999,
+                backgroundColor: 'rgba(255,255,255,0.38)',
+                ...dot,
+              }}
+            />
+          ))}
+          <View
+            style={{
+              position: 'absolute',
+              top: 54,
+              alignSelf: 'center',
+              width: 392,
+              height: 392,
+              borderRadius: 999,
+              borderWidth: 1,
+              borderColor: 'rgba(173,255,47,0.36)',
+            }}
+          />
+          <View
+            style={{
+              position: 'absolute',
+              top: 96,
+              alignSelf: 'center',
+              width: 286,
+              height: 286,
+              borderRadius: 999,
+              borderWidth: 1,
+              borderColor: 'rgba(6,182,212,0.32)',
+            }}
+          />
+          <View
+            style={{
+              position: 'absolute',
+              left: 0,
+              right: 0,
+              bottom: 46,
+              height: 2,
+              backgroundColor: 'rgba(255,255,255,0.12)',
+            }}
+          />
+          <View
+            style={{
+              position: 'absolute',
+              left: 112,
+              right: 112,
+              bottom: 38,
+              height: 3,
+              backgroundColor: 'rgba(255,255,255,0.14)',
+            }}
+          />
+          <View
+            style={{
+              position: 'absolute',
+              alignSelf: 'center',
+              bottom: 46,
+              width: 82,
+              height: 180,
+              borderRadius: 40,
+              backgroundColor: 'rgba(255,255,255,0.06)',
+            }}
+          />
+          <View
+            style={{
+              position: 'absolute',
+              alignSelf: 'center',
+              bottom: 140,
+              width: 92,
+              height: 92,
+              borderRadius: 999,
+              backgroundColor: 'rgba(255,255,255,0.08)',
+            }}
+          />
+
+          <View className="px-5 pb-24" style={{ paddingTop: heroTopPadding }}>
+            <View className="flex-row justify-end">
+              <View
+                className="rounded-full px-4 py-2"
+                style={{ backgroundColor: 'rgba(173,255,47,0.12)', borderWidth: 1, borderColor: 'rgba(173,255,47,0.28)' }}
+              >
+                <Text
+                  style={{
+                    color: ELECTRIC.lime,
+                    fontSize: 11,
+                    fontWeight: '800',
+                    letterSpacing: 1.6,
+                  }}
+                >
+                  ELECTRIC COURT
+                </Text>
+              </View>
+            </View>
+
+            <View style={{ marginTop: 64, maxWidth: 300 }}>
+              <Text
+                style={{
+                  color: ELECTRIC.lime,
+                  fontSize: 32,
+                  lineHeight: 34,
+                  fontFamily: 'PlusJakartaSans-ExtraBoldItalic',
+                  letterSpacing: -0.8,
+                }}
+              >
+                PICKLEMATCH VN
+              </Text>
+              <Text
+                style={{
+                  marginTop: 14,
+                  color: '#F8FAFC',
+                  fontSize: 10,
+                  fontFamily: 'PlusJakartaSans-Bold',
+                  letterSpacing: 0.4,
+                }}
+              >
+                KINETIC ENERGY • VIETNAM TECH
+              </Text>
+              <Text
+                style={{
+                  marginTop: 18,
+                  color: 'rgba(255,255,255,0.74)',
+                  fontSize: 14,
+                  lineHeight: 22,
+                  fontFamily: 'PlusJakartaSans-Regular',
+                }}
+              >
+                Đăng nhập để vào sân nhanh hơn, nhận mã OTP và tiếp tục hành trình pickleball của bạn.
+              </Text>
+            </View>
           </View>
         </View>
 
-        <View className="px-5 pt-3">
+        <View style={{ paddingHorizontal: 24, marginTop: -cardOverlap }}>
           <View
-            className="overflow-hidden rounded-[32px] px-5 pb-5 pt-6"
             style={{
-              backgroundColor: '#eefbf4',
-              minHeight: 228,
+              borderRadius: 32,
+              backgroundColor: ELECTRIC.white,
+              paddingHorizontal: 20,
+              paddingTop: 34,
+              paddingBottom: 32,
+              shadowColor: '#1E293B',
+              shadowOpacity: 0.08,
+              shadowRadius: 28,
+              shadowOffset: { width: 0, height: 16 },
+              elevation: 8,
             }}
           >
-            <View
-              style={{
-                position: 'absolute',
-                right: -48,
-                top: -24,
-                width: 220,
-                height: 220,
-                borderRadius: 999,
-                backgroundColor: '#bbf7d0',
-                opacity: 0.95,
-              }}
-            />
-            <View
-              style={{
-                position: 'absolute',
-                left: -24,
-                bottom: -70,
-                width: 180,
-                height: 180,
-                borderRadius: 999,
-                backgroundColor: '#a7f3d0',
-                opacity: 0.6,
-              }}
-            />
-            <View
-              style={{
-                position: 'absolute',
-                right: 30,
-                bottom: 22,
-                width: 132,
-                height: 132,
-                borderRadius: 999,
-                borderWidth: 22,
-                borderColor: 'rgba(5, 150, 105, 0.14)',
-              }}
-            />
-
-            <View className="rounded-full self-start bg-white/80 px-4 py-2">
-              <Text className="text-xs font-extrabold uppercase tracking-[1.4px] text-emerald-700">PickleMatch</Text>
-            </View>
-
-            <View className="mt-12 max-w-[72%]">
-              <Text className="text-[32px] font-black leading-[38px]" style={{ color: theme.text }}>
-                Chào mừng
-              </Text>
-              <Text className="mt-3 text-sm leading-6" style={{ color: theme.textMuted }}>
-                Đăng nhập bằng số điện thoại để vào sân nhanh hơn, nhận OTP và tiếp tục hoàn thiện hồ sơ.
+            <View className="mb-6">
+              <Text style={{ color: ELECTRIC.ink, fontSize: 28, fontFamily: 'PlusJakartaSans-Bold' }}>Chào mừng trở lại</Text>
+              <Text style={{ marginTop: 6, color: '#64748B', fontSize: 14, lineHeight: 22, fontFamily: 'PlusJakartaSans-Regular' }}>
+                Đăng nhập để bắt đầu trận đấu của bạn
               </Text>
             </View>
-          </View>
-        </View>
 
-        <View className="px-5 pt-7">
-          <Text className="text-[22px] font-black text-slate-950">
-            {step === 'phone' ? 'Nhập số điện thoại' : 'Xác nhận OTP'}
-          </Text>
-          <Text className="mt-2 text-sm leading-6 text-slate-500">
-            {step === 'phone'
-              ? 'Bắt đầu bằng số điện thoại của bạn để hệ thống gửi mã xác nhận qua SMS.'
-              : `Mã OTP đã được gửi tới ${formattedPhonePreview}. Nhập 6 số để tiếp tục.`}
-          </Text>
-        </View>
-
-        <View className="px-5 pt-5">
-          <SectionCard className="mb-4">
-            {step === 'phone' ? (
-              <View className="gap-5">
+            <View
+              style={{
+                borderRadius: 28,
+                backgroundColor: '#F0F9FF',
+                padding: 16,
+                borderWidth: 1,
+                borderColor: '#D7EEF9',
+              }}
+            >
+              <Text style={{ color: '#64748B', fontSize: 12, fontFamily: 'PlusJakartaSans-Bold', letterSpacing: 0.8, marginBottom: 10 }}>
+                SỐ ĐIỆN THOẠI
+              </Text>
+              <View
+                className="flex-row items-center rounded-[24px] px-4"
+                style={{
+                  height: 60,
+                  backgroundColor: ELECTRIC.skySoft,
+                }}
+              >
                 <View
-                  className="rounded-[24px] border px-4 py-4"
-                  style={{ backgroundColor: theme.surfaceMuted, borderColor: theme.border }}
+                  className="mr-3 h-10 w-10 items-center justify-center rounded-full"
+                  style={{ backgroundColor: 'rgba(255,255,255,0.4)' }}
                 >
-                  <Text className="mb-3 text-sm font-bold" style={{ color: theme.text }}>
-                    Số điện thoại
-                  </Text>
-                  <View
-                    className="h-14 flex-row items-center rounded-2xl bg-white px-4"
-                    style={{ borderWidth: 1, borderColor: theme.border }}
-                  >
-                    <Text className="mr-3 text-lg font-black" style={{ color: theme.text }}>
-                      +84
-                    </Text>
-                    <View className="h-6 w-px" style={{ backgroundColor: theme.borderStrong }} />
-                    <View className="ml-3 flex-1">
-                      <AppInput
-                        value={phone}
-                        onChangeText={setPhone}
-                        placeholder="909 123 456"
-                        keyboardType="phone-pad"
-                        maxLength={10}
-                        style={{
-                          height: 24,
-                          paddingVertical: 0,
-                          borderWidth: 0,
-                          paddingHorizontal: 0,
-                          backgroundColor: 'transparent',
-                        }}
-                      />
-                    </View>
-                  </View>
+                  <Smartphone size={18} color={ELECTRIC.emeraldDark} />
                 </View>
-
-                <AppButton label="Nhận mã OTP" onPress={sendOTP} loading={loading} />
-              </View>
-            ) : (
-              <View className="gap-5">
-                <View
-                  className="items-center rounded-[24px] border px-5 py-6"
-                  style={{ backgroundColor: theme.surfaceMuted, borderColor: theme.border }}
-                >
-                  <Text className="text-xs font-extrabold uppercase tracking-[1.4px]" style={{ color: theme.primaryStrong }}>
-                    Mã đã gửi
-                  </Text>
-                  <Text className="mt-3 text-4xl font-black tracking-[8px]" style={{ color: theme.primary }}>
-                    {otp ? otp.padEnd(6, '•') : '••••••'}
-                  </Text>
-                  <Text className="mt-3 text-center text-sm leading-6" style={{ color: theme.textMuted }}>
-                    Nhập đúng 6 số từ SMS để mở tiếp bước vào app.
-                  </Text>
-                </View>
-
-                <AppInput
-                  label="Nhập mã OTP từ SMS"
-                  value={otp}
-                  onChangeText={setOtp}
-                  placeholder="••••••"
-                  keyboardType="number-pad"
-                  maxLength={6}
-                  textAlign="center"
+                <Text style={{ color: ELECTRIC.ink, fontSize: 16, fontFamily: 'PlusJakartaSans-Bold' }}>+84</Text>
+                <View style={{ width: 1, height: 24, backgroundColor: '#94A3B8', marginHorizontal: 12 }} />
+                <TextInput
+                  value={phone}
+                  onChangeText={setPhone}
+                  placeholder="Nhập số điện thoại"
+                  placeholderTextColor="#C0CDA7"
+                  keyboardType="phone-pad"
+                  maxLength={10}
+                  style={{
+                    flex: 1,
+                    color: ELECTRIC.ink,
+                    fontSize: 16,
+                    fontFamily: 'PlusJakartaSans-Regular',
+                    paddingVertical: 0,
+                  }}
                 />
-
-                <AppButton label="Xác nhận" onPress={verifyOTP} loading={loading} />
-                <AppButton label="Đổi số điện thoại" onPress={() => setStep('phone')} variant="ghost" />
               </View>
-            )}
-          </SectionCard>
-
-          <View
-            className="mb-4 flex-row items-start rounded-[24px] border px-4 py-4"
-            style={{ backgroundColor: '#ecfdf5', borderColor: '#a7f3d0' }}
-          >
-            <View className="mt-0.5 h-10 w-10 items-center justify-center rounded-full bg-white">
-              <ShieldCheck size={18} color={theme.primaryStrong} />
             </View>
-            <View className="ml-3 flex-1">
-              <Text className="text-sm font-extrabold text-emerald-800">Đăng nhập nhanh, ít bước</Text>
-              <Text className="mt-1 text-sm leading-6 text-emerald-700">
-                Màn này chỉ xử lý xác thực bằng số điện thoại. Hồ sơ và onboarding sẽ được giữ nguyên flow cũ.
+
+            <View className="mt-7">
+              <View className="mb-3 flex-row items-center justify-between">
+                <Text style={{ color: '#64748B', fontSize: 12, fontFamily: 'PlusJakartaSans-Bold', letterSpacing: 0.8 }}>MÃ OTP (6 CHỮ SỐ)</Text>
+                {step === 'otp' ? (
+                  <Pressable onPress={sendOTP} disabled={loading}>
+                    <Text style={{ color: ELECTRIC.emerald, fontSize: 13, fontFamily: 'PlusJakartaSans-Bold' }}>Gửi lại mã</Text>
+                  </Pressable>
+                ) : (
+                  <Text style={{ color: '#94A3B8', fontSize: 13, fontFamily: 'PlusJakartaSans-Bold' }}>6 số xác thực</Text>
+                )}
+              </View>
+
+              <OTPDots value={otp} />
+
+              <TextInput
+                value={otp}
+                onChangeText={(value) => setOtp(value.replace(/\D/g, '').slice(0, 6))}
+                placeholder="Nhập mã OTP"
+                placeholderTextColor="#94A3B8"
+                keyboardType="number-pad"
+                maxLength={6}
+                style={{
+                  marginTop: 14,
+                  height: 1,
+                  opacity: 0.02,
+                }}
+              />
+
+              <Text style={{ marginTop: 12, color: '#64748B', fontSize: 13, lineHeight: 20 }}>
+                {step === 'phone'
+                  ? 'Nhấn gửi mã OTP để nhận tin nhắn xác thực qua SMS.'
+                  : `Mã xác thực đã được gửi tới ${formattedPhonePreview}.`}
               </Text>
             </View>
+
+            <View
+              className="mt-6 flex-row rounded-[24px] px-4 py-4"
+              style={{
+                backgroundColor: '#EEF2FF',
+              }}
+            >
+              <View
+                className="mr-3 h-12 w-12 items-center justify-center rounded-full"
+                style={{ backgroundColor: '#DDECF6' }}
+              >
+                <ShieldCheck size={19} color={ELECTRIC.emeraldDark} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ color: '#1E293B', fontSize: 12, fontFamily: 'PlusJakartaSans-Bold', letterSpacing: 0.6 }}>
+                  BẢO MẬT TUYỆT ĐỐI
+                </Text>
+                <Text style={{ marginTop: 4, color: '#64748B', fontSize: 13, lineHeight: 22, fontFamily: 'PlusJakartaSans-Regular' }}>
+                  Thông tin cá nhân và số điện thoại của bạn được mã hóa theo tiêu chuẩn quốc tế.
+                </Text>
+              </View>
+            </View>
+
+            <Pressable
+              onPress={primaryAction}
+              disabled={loading}
+              style={{
+                marginTop: 28,
+                height: 58,
+                borderRadius: 29,
+                backgroundColor: '#0A8A5B',
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: loading ? 0.72 : 1,
+                shadowColor: '#0A8A5B',
+                shadowOpacity: 0.24,
+                shadowRadius: 16,
+                shadowOffset: { width: 0, height: 10 },
+                elevation: 7,
+              }}
+            >
+              <Text style={{ color: ELECTRIC.white, fontSize: 16, fontFamily: 'PlusJakartaSans-Bold' }}>
+                {loading ? 'Đang xử lý...' : 'Xác nhận'}
+              </Text>
+            </Pressable>
+
+            <Pressable
+              onPress={step === 'phone' ? sendOTP : () => setStep('phone')}
+              disabled={loading}
+              style={{
+                marginTop: 20,
+                height: 58,
+                borderRadius: 29,
+                backgroundColor: ELECTRIC.skySoft,
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: loading ? 0.72 : 1,
+              }}
+            >
+              <Text style={{ color: ELECTRIC.emeraldDark, fontSize: 15, fontFamily: 'PlusJakartaSans-Bold' }}>
+                {step === 'phone' ? 'Gửi mã OTP' : 'Đổi số điện thoại'}
+              </Text>
+            </Pressable>
           </View>
 
-          {DevLoginSection ? <DevLoginSection nextRouteForPlayer={nextRouteForPlayer} /> : null}
+          <View className="mt-8 items-center">
+            <Text style={{ color: '#475569', fontSize: 14, fontFamily: 'PlusJakartaSans-Regular' }}>
+              Chưa có tài khoản?{' '}
+              <Text style={{ color: ELECTRIC.emerald, fontFamily: 'PlusJakartaSans-Bold' }}>Đăng ký ngay</Text>
+            </Text>
+
+            <Text
+              style={{
+                marginTop: 16,
+                color: '#94A3B8',
+                fontSize: 11,
+                fontFamily: 'PlusJakartaSans-Bold',
+                letterSpacing: 1.2,
+              }}
+            >
+              ĐIỀU KHOẢN • CHÍNH SÁCH • TRỢ GIÚP
+            </Text>
+          </View>
+
+          {__DEV__ ? (
+            <View style={{ marginTop: 24, paddingHorizontal: 8 }}>
+              <DevLoginSection nextRouteForPlayer={nextRouteForPlayer} />
+            </View>
+          ) : null}
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
