@@ -7,8 +7,8 @@ import {
   Bell,
   CheckCircle2,
   DoorOpen,
-  MessageCircleMore,
   Megaphone,
+  MessageCircleMore,
   ShieldAlert,
   UserPlus,
   XCircle,
@@ -93,7 +93,10 @@ export default function NotificationsScreen() {
                     <View className="absolute left-1.5 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-sky-500" />
                   ) : null}
 
-                  <View className={`h-[46px] w-[46px] items-center justify-center rounded-[14px] border ${meta.bg}`} style={{ borderColor: `${meta.color}22` }}>
+                  <View
+                    className={`h-[46px] w-[46px] items-center justify-center rounded-[14px] border ${meta.bg}`}
+                    style={{ borderColor: `${meta.color}22` }}
+                  >
                     <Icon size={20} color={meta.color} />
                   </View>
 
@@ -120,7 +123,9 @@ export default function NotificationsScreen() {
                     </Text>
                   </View>
 
-                  {!isLast ? <View className="absolute bottom-0 left-[74px] right-4 border-b border-slate-100" /> : null}
+                  {!isLast ? (
+                    <View className="absolute bottom-0 left-[74px] right-4 border-b border-slate-100" />
+                  ) : null}
                 </TouchableOpacity>
               )
             }}
