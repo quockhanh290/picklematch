@@ -106,7 +106,7 @@ export default function HomeScreen() {
           <HomeCarouselSection
             visible={personalizedSessions.length > 0}
             marginTopClassName="mt-6"
-            eyebrow="Smart Queue"
+            eyebrow="Gợi ý hợp gu"
             title="Dành riêng cho bạn"
             items={personalizedSessions}
             activeIndex={personalizedIndex}
@@ -117,7 +117,7 @@ export default function HomeScreen() {
 
           <HomeCarouselSection
             visible={rescueSessions.length > 0}
-            eyebrow="Urgent Fill"
+            eyebrow="Cần người gấp"
             title="Cứu nét khẩn cấp"
             items={rescueSessions}
             activeIndex={rescueIndex}
@@ -128,7 +128,7 @@ export default function HomeScreen() {
 
           <HomeCarouselSection
             visible={familiarCourts.length > 0}
-            eyebrow="Go-To Courts"
+            eyebrow="Sân quen"
             title="Sân quen của bạn"
             items={familiarCourts}
             activeIndex={courtIndex}

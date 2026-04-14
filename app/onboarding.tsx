@@ -4,13 +4,13 @@ import {
   ActivityIndicator,
   Animated,
   Easing,
-  SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
   useWindowDimensions,
 } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 import {
   calculateInitialElo,
@@ -32,6 +32,7 @@ export default function OnboardingScreen() {
   const { width } = useWindowDimensions()
   const translateX = useRef(new Animated.Value(0)).current
   const advanceTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const isMountedRef = useRef(true)
 
   const [stepIndex, setStepIndex] = useState(0)
   const [scores, setScores] = useState<AnswerScores>({})
@@ -49,6 +50,7 @@ export default function OnboardingScreen() {
 
   useEffect(() => {
     return () => {
+      isMountedRef.current = false
       if (advanceTimeout.current) clearTimeout(advanceTimeout.current)
     }
   }, [])
@@ -57,6 +59,7 @@ export default function OnboardingScreen() {
     if (!completionTier) return
 
     const timeout = setTimeout(() => {
+      if (!isMountedRef.current) return
       router.replace('/(tabs)')
     }, 1400)
 
@@ -182,7 +185,7 @@ export default function OnboardingScreen() {
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.hero}>
-        <Text style={styles.eyebrow}>Onboarding</Text>
+        <Text style={styles.eyebrow}>Khởi động</Text>
         <Text style={styles.title}>Để mình ước lượng mức khởi điểm phù hợp cho bạn</Text>
         <Text style={styles.subtitle}>7 câu ngắn, trả lời theo cảm giác thật trên sân để app ghép kèo dễ chịu hơn. Hệ thống sẽ còn tiếp tục tinh chỉnh sau vài trận đầu.</Text>
 
@@ -227,7 +230,7 @@ export default function OnboardingScreen() {
         <View style={styles.footerRow}>
           {stepIndex > 0 ? (
             <TouchableOpacity activeOpacity={0.88} onPress={handleBack} style={styles.backButton} disabled={submitting || isAnimating}>
-              <Text style={styles.backButtonText}>Back</Text>
+              <Text style={styles.backButtonText}>Quay lại</Text>
             </TouchableOpacity>
           ) : (
             <View style={styles.backButtonSpacer} />
@@ -265,7 +268,7 @@ export default function OnboardingScreen() {
           <View style={styles.toast}>
             <Text style={styles.toastText}>Có lỗi xảy ra, thử lại nhé</Text>
             <TouchableOpacity activeOpacity={0.9} onPress={submitOnboarding} style={styles.toastRetry}>
-              <Text style={styles.toastRetryText}>Retry</Text>
+              <Text style={styles.toastRetryText}>Thử lại</Text>
             </TouchableOpacity>
           </View>
         ) : null}

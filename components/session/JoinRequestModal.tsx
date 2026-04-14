@@ -43,7 +43,7 @@ export function JoinRequestModal({
               <View className="flex-row items-start justify-between">
                 <View className="flex-1 pr-3">
                   <Text className="text-[11px] font-extrabold uppercase tracking-[1.2px] text-gray-400">
-                    {isWaitlist ? 'Waitlist' : 'Join Request'}
+                    {isWaitlist ? 'Dự bị' : 'Yêu cầu tham gia'}
                   </Text>
                   <Text className="mt-2 text-2xl font-black text-slate-950">
                     {isWaitlist ? 'Đăng ký dự bị' : 'Xin vào kèo'}
@@ -56,18 +56,18 @@ export function JoinRequestModal({
 
               <Text className="mt-3 text-sm leading-6 text-slate-600">
                 {isWaitlist
-                  ? 'Kèo đang đủ người. Bạn có thể để lại lời nhắn để host gọi bạn vào nếu có người rời kèo.'
-                  : 'Giới thiệu ngắn để host hiểu thêm về bạn trước khi quyết định nhé.'}
+                  ? 'Kèo đang đủ người. Bạn có thể để lại lời nhắn để chủ kèo gọi bạn vào nếu có người rời kèo.'
+                  : 'Giới thiệu ngắn để chủ kèo hiểu thêm về bạn trước khi quyết định nhé.'}
               </Text>
 
               {isLowerSkill ? (
                 <View className="mt-4 rounded-2xl border border-orange-200 bg-orange-50 px-4 py-3">
                   <View className="flex-row items-center">
                     <AlertCircle size={15} color="#c2410c" />
-                    <Text className="ml-2 text-sm font-bold text-orange-800">Cảnh báo Elo Loss</Text>
+                    <Text className="ml-2 text-sm font-bold text-orange-800">Cảnh báo biến động Elo</Text>
                   </View>
                   <Text className="mt-2 text-xs leading-5 text-orange-700">
-                    Trình độ hiện tại của bạn đang thấp hơn mặt bằng kèo này. Nếu được host chấp nhận, Elo có thể biến động mạnh hơn sau trận.
+                    Trình độ hiện tại của bạn đang thấp hơn mặt bằng kèo này. Nếu được chủ kèo chấp nhận, Elo có thể biến động mạnh hơn sau trận.
                   </Text>
                 </View>
               ) : null}
@@ -98,7 +98,7 @@ export function JoinRequestModal({
                   <Text className="ml-2 text-[11px] font-extrabold uppercase tracking-[1px] text-slate-500">Riêng tư</Text>
                 </View>
                 <Text className="mt-2 text-sm leading-6 text-slate-600">
-                  Host chỉ thấy lời nhắn này khi review yêu cầu. Bạn có thể chỉnh lại ở lần gửi sau nếu trạng thái thay đổi.
+                  Chủ kèo chỉ thấy lời nhắn này khi xem yêu cầu. Bạn có thể chỉnh lại ở lần gửi sau nếu trạng thái thay đổi.
                 </Text>
               </View>
 

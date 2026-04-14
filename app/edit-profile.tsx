@@ -180,7 +180,7 @@ export default function EditProfile() {
         <ScreenHeader
           eyebrow="Cá nhân hóa"
           title="Chỉnh sửa hồ sơ"
-          subtitle="Cập nhật thông tin cá nhân, cách Smart Join xử lý kèo và những sân bạn hay chơi."
+          subtitle="Cập nhật thông tin cá nhân, cách ghép nhanh xử lý kèo và những sân bạn hay chơi."
         />
 
         <View className="px-5">
@@ -189,10 +189,16 @@ export default function EditProfile() {
               <AppInput label="Tên hiển thị" value={name} onChangeText={setName} placeholder="Nhập tên của bạn" maxLength={30} />
 
               <View>
+                <AppInput
+                  label="Thành phố"
+                  value={city}
+                  onChangeText={setCity}
+                  placeholder="Ví dụ: TP. Hồ Chí Minh"
+                />
                 <Text className="mb-2 text-sm font-bold text-slate-900">Thành phố</Text>
                 <View className="flex-row flex-wrap gap-2">
                   {CITIES.map((item) => {
-                    const isActive = city === item
+                    const isActive = city.trim().toLowerCase() === item.toLowerCase()
                     return (
                       <TouchableOpacity
                         key={item}
@@ -237,10 +243,10 @@ export default function EditProfile() {
             </TouchableOpacity>
           </SectionCard>
 
-          <SectionCard title="Smart Join" subtitle="Thiết lập cách hệ thống xử lý người chơi phù hợp trình độ khi họ muốn vào kèo của bạn." className="mb-4">
+          <SectionCard title="Ghép nhanh" subtitle="Thiết lập cách hệ thống xử lý người chơi phù hợp trình độ khi họ muốn vào kèo của bạn." className="mb-4">
             <View className="flex-row items-center gap-3 rounded-[24px] bg-emerald-50 p-4">
               <View className="flex-1">
-                <Text className="text-sm font-extrabold text-emerald-800">Auto-accept cho Smart Join</Text>
+                <Text className="text-sm font-extrabold text-emerald-800">Tự nhận cho ghép nhanh</Text>
                 <Text className="mt-2 text-sm leading-6 text-emerald-700">
                   Khi bật, người chơi được hệ thống đánh giá là phù hợp sẽ vào kèo ngay thay vì phải xin duyệt thủ công.
                 </Text>

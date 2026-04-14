@@ -2,14 +2,6 @@ import { getEloBandForSessionRange } from '@/lib/eloSystem'
 import { getSkillLevelUi } from '@/lib/skillLevelUi'
 import type { SkillAssessmentLevel } from '@/lib/skillAssessment'
 
-export type StatItem = {
-  id: string
-  label: string
-  value: string
-  accent: string
-  icon: any
-}
-
 export type Player = {
   id: string
   name: string
@@ -46,6 +38,7 @@ export type HomeSessionRecord = {
     id: string
     start_time: string
     end_time: string
+    // `price` là tổng chi phí của cả kèo/sân; UI tự suy ra giá mỗi người từ max_players.
     price: number
     court: {
       id: string
@@ -390,21 +383,4 @@ export function buildLiveFamiliarCourts(sessions: HomeSessionRecord[]) {
             : 'Đang có tín hiệu mở kèo, đáng để theo dõi',
       image: COURT_FALLBACK_IMAGES[index % COURT_FALLBACK_IMAGES.length],
     }))
-}
-
-export function buildDashboardStats(profile: HomeProfile | null, playerStats: PlayerStatsRecord | null, trendingUpIcon: any): StatItem[] {
-  const eloValue = profile?.current_elo ?? profile?.elo ?? 0
-  const reliabilityValue = profile?.reliability_score ?? 100
-
-  return [
-    { id: 'elo', label: 'ELO', value: eloValue ? eloValue.toLocaleString('vi-VN') : '--', accent: 'text-indigo-700', icon: trendingUpIcon },
-    {
-      id: 'streak',
-      label: 'STREAK',
-      value: String(playerStats?.current_win_streak ?? 0).padStart(2, '0'),
-      accent: 'text-orange-600',
-      icon: trendingUpIcon,
-    },
-    { id: 'reputation', label: 'UY TÍN', value: `${reliabilityValue}%`, accent: 'text-emerald-600', icon: trendingUpIcon },
-  ]
 }

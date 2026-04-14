@@ -201,15 +201,17 @@ export default function RateSessionScreen() {
     }
 
     if (session.status !== 'done') {
-      Alert.alert('Kèo chưa kết thúc', 'Chỉ có thể đánh giá sau khi buổi chơi đã hoàn tất.')
-      router.back()
+      Alert.alert('Kèo chưa kết thúc', 'Chỉ có thể đánh giá sau khi buổi chơi đã hoàn tất.', [
+        { text: 'Đã hiểu', onPress: () => router.back() },
+      ])
       return
     }
 
     if (session.results_status !== 'finalized') {
       setLoading(false)
-      Alert.alert('Kết quả trận chưa được chốt', 'Bạn chỉ có thể đánh giá sau khi kết quả trận đã được xác nhận xong.')
-      router.back()
+      Alert.alert('Kết quả trận chưa được chốt', 'Bạn chỉ có thể đánh giá sau khi kết quả trận đã được xác nhận xong.', [
+        { text: 'Đã hiểu', onPress: () => router.back() },
+      ])
       return
     }
 

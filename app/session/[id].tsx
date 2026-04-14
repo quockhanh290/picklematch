@@ -253,8 +253,8 @@ export default function SessionDetailScreen() {
                 {session.results_status === 'disputed'
                   ? 'Kết quả đang bị tranh chấp'
                   : session.results_status === 'pending_confirmation'
-                    ? 'Host đã gửi kết quả trận'
-                    : 'Host chưa gửi kết quả'}
+                    ? 'Chủ kèo đã gửi kết quả trận'
+                    : 'Chủ kèo chưa gửi kết quả'}
               </Text>
             </View>
 
@@ -264,10 +264,10 @@ export default function SessionDetailScreen() {
               }`}
               >
               {session.results_status === 'disputed'
-                ? 'Vào màn xác nhận để xem lại kết quả host đã gửi và cập nhật phản hồi của bạn.'
+                ? 'Vào màn xác nhận để xem lại kết quả chủ kèo đã gửi và cập nhật phản hồi của bạn.'
                 : session.results_status === 'pending_confirmation'
                   ? 'Bạn cần xác nhận hoặc tranh chấp kết quả trước khi hệ thống chốt trận.'
-                  : 'Nếu host chưa gửi kết quả đúng hạn, bạn có thể báo kết quả của mình để hệ thống xử lý tiếp.'}
+                  : 'Nếu chủ kèo chưa gửi kết quả đúng hạn, bạn có thể báo kết quả của mình để hệ thống xử lý tiếp.'}
             </Text>
 
             <TouchableOpacity

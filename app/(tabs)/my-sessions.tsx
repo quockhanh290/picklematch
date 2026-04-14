@@ -17,7 +17,7 @@ import {
   Star,
   Users,
 } from 'lucide-react-native'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   Animated,
@@ -102,6 +102,193 @@ function sessionsFingerprint(items: MySession[]) {
   )
 }
 
+type MySessionsTheme = ReturnType<typeof useAppTheme>
+
+function MySessionsEmptyStateCard({
+  activeTab,
+  theme,
+}: {
+  activeTab: SessionTab
+  theme: MySessionsTheme
+}) {
+  const config =
+    activeTab === 'upcoming'
+      ? {
+          eyebrow: 'SẴN SÀNG RA SÂN',
+          title: 'Bạn chưa có kèo sắp đánh',
+          description: 'Tạo kèo mới hoặc tham gia một trận phù hợp để lịch chơi của bạn bắt đầu đầy lên.',
+        }
+      : activeTab === 'pending'
+        ? {
+            eyebrow: 'ĐANG CHỜ',
+            title: 'Chưa có yêu cầu nào cần duyệt',
+            description: 'Những kèo bạn đang chờ chủ kèo phản hồi sẽ xuất hiện tại đây.',
+          }
+        : {
+            eyebrow: 'LỊCH SỬ THI ĐẤU',
+            title: 'Bạn chưa có lịch sử trận đấu',
+            description: 'Sau khi hoàn thành các trận đã chơi, phần lịch sử sẽ hiển thị tại đây.',
+          }
+
+  return (
+    <SectionCard className="px-6 py-7">
+      <Text className="text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: theme.textSoft }}>
+        {config.eyebrow}
+      </Text>
+      <Text className="mt-3 text-[24px] font-black leading-[30px]" style={{ color: theme.text }}>
+        {config.title}
+      </Text>
+      <Text className="mt-2 text-[14px] leading-6" style={{ color: theme.textMuted }}>
+        {config.description}
+      </Text>
+    </SectionCard>
+  )
+}
+
+function MySessionCard({
+  item,
+  tab,
+  theme,
+  onOpenSessionDetail,
+  onOpenRateSession,
+  onShare,
+  formatDatePart,
+  formatTimeRange,
+}: {
+  item: MySession
+  tab: SessionTab
+  theme: MySessionsTheme
+  onOpenSessionDetail: (sessionId: string) => void
+  onOpenRateSession: (sessionId: string) => void
+  onShare: (session?: MySession) => void | Promise<void>
+  formatDatePart: (value: string) => string
+  formatTimeRange: (start: string, end: string) => string
+}) {
+  const isHost = item.role === 'host'
+  const isBooked = item.court_booking_status === 'confirmed'
+  const progress = item.max_players > 0 ? Math.min(item.player_count / item.max_players, 1) : 0
+  const address = [item.court_address, item.court_city].filter(Boolean).join(', ')
+
+  return (
+    <Pressable
+      onPress={() => onOpenSessionDetail(item.id)}
+      className="mb-4 rounded-[32px] border p-5 active:scale-[0.98]"
+      style={{ backgroundColor: theme.surface, borderColor: theme.border, ...getShadowStyle(theme) }}
+    >
+      <View className="flex-row items-start justify-between">
+        <View className="mr-3 flex-1 flex-row flex-wrap items-center gap-2">
+          <StatusBadge label={isHost ? 'Bạn là chủ kèo' : 'Bạn là người chơi'} tone={isHost ? 'info' : 'neutral'} />
+
+          {isBooked ? (
+            <View className="rounded-full px-3 py-2" style={{ backgroundColor: theme.primarySoft }}>
+              <View className="flex-row items-center">
+                <CheckCircle2 size={13} color={theme.primary} strokeWidth={2.4} />
+                <Text className="ml-1.5 text-[10px] font-black uppercase tracking-[0.12em]" style={{ color: theme.primaryStrong }}>
+                  Đã chốt sân
+                </Text>
+              </View>
+            </View>
+          ) : null}
+        </View>
+
+        <View className="rounded-full px-3 py-2" style={{ backgroundColor: theme.surfaceAlt }}>
+          <Text className="text-[10px] font-black uppercase tracking-[0.12em]" style={{ color: theme.textMuted }}>
+            #{item.id.slice(0, 6)}
+          </Text>
+        </View>
+      </View>
+
+      <View className="mt-5">
+        <Text className="text-[19px] font-black" style={{ color: theme.text }}>{item.court_name}</Text>
+        {address ? <Text className="mt-2 text-[14px]" style={{ color: theme.textMuted }}>{address}</Text> : null}
+      </View>
+
+      <View className="mt-5 rounded-[22px] px-4 py-3" style={{ backgroundColor: theme.surfaceAlt }}>
+        <View className="flex-row flex-wrap items-center gap-4">
+          <View className="flex-row items-center">
+            <CalendarDays size={15} color={theme.textMuted} strokeWidth={2.3} />
+            <Text className="ml-2 text-[13px] font-semibold" style={{ color: theme.text }}>{formatDatePart(item.start_time)}</Text>
+          </View>
+
+          <View className="flex-row items-center">
+            <Clock size={15} color={theme.textMuted} strokeWidth={2.3} />
+            <Text className="ml-2 text-[13px] font-semibold" style={{ color: theme.text }}>
+              {formatTimeRange(item.start_time, item.end_time)}
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      <View className="mt-5">
+        <View className="flex-row items-center justify-between">
+          <View className="flex-row items-center">
+            <Users size={15} color={theme.text} strokeWidth={2.3} />
+            <Text className="ml-2 text-[14px] font-bold" style={{ color: theme.text }}>
+              {item.player_count}/{item.max_players} người tham gia
+            </Text>
+          </View>
+          <Text className="text-[12px] font-bold" style={{ color: theme.textSoft }}>{Math.round(progress * 100)}%</Text>
+        </View>
+
+        <View className="mt-3 h-2 overflow-hidden rounded-full" style={{ backgroundColor: theme.surfaceAlt }}>
+          <View className="h-2 rounded-full" style={{ width: `${Math.max(progress * 100, 8)}%`, backgroundColor: theme.primary }} />
+        </View>
+      </View>
+
+      {tab === 'pending' ? (
+        <View className="mt-5 rounded-[24px] border px-4 py-4" style={{ borderColor: theme.warning, backgroundColor: theme.warningSoft }}>
+          <View className="flex-row items-center">
+            <Hourglass size={16} color={theme.warning} strokeWidth={2.3} />
+            <Text className="ml-2 text-[14px] font-black" style={{ color: theme.warning }}>
+              {isHost ? 'Có người đang chờ bạn duyệt' : 'Đang chờ phản hồi'}
+            </Text>
+          </View>
+          <Text className="mt-2 text-[13px] leading-5" style={{ color: theme.warning }}>
+            {isHost
+              ? 'Mở chi tiết kèo để xem và duyệt những người chơi vừa gửi yêu cầu tham gia.'
+              : 'Chủ kèo sẽ duyệt yêu cầu tham gia của bạn trong thời gian sớm nhất.'}
+          </Text>
+        </View>
+      ) : null}
+
+      {tab === 'upcoming' ? (
+        <View className="mt-5 flex-row gap-3">
+          <Pressable
+            onPress={() => onOpenSessionDetail(item.id)}
+            className="flex-1 flex-row items-center justify-center rounded-[22px] border px-4 py-4"
+            style={{ borderColor: theme.border, backgroundColor: theme.surface }}
+          >
+            {isHost ? <Edit3 size={16} color={theme.text} strokeWidth={2.3} /> : <FileText size={16} color={theme.text} strokeWidth={2.3} />}
+            <Text className="ml-2 text-[14px] font-black" style={{ color: theme.text }}>{isHost ? 'Sửa kèo' : 'Chi tiết'}</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => void onShare(item)}
+            className="flex-1 flex-row items-center justify-center rounded-[22px] px-4 py-4"
+            style={{ backgroundColor: theme.accent }}
+          >
+            <Share2 size={16} color="#000000" strokeWidth={2.3} />
+            <Text className="ml-2 text-[14px] font-black text-black">Chia sẻ</Text>
+          </Pressable>
+        </View>
+      ) : null}
+
+      {tab === 'history' ? (
+        <Pressable
+          onPress={() => (item.status === 'done' ? onOpenRateSession(item.id) : onOpenSessionDetail(item.id))}
+          className="mt-5 flex-row items-center justify-center rounded-[22px] px-4 py-4"
+          style={{ backgroundColor: item.status === 'done' ? theme.text : theme.surfaceAlt }}
+        >
+          <Star size={16} color={item.status === 'done' ? theme.accent : theme.textMuted} strokeWidth={2.3} />
+          <Text className="ml-2 text-[14px] font-black" style={{ color: item.status === 'done' ? theme.primaryContrast : theme.textMuted }}>
+            Đánh giá trận đấu
+          </Text>
+        </Pressable>
+      ) : null}
+    </Pressable>
+  )
+}
+
 export default function MySessions() {
   const theme = useAppTheme()
   const { userId, isLoading: isAuthLoading } = useAuth()
@@ -114,8 +301,13 @@ export default function MySessions() {
   const [segmentWidth, setSegmentWidth] = useState(0)
   const initInFlightRef = useRef(false)
   const fetchInFlightRef = useRef<Promise<void> | null>(null)
+  const sessionsRef = useRef<MySession[]>([])
   const pagerRef = useRef<ScrollView | null>(null)
   const scrollX = useRef(new Animated.Value(0)).current
+
+  useEffect(() => {
+    sessionsRef.current = sessions
+  }, [sessions])
 
   const hydrateCachedSessionsForLastUser = useCallback(async () => {
     const startedAt = Date.now()
@@ -265,7 +457,7 @@ export default function MySessions() {
         }
 
         const nextFingerprint = sessionsFingerprint(nextSessions)
-        const currentFingerprint = sessionsFingerprint(sessions)
+        const currentFingerprint = sessionsFingerprint(sessionsRef.current)
 
         if (nextFingerprint !== currentFingerprint) {
           setSessions(nextSessions)
@@ -288,7 +480,7 @@ export default function MySessions() {
         fetchInFlightRef.current = null
       }
     },
-    [sessions],
+    [],
   )
 
   const init = useCallback(async () => {
@@ -431,33 +623,37 @@ export default function MySessions() {
     router.push({ pathname: '/rate-session/[id]' as any, params: { id: sessionId } })
   }
 
-  const sessionsByTab = TAB_OPTIONS.reduce<Record<SessionTab, MySession[]>>(
-    (acc, tab) => {
-      acc[tab.key] = sessions
-        .filter((session) => resolveTab(session) === tab.key)
-        .sort((a, b) => {
-          const aTime = new Date(a.start_time).getTime()
-          const bTime = new Date(b.start_time).getTime()
-          const safeATime = Number.isNaN(aTime) ? (tab.key === 'history' ? 0 : Number.MAX_SAFE_INTEGER) : aTime
-          const safeBTime = Number.isNaN(bTime) ? (tab.key === 'history' ? 0 : Number.MAX_SAFE_INTEGER) : bTime
+  const sessionsByTab = useMemo(
+    () =>
+      TAB_OPTIONS.reduce<Record<SessionTab, MySession[]>>(
+        (acc, tab) => {
+          acc[tab.key] = sessions
+            .filter((session) => resolveTab(session) === tab.key)
+            .sort((a, b) => {
+              const aTime = new Date(a.start_time).getTime()
+              const bTime = new Date(b.start_time).getTime()
+              const safeATime = Number.isNaN(aTime) ? (tab.key === 'history' ? 0 : Number.MAX_SAFE_INTEGER) : aTime
+              const safeBTime = Number.isNaN(bTime) ? (tab.key === 'history' ? 0 : Number.MAX_SAFE_INTEGER) : bTime
 
-          if (tab.key === 'history') {
-            return safeBTime - safeATime
-          }
+              if (tab.key === 'history') {
+                return safeBTime - safeATime
+              }
 
-          const bookingWeight =
-            Number(b.court_booking_status === 'confirmed') - Number(a.court_booking_status === 'confirmed')
+              const bookingWeight =
+                Number(b.court_booking_status === 'confirmed') - Number(a.court_booking_status === 'confirmed')
 
-          if (bookingWeight !== 0) {
-            return bookingWeight
-          }
+              if (bookingWeight !== 0) {
+                return bookingWeight
+              }
 
-          return safeATime - safeBTime
-        })
+              return safeATime - safeBTime
+            })
 
-      return acc
-    },
-    { upcoming: [], pending: [], history: [] },
+          return acc
+        },
+        { upcoming: [], pending: [], history: [] },
+      ),
+    [sessions],
   )
 
   function handleTabPress(tab: SessionTab) {
@@ -483,167 +679,6 @@ export default function MySessions() {
           extrapolate: 'clamp',
         })
       : 0
-
-  function EmptyState() {
-    const config =
-      activeTab === 'upcoming'
-        ? {
-            eyebrow: 'SẴN SÀNG RA SÂN',
-            title: 'Bạn chưa có kèo sắp đánh',
-            description: 'Tạo kèo mới hoặc tham gia một trận phù hợp để lịch chơi của bạn bắt đầu đầy lên.',
-          }
-        : activeTab === 'pending'
-          ? {
-              eyebrow: 'ĐANG CHỜ',
-              title: 'Chưa có yêu cầu nào cần duyệt',
-              description: 'Những kèo bạn đang chờ host phản hồi sẽ xuất hiện tại đây.',
-            }
-          : {
-              eyebrow: 'LỊCH SỬ THI ĐẤU',
-              title: 'Bạn chưa có lịch sử trận đấu',
-              description: 'Sau khi hoàn thành các trận đã chơi, phần lịch sử sẽ hiển thị tại đây.',
-            }
-
-    return (
-      <SectionCard className="px-6 py-7">
-        <Text className="text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: theme.textSoft }}>
-          {config.eyebrow}
-        </Text>
-        <Text className="mt-3 text-[24px] font-black leading-[30px]" style={{ color: theme.text }}>
-          {config.title}
-        </Text>
-        <Text className="mt-2 text-[14px] leading-6" style={{ color: theme.textMuted }}>
-          {config.description}
-        </Text>
-      </SectionCard>
-    )
-  }
-
-  function SessionCard({ item, tab }: { item: MySession; tab: SessionTab }) {
-    const isHost = item.role === 'host'
-    const isBooked = item.court_booking_status === 'confirmed'
-    const progress = item.max_players > 0 ? Math.min(item.player_count / item.max_players, 1) : 0
-    const address = [item.court_address, item.court_city].filter(Boolean).join(', ')
-
-    return (
-      <Pressable
-        onPress={() => openSessionDetail(item.id)}
-        className="mb-4 rounded-[32px] border p-5 active:scale-[0.98]"
-        style={{ backgroundColor: theme.surface, borderColor: theme.border, ...getShadowStyle(theme) }}
-      >
-        <View className="flex-row items-start justify-between">
-          <View className="mr-3 flex-1 flex-row flex-wrap items-center gap-2">
-            <StatusBadge label={isHost ? 'Bạn là host' : 'Bạn là người chơi'} tone={isHost ? 'info' : 'neutral'} />
-
-            {isBooked ? (
-              <View className="rounded-full px-3 py-2" style={{ backgroundColor: theme.primarySoft }}>
-                <View className="flex-row items-center">
-                  <CheckCircle2 size={13} color={theme.primary} strokeWidth={2.4} />
-                  <Text className="ml-1.5 text-[10px] font-black uppercase tracking-[0.12em]" style={{ color: theme.primaryStrong }}>
-                    Đã chốt sân
-                  </Text>
-                </View>
-              </View>
-            ) : null}
-          </View>
-
-          <View className="rounded-full px-3 py-2" style={{ backgroundColor: theme.surfaceAlt }}>
-            <Text className="text-[10px] font-black uppercase tracking-[0.12em]" style={{ color: theme.textMuted }}>
-              #{item.id.slice(0, 6)}
-            </Text>
-          </View>
-        </View>
-
-        <View className="mt-5">
-          <Text className="text-[19px] font-black" style={{ color: theme.text }}>{item.court_name}</Text>
-          {address ? <Text className="mt-2 text-[14px]" style={{ color: theme.textMuted }}>{address}</Text> : null}
-        </View>
-
-        <View className="mt-5 rounded-[22px] px-4 py-3" style={{ backgroundColor: theme.surfaceAlt }}>
-          <View className="flex-row flex-wrap items-center gap-4">
-            <View className="flex-row items-center">
-              <CalendarDays size={15} color={theme.textMuted} strokeWidth={2.3} />
-              <Text className="ml-2 text-[13px] font-semibold" style={{ color: theme.text }}>{formatDatePart(item.start_time)}</Text>
-            </View>
-
-            <View className="flex-row items-center">
-              <Clock size={15} color={theme.textMuted} strokeWidth={2.3} />
-              <Text className="ml-2 text-[13px] font-semibold" style={{ color: theme.text }}>
-                {formatTimeRange(item.start_time, item.end_time)}
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        <View className="mt-5">
-          <View className="flex-row items-center justify-between">
-            <View className="flex-row items-center">
-              <Users size={15} color={theme.text} strokeWidth={2.3} />
-              <Text className="ml-2 text-[14px] font-bold" style={{ color: theme.text }}>
-                {item.player_count}/{item.max_players} người tham gia
-              </Text>
-            </View>
-            <Text className="text-[12px] font-bold" style={{ color: theme.textSoft }}>{Math.round(progress * 100)}%</Text>
-          </View>
-
-          <View className="mt-3 h-2 overflow-hidden rounded-full" style={{ backgroundColor: theme.surfaceAlt }}>
-            <View className="h-2 rounded-full" style={{ width: `${Math.max(progress * 100, 8)}%`, backgroundColor: theme.primary }} />
-          </View>
-        </View>
-
-        {tab === 'pending' ? (
-          <View className="mt-5 rounded-[24px] border px-4 py-4" style={{ borderColor: theme.warning, backgroundColor: theme.warningSoft }}>
-            <View className="flex-row items-center">
-              <Hourglass size={16} color={theme.warning} strokeWidth={2.3} />
-              <Text className="ml-2 text-[14px] font-black" style={{ color: theme.warning }}>
-                {isHost ? 'Có người đang chờ bạn duyệt' : 'Đang chờ phản hồi'}
-              </Text>
-            </View>
-            <Text className="mt-2 text-[13px] leading-5" style={{ color: theme.warning }}>
-              {isHost
-                ? 'Mở chi tiết kèo để xem và duyệt những người chơi vừa gửi yêu cầu tham gia.'
-                : 'Host sẽ duyệt yêu cầu tham gia của bạn trong thời gian sớm nhất.'}
-            </Text>
-          </View>
-        ) : null}
-
-        {tab === 'upcoming' ? (
-          <View className="mt-5 flex-row gap-3">
-            <Pressable
-              onPress={() => openSessionDetail(item.id)}
-              className="flex-1 flex-row items-center justify-center rounded-[22px] border px-4 py-4"
-              style={{ borderColor: theme.border, backgroundColor: theme.surface }}
-            >
-              {isHost ? <Edit3 size={16} color={theme.text} strokeWidth={2.3} /> : <FileText size={16} color={theme.text} strokeWidth={2.3} />}
-              <Text className="ml-2 text-[14px] font-black" style={{ color: theme.text }}>{isHost ? 'Sửa kèo' : 'Chi tiết'}</Text>
-            </Pressable>
-
-            <Pressable
-              onPress={() => void handleShare(item)}
-              className="flex-1 flex-row items-center justify-center rounded-[22px] px-4 py-4"
-              style={{ backgroundColor: theme.accent }}
-            >
-              <Share2 size={16} color="#000000" strokeWidth={2.3} />
-              <Text className="ml-2 text-[14px] font-black text-black">Chia sẻ</Text>
-            </Pressable>
-          </View>
-        ) : null}
-
-        {tab === 'history' ? (
-          <Pressable
-            onPress={() => (item.status === 'done' ? openRateSession(item.id) : openSessionDetail(item.id))}
-            className="mt-5 flex-row items-center justify-center rounded-[22px] px-4 py-4"
-            style={{ backgroundColor: item.status === 'done' ? theme.text : theme.surfaceAlt }}
-          >
-            <Star size={16} color={item.status === 'done' ? theme.accent : theme.textMuted} strokeWidth={2.3} />
-            <Text className="ml-2 text-[14px] font-black" style={{ color: item.status === 'done' ? theme.primaryContrast : theme.textMuted }}>
-              Đánh giá trận đấu
-            </Text>
-          </Pressable>
-        ) : null}
-      </Pressable>
-    )
-  }
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: theme.background }} edges={['top']}>
@@ -744,10 +779,20 @@ export default function MySessions() {
             {TAB_OPTIONS.map((tab) => (
               <View key={tab.key} style={{ width, paddingHorizontal: 20 }}>
                 {sessionsByTab[tab.key].length === 0 ? (
-                  <EmptyState />
+                  <MySessionsEmptyStateCard activeTab={tab.key} theme={theme} />
                 ) : (
                   sessionsByTab[tab.key].map((session) => (
-                    <SessionCard key={`${tab.key}-${session.id}`} item={session} tab={tab.key} />
+                    <MySessionCard
+                      key={`${tab.key}-${session.id}`}
+                      item={session}
+                      tab={tab.key}
+                      theme={theme}
+                      onOpenSessionDetail={openSessionDetail}
+                      onOpenRateSession={openRateSession}
+                      onShare={handleShare}
+                      formatDatePart={formatDatePart}
+                      formatTimeRange={formatTimeRange}
+                    />
                   ))
                 )}
               </View>
@@ -783,11 +828,5 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 13,
     fontWeight: '900',
-  },
-  segmentLabelActive: {
-    color: '#020617',
-  },
-  segmentLabelIdle: {
-    color: '#64748b',
   },
 })

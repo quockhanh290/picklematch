@@ -18,6 +18,16 @@ export default function RootLayout() {
             <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
             <Stack.Screen name="profile-setup" options={{ presentation: 'modal' }} />
             <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+            <Stack.Screen name="create-session" options={{ headerShown: false }} />
+            <Stack.Screen name="edit-profile" options={{ headerShown: false }} />
+            <Stack.Screen name="profile-preview" options={{ headerShown: false }} />
+            <Stack.Screen name="host-review/[id]" options={{ headerShown: false }} />
+            <Stack.Screen name="match-result/[id]" options={{ headerShown: false }} />
+            <Stack.Screen name="player/[id]" options={{ headerShown: false }} />
+            <Stack.Screen name="rate-session/[id]" options={{ headerShown: false }} />
+            <Stack.Screen name="session/[id]" options={{ headerShown: false }} />
+            <Stack.Screen name="session/[id]/confirm-result" options={{ headerShown: false }} />
+            <Stack.Screen name="session/[id]/review" options={{ headerShown: false }} />
           </Stack>
         </NotificationsProvider>
       </AppThemeProvider>

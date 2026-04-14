@@ -7,112 +7,21 @@ import {
   ProfileSkillHero,
   ProfileStatsGrid,
 } from '@/components/profile/ProfileSections'
+import { calculateReliabilityScore, FEEDBACK_META } from '@/lib/profileData'
 import { getSkillLevelFromElo, getSkillLevelFromPlayer } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
 import { router, useLocalSearchParams } from 'expo-router'
-import type { LucideIcon } from 'lucide-react-native'
 import {
-  AlertTriangle,
-  Award,
   CalendarDays,
   CircleAlert,
   ClipboardList,
-  Flame,
-  Frown,
   MapPin,
-  Scale,
-  ShieldCheck,
-  ShieldQuestion,
-  Swords,
-  Timer,
   Users,
 } from 'lucide-react-native'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
-const FEEDBACK_META: Record<
-  string,
-  {
-    icon: LucideIcon
-    label: string
-    context: string
-    tone: 'positive' | 'negative'
-  }
-> = {
-  fair_play: {
-    icon: Award,
-    label: 'Chơi đẹp',
-    context: 'Thường được nhắc đến vì fair-play và giữ nhịp trận rất tốt.',
-    tone: 'positive',
-  },
-  on_time: {
-    icon: Flame,
-    label: 'Đúng giờ',
-    context: 'Có mặt đúng hẹn và giữ nhịp vào sân khá ổn định.',
-    tone: 'positive',
-  },
-  friendly: {
-    icon: Users,
-    label: 'Thân thiện',
-    context: 'Tạo cảm giác dễ chơi chung và giao tiếp khá thoải mái.',
-    tone: 'positive',
-  },
-  skilled: {
-    icon: Swords,
-    label: 'Kỹ thuật tốt',
-    context: 'Được đánh giá cao về cảm giác bóng và độ ổn định khi vào trận.',
-    tone: 'positive',
-  },
-  good_description: {
-    icon: ClipboardList,
-    label: 'Mô tả rõ ràng',
-    context: 'Nếu host, người này thường lên kèo rõ và đúng mô tả.',
-    tone: 'positive',
-  },
-  well_organized: {
-    icon: ShieldCheck,
-    label: 'Tổ chức tốt',
-    context: 'Có xu hướng giữ đội hình, lịch và flow trận khá mượt.',
-    tone: 'positive',
-  },
-  fair_pairing: {
-    icon: Scale,
-    label: 'Xếp cặp công bằng',
-    context: 'Thường được ghi nhận ở khả năng cân team khi host.',
-    tone: 'positive',
-  },
-  toxic: {
-    icon: Frown,
-    label: 'Xấu tính',
-    context: 'Đôi lúc phản ứng căng khi trận đấu hoặc tranh điểm nóng lên.',
-    tone: 'negative',
-  },
-  late: {
-    icon: Timer,
-    label: 'Đến trễ',
-    context: 'Có vài phản hồi về việc đến sát giờ hoặc làm đội hình chờ.',
-    tone: 'negative',
-  },
-  dishonest: {
-    icon: AlertTriangle,
-    label: 'Gian lận điểm',
-    context: 'Cần cẩn thận hơn ở các tình huống gọi điểm và xác nhận bóng.',
-    tone: 'negative',
-  },
-  court_mismatch: {
-    icon: MapPin,
-    label: 'Sân sai mô tả',
-    context: 'Nếu host, đôi lúc chất lượng sân thực tế không khớp mô tả ban đầu.',
-    tone: 'negative',
-  },
-  poor_organization: {
-    icon: ShieldQuestion,
-    label: 'Tổ chức kém',
-    context: 'Một số phản hồi cho thấy nhịp tổ chức trận còn thiếu mượt.',
-    tone: 'negative',
-  },
-}
 
 type Player = {
   id: string
@@ -253,11 +162,6 @@ export default function PlayerProfile() {
     fetchAll()
   }, [fetchAll])
 
-  function reliabilityScore(joined: number, noShow: number) {
-    if (!joined) return null
-    return Math.round(((joined - noShow) / joined) * 100)
-  }
-
   function reliabilityValueClass(score: number | null) {
     if (score === null) return 'text-slate-700'
     if (score >= 90) return 'text-emerald-700'
@@ -318,7 +222,7 @@ export default function PlayerProfile() {
     )
   }
 
-  const reliability = reliabilityScore(player.sessions_joined ?? 0, player.no_show_count ?? 0)
+  const reliability = calculateReliabilityScore(player.sessions_joined, player.no_show_count)
   const hostedCount = hostedSessionsCount
   const effectiveElo = player.current_elo ?? player.elo
   const calibratedSkill = getSkillLevelFromElo(effectiveElo)
@@ -381,7 +285,7 @@ export default function PlayerProfile() {
 
           <View className="mt-6">
             {communityTraits.length > 0 ? (
-              <CommunityFeedbackPanel eyebrow="Top Traits" title="Community Feedback" traits={communityTraits} />
+              <CommunityFeedbackPanel eyebrow="Điểm nổi bật" title="Đánh giá từ cộng đồng" traits={communityTraits} />
             ) : (
               <EmptyState
                 icon={<ClipboardList size={28} color="#64748b" />}

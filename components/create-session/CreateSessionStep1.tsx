@@ -175,13 +175,19 @@ export function CreateSessionStep1({
 
   useEffect(() => {
     if (showStartPicker) {
-      setDraftStartTime(startTime ?? defaultPickerValue('start'))
+      const nextValue = startTime ?? defaultPickerValue('start')
+      setDraftStartTime((currentValue) =>
+        currentValue.getTime() === nextValue.getTime() ? currentValue : nextValue,
+      )
     }
   }, [defaultPickerValue, showStartPicker, startTime])
 
   useEffect(() => {
     if (showEndPicker) {
-      setDraftEndTime(endTime ?? defaultPickerValue('end'))
+      const nextValue = endTime ?? defaultPickerValue('end')
+      setDraftEndTime((currentValue) =>
+        currentValue.getTime() === nextValue.getTime() ? currentValue : nextValue,
+      )
     }
   }, [defaultPickerValue, endTime, showEndPicker])
 

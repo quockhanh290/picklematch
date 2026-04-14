@@ -165,7 +165,7 @@ function buildTeams(session: MatchSessionRecord | null) {
   const distributed = hasSavedTeams
     ? players.map((player, index) => ({
         ...player,
-        teamNo: player.teamNo === 2 ? 2 : 1,
+        teamNo: player.teamNo === 1 || player.teamNo === 2 ? player.teamNo : null,
         index,
       }))
     : players.map((player, index) => ({
@@ -560,7 +560,7 @@ export default function MatchResultEntryScreen() {
             <View className="flex-row items-center rounded-full bg-emerald-50 px-4 py-2">
               <Trophy color="#059669" size={16} strokeWidth={ICON_STROKE_WIDTH} />
               <Text className="ml-2 text-[11px] font-black uppercase tracking-[1.8px] text-emerald-700">
-                Ended
+                Đã xong
               </Text>
             </View>
             <Text className="mt-5 text-center text-[28px] font-black leading-[32px] text-slate-950">
@@ -599,19 +599,19 @@ export default function MatchResultEntryScreen() {
             style={{ opacity: previewFade }}
           >
             <Text className="text-[12px] font-black uppercase tracking-[2.4px] text-slate-400">
-              DỰ BÁO XẾP HẠNG
+              TÓM TẮT TẠM TÍNH
             </Text>
             <Text className="mt-4 text-[30px] font-black leading-[34px]" style={{ color: '#BEF264' }}>
               {resultHeadline}
             </Text>
             <Text className="mt-2 text-[15px] font-black text-slate-400">
-              Cập nhật tức thì theo điểm số hiện tại để Host kiểm tra trước khi gửi.
+              Chỉ dùng để tham khảo nhanh trước khi gửi kết quả. Elo chính thức chỉ được cập nhật sau khi trận được xác nhận xong.
             </Text>
 
             <View className="mt-5 flex-row gap-3">
               <View className="flex-1 rounded-[28px] bg-white/6 px-4 py-4">
                 <Text className="text-[11px] font-black uppercase tracking-[1.4px] text-slate-400">
-                  Estimated ELO Change
+                  ELO dự kiến đổi
                 </Text>
                 <Text className="mt-3 text-[26px] font-black" style={{ color: winner?.theme.widgetText ?? '#86efac' }}>
                   {eloLabel}
@@ -621,7 +621,7 @@ export default function MatchResultEntryScreen() {
 
               <View className="flex-1 rounded-[28px] bg-white/6 px-4 py-4">
                 <Text className="text-[11px] font-black uppercase tracking-[1.4px] text-slate-400">
-                  Streak Impact
+                  Ảnh hưởng chuỗi
                 </Text>
                 <Text className="mt-3 text-[26px] font-black text-orange-300">{`${streakLabel} 🔥`}</Text>
               </View>
@@ -630,7 +630,7 @@ export default function MatchResultEntryScreen() {
 
           <View className="mt-6 rounded-[36px] bg-white px-5 py-5">
             <Text className="text-[12px] font-black uppercase tracking-[2px] text-slate-500">
-              Team Rosters
+              Đội hình
             </Text>
 
             <View className="mt-5 rounded-[30px] bg-emerald-50 px-4 py-4">
@@ -684,7 +684,7 @@ export default function MatchResultEntryScreen() {
             className={`flex-row items-center justify-center rounded-2xl px-5 py-4 ${submitting ? 'bg-emerald-400' : 'bg-[#059669]'}`}
           >
             <Text className="text-[15px] font-black uppercase tracking-[1.2px] text-white">
-              {submitting ? 'Đang gửi kết quả...' : 'Confirm & Update ELO'}
+              {submitting ? 'Đang gửi kết quả...' : 'Xác nhận và cập nhật ELO'}
             </Text>
             {!submitting ? (
               <View className="ml-2">

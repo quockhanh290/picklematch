@@ -42,7 +42,7 @@ export function HostRequestReview({
 
   return (
     <View className="mt-8">
-      <Text className="mb-1 text-[11px] font-extrabold uppercase tracking-[1.2px] text-slate-400">Host Review</Text>
+      <Text className="mb-1 text-[11px] font-extrabold uppercase tracking-[1.2px] text-slate-400">Duyệt yêu cầu</Text>
       <Text className="mb-4 text-2xl font-black text-slate-950">Yêu cầu tham gia</Text>
 
       {requests.map((request) => {
@@ -55,7 +55,7 @@ export function HostRequestReview({
             <TouchableOpacity activeOpacity={0.88} onPress={() => onOpenPlayer(request.player_id)}>
               <View className="flex-row items-start justify-between">
                 <View className="mr-4 flex-1">
-                  <Text className="text-[11px] font-extrabold uppercase tracking-[1px] text-slate-400">Player</Text>
+                  <Text className="text-[11px] font-extrabold uppercase tracking-[1px] text-slate-400">Người chơi</Text>
                   <Text className="mt-2 text-lg font-black text-slate-950">{request.player.name}</Text>
                   <Text className="mt-1 text-sm text-slate-500">
                     Elo {playerElo} · {request.player.sessions_joined ?? 0} kèo · {request.player.no_show_count ?? 0} no-show
@@ -73,7 +73,7 @@ export function HostRequestReview({
             <View className="mt-4 rounded-2xl bg-slate-50 px-4 py-4">
               <View className="flex-row items-center">
                 <MessageSquareText size={15} color="#64748b" />
-                <Text className="ml-2 text-[11px] font-extrabold uppercase tracking-[1px] text-slate-400">Intro note</Text>
+                <Text className="ml-2 text-[11px] font-extrabold uppercase tracking-[1px] text-slate-400">Lời nhắn giới thiệu</Text>
               </View>
               <Text className="mt-2 text-sm leading-6 text-slate-700">
                 {request.intro_note?.trim() ? request.intro_note : 'Người chơi chưa để lại lời nhắn.'}
@@ -84,7 +84,7 @@ export function HostRequestReview({
               <View className="mt-3 rounded-2xl border border-sky-200 bg-sky-50 px-4 py-4">
                 <View className="flex-row items-center">
                   <ShieldAlert size={15} color="#0369a1" />
-                  <Text className="ml-2 text-[11px] font-extrabold uppercase tracking-[1px] text-sky-700">Template đã gửi</Text>
+                  <Text className="ml-2 text-[11px] font-extrabold uppercase tracking-[1px] text-sky-700">Phản hồi đã gửi</Text>
                 </View>
                 <Text className="mt-2 text-sm leading-6 text-sky-800">{request.host_response_template}</Text>
               </View>
@@ -97,7 +97,7 @@ export function HostRequestReview({
                 className="flex-1 flex-row items-center justify-center rounded-2xl bg-emerald-600 py-3.5"
               >
                 <Check size={16} color="#fff" />
-                <Text className="ml-2 text-sm font-bold text-white">Accept</Text>
+                <Text className="ml-2 text-sm font-bold text-white">Nhận vào</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -106,7 +106,7 @@ export function HostRequestReview({
                 className="flex-1 flex-row items-center justify-center rounded-2xl bg-rose-50 py-3.5"
               >
                 <X size={16} color="#be123c" />
-                <Text className="ml-2 text-sm font-bold text-rose-700">Reject</Text>
+                <Text className="ml-2 text-sm font-bold text-rose-700">Từ chối</Text>
               </TouchableOpacity>
             </View>
 

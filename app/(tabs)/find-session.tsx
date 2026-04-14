@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { getSkillLevelFromEloRange, getSkillLevelFromPlayer } from '@/lib/skillAssessment'
 import { getSkillLevelUi, getSkillTargetElo } from '@/lib/skillLevelUi'
 import { supabase } from '@/lib/supabase'
+import * as Linking from 'expo-linking'
 import { router, useFocusEffect } from 'expo-router'
 import {
   Map,
@@ -33,6 +34,7 @@ type Session = {
   max_players: number
   status: string
   court_booking_status: 'confirmed' | 'unconfirmed'
+  // `slot.price` is the total court/session fee. UI renders a per-person estimate from this value.
   host: {
     name: string
     is_provisional?: boolean | null
@@ -72,7 +74,7 @@ const QUICK_FILTERS: { id: QuickFilterId; label: string }[] = [
   { id: 'nearby', label: 'Gần tôi' },
   { id: 'recent', label: 'Gần đây' },
   { id: 'level3', label: 'Nấc 3' },
-  { id: 'rescue', label: 'Cứu Net 🔥' },
+  { id: 'rescue', label: 'Cần người gấp 🔥' },
 ]
 
 function formatPrice(price: number, maxPlayers: number) {
@@ -210,7 +212,7 @@ function SearchResultCard({
 
         {rescueMode ? (
           <View className="rounded-full border border-rose-200 bg-rose-50 px-3 py-2">
-            <Text className="text-[12px] font-bold uppercase tracking-widest text-rose-600">Cứu Net</Text>
+            <Text className="text-[12px] font-bold uppercase tracking-widest text-rose-600">Cần người gấp</Text>
           </View>
         ) : null}
       </View>
@@ -224,7 +226,7 @@ function SearchResultCard({
               <View className="flex-row items-center gap-2 rounded-full bg-slate-100 px-3 py-2">
                 <Users size={14} color="#475569" strokeWidth={2.5} />
                 <Text className="text-[11px] font-bold uppercase tracking-widest text-slate-600">
-                  {session.player_count}/{session.max_players} Slots
+                  {session.player_count}/{session.max_players} chỗ
                 </Text>
               </View>
 
@@ -371,12 +373,24 @@ export default function FindSession() {
 
   const activeFiltersCount = Object.values(quickFilters).filter(Boolean).length
 
+  const openMapSearch = useCallback(async () => {
+    const fallbackQuery = query.trim() || playerProfile?.city?.trim() || sessions[0]?.slot?.court?.city?.trim() || 'Hồ Chí Minh'
+    const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fallbackQuery)}`
+
+    try {
+      await Linking.openURL(url)
+    } catch (error) {
+      console.warn('[FindSession] open map search failed:', error)
+      Alert.alert('Không mở được bản đồ', 'Vui lòng thử lại sau ít phút.')
+    }
+  }, [playerProfile?.city, query, sessions])
+
   const applySmartQueueFilters = useCallback(
     async (enabled: boolean) => {
       if (!playerProfile?.id) {
         Alert.alert(
           'Cần hoàn thiện hồ sơ',
-          'Smart Queue cần thành phố và mức trình gần đúng để ưu tiên kèo hợp gu hơn.',
+          'Gợi ý hợp gu cần thành phố và mức trình gần đúng để ưu tiên kèo phù hợp hơn.',
           [
             { text: 'Để sau', style: 'cancel' },
             { text: 'Chỉnh hồ sơ', onPress: () => router.push('/edit-profile' as never) },
@@ -417,9 +431,9 @@ export default function FindSession() {
   )
 
   useEffect(() => {
-    if (!smartQueueHydrated || !playerProfile?.id) return
-    void applySmartQueueFilters(smartQueueEnabled)
-  }, [applySmartQueueFilters, playerProfile?.id, smartQueueEnabled, smartQueueHydrated])
+    if (!smartQueueHydrated || !playerProfile?.id || !smartQueueEnabled) return
+    void applySmartQueueFilters(true)
+  }, [applySmartQueueFilters, playerProfile?.id, smartQueueHydrated])
 
   const filteredSessions = sessions
     .filter((session) => {
@@ -441,8 +455,8 @@ export default function FindSession() {
       }
 
       if (quickFilters.nearby) {
-        const city = session.slot?.court?.city?.toLowerCase() ?? ''
-        if (!city.includes('hồ chí minh') && !city.includes('ho chi minh') && !city.includes('thủ đức')) return false
+        const city = normalizeText(session.slot?.court?.city)
+        if (!city.includes('ho chi minh') && !city.includes('thu duc')) return false
       }
 
       return true
@@ -472,7 +486,10 @@ export default function FindSession() {
           />
         </View>
 
-        <Pressable className="h-14 w-14 items-center justify-center rounded-[24px] bg-slate-900 shadow-lg shadow-slate-900/20 active:scale-[0.98]">
+        <Pressable
+          onPress={() => void openMapSearch()}
+          className="h-14 w-14 items-center justify-center rounded-[24px] bg-slate-900 shadow-lg shadow-slate-900/20 active:scale-[0.98]"
+        >
           <Map size={20} color="#ffffff" strokeWidth={2.5} />
         </Pressable>
       </View>
@@ -541,7 +558,7 @@ export default function FindSession() {
       {filteredSessions.length === 0 ? (
         <View className="mb-5 rounded-[28px] border border-slate-200 bg-white p-5">
           <Text className="text-[12px] font-bold uppercase tracking-widest text-slate-400">Hiện chưa có kèo khớp</Text>
-          <Text className="mt-3 text-[22px] font-black text-slate-950">Thử đổi từ khóa hoặc bật Smart Queue</Text>
+          <Text className="mt-3 text-[22px] font-black text-slate-950">Thử đổi từ khóa hoặc bật gợi ý hợp gu</Text>
           <Text className="mt-2 text-sm leading-6 text-slate-500">
             Hệ thống sẽ tiếp tục săn các trận phù hợp hơn để bạn không bỏ lỡ cơ hội vào sân đúng gu.
           </Text>
@@ -554,7 +571,7 @@ export default function FindSession() {
         </View>
         <Text className="mt-4 text-center text-[24px] font-black text-slate-950">Chưa thấy kèo ưng ý?</Text>
         <Text className="mt-3 text-center text-sm leading-6 text-slate-600">
-          Bật Smart Queue để nhận cảnh báo ngay khi có trận vừa trình, vừa giờ, vừa khoảng cách bạn đang săn.
+          Bật gợi ý hợp gu để nhận cảnh báo ngay khi có trận vừa trình, vừa giờ, vừa khoảng cách bạn đang săn.
         </Text>
 
         <Pressable
@@ -566,7 +583,7 @@ export default function FindSession() {
         >
           <Sparkles size={16} color="#ffffff" strokeWidth={2.5} />
           <Text className="text-[12px] font-black uppercase tracking-widest text-white">
-            {smartQueueEnabled ? 'Tắt Smart Queue' : 'Bật Smart Queue'}
+            {smartQueueEnabled ? 'Tắt gợi ý hợp gu' : 'Bật gợi ý hợp gu'}
           </Text>
         </Pressable>
 

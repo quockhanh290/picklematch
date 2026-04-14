@@ -2,6 +2,7 @@ import {
   getSkillLevelFromEloRange,
   getShortSkillLabel,
 } from '@/lib/skillAssessment'
+import { calculateReliabilityScore } from '@/lib/profileData'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/lib/useAuth'
 import { insertNotification } from '@/lib/notifications'
@@ -116,11 +117,7 @@ function getInitials(name: string) {
 }
 
 function getReliabilityScore(player: ApplicantRecord['player']) {
-  if (player.reliability_score != null) return Math.round(player.reliability_score)
-  const joined = player.sessions_joined ?? 0
-  if (!joined) return null
-  const noShow = player.no_show_count ?? 0
-  return Math.max(0, Math.min(100, Math.round(((joined - noShow) / joined) * 100)))
+  return calculateReliabilityScore(player.sessions_joined, player.no_show_count, player.reliability_score)
 }
 
 function getReliabilityTone(score: number | null) {
@@ -405,26 +402,11 @@ export default function HostReviewCenterScreen() {
     if (!session) return
 
     setSubmittingId(requestId)
-    const { error: requestError } = await supabase
-      .from('join_requests')
-      .update({ status: 'accepted' })
-      .eq('id', requestId)
+    const { error } = await supabase.rpc('approve_join_request', { p_request_id: requestId })
 
-    if (requestError) {
+    if (error) {
       setSubmittingId(null)
-      Alert.alert('Lỗi', requestError.message)
-      return
-    }
-
-    const { error: playerError } = await supabase.from('session_players').insert({
-      session_id: session.id,
-      player_id: playerId,
-      status: 'confirmed',
-    })
-
-    if (playerError) {
-      setSubmittingId(null)
-      Alert.alert('Lỗi', playerError.message)
+      Alert.alert('Lỗi', error.message)
       return
     }
 
@@ -537,17 +519,7 @@ export default function HostReviewCenterScreen() {
           style: 'destructive',
           onPress: async () => {
             setCancelling(true)
-
-            await supabase.from('session_players').delete().eq('session_id', session.id)
-            await supabase.from('join_requests').delete().eq('match_id', session.id)
-
-            const { error } = await supabase
-              .from('sessions')
-              .update({
-                status: 'cancelled',
-                was_full_when_cancelled: isFull,
-              })
-              .eq('id', session.id)
+            const { error } = await supabase.rpc('cancel_host_session', { p_session_id: session.id })
 
             if (error) {
               setCancelling(false)

@@ -128,7 +128,7 @@ export function MatchSessionCard({
           <View className="flex-row items-center">
             <View className="rounded-full px-3 py-2" style={{ backgroundColor: palette.softChip }}>
               <Text className="text-[11px] font-black uppercase tracking-[1.8px]" style={{ color: palette.primary }}>
-                {isHero ? 'Kèo kế tiếp' : isSmart ? 'Smart Queue' : 'Đang ghép kèo'}
+                {isHero ? 'Kèo kế tiếp' : isSmart ? 'Gợi ý hợp gu' : 'Đang ghép kèo'}
               </Text>
             </View>
             {item.countdownLabel ? (

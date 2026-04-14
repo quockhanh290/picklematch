@@ -25,6 +25,10 @@ function toMins(hhmm: string): number {
   return (h ?? 0) * 60 + (m ?? 0)
 }
 
+function parseTotalCost(value: string) {
+  return parseInt(value.replace(/\D/g, ''), 10) || 0
+}
+
 function withTime(base: Date, time: Date): Date {
   const next = new Date(base)
   next.setHours(time.getHours(), time.getMinutes(), 0, 0)
@@ -34,7 +38,7 @@ function withTime(base: Date, time: Date): Date {
 function WizardHeader({ title, subtitle }: { title: string; subtitle: string }) {
   return (
     <View style={s.headerWrap}>
-      <Text style={s.headerEyebrow}>Create Session</Text>
+      <Text style={s.headerEyebrow}>Tạo kèo</Text>
       <Text style={s.headerTitle}>{title}</Text>
       <Text style={s.headerSubtitle}>{subtitle}</Text>
     </View>
@@ -170,7 +174,7 @@ export default function CreateSession() {
     }
   }, [])
 
-  function defaultPickerValue(type: 'start' | 'end'): Date {
+  const defaultPickerValue = useCallback((type: 'start' | 'end'): Date => {
     const base = selectedDate ?? new Date()
     const next = new Date(base)
     if (type === 'start') {
@@ -179,7 +183,7 @@ export default function CreateSession() {
     }
     next.setHours(20, 0, 0, 0)
     return next
-  }
+  }, [selectedDate])
 
   function onCourtSelect(court: NearByCourt) {
     setSelectedCourt(court)
@@ -257,70 +261,43 @@ export default function CreateSession() {
       return
     }
 
-    const totalCost = parseInt(totalCostStr.replace(/\D/g, ''), 10) || 0
-
-    const { data: newSlot, error: slotErr } = await supabase
-      .from('court_slots')
-      .insert({
-        court_id: selectedCourt.id,
-        start_time: startTime.toISOString(),
-        end_time: endTime.toISOString(),
-        price: totalCost,
-        status: 'booked',
-      })
-      .select()
-      .single()
-
-    if (slotErr || !newSlot) {
-      setSubmitting(false)
-      Alert.alert('Lỗi', slotErr?.message ?? 'Không thể tạo giờ chơi.')
-      return
-    }
+    const totalCost = parseTotalCost(totalCostStr)
 
     const fillDeadline = new Date(Date.now() + deadlineHours * 3_600_000)
-    const { data: newSession, error: sessionErr } = await supabase
-      .from('sessions')
-      .insert({
-        host_id: user.id,
-        slot_id: newSlot.id,
-        elo_min: eloMin,
-        elo_max: eloMax,
-        is_ranked: isRanked,
-        max_players: maxPlayers,
-        status: 'open',
-        fill_deadline: fillDeadline.toISOString(),
-        total_cost: totalCost || null,
-        require_approval: requireApproval,
-        court_booking_status: bookingStatus,
-        booking_reference: bookingReference.trim() || null,
-        booking_name: bookingName.trim() || null,
-        booking_phone: bookingPhone.trim() || null,
-        booking_notes: bookingNotes.trim() || null,
-        booking_confirmed_at: bookingStatus === 'confirmed' ? new Date().toISOString() : null,
-      })
-      .select()
-      .single()
+    const { data: newSessionId, error: createError } = await supabase.rpc('create_session_with_host', {
+      p_court_id: selectedCourt.id,
+      p_start_time: startTime.toISOString(),
+      p_end_time: endTime.toISOString(),
+      p_price: totalCost,
+      p_elo_min: eloMin,
+      p_elo_max: eloMax,
+      p_is_ranked: isRanked,
+      p_max_players: maxPlayers,
+      p_fill_deadline: fillDeadline.toISOString(),
+      p_total_cost: totalCost || null,
+      p_require_approval: requireApproval,
+      p_court_booking_status: bookingStatus,
+      p_booking_reference: bookingReference.trim() || null,
+      p_booking_name: bookingName.trim() || null,
+      p_booking_phone: bookingPhone.trim() || null,
+      p_booking_notes: bookingNotes.trim() || null,
+      p_booking_confirmed_at: bookingStatus === 'confirmed' ? new Date().toISOString() : null,
+    })
 
-    if (sessionErr || !newSession) {
+    if (createError || !newSessionId) {
       setSubmitting(false)
-      Alert.alert('Lỗi', sessionErr?.message ?? 'Không thể tạo kèo.')
+      Alert.alert('Lỗi', createError?.message ?? 'Không thể tạo kèo.')
       return
     }
-
-    await supabase.from('session_players').insert({
-      session_id: newSession.id,
-      player_id: user.id,
-      status: 'confirmed',
-    })
 
     setSubmitting(false)
     router.replace({
       pathname: '/session/[id]',
-      params: { id: newSession.id, created: '1' },
+      params: { id: newSessionId, created: '1' },
     } as never)
   }
 
-  const totalCost = parseInt(totalCostStr.replace(/\D/g, ''), 10) || 0
+  const totalCost = parseTotalCost(totalCostStr)
   const costPerPerson = totalCost > 0 ? Math.ceil(totalCost / maxPlayers) : 0
   const duration = startTime && endTime && endTime > startTime ? fmtDuration(startTime, endTime) : null
 
@@ -358,10 +335,12 @@ export default function CreateSession() {
           }}
           onDateSelect={onDatePress}
           onStartTimeChange={(date) => {
-            if (selectedDate) setStartTime(withTime(selectedDate, date))
+            if (!selectedDate || !date) return
+            setStartTime(withTime(selectedDate, date))
           }}
           onEndTimeChange={(date) => {
-            if (selectedDate) setEndTime(withTime(selectedDate, date))
+            if (!selectedDate || !date) return
+            setEndTime(withTime(selectedDate, date))
           }}
           onToggleStartPicker={() => {
             setShowEndPicker(false)
@@ -426,6 +405,10 @@ export default function CreateSession() {
     )
   }
 
+  if (!selectedCourt || !selectedDate || !startTime || !endTime) {
+    return null
+  }
+
   return (
     <SafeAreaView style={s.container} edges={['top']}>
       <BackLink label="Chỉnh lại" onPress={() => setStep(2)} />
@@ -434,10 +417,10 @@ export default function CreateSession() {
         subtitle="Bước 3/3 · Xem đúng preview trên feed trước khi tạo kèo."
       />
       <CreateSessionStep3
-        selectedCourt={selectedCourt!}
-        selectedDate={selectedDate!}
-        startTime={startTime!}
-        endTime={endTime!}
+        selectedCourt={selectedCourt}
+        selectedDate={selectedDate}
+        startTime={startTime}
+        endTime={endTime}
         maxPlayers={maxPlayers}
         maxSkill={maxSkill}
         bookingStatus={bookingStatus}

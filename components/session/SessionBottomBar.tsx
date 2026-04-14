@@ -38,13 +38,14 @@ export function SessionBottomBar({
   onSmartJoinPress,
 }: Props) {
   if (!visible) return null
+  const shouldShowHostSaveButton = isHost && (arrangementDirty || savingArrangement)
 
   return (
     <View
       className="border-t border-slate-200 bg-white/95 px-5 pb-4 pt-4"
       style={{ paddingBottom: Math.max(bottomInset, 16) }}
     >
-      {isHost ? (
+      {shouldShowHostSaveButton ? (
         <TouchableOpacity
           className={`h-14 flex-row items-center justify-center gap-3 rounded-full px-6 ${
             arrangementDirty ? 'bg-[#059669]' : 'bg-emerald-500'

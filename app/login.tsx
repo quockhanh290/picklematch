@@ -39,7 +39,12 @@ export default function LoginScreen() {
       data: { user },
     } = await supabase.auth.getUser()
 
-    const { data: player } = await supabase.from('players').select('*').eq('id', user?.id).single()
+    if (!user?.id) {
+      Alert.alert('Lỗi', 'Không lấy được thông tin tài khoản sau khi xác nhận OTP.')
+      return
+    }
+
+    const { data: player } = await supabase.from('players').select('*').eq('id', user.id).single()
     router.replace(nextRouteForPlayer(player) as any)
   }
 

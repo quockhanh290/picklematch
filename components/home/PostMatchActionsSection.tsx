@@ -32,7 +32,7 @@ export function PostMatchActionsSection({ items }: { items: PostMatchAction[] })
 
                 <View className="ml-3 flex-1">
                   <Text className={`text-[15px] font-black ${isConfirm ? 'text-indigo-700' : 'text-amber-700'}`}>
-                    {isConfirm ? 'Xác nhận kết quả host đã gửi' : 'Host chưa gửi kết quả, bạn có thể báo trận'}
+                    {isConfirm ? 'Xác nhận kết quả chủ kèo đã gửi' : 'Chủ kèo chưa gửi kết quả, bạn có thể báo trận'}
                   </Text>
                   <Text className="mt-2 text-[15px] font-bold text-slate-950">{item.courtName}</Text>
                   <View className="mt-2 flex-row items-center">

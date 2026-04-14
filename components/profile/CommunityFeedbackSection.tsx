@@ -40,7 +40,7 @@ type Props = {
   traits?: FeedbackTrait[]
 }
 
-export function CommunityFeedbackSection({ eyebrow = 'Top Traits', title = 'Community Feedback', traits = [] }: Props) {
+export function CommunityFeedbackSection({ eyebrow = 'Điểm nổi bật', title = 'Đánh giá từ cộng đồng', traits = [] }: Props) {
   return (
     <View className="gap-4">
       <View className="px-1">

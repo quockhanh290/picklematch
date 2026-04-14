@@ -64,28 +64,28 @@ function getResultCopy(result?: string | null) {
   switch (result) {
     case 'win':
       return {
-        title: 'Host đang ghi nhận bạn thắng trận',
+        title: 'Chủ kèo đang ghi nhận bạn thắng trận',
         badge: 'Thắng',
         tone: 'emerald' as const,
         description: 'Nếu kết quả này đúng, bạn có thể xác nhận để hệ thống chốt trận nhanh hơn.',
       }
     case 'loss':
       return {
-        title: 'Host đang ghi nhận bạn thua trận',
+        title: 'Chủ kèo đang ghi nhận bạn thua trận',
         badge: 'Thua',
         tone: 'slate' as const,
         description: 'Nếu kết quả này đúng, bạn có thể xác nhận để hệ thống chốt trận nhanh hơn.',
       }
     case 'draw':
       return {
-        title: 'Host đang ghi nhận trận này hòa',
+        title: 'Chủ kèo đang ghi nhận trận này hòa',
         badge: 'Hòa',
         tone: 'amber' as const,
         description: 'Nếu kết quả này đúng, bạn có thể xác nhận để hệ thống hoàn tất trận.',
       }
     default:
       return {
-        title: 'Host đã gửi kết quả trận để bạn xác nhận',
+        title: 'Chủ kèo đã gửi kết quả trận để bạn xác nhận',
         badge: 'Chờ xác nhận',
         tone: 'indigo' as const,
         description: 'Bạn có thể xác nhận hoặc tranh chấp nếu thấy kết quả không đúng.',
@@ -145,7 +145,7 @@ export default function ConfirmSessionResultScreen() {
       const nextSession = (data?.session ?? null) as ConfirmableSession | null
 
       if (nextSession?.host?.id === user.id) {
-        Alert.alert('Host không dùng màn này', 'Host gửi kết quả ở bước nhập kết quả trận, không dùng luồng xác nhận của người chơi.')
+        Alert.alert('Chủ kèo không dùng màn này', 'Chủ kèo gửi kết quả ở bước nhập kết quả trận, không dùng luồng xác nhận của người chơi.')
         router.back()
         return
       }
@@ -293,11 +293,15 @@ export default function ConfirmSessionResultScreen() {
           <View className="rounded-[32px] border border-slate-200 bg-white p-5 shadow-sm">
             <Text className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">Trạng thái trận</Text>
             <Text className="mt-3 text-[28px] font-black leading-9 text-slate-950">{session.slot.court.name}</Text>
-            <Text className="mt-2 text-sm font-semibold text-slate-500">{`${session.host.name ?? 'Host'} đã gửi kết quả cho bạn xác nhận`}</Text>
             <Text className="mt-2 text-sm font-semibold text-slate-500">
               {isMemberFallbackFlow
-                ? `${session.host.name ?? 'Host'} chưa gửi kết quả đúng hạn. Bạn có thể báo kết quả mình ghi nhận.`
-                : `${session.host.name ?? 'Host'} đã gửi kết quả cho bạn xác nhận`}
+                ? `${session.host.name ?? 'Chủ kèo'} chưa gửi kết quả đúng hạn.`
+                : `${session.host.name ?? 'Chủ kèo'} đã gửi kết quả cho bạn xác nhận`}
+            </Text>
+            <Text className="mt-2 text-sm font-semibold text-slate-500">
+              {isMemberFallbackFlow
+                ? `${session.host.name ?? 'Chủ kèo'} chưa gửi kết quả đúng hạn. Bạn có thể báo kết quả mình ghi nhận.`
+                : `${session.host.name ?? 'Chủ kèo'} đã gửi kết quả cho bạn xác nhận`}
             </Text>
 
             <View
@@ -307,7 +311,7 @@ export default function ConfirmSessionResultScreen() {
               {isMemberFallbackFlow ? (
                 <>
                   <View className="flex-row items-center justify-between">
-                    <Text className="text-[15px] font-black text-amber-700">Host chưa gửi kết quả</Text>
+                    <Text className="text-[15px] font-black text-amber-700">Chủ kèo chưa gửi kết quả</Text>
                     <View className="rounded-full bg-white/80 px-3 py-1.5">
                       <Text className="text-[11px] font-black uppercase tracking-[0.12em] text-amber-700">Báo trận</Text>
                     </View>
@@ -375,7 +379,7 @@ export default function ConfirmSessionResultScreen() {
             </View>
             <Text className="mt-3 text-sm leading-6 text-rose-700">
               {isMemberFallbackFlow
-                ? 'Host chưa gửi kết quả đúng hạn. Bạn có thể báo cáo việc vận hành kèo chưa tốt để hệ thống ghi nhận.'
+                ? 'Chủ kèo chưa gửi kết quả đúng hạn. Bạn có thể báo cáo việc vận hành kèo chưa tốt để hệ thống ghi nhận.'
                 : 'Chỉ tranh chấp khi bạn thấy host ghi sai đội thắng/thua hoặc trận không diễn ra như báo cáo.'}
             </Text>
 
@@ -420,7 +424,7 @@ export default function ConfirmSessionResultScreen() {
               ) : (
                 <>
                   <ShieldAlert size={18} color="#ffffff" strokeWidth={2.5} />
-                  <Text className="ml-2 text-[15px] font-black uppercase tracking-[0.08em] text-white">Báo host xử lý kém</Text>
+                  <Text className="ml-2 text-[15px] font-black uppercase tracking-[0.08em] text-white">Báo chủ kèo xử lý kém</Text>
                 </>
               )}
             </Pressable>
