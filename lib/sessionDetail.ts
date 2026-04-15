@@ -84,7 +84,7 @@ export function getSkillTag(player?: SkillPlayer | null) {
   if (legacy) return getEloBandByLegacySkillLabel(legacy).shortLabel
 
   const elo = getComparableElo(player)
-  return getEloBandForElo(elo)?.shortLabel ?? 'Cọ xát'
+  return getEloBandForElo(elo)?.shortLabel ?? 'Trung cấp'
 }
 
 export function getSessionSkillLabel(eloMin: number, eloMax: number) {

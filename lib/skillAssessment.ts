@@ -1,6 +1,5 @@
 import {
   ELO_BANDS,
-  getEloBandByLevelId,
   getEloBandByLegacySkillLabel,
   getEloBandByTier,
   getEloBandForElo,
@@ -40,28 +39,28 @@ export const SKILL_ASSESSMENT_LEVELS: SkillAssessmentLevel[] = [
   },
   {
     id: 'level_3',
-    title: 'Cọ xát',
+    title: 'Trung cấp',
     subtitle: 'Đã vào nhịp thi đấu',
     dupr: 'DUPR: 3.25 - 3.5',
-    description: 'Đã đánh khá đều, giữ rally tốt và bắt đầu quen nhịp thi đấu.',
+    description: 'Đã chơi khá đều, giữ rally tốt và bắt đầu quen nhịp thi đấu.',
     starting_elo: ELO_BANDS[2].seedElo,
     legacy_skill_label: 'intermediate',
   },
   {
     id: 'level_4',
-    title: 'Phong trào',
+    title: 'Khá',
     subtitle: 'Kiểm soát được nhiều tình huống',
     dupr: 'DUPR: 3.75 - 4.25',
-    description: 'Chơi chắc tay, biết kiểm soát nhiều tình huống và đánh cân với nhóm phong trào mạnh.',
+    description: 'Chơi chắc tay, biết kiểm soát nhiều tình huống và có nhịp trận ổn định.',
     starting_elo: ELO_BANDS[3].seedElo,
     legacy_skill_label: 'intermediate',
   },
   {
     id: 'level_5',
-    title: 'Sân giải',
+    title: 'Nâng cao',
     subtitle: 'Chơi nghiêm túc, chịu áp lực tốt',
     dupr: 'DUPR: 4.5 trở lên',
-    description: 'Đánh nghiêm túc, xử lý ổn định dưới áp lực và có thể chơi ở mặt bằng giải phong trào.',
+    description: 'Đánh nghiêm túc, xử lý ổn định dưới áp lực và phù hợp các kèo khó hoặc nhịp nhanh.',
     starting_elo: ELO_BANDS[4].seedElo,
     legacy_skill_label: 'advanced',
   },
@@ -138,40 +137,13 @@ export function getSkillScoreFromPlayer(
   return level ? SKILL_ASSESSMENT_LEVELS.findIndex((item) => item.id === level.id) + 1 : null
 }
 
-export function getSkillScoreFromEloRange(eloMin: number, eloMax: number) {
-  const level = getSkillLevelFromEloRange(eloMin, eloMax)
-  return SKILL_ASSESSMENT_LEVELS.findIndex((item) => item.id === level.id) + 1
-}
+export async function fetchFavoriteCourts(ids?: string[] | null) {
+  const courtIds = (ids ?? []).filter(Boolean)
+  if (!courtIds.length) return []
 
-export async function saveSkillAssessment(levelId: SkillAssessmentLevel['id']) {
-  const level = SKILL_ASSESSMENT_LEVELS.find((item) => item.id === levelId)
+  const { data, error } = await supabase.from('courts').select('id, name, district, city').in('id', courtIds)
+  if (error) throw error
 
-  if (!level) {
-    throw new Error('Mức trình độ không hợp lệ.')
-  }
-
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser()
-
-  if (userError || !user) {
-    throw new Error(userError?.message ?? 'Không tìm thấy tài khoản hiện tại.')
-  }
-
-  const updates = {
-    self_assessed_level: level.id,
-    current_elo: level.starting_elo,
-    is_provisional: true,
-    placement_matches_played: 0,
-    skill_label: level.legacy_skill_label,
-    skill_tier: getEloBandByLevelId(level.id)?.tier ?? 'intermediate',
-    elo: level.starting_elo,
-  }
-
-  const { error } = await supabase.from('players').update(updates).eq('id', user.id)
-
-  if (error) {
-    throw new Error(error.message)
-  }
+  const order = new Map(courtIds.map((id, index) => [id, index]))
+  return [...(data ?? [])].sort((left, right) => (order.get(left.id) ?? 0) - (order.get(right.id) ?? 0))
 }

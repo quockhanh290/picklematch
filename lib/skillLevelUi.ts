@@ -39,7 +39,7 @@ export const SKILL_LEVEL_UI: Record<SkillAssessmentLevel['id'], SkillTierUi> = {
     duprValue: '3.0',
   },
   level_3: {
-    shortLabel: 'Cọ xát',
+    shortLabel: 'Trung cấp',
     icon: Swords,
     tagClassName: 'bg-indigo-50',
     textClassName: 'text-indigo-700',
@@ -50,7 +50,7 @@ export const SKILL_LEVEL_UI: Record<SkillAssessmentLevel['id'], SkillTierUi> = {
     duprValue: '3.5',
   },
   level_4: {
-    shortLabel: 'Phong trào',
+    shortLabel: 'Khá',
     icon: Medal,
     tagClassName: 'bg-amber-50',
     textClassName: 'text-amber-700',
@@ -61,7 +61,7 @@ export const SKILL_LEVEL_UI: Record<SkillAssessmentLevel['id'], SkillTierUi> = {
     duprValue: '4.0',
   },
   level_5: {
-    shortLabel: 'Sân giải',
+    shortLabel: 'Nâng cao',
     icon: Trophy,
     tagClassName: 'bg-sky-50',
     textClassName: 'text-sky-700',

@@ -222,7 +222,7 @@ export default function EditProfile() {
             <View className="rounded-[24px] border border-emerald-200 bg-emerald-50 p-4">
               <View className="flex-row items-start justify-between">
                 <View className="flex-1 pr-3">
-                  <Text className="text-base font-extrabold text-emerald-900">{currentBand?.shortLabel ?? currentLevel?.title ?? 'Cọ xát'}</Text>
+                  <Text className="text-base font-extrabold text-emerald-900">{currentBand?.shortLabel ?? currentLevel?.title ?? 'Trung cấp'}</Text>
                   <Text className="mt-2 text-sm font-semibold text-emerald-700">
                     {currentBand ? `Elo ${currentBand.seedElo} · ${currentBand.eloMin}-${currentBand.eloMax}` : 'Mức khởi điểm hiện tại'}
                   </Text>

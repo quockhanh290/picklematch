@@ -39,9 +39,9 @@ export const ELO_BANDS: EloBand[] = [
   },
   {
     levelId: 'level_3',
-    shortLabel: 'Cọ xát',
-    simpleLabel: 'Cọ xát',
-    userDescription: 'Đã đánh khá đều, giữ rally tốt và bắt đầu quen nhịp thi đấu.',
+    shortLabel: 'Trung cấp',
+    simpleLabel: 'Trung cấp',
+    userDescription: 'Đã chơi khá đều, giữ rally tốt và bắt đầu quen nhịp thi đấu.',
     tier: 'intermediate',
     legacySkillLabel: 'intermediate',
     eloMin: 1050,
@@ -50,9 +50,9 @@ export const ELO_BANDS: EloBand[] = [
   },
   {
     levelId: 'level_4',
-    shortLabel: 'Phong trào',
-    simpleLabel: 'Phong trào',
-    userDescription: 'Chơi chắc tay, biết kiểm soát nhiều tình huống và đánh cân với nhóm phong trào mạnh.',
+    shortLabel: 'Khá',
+    simpleLabel: 'Khá',
+    userDescription: 'Chơi chắc tay, biết kiểm soát nhiều tình huống và có nhịp trận ổn định.',
     tier: 'upper_intermediate',
     legacySkillLabel: 'intermediate',
     eloMin: 1150,
@@ -61,9 +61,9 @@ export const ELO_BANDS: EloBand[] = [
   },
   {
     levelId: 'level_5',
-    shortLabel: 'Sân giải',
-    simpleLabel: 'Sân giải',
-    userDescription: 'Đánh nghiêm túc, xử lý ổn định dưới áp lực và có thể chơi ở mặt bằng giải phong trào.',
+    shortLabel: 'Nâng cao',
+    simpleLabel: 'Nâng cao',
+    userDescription: 'Đánh nghiêm túc, xử lý ổn định dưới áp lực và phù hợp các kèo khó hoặc nhịp nhanh.',
     tier: 'advanced',
     legacySkillLabel: 'advanced',
     eloMin: 1300,
@@ -124,7 +124,7 @@ export function getLegacySkillLabelForTier(tier: string): LegacySkillLabel {
 }
 
 export function getSimpleTierLabel(tier: string) {
-  if (tier === 'elite') return 'Sân giải'
+  if (tier === 'elite') return 'Nâng cao'
   return (getEloBandByTier(tier) ?? ELO_BANDS[2]).simpleLabel
 }
 
