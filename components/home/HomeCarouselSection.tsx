@@ -8,6 +8,8 @@ import Animated, {
   useScrollOffset,
 } from 'react-native-reanimated'
 
+import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+
 const screenPadding = 20
 const screenWidth = Dimensions.get('window').width
 const carouselCardWidth = screenWidth - screenPadding * 2
@@ -133,8 +135,12 @@ function SectionHeader({
 }) {
   return (
     <View className="mb-5">
-      <Text className="text-[11px] font-black uppercase tracking-[2.4px] text-slate-400">{eyebrow}</Text>
-      <Text className="mt-2 text-[28px] font-black text-slate-950">{title}</Text>
+      <Text className="mb-3 text-[11px] uppercase tracking-[3.8px]" style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-Bold' }}>
+        {eyebrow}
+      </Text>
+      <Text className="text-[28px]" style={{ color: PROFILE_THEME_COLORS.onBackground, fontFamily: 'PlusJakartaSans-ExtraBold' }}>
+        {title}
+      </Text>
     </View>
   )
 }

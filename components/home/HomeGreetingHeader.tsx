@@ -2,8 +2,7 @@ import { router } from 'expo-router'
 import { Hand, UserRound } from 'lucide-react-native'
 import { Pressable, Text, View } from 'react-native'
 
-import { getShadowStyle } from '@/lib/designSystem'
-import { useAppTheme } from '@/lib/theme-context'
+import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 
 const iconStroke = 2.7
 
@@ -14,50 +13,34 @@ export function HomeGreetingHeader({
   name: string
   statusPrompt: string
 }) {
-  const theme = useAppTheme()
-
   return (
-    <View
-      className="flex-row items-start justify-between rounded-[32px] px-5 py-5"
-      style={{
-        backgroundColor: theme.surface,
-        borderWidth: 1,
-        borderColor: theme.border,
-        ...getShadowStyle(theme),
-      }}
-    >
+    <View className="flex-row items-start justify-between px-1 py-1">
       <View className="flex-1 pr-4">
-        <Text className="text-[11px] font-bold uppercase tracking-[2.8px]" style={{ color: theme.textSoft }}>
-          Command Center
-        </Text>
-        <View className="mt-2 flex-row items-center">
-          <Text className="text-[28px] font-black leading-[34px]" style={{ color: theme.text }}>
-            {name}
+        <View className="flex-row items-center">
+          <Text className="text-[30px] leading-[36px]" style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: 'PlusJakartaSans-ExtraBold' }}>
+            Chào, {name}
           </Text>
-          <View className="ml-2 rounded-full p-2" style={{ backgroundColor: theme.warningSoft }}>
-            <Hand size={18} color={theme.warning} strokeWidth={iconStroke} />
+          <View className="ml-2 rounded-full p-2" style={{ backgroundColor: PROFILE_THEME_COLORS.secondaryContainer }}>
+            <Hand size={18} color={PROFILE_THEME_COLORS.primary} strokeWidth={iconStroke} />
           </View>
         </View>
-        <Text className="mt-2 text-[15px] font-semibold" style={{ color: theme.textMuted }}>
+        <Text className="mt-2 text-[15px]" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-ExtraBoldItalic' }}>
           {statusPrompt}
         </Text>
       </View>
 
       <Pressable
         onPress={() => router.push('/(tabs)/profile' as never)}
-        className="h-20 w-20 items-center justify-center rounded-[26px]"
+        className="mt-1 h-16 w-16 items-center justify-center rounded-full p-1.5"
         style={{
-          borderWidth: 1,
-          borderColor: theme.border,
-          backgroundColor: theme.surfaceAlt,
-          ...getShadowStyle(theme),
+          backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
         }}
       >
         <View
-          className="h-[68px] w-[68px] items-center justify-center rounded-[22px]"
-          style={{ backgroundColor: theme.primarySoft }}
+          className="flex-1 self-stretch items-center justify-center rounded-full"
+          style={{ backgroundColor: PROFILE_THEME_COLORS.primaryContainer }}
         >
-          <UserRound size={30} color={theme.primary} strokeWidth={2.4} />
+          <UserRound size={30} color={PROFILE_THEME_COLORS.onPrimaryContainer} strokeWidth={2.4} />
         </View>
       </Pressable>
     </View>

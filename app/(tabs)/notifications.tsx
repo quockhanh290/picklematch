@@ -6,16 +6,16 @@ import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs'
 import { router } from 'expo-router'
 import type { LucideIcon } from 'lucide-react-native'
 import {
-  Bell,
-  CheckCircle2,
-  DoorOpen,
-  Info,
-  Megaphone,
-  Menu,
-  MessageCircleMore,
-  Sparkles,
-  UserPlus,
-  XCircle,
+    Bell,
+    CheckCircle2,
+    DoorOpen,
+    Info,
+    Megaphone,
+    Menu,
+    MessageCircleMore,
+    Sparkles,
+    UserPlus,
+    XCircle,
 } from 'lucide-react-native'
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'

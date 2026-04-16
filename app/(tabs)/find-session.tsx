@@ -7,9 +7,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import * as Linking from 'expo-linking'
 import { router, useFocusEffect } from 'expo-router'
 import {
-  Menu,
     Map,
     MapPin,
+    Menu,
     Search,
     SlidersHorizontal,
     Sparkles,

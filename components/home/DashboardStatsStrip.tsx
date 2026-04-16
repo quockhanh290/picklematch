@@ -2,6 +2,7 @@ import { ShieldCheck, TrendingUp, Zap } from 'lucide-react-native'
 import type { LucideIcon } from 'lucide-react-native'
 import { Text, View } from 'react-native'
 
+import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { getShadowStyle } from '@/lib/designSystem'
 import { useAppTheme } from '@/lib/theme-context'
 
@@ -33,33 +34,43 @@ export function DashboardStatsStrip({ items }: { items: DashboardStatItem[] }) {
 
   return (
     <View
-      className="mt-6 flex-row rounded-[30px] px-4 py-6"
+      className="mt-6 flex-row rounded-[30px] border px-4 py-6"
       style={{
-        backgroundColor: theme.surfaceAlt,
-        borderWidth: 1,
-        borderColor: theme.borderStrong,
+        backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+        borderColor: PROFILE_THEME_COLORS.outlineVariant,
         ...getShadowStyle(theme),
       }}
     >
       {items.map((item, index) => {
         const Icon = item.icon
-        const valueColorClass =
-          item.id === 'elo' ? 'text-indigo-700' : item.id === 'streak' ? 'text-amber-600' : 'text-emerald-700'
-        const iconColor = item.id === 'elo' ? '#6366f1' : item.id === 'streak' ? '#f97316' : '#10b981'
+        const valueColor =
+          item.id === 'elo'
+            ? PROFILE_THEME_COLORS.primary
+            : item.id === 'streak'
+              ? PROFILE_THEME_COLORS.onPrimaryFixedVariant
+              : PROFILE_THEME_COLORS.surfaceTint
+        const iconColor =
+          item.id === 'elo'
+            ? PROFILE_THEME_COLORS.primary
+            : item.id === 'streak'
+              ? PROFILE_THEME_COLORS.onPrimaryFixedVariant
+              : PROFILE_THEME_COLORS.surfaceTint
 
         return (
           <View key={item.id} className="flex-1 flex-row items-stretch">
             <View className="flex-1 px-3">
               <View className="flex-row items-center justify-center">
                 <Icon size={15} color={iconColor} strokeWidth={iconStroke} />
-                <Text className="ml-2 text-[11px] font-bold uppercase tracking-[1px]" style={{ color: theme.textMuted }}>
+                <Text className="ml-2 text-[11px] uppercase tracking-[1px]" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Bold' }}>
                   {item.label}
                 </Text>
               </View>
-              <Text className={`mt-4 text-center text-[28px] font-black ${valueColorClass}`}>{item.value}</Text>
+              <Text className="mt-4 text-center text-[28px]" style={{ color: valueColor, fontFamily: 'PlusJakartaSans-ExtraBold' }}>
+                {item.value}
+              </Text>
             </View>
             {index < items.length - 1 ? (
-              <View className="my-1 w-px self-stretch" style={{ backgroundColor: theme.border }} />
+              <View className="my-1 w-px self-stretch" style={{ backgroundColor: PROFILE_THEME_COLORS.outlineVariant }} />
             ) : null}
           </View>
         )
