@@ -54,7 +54,7 @@ export default function ProfileSetup() {
 
   return (
     <SafeAreaView className="flex-1 bg-stone-100" edges={['top']}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
+      <ScrollView stickyHeaderIndices={[0]} contentContainerStyle={{ paddingBottom: 40 }}>
         <ScreenHeader
           eyebrow="Bắt đầu"
           title="Tạo hồ sơ của bạn"

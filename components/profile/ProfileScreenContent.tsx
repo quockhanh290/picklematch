@@ -168,7 +168,7 @@ export default function ProfileScreenContent() {
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: '#f7f9fb' }} edges={['top']}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 64 }}>
+      <ScrollView stickyHeaderIndices={[0]} contentContainerStyle={{ paddingBottom: 64 }}>
         <ScreenHeader
           eyebrow="Hồ sơ cá nhân"
           title="Hồ sơ"

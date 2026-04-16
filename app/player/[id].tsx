@@ -231,7 +231,7 @@ export default function PlayerProfile() {
 
   return (
     <SafeAreaView className="flex-1 bg-stone-100" edges={['top']}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 48 }}>
+      <ScrollView stickyHeaderIndices={[0]} contentContainerStyle={{ paddingBottom: 48 }}>
         <ScreenHeader
           eyebrow="Hồ sơ công khai"
           title={player.name}

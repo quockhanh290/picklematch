@@ -10,7 +10,7 @@ type Props = {
 
 export function ScreenHeader({ eyebrow, title, subtitle, rightSlot }: Props) {
   return (
-    <View className="px-5 pb-4 pt-4">
+    <View className="bg-white/95 px-5 pb-4 pt-4" style={{ zIndex: 10 }}>
       <View className="flex-row items-start justify-between">
         <View className="flex-1 pr-3">
           {eyebrow ? <Text className="text-sm font-medium text-slate-500">{eyebrow}</Text> : null}

@@ -1,13 +1,14 @@
 import { AppInput, EmptyState, StatusBadge } from '@/components/design'
 import { ProfileSkillHero } from '@/components/profile/ProfileSections'
-import { getEloBandByLegacySkillLabel, getEloBandByLevelId, getUserDescriptionForLevelId } from '@/lib/eloSystem'
+import { getEloBandByLegacySkillLabel, getUserDescriptionForLevelId } from '@/lib/eloSystem'
 import { getSkillLevelById, type SkillAssessmentLevel } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
 import { router } from 'expo-router'
-import { Camera, ChevronLeft, MapPin } from 'lucide-react-native'
+import { Camera, ChevronLeft, MapPin, Share } from 'lucide-react-native'
 import { useEffect, useRef, useState } from 'react'
-import { ActivityIndicator, Alert, FlatList, ScrollView, Switch, Text, TouchableOpacity, View, Keyboard } from 'react-native'
+import { ActivityIndicator, Alert, FlatList, Keyboard, ScrollView, Switch, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { StatusBar } from 'expo-status-bar'
 
 const CITIES = ['Hồ Chí Minh', 'Hà Nội', 'Đà Nẵng', 'Cần Thơ', 'Hải Phòng']
 
@@ -45,7 +46,7 @@ export default function EditProfile() {
     const keyboardWillShow = Keyboard.addListener('keyboardDidShow', () => {
       setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: true })
-      }, 300)
+      }, 500)
     })
 
     return () => keyboardWillShow.remove()
@@ -139,7 +140,7 @@ export default function EditProfile() {
   function handleCourtSearchFocus() {
     setTimeout(() => {
       scrollViewRef.current?.scrollToEnd({ animated: true })
-    }, 300)
+    }, 500)
   }
 
   function handleRedoAssessment() {
@@ -195,18 +196,25 @@ export default function EditProfile() {
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: '#f7f9fb' }} edges={['top']}>
+      <StatusBar style="dark" translucent backgroundColor="#f7f9fb" />
       {/* Header */}
-      <View className="flex-row items-center justify-between px-5 py-4 bg-white/60">
-        <View className="flex-row items-center gap-4">
-          <TouchableOpacity activeOpacity={0.7} onPress={() => router.back()}>
-            <ChevronLeft size={24} color="#059669" />
-          </TouchableOpacity>
-          <Text className="text-lg font-bold text-emerald-800" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Cài đặt hồ sơ</Text>
+      <View className="flex-row items-center justify-between px-5 py-4 bg-[#f7f9fb] border-b border-slate-200">
+        <TouchableOpacity activeOpacity={0.7} onPress={() => router.back()}>
+          <ChevronLeft size={24} color="#006948" />
+        </TouchableOpacity>
+
+        <View className="absolute inset-x-0 flex-row items-center justify-center">
+          <Text className="text-lg font-bold text-[#006948] tracking-[0.4px] uppercase" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
+            PICKLEMATCH VN
+          </Text>
         </View>
-        <Text className="text-xl font-extrabold italic text-emerald-900" style={{ fontFamily: 'PlusJakartaSans-ExtraBoldItalic' }}>PickleMatch VN</Text>
+
+        <TouchableOpacity activeOpacity={0.75} className="rounded-full p-2 bg-slate-200" onPress={() => {}}>
+          <Share size={20} color="#006948" />
+        </TouchableOpacity>
       </View>
 
-      <ScrollView ref={scrollViewRef} contentContainerStyle={{ paddingBottom: 500 }} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
+      <ScrollView ref={scrollViewRef} contentContainerStyle={{ paddingBottom: 325 }} keyboardShouldPersistTaps="always" keyboardDismissMode="on-drag">
         {/* Profile Header Section */}
         <View className="px-5 py-8 items-center">
           {/* Avatar with Orbit Decoration */}
@@ -232,7 +240,7 @@ export default function EditProfile() {
           </View>
 
           {/* Name and Join Date */}
-          <Text className="text-2xl font-extrabold italic tracking-tight text-emerald-600 uppercase" style={{ fontFamily: 'PlusJakartaSans-ExtraBoldItalic' }}>
+          <Text className="text-2xl font-extrabold italic tracking-tight text-[#006948] uppercase" style={{ fontFamily: 'PlusJakartaSans-ExtraBoldItalic' }}>
             {name || 'Người chơi'}
           </Text>
           <Text className="text-sm font-medium text-slate-600 mt-1" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>
@@ -292,7 +300,7 @@ export default function EditProfile() {
               className="rounded-full bg-[#cd645f] px-4 py-4 mb-4 flex-row items-center justify-center"
               onPress={handleRedoAssessment}
             >
-              <Text className="text-center text-sm font-extrabold text-white" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Làm lại bài đánh giá</Text>
+              <Text className="text-center text-base font-extrabold text-white" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Làm lại bài đánh giá</Text>
             </TouchableOpacity>
             <Text className="text-center text-sm leading-6 text-slate-500 mb-4" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>
               Dùng lại 7 câu hỏi onboarding để hệ thống ước lượng mức khởi điểm mới cho bạn.
