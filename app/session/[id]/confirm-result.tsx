@@ -12,6 +12,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { AlertTriangle, ArrowLeft, CheckCheck, Clock3, ShieldAlert, Trophy } from 'lucide-react-native'
 import { useEffect, useMemo, useState } from 'react'
 
+import { ScreenHeader } from '@/components/design'
 import { supabase } from '@/lib/supabase'
 
 type SessionPlayerRecord = {
@@ -270,21 +271,7 @@ export default function ConfirmSessionResultScreen() {
   return (
     <SafeAreaView className="flex-1 bg-slate-50" edges={['top']}>
       <View className="flex-1">
-        <View
-          className="border-b border-slate-200 bg-white px-5 pb-4"
-          style={{ paddingTop: Math.max(insets.top, 12) }}
-        >
-          <View className="flex-row items-center justify-between">
-            <Pressable
-              onPress={() => router.back()}
-              className="h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white"
-            >
-              <ArrowLeft size={20} color="#0f172a" strokeWidth={2.5} />
-            </Pressable>
-            <Text className="text-[18px] font-black text-slate-950">Xác nhận kết quả</Text>
-            <View className="h-11 w-11" />
-          </View>
-        </View>
+        <ScreenHeader compact title="Xác nhận kết quả" onBackPress={() => router.back()} />
 
         <ScrollView
           className="flex-1"

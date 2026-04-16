@@ -11,6 +11,7 @@ import { HomeGreetingHeader } from '@/components/home/HomeGreetingHeader'
 import { MatchSessionCard, SMART_MATCH_CARD_HEIGHT } from '@/components/home/MatchSessionCard'
 import { PostMatchActionsSection } from '@/components/home/PostMatchActionsSection'
 import { PendingMatchResultCarousel as HomePendingMatchResultCarousel } from '@/components/home/PendingMatchResultCarousel'
+import { ScreenHeader } from '@/components/design'
 import { useHomeFeedData } from '@/hooks/useHomeFeedData'
 import type { FamiliarCourt, MatchSession } from '@/lib/homeFeed'
 import { useAppTheme } from '@/lib/theme-context'
@@ -72,6 +73,7 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: theme.backgroundMuted }} edges={['top']}>
+      <ScreenHeader compact title="Trang chủ" />
       <View className="flex-1" style={{ backgroundColor: theme.backgroundMuted }}>
         <ScrollView
           showsVerticalScrollIndicator={false}

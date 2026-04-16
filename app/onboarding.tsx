@@ -43,13 +43,13 @@ const HERO_IMAGE = require('../assets/images/login-electric-court-hero.png')
 
 const ELECTRIC = {
   emerald: '#059669',
-  emeraldDark: '#047857',
-  lime: '#ADFF2F',
-  skySoft: '#DCE9FF',
-  skyCard: '#F0F9FF',
-  panel: '#EEF2FF',
-  ink: '#020617',
-  smoke: '#F8FAFC',
+  emeraldDark: '#006948',
+  surfaceTint: '#ECFDF5',
+  panel: '#F8FAFC',
+  border: '#E2E8F0',
+  borderStrong: '#CBD5E1',
+  textStrong: '#0F2A1F',
+  smoke: '#F7F9FB',
   white: '#FFFFFF',
   muted: '#64748B',
 }
@@ -224,14 +224,14 @@ export default function OnboardingScreen() {
         contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 20) }}
         showsVerticalScrollIndicator={false}
       >
-        <View style={{ minHeight: heroMinHeight, backgroundColor: ELECTRIC.ink }}>
+        <View style={{ minHeight: heroMinHeight, backgroundColor: ELECTRIC.emeraldDark }}>
           <ImageBackground
             source={HERO_IMAGE}
             resizeMode="cover"
             style={StyleSheet.absoluteFillObject}
             imageStyle={{ opacity: 0.55 }}
           />
-          <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(3,8,23,0.72)' }]} />
+          <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(0,105,72,0.76)' }]} />
           <View
             style={{
               position: 'absolute',
@@ -241,7 +241,7 @@ export default function OnboardingScreen() {
               height: 320,
               borderRadius: 999,
               borderWidth: 1,
-              borderColor: 'rgba(173,255,47,0.28)',
+              borderColor: 'rgba(255,255,255,0.28)',
             }}
           />
           <View
@@ -253,7 +253,7 @@ export default function OnboardingScreen() {
               height: 228,
               borderRadius: 999,
               borderWidth: 1,
-              borderColor: 'rgba(6,182,212,0.24)',
+              borderColor: 'rgba(255,255,255,0.24)',
             }}
           />
 
@@ -275,9 +275,9 @@ export default function OnboardingScreen() {
 
               <View
                 className="rounded-full px-4 py-2"
-                style={{ backgroundColor: 'rgba(173,255,47,0.12)', borderWidth: 1, borderColor: 'rgba(173,255,47,0.28)' }}
+                style={{ backgroundColor: 'rgba(236,253,245,0.18)', borderWidth: 1, borderColor: 'rgba(236,253,245,0.38)' }}
               >
-                <Text style={{ color: ELECTRIC.lime, fontSize: 11, letterSpacing: 1.2, fontFamily: 'PlusJakartaSans-Bold' }}>
+                <Text style={{ color: '#D1FAE5', fontSize: 11, letterSpacing: 1.2, fontFamily: 'PlusJakartaSans-Bold' }}>
                   ELECTRIC COURT
                 </Text>
               </View>
@@ -286,7 +286,7 @@ export default function OnboardingScreen() {
             <View style={{ marginTop: 34 }}>
               <Text
                 style={{
-                  color: ELECTRIC.lime,
+                  color: '#D1FAE5',
                   fontSize: 28,
                   lineHeight: 30,
                   fontFamily: 'PlusJakartaSans-ExtraBoldItalic',
@@ -322,9 +322,9 @@ export default function OnboardingScreen() {
               <View className="flex-row items-center">
                 <View
                   className="mr-2 h-10 w-10 items-center justify-center rounded-full"
-                  style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}
+                  style={{ backgroundColor: 'rgba(255,255,255,0.14)' }}
                 >
-                  <Sparkles size={18} color={ELECTRIC.lime} />
+                  <Sparkles size={18} color={ELECTRIC.white} />
                 </View>
                 <View>
                   <Text style={{ color: '#FFFFFF', fontSize: 14, fontFamily: 'PlusJakartaSans-Bold' }}>
@@ -356,7 +356,7 @@ export default function OnboardingScreen() {
                 marginTop: 14,
                 height: 10,
                 borderRadius: 999,
-                backgroundColor: 'rgba(255,255,255,0.12)',
+                backgroundColor: 'rgba(255,255,255,0.22)',
                 overflow: 'hidden',
               }}
             >
@@ -365,7 +365,7 @@ export default function OnboardingScreen() {
                   width: `${progress}%`,
                   height: '100%',
                   borderRadius: 999,
-                  backgroundColor: ELECTRIC.lime,
+                  backgroundColor: '#34D399',
                 }}
               />
             </View>
@@ -379,7 +379,7 @@ export default function OnboardingScreen() {
               backgroundColor: ELECTRIC.white,
               padding: 20,
               minHeight: questionCardMinHeight,
-              shadowColor: '#1E293B',
+              shadowColor: '#191C1E',
               shadowOpacity: 0.08,
               shadowRadius: 28,
               shadowOffset: { width: 0, height: 16 },
@@ -387,12 +387,12 @@ export default function OnboardingScreen() {
             }}
           >
             <View className="mb-4 flex-row items-center justify-between">
-              <View className="rounded-full px-4 py-2" style={{ backgroundColor: ELECTRIC.panel }}>
+              <View className="rounded-full px-4 py-2" style={{ backgroundColor: ELECTRIC.surfaceTint }}>
                 <Text style={{ color: ELECTRIC.emeraldDark, fontSize: 12, letterSpacing: 0.8, fontFamily: 'PlusJakartaSans-Bold' }}>
                   CÂU HỎI {stepIndex + 1}
                 </Text>
               </View>
-              <View className="flex-row items-center rounded-full px-3 py-2" style={{ backgroundColor: '#F8FAFC' }}>
+              <View className="flex-row items-center rounded-full px-3 py-2" style={{ backgroundColor: ELECTRIC.panel }}>
                 <Swords size={14} color={ELECTRIC.emeraldDark} />
                 <Text style={{ marginLeft: 6, color: ELECTRIC.muted, fontSize: 12, fontFamily: 'PlusJakartaSans-Bold' }}>
                   Match Fit
@@ -402,7 +402,7 @@ export default function OnboardingScreen() {
 
             <Text
               style={{
-                color: ELECTRIC.ink,
+                color: ELECTRIC.textStrong,
                 fontSize: 28,
                 lineHeight: 34,
                 fontFamily: 'PlusJakartaSans-Bold',
@@ -441,16 +441,16 @@ export default function OnboardingScreen() {
                       paddingHorizontal: 16,
                       paddingVertical: 16,
                       justifyContent: 'center',
-                      backgroundColor: isSelected ? '#E8FFF0' : ELECTRIC.skyCard,
+                      backgroundColor: isSelected ? ELECTRIC.surfaceTint : ELECTRIC.panel,
                       borderWidth: isSelected ? 1.5 : 1,
-                      borderColor: isSelected ? ELECTRIC.emerald : '#D7EEF9',
+                      borderColor: isSelected ? ELECTRIC.emerald : ELECTRIC.border,
                     }}
                   >
                     <View className="flex-row items-center justify-between">
                       <Text
                         style={{
                           flex: 1,
-                          color: isSelected ? ELECTRIC.emeraldDark : ELECTRIC.ink,
+                          color: isSelected ? ELECTRIC.emeraldDark : ELECTRIC.textStrong,
                           fontSize: 15,
                           lineHeight: 22,
                           fontFamily: 'PlusJakartaSans-Bold',
@@ -461,7 +461,7 @@ export default function OnboardingScreen() {
                       </Text>
                       <View
                         className="h-8 w-8 items-center justify-center rounded-full"
-                        style={{ backgroundColor: isSelected ? 'rgba(5,150,105,0.14)' : 'rgba(255,255,255,0.56)' }}
+                        style={{ backgroundColor: isSelected ? 'rgba(5,150,105,0.14)' : 'rgba(255,255,255,0.92)' }}
                       >
                         {isSelected ? (
                           <CheckCircle2 size={18} color={ELECTRIC.emerald} />
@@ -489,7 +489,7 @@ export default function OnboardingScreen() {
                 borderRadius: 28,
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: ELECTRIC.skySoft,
+                backgroundColor: '#F0F4F8',
                 opacity: stepIndex === 0 ? 0.45 : 1,
               }}
             >
@@ -548,7 +548,7 @@ export default function OnboardingScreen() {
               style={{
                 marginTop: 14,
                 borderRadius: 22,
-                backgroundColor: ELECTRIC.ink,
+                backgroundColor: '#FFDAD6',
                 paddingHorizontal: 16,
                 paddingVertical: 14,
                 flexDirection: 'row',
@@ -556,18 +556,18 @@ export default function OnboardingScreen() {
                 justifyContent: 'space-between',
               }}
             >
-              <Text style={{ color: '#FFFFFF', fontSize: 14, fontFamily: 'PlusJakartaSans-Bold' }}>Có lỗi xảy ra, thử lại nhé</Text>
+              <Text style={{ color: '#BA1A1A', fontSize: 14, fontFamily: 'PlusJakartaSans-Bold' }}>Có lỗi xảy ra, thử lại nhé</Text>
               <TouchableOpacity
                 activeOpacity={0.92}
                 onPress={openResultPreview}
                 style={{
                   borderRadius: 999,
-                  backgroundColor: ELECTRIC.white,
+                  backgroundColor: '#BA1A1A',
                   paddingHorizontal: 12,
                   paddingVertical: 8,
                 }}
               >
-                <Text style={{ color: ELECTRIC.ink, fontSize: 13, fontFamily: 'PlusJakartaSans-Bold' }}>Thử lại</Text>
+                <Text style={{ color: ELECTRIC.white, fontSize: 13, fontFamily: 'PlusJakartaSans-Bold' }}>Thử lại</Text>
               </TouchableOpacity>
             </View>
           ) : null}
@@ -578,7 +578,7 @@ export default function OnboardingScreen() {
         <View
           style={{
             ...StyleSheet.absoluteFillObject,
-            backgroundColor: 'rgba(2,6,23,0.42)',
+            backgroundColor: 'rgba(25,28,30,0.42)',
             alignItems: 'center',
             justifyContent: 'center',
             paddingHorizontal: 24,
@@ -593,7 +593,7 @@ export default function OnboardingScreen() {
               alignItems: 'center',
             }}
           >
-            <View className="h-16 w-16 items-center justify-center rounded-full" style={{ backgroundColor: '#E8FFF0' }}>
+            <View className="h-16 w-16 items-center justify-center rounded-full" style={{ backgroundColor: ELECTRIC.surfaceTint }}>
               <CheckCircle2 size={32} color={ELECTRIC.emerald} />
             </View>
             <Text
@@ -610,7 +610,7 @@ export default function OnboardingScreen() {
             <Text
               style={{
                 marginTop: 10,
-                color: ELECTRIC.ink,
+                color: ELECTRIC.textStrong,
                 fontSize: 28,
                 lineHeight: 34,
                 textAlign: 'center',
@@ -622,7 +622,7 @@ export default function OnboardingScreen() {
             <Text
               style={{
                 marginTop: 8,
-                color: '#334155',
+                color: '#3D4A42',
                 fontSize: 15,
                 lineHeight: 22,
                 textAlign: 'center',
@@ -646,7 +646,7 @@ export default function OnboardingScreen() {
 
             <View
               className="mt-4 rounded-2xl px-4 py-3"
-              style={{ backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#E2E8F0', width: '100%' }}
+              style={{ backgroundColor: ELECTRIC.panel, borderWidth: 1, borderColor: ELECTRIC.border, width: '100%' }}
             >
               <Text
                 style={{
@@ -663,7 +663,7 @@ export default function OnboardingScreen() {
               <Text
                 style={{
                   marginTop: 6,
-                  color: ELECTRIC.ink,
+                  color: ELECTRIC.textStrong,
                   fontSize: 24,
                   textAlign: 'center',
                   fontFamily: 'PlusJakartaSans-Bold',
@@ -699,13 +699,13 @@ export default function OnboardingScreen() {
                   borderRadius: 999,
                   alignItems: 'center',
                   justifyContent: 'center',
-                  backgroundColor: '#F8FAFC',
+                  backgroundColor: ELECTRIC.panel,
                   borderWidth: 1,
-                  borderColor: '#CBD5E1',
+                  borderColor: ELECTRIC.borderStrong,
                   opacity: submitting ? 0.65 : 1,
                 }}
               >
-                <Text style={{ color: ELECTRIC.ink, fontSize: 15, fontFamily: 'PlusJakartaSans-Bold' }}>Làm lại quiz</Text>
+                <Text style={{ color: ELECTRIC.textStrong, fontSize: 15, fontFamily: 'PlusJakartaSans-Bold' }}>Làm lại quiz</Text>
               </TouchableOpacity>
 
               <TouchableOpacity

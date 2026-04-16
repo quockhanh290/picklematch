@@ -1,8 +1,11 @@
 import type { LucideIcon } from 'lucide-react-native'
 import { Check, Lock } from 'lucide-react-native'
 import { Text, View, ScrollView } from 'react-native'
+import { LinearGradient } from 'expo-linear-gradient'
 
-type BadgeTone = 'emerald' | 'amber' | 'rose' | 'sky' | 'violet'
+import { PROFILE_THEME_COLORS, getTrophyBadgePalette, type ProfileBadgeTone } from '@/components/profile/profileTheme'
+
+type BadgeTone = ProfileBadgeTone
 
 export type TrophyBadge = {
   key: string
@@ -29,62 +32,93 @@ function categoryLabel(category: TrophyBadge['category']) {
   }
 }
 
-function toneClasses(tone: BadgeTone) {
-  switch (tone) {
-    case 'emerald':
-      return { card: 'bg-[#ecfdf5]', text: 'text-[#059669]', subtext: 'text-[#059669]', icon: '#059669' }
-    case 'amber':
-      return { card: 'bg-[#fffbeb]', text: 'text-[#d97706]', subtext: 'text-[#d97706]', icon: '#d97706' }
-    case 'rose':
-      return { card: 'bg-[#fff1f2]', text: 'text-[#e11d48]', subtext: 'text-[#e11d48]', icon: '#e11d48' }
-    case 'sky':
-      return { card: 'bg-[#f0f9ff]', text: 'text-[#0284c7]', subtext: 'text-[#0284c7]', icon: '#0284c7' }
-    case 'violet':
-      return { card: 'bg-[#f5f3ff]', text: 'text-[#7c3aed]', subtext: 'text-[#7c3aed]', icon: '#7c3aed' }
-  }
-}
-
 type Props = {
   badges?: TrophyBadge[]
+  hideHeader?: boolean
+  flushBottom?: boolean
 }
 
-export function TrophyRoom({ badges = [] }: Props) {
+export function TrophyRoom({ badges = [], hideHeader = false, flushBottom = false }: Props) {
   const earnedCount = badges.filter((badge) => badge.earned).length
 
   return (
-    <View className="mb-6">
-      <View className="mb-4">
-        <Text className="text-[24px] text-[#191c1e]" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Kho Danh Hiệu</Text>
-        <Text className="mt-1 text-[13px] text-[#6d7a72]" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>
-          {earnedCount}/{badges.length} danh hiệu đã mở khóa
-        </Text>
-      </View>
+    <View className={flushBottom ? '' : 'mb-6'}>
+      {!hideHeader ? (
+        <View className="mb-4">
+          <Text className="text-[24px]" style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: 'PlusJakartaSans-Bold' }}>Kho Danh Hiệu</Text>
+          <Text className="mt-1 text-[13px]" style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-Regular' }}>
+            {earnedCount}/{badges.length} danh hiệu đã mở khóa
+          </Text>
+        </View>
+      ) : null}
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingRight: 20 }}>
-        {badges.map((badge, index) => {
-          const palette = toneClasses(badge.tone)
+        {badges.map((badge) => {
+          const palette = getTrophyBadgePalette(badge.tone)
           const Icon = badge.icon
 
           return (
             <View
               key={badge.key}
-              className={`mr-4 w-[160px] rounded-[20px] p-5 flex flex-col justify-between ${
-                badge.earned ? palette.card : 'bg-[#f2f4f6]'
-              }`}
+              className="mr-4 w-[160px] overflow-hidden rounded-[24px] p-5 flex flex-col justify-between"
+              style={{ backgroundColor: badge.earned ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surfaceContainerLow }}
             >
+              {badge.earned ? (
+                <LinearGradient
+                  colors={[PROFILE_THEME_COLORS.primary, PROFILE_THEME_COLORS.surfaceTint]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 }}
+                />
+              ) : null}
+
               <View className="flex-row justify-between items-start">
-                <Icon size={28} color={badge.earned ? palette.icon : '#a0aab8'} strokeWidth={2.1} />
-                {badge.earned ? <Check size={16} color={palette.icon} /> : <Lock size={16} color="#a0aab8" />}
+                <View
+                  className="rounded-full px-3 py-2"
+                  style={{ backgroundColor: badge.earned ? palette.card : PROFILE_THEME_COLORS.surfaceContainerHigh }}
+                >
+                  <Icon size={20} color={badge.earned ? palette.icon : PROFILE_THEME_COLORS.outline} strokeWidth={2.2} />
+                </View>
+                {badge.earned ? <Check size={16} color={PROFILE_THEME_COLORS.primaryFixed} /> : <Lock size={16} color={PROFILE_THEME_COLORS.outline} />}
               </View>
 
               <View className="mt-6">
-                <Text className={`text-[10px] uppercase tracking-wider ${badge.earned ? palette.text : 'text-[#a0aab8]'}`} style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
+                <Text
+                  className="self-start rounded-full px-3 py-1 text-[10px] uppercase tracking-wider"
+                  style={{
+                    color: badge.earned ? palette.text : PROFILE_THEME_COLORS.outline,
+                    backgroundColor: badge.earned ? palette.card : PROFILE_THEME_COLORS.surfaceContainerHigh,
+                    fontFamily: 'PlusJakartaSans-Bold',
+                  }}
+                >
                   {categoryLabel(badge.category)}
                 </Text>
-                <Text className={`mt-1 text-[15px] leading-tight ${badge.earned ? palette.text : 'text-[#6d7a72]'}`} style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
+                <Text
+                  className="mt-3 text-[16px] leading-tight"
+                  style={{
+                    color: badge.earned ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant,
+                    fontFamily: 'PlusJakartaSans-Bold',
+                  }}
+                >
                   {badge.title}
                 </Text>
+                <Text
+                  className="mt-2 text-[12px] leading-5"
+                  style={{
+                    color: badge.earned ? PROFILE_THEME_COLORS.inverseOnSurface : PROFILE_THEME_COLORS.outline,
+                    fontFamily: 'PlusJakartaSans-Regular',
+                  }}
+                >
+                  {badge.earned ? badge.requirement : 'Chưa mở khóa'}
+                </Text>
               </View>
+
+              <Icon
+                size={56}
+                color={badge.earned ? 'rgba(255,255,255,0.14)' : PROFILE_THEME_COLORS.outlineVariant}
+                strokeWidth={1.8}
+                style={{ position: 'absolute', right: 12, bottom: 12 }}
+              />
 
             </View>
           )

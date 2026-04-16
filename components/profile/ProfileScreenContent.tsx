@@ -1,42 +1,162 @@
 import { AppButton, EmptyState, ScreenHeader } from '@/components/design'
 import type { FeedbackTrait } from '@/components/profile/CommunityFeedbackSection'
 import CommunityFeedbackPanel from '@/components/profile/CommunityFeedbackSection'
+import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import {
-  ProfileHistoryList,
-  ProfileIdentityCard,
-  ProfileSkillHero,
-  ProfileStatsGrid,
-  ProfileWinStreak,
+  PROFILE_SKILL_HERO_TONE,
+    ProfileHistoryList,
+    ProfileSkillHero,
+    ProfileWinStreak,
 } from '@/components/profile/ProfileSections'
 import type { TrophyBadge } from '@/components/profile/TrophyRoom'
 import TrophyRoomSection from '@/components/profile/TrophyRoom'
 import {
-  buildCommunityTraits,
-  calculateReliabilityScore,
-  clearCurrentPlayerProfileCache,
-  fetchCurrentPlayerProfileData,
-  type ProfilePlayer as Player,
-  type ProfilePlayerStats as PlayerStats,
-  type ProfileSessionHistory as SessionHistory,
+  FEEDBACK_META,
+    buildCommunityTraits,
+    calculateReliabilityScore,
+    clearCurrentPlayerProfileCache,
+    fetchCurrentPlayerProfileData,
+  getBadgeIcon,
+  getBadgeTone,
+    type ProfilePlayer as Player,
+    type ProfilePlayerStats as PlayerStats,
+    type ProfileSessionHistory as SessionHistory,
 } from '@/lib/profileData'
 import { getSkillLevelFromElo, getSkillLevelFromPlayer } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
 import { useAppTheme } from '@/lib/theme-context'
 import { router, useFocusEffect } from 'expo-router'
 import {
-  CalendarDays,
-  CircleAlert,
-  ClipboardList,
-  LogOut,
-  Trophy,
-  UserCircle2,
+    CalendarDays,
+    CircleAlert,
+    Menu,
+    Swords,
+    UserCircle2
 } from 'lucide-react-native'
-import { useCallback, useMemo, useState } from 'react'
-import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native'
+  import { useCallback, useEffect, useMemo, useState } from 'react'
+import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+
+const PROFILE_PAGE_COLORS = PROFILE_THEME_COLORS
+
+function ProfileSectionDivider({ index, title }: { index: string; title: string }) {
+  return (
+    <View className="mb-6 flex-row items-center gap-4">
+      <Text className="text-[11px] uppercase tracking-[4px]" style={{ color: PROFILE_PAGE_COLORS.outline, fontFamily: 'PlusJakartaSans-Bold' }}>
+        {index} / {title}
+      </Text>
+      <View className="h-px flex-1" style={{ backgroundColor: PROFILE_PAGE_COLORS.outlineVariant }} />
+    </View>
+  )
+}
+
+const PROFILE_MOCK_TRAITS: FeedbackTrait[] = [
+  {
+    key: 'friendly-mock',
+    icon: FEEDBACK_META.friendly.icon,
+    label: FEEDBACK_META.friendly.label,
+    count: '+12 ghi nhận',
+    context: FEEDBACK_META.friendly.context,
+    tone: 'positive',
+  },
+  {
+    key: 'skilled-mock',
+    icon: FEEDBACK_META.skilled.icon,
+    label: FEEDBACK_META.skilled.label,
+    count: '+9 ghi nhận',
+    context: FEEDBACK_META.skilled.context,
+    tone: 'positive',
+  },
+  {
+    key: 'on-time-mock',
+    icon: FEEDBACK_META.on_time.icon,
+    label: FEEDBACK_META.on_time.label,
+    count: '+8 ghi nhận',
+    context: FEEDBACK_META.on_time.context,
+    tone: 'positive',
+  },
+  {
+    key: 'fair-play-mock',
+    icon: FEEDBACK_META.fair_play.icon,
+    label: FEEDBACK_META.fair_play.label,
+    count: '+6 ghi nhận',
+    context: FEEDBACK_META.fair_play.context,
+    tone: 'positive',
+  },
+]
+
+const PROFILE_MOCK_BADGES: TrophyBadge[] = [
+  {
+    key: 'active_member_20',
+    title: 'Active Member',
+    category: 'progression',
+    description: 'Duy trì nhịp chơi đều và xuất hiện thường xuyên trong cộng đồng.',
+    requirement: 'Chơi đủ 20 trận',
+    icon: getBadgeIcon('graduation-cap'),
+    tone: getBadgeTone('progression'),
+    earned: true,
+    earnedAt: '12/03/2026',
+  },
+  {
+    key: 'golden_host',
+    title: 'Golden Host',
+    category: 'conduct',
+    description: 'Được đánh giá cao ở khả năng giữ nhịp kèo và tổ chức mượt.',
+    requirement: 'Chủ kèo được đánh giá 4.9+',
+    icon: getBadgeIcon('shield'),
+    tone: getBadgeTone('conduct'),
+    earned: true,
+    earnedAt: '02/04/2026',
+  },
+  {
+    key: 'win_streak_3',
+    title: 'Hot Streak',
+    category: 'momentum',
+    description: 'Giữ chuỗi thắng liên tiếp và duy trì phong độ ổn định.',
+    requirement: 'Đạt chuỗi thắng 3 trận',
+    icon: getBadgeIcon('flame'),
+    tone: getBadgeTone('momentum'),
+    earned: true,
+    earnedAt: '08/04/2026',
+  },
+]
+
+const PROFILE_MOCK_HISTORY: SessionHistory[] = [
+  {
+    id: 'mock-session-1',
+    status: 'done',
+    is_host: true,
+    slot: {
+      start_time: '2026-04-12T19:00:00.000Z',
+      end_time: '2026-04-12T21:00:00.000Z',
+      court: { name: 'Saigon Pickle Dome', city: 'TP.HCM' },
+    },
+  },
+  {
+    id: 'mock-session-2',
+    status: 'done',
+    is_host: false,
+    slot: {
+      start_time: '2026-04-09T11:00:00.000Z',
+      end_time: '2026-04-09T13:00:00.000Z',
+      court: { name: 'Sunrise Courts', city: 'Thủ Đức' },
+    },
+  },
+  {
+    id: 'mock-session-3',
+    status: 'done',
+    is_host: true,
+    slot: {
+      start_time: '2026-04-05T08:30:00.000Z',
+      end_time: '2026-04-05T10:30:00.000Z',
+      court: { name: 'Riverside Pickle Club', city: 'Quận 7' },
+    },
+  },
+]
 
 export default function ProfileScreenContent() {
   const theme = useAppTheme()
+  const { width } = useWindowDimensions()
   const [checking, setChecking] = useState(true)
   const [loggedIn, setLoggedIn] = useState(false)
   const [player, setPlayer] = useState<Player | null>(null)
@@ -46,6 +166,8 @@ export default function ProfileScreenContent() {
   const [history, setHistory] = useState<SessionHistory[]>([])
   const [hostedSessionsCount, setHostedSessionsCount] = useState(0)
   const [loading, setLoading] = useState(false)
+  const [nameFitsOneLine, setNameFitsOneLine] = useState<boolean | null>(null)
+  const [nameMeasureWidth, setNameMeasureWidth] = useState(0)
 
   const init = useCallback(async () => {
     setLoading(true)
@@ -107,6 +229,10 @@ export default function ProfileScreenContent() {
 
   const communityTraits = useMemo<FeedbackTrait[]>(() => buildCommunityTraits(ratingTags), [ratingTags])
 
+  useEffect(() => {
+    setNameFitsOneLine(null)
+  }, [player?.name, width])
+
   if (checking) {
     return (
       <SafeAreaView className="flex-1 items-center justify-center" style={{ backgroundColor: theme.backgroundMuted }} edges={['top']}>
@@ -119,9 +245,8 @@ export default function ProfileScreenContent() {
     return (
       <SafeAreaView className="flex-1" style={{ backgroundColor: theme.backgroundMuted }} edges={['top']}>
         <ScreenHeader
-          eyebrow="Hồ sơ"
-          title="Tài khoản của bạn"
-          subtitle="Đăng nhập để xem lịch sử kèo, độ tin cậy và tiến trình placement."
+          compact
+          title="Hồ sơ"
         />
         <EmptyState
           icon={<UserCircle2 size={28} color="#64748b" />}
@@ -165,72 +290,228 @@ export default function ProfileScreenContent() {
   const placementPlayed = player.placement_matches_played ?? 0
   const currentWinStreak = playerStats?.current_win_streak ?? 0
   const streakActive = playerStats?.streak_fire_active ?? currentWinStreak > 0
+  const nameParts = (player.name || '').trim().split(/\s+/).filter(Boolean)
+  const headlineMainName = nameParts.length > 1 ? nameParts.slice(0, -1).join(' ') : player.name
+  const headlineSubName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : ''
+  const joinedYear = player.created_at ? new Date(player.created_at).getFullYear() : null
+  const editorialNameSize = width < 360 ? 42 : width < 420 ? 50 : 58
+  const editorialNameLineHeight = width < 360 ? 52 : width < 420 ? 62 : 72
+  const shouldUseSplitEditorialName = Boolean(headlineSubName) && nameFitsOneLine === false
+  const displayCommunityTraits = communityTraits.length > 0 ? communityTraits : PROFILE_MOCK_TRAITS
+  const displayAchievements = achievements.length > 0 ? achievements : PROFILE_MOCK_BADGES
+  const displayHistory = history.length > 0 ? history : PROFILE_MOCK_HISTORY
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: '#f7f9fb' }} edges={['top']}>
-      <ScrollView stickyHeaderIndices={[0]} contentContainerStyle={{ paddingBottom: 64 }}>
-        <ScreenHeader
-          eyebrow="Hồ sơ cá nhân"
-          title="Hồ sơ"
-          subtitle="Theo dõi trình độ, độ tin cậy và những tín hiệu cộng đồng quanh tài khoản của bạn."
-        />
+    <SafeAreaView className="flex-1" style={{ backgroundColor: PROFILE_PAGE_COLORS.background }} edges={['top']}>
+      <ScrollView stickyHeaderIndices={[0]} contentContainerStyle={{ paddingBottom: 96 }}>
+        <View className="px-6 py-4" style={{ backgroundColor: PROFILE_PAGE_COLORS.surfaceContainerLow }}>
+          <View className="flex-row items-center justify-between">
+            <View className="flex-row items-center gap-4">
+              <Menu size={18} color={PROFILE_PAGE_COLORS.primary} />
+              <Text className="text-3xl" style={{ color: PROFILE_PAGE_COLORS.primary, fontFamily: 'PlusJakartaSans-ExtraBoldItalic' }}>
+                KINETIC
+              </Text>
+            </View>
 
-        <View className="px-4 mt-2">
-          <ProfileIdentityCard
-            name={player.name}
-            city={player.city}
-            joinedAt={player.created_at}
-            isProvisional={Boolean(player.is_provisional)}
-            placementMatchesPlayed={placementPlayed}
-            actions={[
-              { label: 'Sửa hồ sơ', icon: 'edit', onPress: () => router.push('/edit-profile' as any) },
-              { label: 'Đăng xuất', icon: 'logout', onPress: logout }
-            ]}
-          />
+            <View
+              className="h-10 w-10 items-center justify-center rounded-full border-2"
+              style={{ borderColor: PROFILE_PAGE_COLORS.primaryFixed, backgroundColor: PROFILE_PAGE_COLORS.primary }}
+            >
+              <Text style={{ color: PROFILE_PAGE_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-Bold' }}>
+                {player.name?.charAt(0).toUpperCase() ?? 'U'}
+              </Text>
+            </View>
+          </View>
+        </View>
 
-          <ProfileSkillHero
-            elo={effectiveElo}
-            title={skill?.title ?? 'Đang hiệu chỉnh'}
-            subtitle="Mức khởi điểm hiện tại. Hệ thống sẽ tiếp tục tinh chỉnh sau vài trận."
-            description={
-              skill?.description
-                ? `${skill.description} Đây là ảnh chụp hiện tại để ghép kèo dễ chịu hơn, không phải nhãn cố định.`
-                : 'Hệ thống đang dùng Elo và tín hiệu sau trận để tinh chỉnh nhịp ghép kèo phù hợp hơn.'
-            }
-            levelId={skill?.id}
-          />
+        <View className="px-6 pt-6">
+          <View>
+            <View
+              style={{ paddingTop: 6, paddingBottom: 4 }}
+              onLayout={(event) => {
+                const measuredWidth = event.nativeEvent.layout.width
+                if (Math.abs(measuredWidth - nameMeasureWidth) > 1) {
+                  setNameMeasureWidth(measuredWidth)
+                }
+              }}
+            >
+              {nameMeasureWidth > 0 ? (
+                <Text
+                  onTextLayout={(event) => {
+                    const nextFits = event.nativeEvent.lines.length <= 1
+                    if (nextFits !== nameFitsOneLine) {
+                      setNameFitsOneLine(nextFits)
+                    }
+                  }}
+                  style={{
+                    position: 'absolute',
+                    opacity: 0,
+                    left: 0,
+                    right: 0,
+                    color: PROFILE_PAGE_COLORS.primary,
+                    fontFamily: 'PlusJakartaSans-ExtraBold',
+                    fontSize: editorialNameSize,
+                    lineHeight: editorialNameLineHeight,
+                    letterSpacing: -2,
+                  }}
+                >
+                  {player.name}
+                </Text>
+              ) : null}
+
+              {shouldUseSplitEditorialName ? (
+                <>
+                  <Text
+                    style={{
+                      color: PROFILE_PAGE_COLORS.primary,
+                      fontFamily: 'PlusJakartaSans-ExtraBold',
+                      fontSize: editorialNameSize,
+                      lineHeight: editorialNameLineHeight,
+                      letterSpacing: -2,
+                    }}
+                  >
+                    {headlineMainName}
+                  </Text>
+                  <Text
+                    style={{
+                      color: PROFILE_PAGE_COLORS.outlineVariant,
+                      opacity: 0.55,
+                      fontFamily: 'PlusJakartaSans-ExtraBoldItalic',
+                      fontSize: editorialNameSize,
+                      lineHeight: editorialNameLineHeight,
+                      letterSpacing: -2,
+                      marginTop: -4,
+                    }}
+                  >
+                    {headlineSubName}
+                  </Text>
+                </>
+              ) : (
+                <Text
+                  style={{
+                    color: PROFILE_PAGE_COLORS.primary,
+                    fontFamily: 'PlusJakartaSans-ExtraBold',
+                    fontSize: editorialNameSize,
+                    lineHeight: editorialNameLineHeight,
+                    letterSpacing: -2,
+                  }}
+                >
+                  {player.name}
+                </Text>
+              )}
+            </View>
+
+            <View className="mt-3 flex-row flex-wrap items-center gap-3">
+              <Text
+                className="rounded-full px-4 py-1 text-[10px] uppercase tracking-[2px]"
+                style={{ color: PROFILE_PAGE_COLORS.onPrimaryFixed, backgroundColor: PROFILE_PAGE_COLORS.primaryFixed, fontFamily: 'PlusJakartaSans-Bold' }}
+              >
+                {player.is_provisional ? `${placementPlayed}/5 placement` : 'Verified Player'}
+              </Text>
+              <Text className="text-sm" style={{ color: PROFILE_PAGE_COLORS.primary, fontFamily: 'PlusJakartaSans-Bold' }}>
+                Thành viên từ {joinedYear ?? 'N/A'}
+              </Text>
+            </View>
+
+            <View className="mt-3">
+              <Text
+                className="self-start rounded-full px-4 py-1 text-[10px] uppercase tracking-[2px]"
+                style={{ color: PROFILE_PAGE_COLORS.onPrimaryContainer, backgroundColor: PROFILE_PAGE_COLORS.primaryContainer, fontFamily: 'PlusJakartaSans-Bold' }}
+              >
+                Độ tin cậy · {' '}
+                {reliability === null ? '--' : `${reliability}%`}
+              </Text>
+            </View>
+
+            <Text className="mt-4 text-base leading-7" style={{ color: PROFILE_PAGE_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Regular' }}>
+              Đam mê Pickleball với phong cách chơi năng lượng cao. Luôn tìm kiếm những trận đấu kịch tính và phù hợp trình độ.
+            </Text>
+
+            <View className="mt-4">
+              <ProfileSkillHero
+                elo={effectiveElo}
+                title={skill?.title ?? 'Đang hiệu chỉnh'}
+                subtitle={skill?.subtitle ?? 'Mức khởi điểm hiện tại. Hệ thống sẽ tiếp tục tinh chỉnh sau vài trận.'}
+                description={skill?.description ?? 'Hệ thống đang dùng Elo và tín hiệu sau trận để tinh chỉnh nhịp ghép kèo phù hợp hơn.'}
+                levelId={skill?.id}
+                colors={PROFILE_SKILL_HERO_TONE}
+                contentRightInset={16}
+              />
+            </View>
+
+          </View>
+
+          <View className="mb-10 gap-4">
+            <ProfileSectionDivider index="01" title="TỔNG QUAN" />
+            <View className="flex-row justify-between gap-4">
+              <View className="flex-1 rounded-[24px] p-4" style={{ backgroundColor: PROFILE_PAGE_COLORS.surfaceContainerLow }}>
+                <Swords size={22} color={PROFILE_PAGE_COLORS.primary} />
+                <Text className="mt-4 text-[28px]" style={{ color: PROFILE_PAGE_COLORS.primary, fontFamily: 'PlusJakartaSans-Bold' }}>
+                  {player.sessions_joined ?? 0}
+                </Text>
+                <Text className="mt-1 text-[12px] uppercase tracking-[2px]" style={{ color: PROFILE_PAGE_COLORS.outline, fontFamily: 'PlusJakartaSans-Bold' }}>
+                  Trận đấu
+                </Text>
+              </View>
+
+              <View className="flex-1 rounded-[24px] p-4" style={{ backgroundColor: PROFILE_PAGE_COLORS.secondaryContainer }}>
+                <CalendarDays size={22} color={PROFILE_PAGE_COLORS.surfaceTint} />
+                <Text className="mt-4 text-[28px]" style={{ color: PROFILE_PAGE_COLORS.surfaceTint, fontFamily: 'PlusJakartaSans-Bold' }}>
+                  {hostedCount}
+                </Text>
+                <Text className="mt-1 text-[12px] uppercase tracking-[2px]" style={{ color: PROFILE_PAGE_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Bold' }}>
+                  Đã host
+                </Text>
+              </View>
+            </View>
+          </View>
 
           <ProfileWinStreak current={currentWinStreak} active={streakActive} />
 
-          <ProfileStatsGrid
-            reliability={reliability === null ? '--' : reliability}
-            played={player.sessions_joined ?? 0}
-            hosted={hostedCount}
-            winRate="--"
-          />
+          <View className="mt-0 mb-6">
+            <ProfileSectionDivider index="02" title="CỘNG ĐỒNG" />
+            <CommunityFeedbackPanel title="" traits={displayCommunityTraits} flushBottom />
+          </View>
 
-          <CommunityFeedbackPanel title="Đánh giá từ cộng đồng" traits={communityTraits} />
+          <View className="mb-6">
+            <ProfileSectionDivider index="03" title="DANH HIỆU" />
+            <TrophyRoomSection badges={displayAchievements} hideHeader flushBottom />
+          </View>
 
-          <TrophyRoomSection badges={achievements} />
-
-          {history.length === 0 ? (
-            <View className="mb-4">
-              <EmptyState
-                icon={<CalendarDays size={28} color="#64748b" />}
-                title="Chưa có kèo nào"
-                description="Khi bạn tham gia hoặc tạo kèo, lịch sử sẽ hiện ở đây."
-              />
-            </View>
-          ) : (
+          <View>
+            <ProfileSectionDivider index="04" title="LỊCH SỬ" />
             <ProfileHistoryList
-              title="Lịch sử kèo"
-              subtitle="Danh sách kèo gần nhất bạn đã host hoặc tham gia."
-              items={history}
+              title="Lịch sử trận đấu"
+              subtitle="Nhịp trận gần nhất của bạn"
+              items={displayHistory}
               formatTime={formatTime}
               showRateAction
+              hideHeader
+              flushBottom
             />
-          )}
+          </View>
 
+          <View className="mt-6">
+            <ProfileSectionDivider index="05" title="TÀI KHOẢN" />
+            <View className="flex-row gap-3">
+              <TouchableOpacity
+                className="flex-1 rounded-full py-4 items-center"
+                style={{ backgroundColor: PROFILE_PAGE_COLORS.primary }}
+                onPress={() => router.push('/edit-profile' as any)}
+                activeOpacity={0.9}
+              >
+                <Text style={{ color: PROFILE_PAGE_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-Bold' }}>Sửa hồ sơ</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="flex-1 rounded-full py-4 items-center"
+                style={{ backgroundColor: PROFILE_PAGE_COLORS.secondaryFixed }}
+                onPress={logout}
+                activeOpacity={0.9}
+              >
+                <Text style={{ color: PROFILE_PAGE_COLORS.primary, fontFamily: 'PlusJakartaSans-Bold' }}>Đăng xuất</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>

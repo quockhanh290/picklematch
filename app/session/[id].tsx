@@ -12,7 +12,6 @@ import {
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import {
-  ChevronLeft,
   CheckCheck,
   Repeat2,
   Shield,
@@ -21,6 +20,7 @@ import {
 } from 'lucide-react-native'
 import { useMemo, useState } from 'react'
 
+import { ScreenHeader } from '@/components/design'
 import { BookingDetailsCard } from '@/components/session/BookingDetailsCard'
 import { JoinRequestModal } from '@/components/session/JoinRequestModal'
 import { PlayerRosterSection } from '@/components/session/PlayerRosterSection'
@@ -193,18 +193,11 @@ export default function SessionDetailScreen() {
           paddingHorizontal: 20,
         }}
       >
-        <View className="bg-white/85 pb-4 pt-2">
-          <View className="flex-row items-center justify-between">
-            <TouchableOpacity
-              className="h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white"
-              onPress={() => router.back()}
-              activeOpacity={0.9}
-            >
-              <ChevronLeft size={18} color="#0f172a" strokeWidth={2.5} />
-            </TouchableOpacity>
-
-            <Text className="text-[13px] font-black uppercase tracking-[0.28em] text-slate-900">Chi tiết kèo</Text>
-
+        <ScreenHeader
+          compact
+          title="Chi tiết kèo"
+          onBackPress={() => router.back()}
+          rightSlot={
             <TouchableOpacity
               className="h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white"
               onPress={() => {
@@ -220,10 +213,10 @@ export default function SessionDetailScreen() {
               }}
               activeOpacity={0.9}
             >
-              <Share2 size={18} color="#0f172a" strokeWidth={2.5} />
+              <Share2 size={18} color="#006948" strokeWidth={2.5} />
             </TouchableOpacity>
-          </View>
-        </View>
+          }
+        />
 
         <SessionMetaCard
           sessionSkillLabel={sessionSkillLabel}

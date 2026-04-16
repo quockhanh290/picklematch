@@ -1,12 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { SectionCard, StatusBadge } from '@/components/design'
+import { ScreenHeader, SectionCard, StatusBadge } from '@/components/design'
 import { getShadowStyle } from '@/lib/designSystem'
 import { supabase } from '@/lib/supabase'
 import { useAppTheme } from '@/lib/theme-context'
 import { useAuth } from '@/lib/useAuth'
 import { router } from 'expo-router'
 import {
-  Calendar,
   CalendarDays,
   CheckCircle2,
   Clock,
@@ -593,6 +592,21 @@ export default function MySessions() {
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: theme.background }} edges={['top']}>
+      <ScreenHeader
+        compact
+        title="Kèo của tôi"
+        compactTitleAlign="left"
+        compactTitleUppercase
+        rightSlot={
+          <Pressable
+            onPress={() => void handleShare()}
+            className="h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white"
+            style={getShadowStyle(theme)}
+          >
+            <Share2 size={18} color="#006948" strokeWidth={2.3} />
+          </Pressable>
+        }
+      />
       {loading ? (
         <View className="flex-1 items-center justify-center px-6">
           <ActivityIndicator size="large" color={theme.info} />
@@ -607,27 +621,7 @@ export default function MySessions() {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.info} />}
           ListHeaderComponent={
             <View>
-              <View className="flex-row items-start justify-between">
-                <View className="mr-4 flex-1">
-                  <View className="flex-row items-center">
-                    <Calendar size={14} color={theme.textMuted} strokeWidth={2.5} />
-                    <Text className="ml-2 text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: theme.textMuted }}>
-                      LỊCH CHƠI CỦA BẠN
-                    </Text>
-                  </View>
-                  <Text className="mt-3 text-[32px] font-black leading-[36px]" style={{ color: theme.text }}>Kèo của tôi</Text>
-                </View>
-
-                <Pressable
-                  onPress={() => void handleShare()}
-                  className="h-12 w-12 items-center justify-center rounded-2xl border"
-                  style={{ borderColor: theme.border, backgroundColor: theme.surface, ...getShadowStyle(theme) }}
-                >
-                  <Share2 size={18} color={theme.text} strokeWidth={2.3} />
-                </Pressable>
-              </View>
-
-              <View className="mt-6 rounded-[24px] p-1.5" style={{ backgroundColor: theme.surfaceAlt }}>
+              <View className="rounded-[24px] p-1.5" style={{ backgroundColor: theme.surfaceAlt }}>
                 <View className="flex-row gap-1.5">
                   {TAB_OPTIONS.map((tab) => {
                     const active = tab.key === activeTab
@@ -646,7 +640,7 @@ export default function MySessions() {
                 </View>
               </View>
 
-              <View className="pt-6" />
+              <View className="pt-5" />
             </View>
           }
           ListEmptyComponent={<MySessionsEmptyStateCard activeTab={activeTab} theme={theme} />}

@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { ScreenHeader } from '@/components/design'
 import { getSkillLevelFromEloRange, getSkillLevelFromPlayer } from '@/lib/skillAssessment'
 import { getSkillLevelUi, getSkillTargetElo } from '@/lib/skillLevelUi'
 import { supabase } from '@/lib/supabase'
@@ -476,7 +477,7 @@ export default function FindSession() {
   }, [query, quickFilters, sessions, sortMode])
 
   const stickyHeader = (
-    <View className="border-b border-slate-100 bg-white/80 px-6 pb-4 pt-12">
+    <View className="border-b border-slate-100 bg-white/80 px-6 pb-4 pt-3">
       <View className="flex-row items-center gap-3">
         <View className="h-14 flex-1 flex-row items-center gap-3 rounded-[24px] border border-slate-200 bg-slate-50 px-4">
           <Search size={18} color="#94a3b8" strokeWidth={2.5} />
@@ -607,6 +608,7 @@ export default function FindSession() {
 
   return (
     <SafeAreaView className="flex-1 bg-slate-50" edges={['top']}>
+      <ScreenHeader compact title="Tìm kèo" />
       {loading ? (
         <View className="flex-1">
           {stickyHeader}

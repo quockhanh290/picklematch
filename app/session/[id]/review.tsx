@@ -8,7 +8,6 @@ import { insertNotification } from '@/lib/notifications'
 import { router, useLocalSearchParams } from 'expo-router'
 import {
   AlertTriangle,
-  ChevronLeft,
   CircleX,
   LoaderCircle,
   PencilLine,
@@ -16,6 +15,7 @@ import {
   UserCheck,
   UserX,
 } from 'lucide-react-native'
+import { ScreenHeader } from '@/components/design'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   ActivityIndicator,
@@ -587,28 +587,14 @@ export default function HostReviewCenterScreen() {
     <SafeAreaView className="flex-1 bg-stone-50">
       <View className="flex-1">
         <ScrollView
+          stickyHeaderIndices={[0]}
           contentContainerStyle={{
             paddingHorizontal: 20,
-            paddingTop: 12,
             paddingBottom: 140 + insets.bottom,
           }}
           showsVerticalScrollIndicator={false}
         >
-          <View className="flex-row items-center">
-            <Pressable
-              onPress={() => router.back()}
-              className="active:scale-95 h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white"
-            >
-              <ChevronLeft size={18} color="#0f172a" strokeWidth={ICON_STROKE} />
-            </Pressable>
-
-            <View className="ml-4 flex-1">
-              <Text className="text-[24px] font-black text-slate-950">Yêu cầu tham gia</Text>
-              <Text className="mt-1 text-[12px] font-bold text-slate-400">
-                Kiểm tra độ khớp trình độ và uy tín trước khi nhận.
-              </Text>
-            </View>
-          </View>
+          <ScreenHeader compact title="Yêu cầu tham gia" onBackPress={() => router.back()} style={{ marginHorizontal: -20 }} />
 
           <View
             className="mt-5 overflow-hidden rounded-[28px] border border-slate-200 bg-white p-5"

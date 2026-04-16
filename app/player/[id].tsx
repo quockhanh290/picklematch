@@ -1,22 +1,22 @@
 import { EmptyState, ScreenHeader, StatusBadge } from '@/components/design'
-import CommunityFeedbackPanel from '@/components/profile/CommunityFeedbackSection'
 import type { FeedbackTrait } from '@/components/profile/CommunityFeedbackSection'
+import CommunityFeedbackPanel from '@/components/profile/CommunityFeedbackSection'
 import {
-  ProfileHistoryList,
-  ProfileIdentityCard,
-  ProfileSkillHero,
-  ProfileStatsGrid,
+  PROFILE_SKILL_HERO_TONE,
+    ProfileHistoryList,
+    ProfileIdentityCard,
+    ProfileSkillHero,
+    ProfileStatsGrid,
 } from '@/components/profile/ProfileSections'
 import { calculateReliabilityScore, FEEDBACK_META } from '@/lib/profileData'
 import { getSkillLevelFromElo, getSkillLevelFromPlayer } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
 import { router, useLocalSearchParams } from 'expo-router'
 import {
-  CalendarDays,
-  CircleAlert,
-  ClipboardList,
-  MapPin,
-  Users,
+    CalendarDays,
+    CircleAlert,
+    ClipboardList,
+    MapPin
 } from 'lucide-react-native'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native'
@@ -255,6 +255,7 @@ export default function PlayerProfile() {
             subtitle={skill.subtitle}
             description={skill.description}
             levelId={skill.id}
+            colors={PROFILE_SKILL_HERO_TONE}
           />
 
           <ProfileStatsGrid

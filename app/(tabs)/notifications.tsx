@@ -49,16 +49,16 @@ export default function NotificationsScreen() {
   return (
     <SafeAreaView className="flex-1 bg-stone-100" edges={['top']}>
       <ScreenHeader
-        eyebrow="Hộp thư"
+        compact
         title="Thông báo"
         rightSlot={
           <TouchableOpacity
             onPress={markAllAsRead}
             activeOpacity={0.9}
             disabled={unreadCount === 0}
-            className={`rounded-full border p-2 ${unreadCount > 0 ? 'border-slate-200 bg-white' : 'border-slate-200 bg-slate-100 opacity-60'}`}
+            className={`h-11 w-11 items-center justify-center rounded-2xl border ${unreadCount > 0 ? 'border-slate-200 bg-white' : 'border-slate-200 bg-slate-100 opacity-60'}`}
           >
-            <CheckCircle2 size={20} color="#475569" />
+            <CheckCircle2 size={18} color="#006948" />
           </TouchableOpacity>
         }
       />

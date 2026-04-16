@@ -13,7 +13,6 @@ import {
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import {
-  ArrowLeft,
   ArrowRight,
   MinusCircle,
   PlusCircle,
@@ -22,6 +21,7 @@ import {
 } from 'lucide-react-native'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
+import { ScreenHeader } from '@/components/design'
 import { supabase } from '@/lib/supabase'
 
 const ICON_STROKE_WIDTH = 2.5
@@ -535,28 +535,26 @@ export default function MatchResultEntryScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-[#f6f7fb]" edges={['top']}>
-      <View
-        className="absolute left-0 right-0 top-0 z-20 border-b border-white/70 bg-white/70 px-5 pb-4"
-        style={{ paddingTop: insets.top > 0 ? 6 : 18 }}
-      >
-        <View className="flex-row items-center justify-between">
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => router.back()}
-            className="h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white/90"
-          >
-            <ArrowLeft color="#0f172a" size={22} strokeWidth={ICON_STROKE_WIDTH} />
-          </Pressable>
-
-          <Text className="text-[20px] font-black text-slate-950">Nhập kết quả</Text>
-
-          <View className="h-12 min-w-12 items-center justify-center rounded-full bg-white/50 px-3">
+      <ScreenHeader
+        compact
+        title="Nhập kết quả"
+        onBackPress={() => router.back()}
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          top: 0,
+          backgroundColor: '#f7f9fb',
+          paddingTop: insets.top > 0 ? 6 : 18,
+        }}
+        rightSlot={
+          <View className="h-11 min-w-11 items-center justify-center rounded-full bg-white px-3">
             <Text className="text-[11px] font-black uppercase tracking-[1.4px] text-slate-400">
               #{session.id.slice(0, 4).toUpperCase()}
             </Text>
           </View>
-        </View>
-      </View>
+        }
+      />
 
       <Animated.View
         className="flex-1"

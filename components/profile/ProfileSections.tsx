@@ -19,6 +19,7 @@ import {
 } from 'lucide-react-native'
 import { Text, TouchableOpacity, View } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
+import { PROFILE_THEME_COLORS, getHistoryResultPalette } from '@/components/profile/profileTheme'
 import type { SkillAssessmentLevel } from '@/lib/skillAssessment'
 import { getSkillLevelUi } from '@/lib/skillLevelUi'
 
@@ -39,6 +40,28 @@ type HistoryItem = {
       city: string
     }
   }
+}
+
+type SkillHeroColors = {
+  gradientStart?: string
+  gradientEnd?: string
+  bubble?: string
+  watermark?: string
+  eloChipBg?: string
+  eloChipText?: string
+  title?: string
+  description?: string
+}
+
+export const PROFILE_SKILL_HERO_TONE: Required<SkillHeroColors> = {
+  gradientStart: PROFILE_THEME_COLORS.primary,
+  gradientEnd: PROFILE_THEME_COLORS.surfaceTint,
+  bubble: 'rgba(255,255,255,0.14)',
+  watermark: 'rgba(255,255,255,0.14)',
+  eloChipBg: PROFILE_THEME_COLORS.primaryFixed,
+  eloChipText: PROFILE_THEME_COLORS.onPrimaryFixed,
+  title: PROFILE_THEME_COLORS.onPrimary,
+  description: PROFILE_THEME_COLORS.inverseOnSurface,
 }
 
 function formatJoinedDate(value?: string | null) {
@@ -120,20 +143,32 @@ export function ProfileSkillHero({
   subtitle,
   description,
   levelId,
+  colors,
+  subtitleItalic = false,
+  contentRightInset = 48,
+  miniTitleOnly = false,
 }: {
   elo: number
   title: string
   subtitle: string
-  description: string
+  description?: string
   levelId?: SkillAssessmentLevel['id'] | null
+  colors?: SkillHeroColors
+  subtitleItalic?: boolean
+  contentRightInset?: number
+  miniTitleOnly?: boolean
 }) {
   const skillUi = getSkillLevelUi(levelId)
   const WatermarkIcon = skillUi.icon
+  const heroColors: Required<SkillHeroColors> = {
+    ...PROFILE_SKILL_HERO_TONE,
+    ...colors,
+  }
 
   return (
-    <View className="relative overflow-hidden rounded-[32px] p-6 shadow-sm mb-4">
+    <View className={`relative overflow-hidden shadow-sm mb-4 ${miniTitleOnly ? 'rounded-[24px] p-4' : 'rounded-[32px] p-6'}`}>
       <LinearGradient
-        colors={['#059669', '#10b981']}
+        colors={[heroColors.gradientStart, heroColors.gradientEnd]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}
@@ -141,27 +176,55 @@ export function ProfileSkillHero({
       <View
         style={{
           position: 'absolute',
-          right: -80,
-          top: -40,
-          width: 220,
-          height: 220,
+          right: miniTitleOnly ? -42 : -80,
+          top: miniTitleOnly ? -26 : -40,
+          width: miniTitleOnly ? 132 : 220,
+          height: miniTitleOnly ? 132 : 220,
           borderRadius: 999,
-          backgroundColor: '#ffffff',
-          opacity: 0.15,
+          backgroundColor: heroColors.bubble,
         }}
       />
       
-      <WatermarkIcon size={180} color="rgba(255,255,255,0.15)" style={{ position: 'absolute', right: -40, bottom: -40 }} />
+      <WatermarkIcon
+        size={miniTitleOnly ? 112 : 180}
+        color={heroColors.watermark}
+        style={{ position: 'absolute', right: miniTitleOnly ? -20 : -40, bottom: miniTitleOnly ? -20 : -40 }}
+      />
 
-      <View className="flex-row items-center justify-between">
-        <View className="rounded-[12px] bg-[#ADFF2F] px-4 py-2 shadow-sm">
-          <Text className="text-[20px] text-[#0f172a]" style={{ fontFamily: 'PlusJakartaSans-ExtraBoldItalic' }}>{elo} ELO</Text>
+      {!miniTitleOnly ? (
+        <View className="flex-row items-center justify-between">
+          <View className="rounded-[12px] px-4 py-2 shadow-sm" style={{ backgroundColor: heroColors.eloChipBg }}>
+            <Text className="text-[20px]" style={{ color: heroColors.eloChipText, fontFamily: 'PlusJakartaSans-ExtraBoldItalic' }}>{elo} ELO</Text>
+          </View>
         </View>
-      </View>
+      ) : null}
 
-      <View className="mt-8 pr-12">
-        <Text className="text-[34px] leading-tight text-white uppercase tracking-wider" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>{title}</Text>
-        <Text className="mt-3 text-[14px] leading-6 text-white/95" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>{description || 'System determining your skill.'}</Text>
+      <View className={miniTitleOnly ? 'mt-1' : 'mt-8'} style={{ paddingRight: miniTitleOnly ? 10 : contentRightInset }}>
+        <Text
+          className={miniTitleOnly ? 'text-[26px] leading-tight uppercase tracking-wide' : 'text-[34px] leading-tight uppercase tracking-wider'}
+          style={{ color: heroColors.title, fontFamily: 'PlusJakartaSans-Bold' }}
+        >
+          {title}
+        </Text>
+        {!miniTitleOnly ? (
+          <>
+            <Text
+              className="mt-2 text-[11px] uppercase tracking-[1.6px]"
+              style={{
+                color: heroColors.description,
+                fontFamily: subtitleItalic ? 'PlusJakartaSans-Regular' : 'PlusJakartaSans-Bold',
+                fontStyle: 'normal',
+              }}
+            >
+              {subtitle}
+            </Text>
+            {description ? (
+              <Text className="mt-3 text-[14px] leading-6" style={{ color: heroColors.description, fontFamily: 'PlusJakartaSans-Regular' }}>
+                {description}
+              </Text>
+            ) : null}
+          </>
+        ) : null}
       </View>
     </View>
   )
@@ -221,16 +284,16 @@ function historyState(status: string) {
   if (status === 'cancelled') {
     return {
       icon: AlertCircle,
-      iconColor: '#ba1a1a',
-      iconBg: 'bg-[#ffdad6]',
+      iconColor: PROFILE_THEME_COLORS.error,
+      iconBg: PROFILE_THEME_COLORS.errorContainer,
       needsRating: false,
     }
   }
 
   return {
     icon: Check,
-    iconColor: '#059669',
-    iconBg: 'bg-[#ADFF2F]',
+    iconColor: PROFILE_THEME_COLORS.primary,
+    iconBg: PROFILE_THEME_COLORS.primaryFixed,
     needsRating: status === 'done',
   }
 }
@@ -242,18 +305,24 @@ export function ProfileHistoryList({
   items,
   formatTime,
   showRateAction = false,
+  hideHeader = false,
+  flushBottom = false,
 }: {
   title: string
   subtitle: string
   items: HistoryItem[]
   formatTime: (value: string) => string
   showRateAction?: boolean
+  hideHeader?: boolean
+  flushBottom?: boolean
 }) {
   return (
-    <View className="mb-6">
-      <View className="mb-4">
-        <Text className="mt-1 text-[24px] text-[#191c1e]" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>{title}</Text>
-      </View>
+    <View className={flushBottom ? '' : 'mb-6'}>
+      {!hideHeader ? (
+        <View className="mb-4">
+          <Text className="mt-1 text-[24px] text-[#191c1e]" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>{title}</Text>
+        </View>
+      ) : null}
 
       <View className="gap-3">
         {items.map((item) => {
@@ -261,44 +330,42 @@ export function ProfileHistoryList({
           // We will mock W or L since the payload may not provide exact team victory info easily
           const isWin = item.status === 'done' && Math.random() > 0.5 
           const resultText = item.status === 'done' ? (isWin ? 'W' : 'L') : '-'
-          const bgText = item.status === 'done' ? (isWin ? 'bg-[#059669]' : 'bg-[#e2e8f0]') : 'bg-[#e2e8f0]'
-          const textColor = item.status === 'done' && isWin ? 'text-white' : 'text-[#64748b]'
+          const resultPalette = getHistoryResultPalette(item.status === 'done' ? (isWin ? 'win' : 'loss') : 'pending')
 
           // Mock ELO adjustment
           const eloAdj = item.status === 'done' ? (isWin ? '+12' : '-8') : '--'
-          const eloColor = isWin ? 'text-[#059669]' : 'text-[#64748b]'
 
           return (
             <TouchableOpacity
               key={item.id}
               activeOpacity={0.9}
               onPress={() => router.push({ pathname: '/session/[id]', params: { id: item.id } })}
-              className="flex-row items-center bg-white p-4 rounded-[20px] shadow-sm"
-              style={{ shadowColor: '#191c1e', shadowOpacity: 0.04, shadowRadius: 20 }}
+              className="flex-row items-center p-4 rounded-[20px] shadow-sm"
+              style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest, shadowColor: PROFILE_THEME_COLORS.onBackground, shadowOpacity: 0.04, shadowRadius: 20 }}
             >
-              <View className={`mr-4 h-12 w-12 items-center justify-center rounded-full ${bgText}`}>
-                <Text className={`text-xl ${textColor}`} style={{ fontFamily: 'PlusJakartaSans-Bold' }}>{resultText}</Text>
+              <View className="mr-4 h-12 w-12 items-center justify-center rounded-full" style={{ backgroundColor: resultPalette.badgeBackground }}>
+                <Text className="text-xl" style={{ color: resultPalette.badgeText, fontFamily: 'PlusJakartaSans-Bold' }}>{resultText}</Text>
               </View>
 
               <View className="flex-1">
-                <Text className="text-[16px] text-[#191c1e]" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>{item.slot.court.name}</Text>
+                <Text className="text-[16px]" style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: 'PlusJakartaSans-Bold' }}>{item.slot.court.name}</Text>
                 <View className="mt-1 flex-row items-center">
-                  <MapPin size={12} color="#6d7a72" />
-                  <Text className="ml-1 text-[12px] text-[#6d7a72]" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>{formatTime(item.slot.start_time)}</Text>
+                  <MapPin size={12} color={PROFILE_THEME_COLORS.outline} />
+                  <Text className="ml-1 text-[12px]" style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-Regular' }}>{formatTime(item.slot.start_time)}</Text>
                   
                   {item.is_host && (
-                    <View className="ml-2 flex-row items-center rounded-full bg-[#ADFF2F] px-2 py-0.5">
-                      <Users size={10} color="#0f172a" />
-                      <Text className="ml-1 text-[10px] text-[#0f172a]" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Chủ kèo</Text>
+                    <View className="ml-2 flex-row items-center rounded-full px-2 py-0.5" style={{ backgroundColor: PROFILE_THEME_COLORS.primaryFixed }}>
+                      <Users size={10} color={PROFILE_THEME_COLORS.onPrimaryFixed} />
+                      <Text className="ml-1 text-[10px]" style={{ color: PROFILE_THEME_COLORS.onPrimaryFixed, fontFamily: 'PlusJakartaSans-Bold' }}>Chủ kèo</Text>
                     </View>
                   )}
                 </View>
               </View>
 
               <View className="mr-3">
-                 <Text className={`text-[16px] ${eloColor}`} style={{ fontFamily: 'PlusJakartaSans-Bold' }}>{eloAdj}</Text>
+                 <Text className="text-[16px]" style={{ color: resultPalette.eloText, fontFamily: 'PlusJakartaSans-Bold' }}>{eloAdj}</Text>
               </View>
-              <ChevronRight size={20} color="#bccac0" />
+              <ChevronRight size={20} color={PROFILE_THEME_COLORS.outlineVariant} />
             </TouchableOpacity>
           )
         })}

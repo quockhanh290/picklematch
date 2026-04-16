@@ -1,6 +1,8 @@
 import type { LucideIcon } from 'lucide-react-native'
 import { Text, View } from 'react-native'
 
+import { PROFILE_THEME_COLORS, getCommunityFeedbackPalette } from '@/components/profile/profileTheme'
+
 type FeedbackTone = 'positive' | 'negative'
 
 export type FeedbackTrait = {
@@ -12,48 +14,44 @@ export type FeedbackTrait = {
   tone: FeedbackTone
 }
 
-function toneClasses(tone: FeedbackTone) {
-  if (tone === 'positive') {
-    return {
-      tag: 'bg-[#ecfdf5]', // soft green
-      text: 'text-[#059669]', // emerald
-      icon: '#059669',
-    }
-  }
-
-  return {
-    tag: 'bg-[#ffdad6]', // soft red
-    text: 'text-[#ba1a1a]', // dark red
-    icon: '#ba1a1a',
-  }
+function parseCount(value: string) {
+  const numericValue = Number(value.replace(/[^\d]/g, ''))
+  return Number.isFinite(numericValue) ? numericValue : 0
 }
 
 type Props = {
   eyebrow?: string
   title?: string
   traits?: FeedbackTrait[]
+  flushBottom?: boolean
 }
 
-export function CommunityFeedbackSection({ title = 'Đánh giá từ cộng đồng', traits = [] }: Props) {
+export function CommunityFeedbackSection({ title = 'Đánh giá từ cộng đồng', traits = [], flushBottom = false }: Props) {
   if (traits.length === 0) return null
 
   return (
-    <View className="mb-6">
-      <View className="mb-4">
-        <Text className="text-[24px] text-[#191c1e]" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>{title}</Text>
-      </View>
+    <View className={flushBottom ? '' : 'mb-6'}>
+      {title ? (
+        <View className="mb-0">
+          <Text className="text-[24px]" style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: 'PlusJakartaSans-Bold' }}>{title}</Text>
+        </View>
+      ) : null}
 
       <View className="flex-row flex-wrap gap-2">
         {traits.map((trait) => {
-          const palette = toneClasses(trait.tone)
+          const count = parseCount(trait.count)
+          const palette = getCommunityFeedbackPalette(trait.tone, count)
           const Icon = trait.icon
 
-          // Clean tags layout per "Electric Court" rules
           return (
-            <View key={trait.key} className={`flex-row items-center rounded-full px-4 py-2 ${palette.tag}`}>
-              <Icon size={14} color={palette.icon} strokeWidth={2.2} />
-              <Text className={`ml-2 text-[13px] ${palette.text}`} style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
-                {trait.label} <Text className="font-normal opacity-70">({trait.count.replace(/[^\d]/g, '')})</Text>
+            <View
+              key={trait.key}
+              className="flex-row items-center rounded-full px-4 py-2"
+              style={{ backgroundColor: palette.backgroundColor }}
+            >
+              <Icon size={14} color={palette.iconColor} strokeWidth={2.2} />
+              <Text className="ml-2 text-[15px]" style={{ color: palette.textColor, fontFamily: 'PlusJakartaSans-Bold' }}>
+                {trait.label} <Text style={{ opacity: 0.7 }}>({count})</Text>
               </Text>
             </View>
           )
