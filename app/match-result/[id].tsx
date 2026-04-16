@@ -1,25 +1,25 @@
 import { router, useLocalSearchParams } from 'expo-router'
 import {
-  ActivityIndicator,
-  Alert,
-  Animated,
-  LayoutAnimation,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  UIManager,
-  View,
-} from 'react-native'
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
-import {
-  ArrowRight,
-  MinusCircle,
-  PlusCircle,
-  Timer,
-  Trophy,
+    ArrowRight,
+    MinusCircle,
+    PlusCircle,
+    Timer,
+    Trophy,
 } from 'lucide-react-native'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import {
+    ActivityIndicator,
+    Alert,
+    Animated,
+    LayoutAnimation,
+    Platform,
+    Pressable,
+    ScrollView,
+    Text,
+    UIManager,
+    View,
+} from 'react-native'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { ScreenHeader } from '@/components/design'
 import { supabase } from '@/lib/supabase'
@@ -536,8 +536,8 @@ export default function MatchResultEntryScreen() {
   return (
     <SafeAreaView className="flex-1 bg-[#f6f7fb]" edges={['top']}>
       <ScreenHeader
-        compact
-        title="Nhập kết quả"
+        variant="brand"
+        title="KINETIC"
         onBackPress={() => router.back()}
         style={{
           position: 'absolute',

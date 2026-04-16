@@ -1,16 +1,16 @@
 import { router, useLocalSearchParams } from 'expo-router'
+import { AlertTriangle, CheckCheck, Clock3, ShieldAlert, Trophy } from 'lucide-react-native'
+import { useEffect, useMemo, useState } from 'react'
 import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
+    ActivityIndicator,
+    Alert,
+    Pressable,
+    ScrollView,
+    Text,
+    TextInput,
+    View,
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
-import { AlertTriangle, ArrowLeft, CheckCheck, Clock3, ShieldAlert, Trophy } from 'lucide-react-native'
-import { useEffect, useMemo, useState } from 'react'
 
 import { ScreenHeader } from '@/components/design'
 import { supabase } from '@/lib/supabase'
@@ -271,7 +271,7 @@ export default function ConfirmSessionResultScreen() {
   return (
     <SafeAreaView className="flex-1 bg-slate-50" edges={['top']}>
       <View className="flex-1">
-        <ScreenHeader compact title="Xác nhận kết quả" onBackPress={() => router.back()} />
+        <ScreenHeader variant="brand" title="KINETIC" onBackPress={() => router.back()} />
 
         <ScrollView
           className="flex-1"

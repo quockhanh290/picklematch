@@ -1,40 +1,40 @@
-import { router, useLocalSearchParams } from 'expo-router'
 import * as Linking from 'expo-linking'
+import { router, useLocalSearchParams } from 'expo-router'
 import {
-  ActivityIndicator,
-  Alert,
-  RefreshControl,
-  ScrollView,
-  Share,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native'
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
-import {
-  CheckCheck,
-  Repeat2,
-  Shield,
-  Share2,
-  ShieldAlert,
+    CheckCheck,
+    Repeat2,
+    Share2,
+    Shield,
+    ShieldAlert,
 } from 'lucide-react-native'
 import { useMemo, useState } from 'react'
+import {
+    ActivityIndicator,
+    Alert,
+    RefreshControl,
+    ScrollView,
+    Share,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { ScreenHeader } from '@/components/design'
 import { BookingDetailsCard } from '@/components/session/BookingDetailsCard'
 import { JoinRequestModal } from '@/components/session/JoinRequestModal'
 import { PlayerRosterSection } from '@/components/session/PlayerRosterSection'
-import { SessionMetaCard } from '@/components/session/SessionMetaCard'
 import { SessionBottomBar } from '@/components/session/SessionBottomBar'
+import { SessionMetaCard } from '@/components/session/SessionMetaCard'
 import { useSessionArrangement } from '@/hooks/useSessionArrangement'
 import { useSessionDetail } from '@/hooks/useSessionDetail'
 import { useSessionJoinActions } from '@/hooks/useSessionJoinActions'
 import {
-  formatPricePerPerson,
-  formatTimeRange,
-  getInitials,
-  getSessionSkillLabel,
-  type ArrangementPlayer,
+    formatPricePerPerson,
+    formatTimeRange,
+    getInitials,
+    getSessionSkillLabel,
+    type ArrangementPlayer,
 } from '@/lib/sessionDetail'
 import { useAuth } from '@/lib/useAuth'
 
@@ -194,8 +194,8 @@ export default function SessionDetailScreen() {
         }}
       >
         <ScreenHeader
-          compact
-          title="Chi tiết kèo"
+          variant="brand"
+          title="KINETIC"
           onBackPress={() => router.back()}
           rightSlot={
             <TouchableOpacity

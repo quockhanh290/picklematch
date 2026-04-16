@@ -1,7 +1,7 @@
+import { LinearGradient } from 'expo-linear-gradient'
 import type { LucideIcon } from 'lucide-react-native'
 import { Check, Lock } from 'lucide-react-native'
-import { Text, View, ScrollView } from 'react-native'
-import { LinearGradient } from 'expo-linear-gradient'
+import { ScrollView, Text, View } from 'react-native'
 
 import { PROFILE_THEME_COLORS, getTrophyBadgePalette, type ProfileBadgeTone } from '@/components/profile/profileTheme'
 

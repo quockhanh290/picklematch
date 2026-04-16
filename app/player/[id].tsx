@@ -2,7 +2,7 @@ import { EmptyState, ScreenHeader, StatusBadge } from '@/components/design'
 import type { FeedbackTrait } from '@/components/profile/CommunityFeedbackSection'
 import CommunityFeedbackPanel from '@/components/profile/CommunityFeedbackSection'
 import {
-  PROFILE_SKILL_HERO_TONE,
+    PROFILE_SKILL_HERO_TONE,
     ProfileHistoryList,
     ProfileIdentityCard,
     ProfileSkillHero,

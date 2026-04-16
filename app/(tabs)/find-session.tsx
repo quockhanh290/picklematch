@@ -1,30 +1,32 @@
-import AsyncStorage from '@react-native-async-storage/async-storage'
 import { ScreenHeader } from '@/components/design'
+import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { getSkillLevelFromEloRange, getSkillLevelFromPlayer } from '@/lib/skillAssessment'
 import { getSkillLevelUi, getSkillTargetElo } from '@/lib/skillLevelUi'
 import { supabase } from '@/lib/supabase'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import * as Linking from 'expo-linking'
 import { router, useFocusEffect } from 'expo-router'
 import {
-  Map,
-  MapPin,
-  Search,
-  SlidersHorizontal,
-  Sparkles,
-  TrendingUp,
-  Users,
+  Menu,
+    Map,
+    MapPin,
+    Search,
+    SlidersHorizontal,
+    Sparkles,
+    TrendingUp,
+    Users,
 } from 'lucide-react-native'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
+    ActivityIndicator,
+    Alert,
+    FlatList,
+    Pressable,
+    RefreshControl,
+    ScrollView,
+    Text,
+    TextInput,
+    View,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
@@ -608,7 +610,20 @@ export default function FindSession() {
 
   return (
     <SafeAreaView className="flex-1 bg-slate-50" edges={['top']}>
-      <ScreenHeader compact title="Tìm kèo" />
+      <ScreenHeader
+        variant="brand"
+        title="KINETIC"
+        leftSlot={<Menu size={18} color={PROFILE_THEME_COLORS.primary} />}
+        rightSlot={
+          <View
+            className="h-10 w-10 items-center justify-center rounded-full border-2"
+            style={{ borderColor: PROFILE_THEME_COLORS.primaryFixed, backgroundColor: PROFILE_THEME_COLORS.primary }}
+          >
+            <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-Bold' }}>U</Text>
+          </View>
+        }
+        style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow }}
+      />
       {loading ? (
         <View className="flex-1">
           {stickyHeader}

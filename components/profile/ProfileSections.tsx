@@ -1,27 +1,21 @@
+import { PROFILE_THEME_COLORS, getHistoryResultPalette } from '@/components/profile/profileTheme'
+import type { SkillAssessmentLevel } from '@/lib/skillAssessment'
+import { getSkillLevelUi } from '@/lib/skillLevelUi'
+import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
 import {
-  Activity,
   AlertCircle,
-  CalendarDays,
   Check,
   ChevronRight,
-  Crown,
   Flame,
   LogOut,
   MapPin,
   PencilLine,
   ShieldCheck,
   ShieldQuestion,
-  Swords,
-  Target,
-  Trophy,
-  Users,
+  Users
 } from 'lucide-react-native'
 import { Text, TouchableOpacity, View } from 'react-native'
-import { LinearGradient } from 'expo-linear-gradient'
-import { PROFILE_THEME_COLORS, getHistoryResultPalette } from '@/components/profile/profileTheme'
-import type { SkillAssessmentLevel } from '@/lib/skillAssessment'
-import { getSkillLevelUi } from '@/lib/skillLevelUi'
 
 type ActionItem = {
   label: string

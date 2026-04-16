@@ -1,11 +1,11 @@
-import { AppInput, EmptyState, StatusBadge } from '@/components/design'
-import { ProfileSkillHero, PROFILE_SKILL_HERO_TONE } from '@/components/profile/ProfileSections'
+import { AppInput, EmptyState, ScreenHeader, StatusBadge } from '@/components/design'
+import { PROFILE_SKILL_HERO_TONE, ProfileSkillHero } from '@/components/profile/ProfileSections'
 import { getEloBandByLegacySkillLabel, getUserDescriptionForLevelId } from '@/lib/eloSystem'
 import { getSkillLevelById, type SkillAssessmentLevel } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
 import { router } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
-import { Camera, MapPin, Menu } from 'lucide-react-native'
+import { MapPin, Menu } from 'lucide-react-native'
 import { useEffect, useRef, useState } from 'react'
 import { ActivityIndicator, Alert, FlatList, ImageBackground, Keyboard, ScrollView, Switch, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -302,8 +302,10 @@ export default function EditProfile() {
       <StatusBar style="dark" translucent backgroundColor={EDIT_PROFILE_COLORS.background} />
 
       <ScrollView ref={scrollViewRef} contentContainerStyle={{ paddingBottom: 325 }} keyboardShouldPersistTaps="always" keyboardDismissMode="on-drag">
-        <View className="px-6 py-4" style={{ backgroundColor: EDIT_PROFILE_COLORS.surfaceContainerLow }}>
-          <View className="flex-row items-center justify-between">
+        <ScreenHeader
+          variant="brand"
+          title="KINETIC"
+          leftSlot={
             <TouchableOpacity
               activeOpacity={0.8}
               className="h-10 w-10 items-center justify-center"
@@ -311,11 +313,8 @@ export default function EditProfile() {
             >
               <Menu size={18} color={EDIT_PROFILE_COLORS.onPrimaryFixedVariant} />
             </TouchableOpacity>
-
-            <Text className="text-xl uppercase" style={{ color: EDIT_PROFILE_COLORS.onPrimaryFixedVariant, fontFamily: 'PlusJakartaSans-ExtraBoldItalic' }}>
-              KINETIC
-            </Text>
-
+          }
+          rightSlot={
             <View
               className="h-10 w-10 items-center justify-center rounded-full border-2"
               style={{ borderColor: EDIT_PROFILE_COLORS.primaryFixed, backgroundColor: EDIT_PROFILE_COLORS.primary }}
@@ -324,8 +323,9 @@ export default function EditProfile() {
                 {(name || 'U').charAt(0).toUpperCase()}
               </Text>
             </View>
-          </View>
-        </View>
+          }
+          style={{ backgroundColor: EDIT_PROFILE_COLORS.surfaceContainerLow }}
+        />
 
         <View className="px-6 pb-8 pt-4">
           <View style={{ paddingTop: 4, paddingBottom: 6 }}>

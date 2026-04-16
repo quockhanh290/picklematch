@@ -3,28 +3,28 @@ import { StatusBar } from 'expo-status-bar'
 import { ArrowLeft, CheckCircle2, Sparkles, Swords, Timer } from 'lucide-react-native'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
-  ActivityIndicator,
-  ImageBackground,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  useWindowDimensions,
+    ActivityIndicator,
+    ImageBackground,
+    Platform,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    useWindowDimensions,
+    View,
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
-import {
-  calculateInitialElo,
-  getLegacySkillLabelForTier,
-  getSelfAssessedLevelForElo,
-  getSimpleTierLabel,
-  ONBOARDING_QUESTIONS,
-  type OnboardingQuestionId,
-} from '@/lib/onboardingAssessment'
 import { getUserDescriptionForTier } from '@/lib/eloSystem'
+import {
+    calculateInitialElo,
+    getLegacySkillLabelForTier,
+    getSelfAssessedLevelForElo,
+    getSimpleTierLabel,
+    ONBOARDING_QUESTIONS,
+    type OnboardingQuestionId,
+} from '@/lib/onboardingAssessment'
 import { supabase } from '@/lib/supabase'
 
 type AnswerLabels = Partial<Record<OnboardingQuestionId, string>>

@@ -1,30 +1,30 @@
-import {
-  getSkillLevelFromEloRange,
-  getShortSkillLabel,
-} from '@/lib/skillAssessment'
+import { ScreenHeader } from '@/components/design'
+import { insertNotification } from '@/lib/notifications'
 import { calculateReliabilityScore } from '@/lib/profileData'
+import {
+    getShortSkillLabel,
+    getSkillLevelFromEloRange,
+} from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/lib/useAuth'
-import { insertNotification } from '@/lib/notifications'
 import { router, useLocalSearchParams } from 'expo-router'
 import {
-  AlertTriangle,
-  CircleX,
-  LoaderCircle,
-  PencilLine,
-  ShieldCheck,
-  UserCheck,
-  UserX,
+    AlertTriangle,
+    CircleX,
+    LoaderCircle,
+    PencilLine,
+    ShieldCheck,
+    UserCheck,
+    UserX,
 } from 'lucide-react-native'
-import { ScreenHeader } from '@/components/design'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
+    ActivityIndicator,
+    Alert,
+    Pressable,
+    ScrollView,
+    Text,
+    View,
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
@@ -580,7 +580,7 @@ export default function HostReviewCenterScreen() {
           }}
           showsVerticalScrollIndicator={false}
         >
-          <ScreenHeader compact title="Yêu cầu tham gia" onBackPress={() => router.back()} style={{ marginHorizontal: -20 }} />
+          <ScreenHeader variant="brand" title="KINETIC" onBackPress={() => router.back()} style={{ marginHorizontal: -20 }} />
 
           <View
             className="mt-5 overflow-hidden rounded-[28px] border border-slate-200 bg-white p-5"

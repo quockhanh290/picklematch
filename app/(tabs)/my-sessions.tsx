@@ -1,31 +1,33 @@
-import AsyncStorage from '@react-native-async-storage/async-storage'
 import { ScreenHeader, SectionCard, StatusBadge } from '@/components/design'
+import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { getShadowStyle } from '@/lib/designSystem'
 import { supabase } from '@/lib/supabase'
 import { useAppTheme } from '@/lib/theme-context'
 import { useAuth } from '@/lib/useAuth'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { router } from 'expo-router'
 import {
-  CalendarDays,
-  CheckCircle2,
-  Clock,
-  FileText,
-  Hourglass,
-  Pencil as Edit3,
-  Share2,
-  Star,
-  Users,
+    CalendarDays,
+    CheckCircle2,
+    Clock,
+    Pencil as Edit3,
+    FileText,
+    Hourglass,
+  Menu,
+    Share2,
+    Star,
+    Users,
 } from 'lucide-react-native'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
-  ActivityIndicator,
-  FlatList,
-  Pressable,
-  RefreshControl,
-  Share,
-  StyleSheet,
-  Text,
-  View,
+    ActivityIndicator,
+    FlatList,
+    Pressable,
+    RefreshControl,
+    Share,
+    StyleSheet,
+    Text,
+    View,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
@@ -593,19 +595,27 @@ export default function MySessions() {
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: theme.background }} edges={['top']}>
       <ScreenHeader
-        compact
-        title="Kèo của tôi"
-        compactTitleAlign="left"
-        compactTitleUppercase
+        variant="brand"
+        title="KINETIC"
+        leftSlot={<Menu size={18} color={PROFILE_THEME_COLORS.primary} />}
         rightSlot={
-          <Pressable
-            onPress={() => void handleShare()}
-            className="h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white"
-            style={getShadowStyle(theme)}
-          >
-            <Share2 size={18} color="#006948" strokeWidth={2.3} />
-          </Pressable>
+          <View className="flex-row items-center gap-2">
+            <Pressable
+              onPress={() => void handleShare()}
+              className="h-10 w-10 items-center justify-center rounded-2xl border"
+              style={{ ...getShadowStyle(theme), borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest }}
+            >
+              <Share2 size={16} color={PROFILE_THEME_COLORS.primary} strokeWidth={2.3} />
+            </Pressable>
+            <View
+              className="h-10 w-10 items-center justify-center rounded-full border-2"
+              style={{ borderColor: PROFILE_THEME_COLORS.primaryFixed, backgroundColor: PROFILE_THEME_COLORS.primary }}
+            >
+              <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-Bold' }}>U</Text>
+            </View>
+          </View>
         }
+        style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow }}
       />
       {loading ? (
         <View className="flex-1 items-center justify-center px-6">

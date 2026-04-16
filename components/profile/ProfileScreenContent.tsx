@@ -1,23 +1,23 @@
 import { AppButton, EmptyState, ScreenHeader } from '@/components/design'
 import type { FeedbackTrait } from '@/components/profile/CommunityFeedbackSection'
 import CommunityFeedbackPanel from '@/components/profile/CommunityFeedbackSection'
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import {
-  PROFILE_SKILL_HERO_TONE,
+    PROFILE_SKILL_HERO_TONE,
     ProfileHistoryList,
     ProfileSkillHero,
     ProfileWinStreak,
 } from '@/components/profile/ProfileSections'
+import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import type { TrophyBadge } from '@/components/profile/TrophyRoom'
 import TrophyRoomSection from '@/components/profile/TrophyRoom'
 import {
-  FEEDBACK_META,
+    FEEDBACK_META,
     buildCommunityTraits,
     calculateReliabilityScore,
     clearCurrentPlayerProfileCache,
     fetchCurrentPlayerProfileData,
-  getBadgeIcon,
-  getBadgeTone,
+    getBadgeIcon,
+    getBadgeTone,
     type ProfilePlayer as Player,
     type ProfilePlayerStats as PlayerStats,
     type ProfileSessionHistory as SessionHistory,
@@ -33,7 +33,7 @@ import {
     Swords,
     UserCircle2
 } from 'lucide-react-native'
-  import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
@@ -304,15 +304,11 @@ export default function ProfileScreenContent() {
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: PROFILE_PAGE_COLORS.background }} edges={['top']}>
       <ScrollView stickyHeaderIndices={[0]} contentContainerStyle={{ paddingBottom: 96 }}>
-        <View className="px-6 py-4" style={{ backgroundColor: PROFILE_PAGE_COLORS.surfaceContainerLow }}>
-          <View className="flex-row items-center justify-between">
-            <View className="flex-row items-center gap-4">
-              <Menu size={18} color={PROFILE_PAGE_COLORS.primary} />
-              <Text className="text-3xl" style={{ color: PROFILE_PAGE_COLORS.primary, fontFamily: 'PlusJakartaSans-ExtraBoldItalic' }}>
-                KINETIC
-              </Text>
-            </View>
-
+        <ScreenHeader
+          variant="brand"
+          title="KINETIC"
+          leftSlot={<Menu size={18} color={PROFILE_PAGE_COLORS.primary} />}
+          rightSlot={
             <View
               className="h-10 w-10 items-center justify-center rounded-full border-2"
               style={{ borderColor: PROFILE_PAGE_COLORS.primaryFixed, backgroundColor: PROFILE_PAGE_COLORS.primary }}
@@ -321,8 +317,9 @@ export default function ProfileScreenContent() {
                 {player.name?.charAt(0).toUpperCase() ?? 'U'}
               </Text>
             </View>
-          </View>
-        </View>
+          }
+          style={{ backgroundColor: PROFILE_PAGE_COLORS.surfaceContainerLow }}
+        />
 
         <View className="px-6 pt-6">
           <View>

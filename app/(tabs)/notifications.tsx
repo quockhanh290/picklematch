@@ -1,19 +1,23 @@
 import { EmptyState, ScreenHeader } from '@/components/design'
+import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import type { Notification } from '@/hooks/useNotifications'
 import { useNotificationsContext } from '@/lib/NotificationsContext'
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs'
 import { router } from 'expo-router'
 import type { LucideIcon } from 'lucide-react-native'
 import {
   Bell,
   CheckCircle2,
   DoorOpen,
+  Info,
   Megaphone,
+  Menu,
   MessageCircleMore,
-  ShieldAlert,
+  Sparkles,
   UserPlus,
   XCircle,
 } from 'lucide-react-native'
-import { FlatList, Text, TouchableOpacity, View } from 'react-native'
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 function timeAgo(dateStr: string) {
@@ -27,19 +31,84 @@ function timeAgo(dateStr: string) {
   return `${days} ngày trước`
 }
 
-function typeIcon(type: string): { icon: LucideIcon; color: string; bg: string } {
-  if (type === 'join_request') return { icon: UserPlus, color: '#2563eb', bg: 'bg-blue-50' }
-  if (type === 'join_approved') return { icon: CheckCircle2, color: '#059669', bg: 'bg-emerald-50' }
-  if (type === 'join_rejected') return { icon: XCircle, color: '#dc2626', bg: 'bg-rose-50' }
-  if (type === 'player_left') return { icon: DoorOpen, color: '#ea580c', bg: 'bg-orange-50' }
-  if (type === 'session_cancelled') return { icon: Megaphone, color: '#be123c', bg: 'bg-rose-50' }
-  if (type === 'session_updated') return { icon: ShieldAlert, color: '#7c3aed', bg: 'bg-violet-50' }
-  if (type === 'join_request_reply') return { icon: MessageCircleMore, color: '#0f766e', bg: 'bg-teal-50' }
-  return { icon: Bell, color: '#475569', bg: 'bg-slate-100' }
+function typeMeta(type: string): {
+  icon: LucideIcon
+  iconColor: string
+  iconBackground: string
+  indicator: string
+} {
+  if (type === 'join_request') {
+    return {
+      icon: UserPlus,
+      iconColor: PROFILE_THEME_COLORS.primary,
+      iconBackground: PROFILE_THEME_COLORS.primaryFixed,
+      indicator: PROFILE_THEME_COLORS.primary,
+    }
+  }
+  if (type === 'join_approved') {
+    return {
+      icon: CheckCircle2,
+      iconColor: PROFILE_THEME_COLORS.primary,
+      iconBackground: PROFILE_THEME_COLORS.secondaryContainer,
+      indicator: PROFILE_THEME_COLORS.primary,
+    }
+  }
+  if (type === 'join_rejected') {
+    return {
+      icon: XCircle,
+      iconColor: PROFILE_THEME_COLORS.error,
+      iconBackground: PROFILE_THEME_COLORS.errorContainer,
+      indicator: PROFILE_THEME_COLORS.error,
+    }
+  }
+  if (type === 'player_left') {
+    return {
+      icon: DoorOpen,
+      iconColor: PROFILE_THEME_COLORS.onPrimaryFixedVariant,
+      iconBackground: PROFILE_THEME_COLORS.primaryFixed,
+      indicator: PROFILE_THEME_COLORS.surfaceTint,
+    }
+  }
+  if (type === 'session_cancelled') {
+    return {
+      icon: Megaphone,
+      iconColor: PROFILE_THEME_COLORS.error,
+      iconBackground: PROFILE_THEME_COLORS.errorContainer,
+      indicator: PROFILE_THEME_COLORS.error,
+    }
+  }
+  if (type === 'session_updated') {
+    return {
+      icon: Sparkles,
+      iconColor: PROFILE_THEME_COLORS.onTertiaryFixedVariant,
+      iconBackground: PROFILE_THEME_COLORS.tertiaryFixed,
+      indicator: PROFILE_THEME_COLORS.surfaceTint,
+    }
+  }
+  if (type === 'join_request_reply') {
+    return {
+      icon: MessageCircleMore,
+      iconColor: PROFILE_THEME_COLORS.onSecondaryFixed,
+      iconBackground: PROFILE_THEME_COLORS.secondaryFixed,
+      indicator: PROFILE_THEME_COLORS.primary,
+    }
+  }
+
+  return {
+    icon: Info,
+    iconColor: PROFILE_THEME_COLORS.onSurfaceVariant,
+    iconBackground: PROFILE_THEME_COLORS.surfaceVariant,
+    indicator: PROFILE_THEME_COLORS.outline,
+  }
+}
+
+function isActionable(notification: Notification) {
+  return notification.type === 'join_request'
 }
 
 export default function NotificationsScreen() {
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotificationsContext()
+  const tabBarHeight = useBottomTabBarHeight()
 
   async function handleTap(notification: Notification) {
     if (!notification.is_read) await markAsRead(notification.id)
@@ -47,91 +116,190 @@ export default function NotificationsScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-stone-100" edges={['top']}>
-      <ScreenHeader
-        compact
-        title="Thông báo"
-        rightSlot={
-          <TouchableOpacity
-            onPress={markAllAsRead}
-            activeOpacity={0.9}
-            disabled={unreadCount === 0}
-            className={`h-11 w-11 items-center justify-center rounded-2xl border ${unreadCount > 0 ? 'border-slate-200 bg-white' : 'border-slate-200 bg-slate-100 opacity-60'}`}
-          >
-            <CheckCircle2 size={18} color="#006948" />
-          </TouchableOpacity>
-        }
-      />
+    <SafeAreaView className="flex-1" style={{ backgroundColor: PROFILE_THEME_COLORS.background }} edges={['top']}>
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        stickyHeaderIndices={[0]}
+        contentContainerStyle={{ paddingBottom: tabBarHeight + 56 }}
+      >
+        <ScreenHeader
+          variant="brand"
+          title="KINETIC"
+          leftSlot={<Menu size={18} color={PROFILE_THEME_COLORS.primary} />}
+          rightSlot={
+            <View
+              className="h-10 w-10 items-center justify-center rounded-full border-2"
+              style={{ borderColor: PROFILE_THEME_COLORS.primaryFixed, backgroundColor: PROFILE_THEME_COLORS.primary }}
+            >
+              <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-Bold' }}>U</Text>
+            </View>
+          }
+          style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow }}
+        />
 
-      {notifications.length === 0 ? (
-        <View className="px-5 pb-8">
-          <EmptyState
-            icon={<Bell size={28} color="#64748b" />}
-            title="Chưa có thông báo nào"
-            description="Khi có yêu cầu tham gia, thay đổi kèo hoặc phản hồi mới, bạn sẽ thấy chúng ở đây."
-          />
-        </View>
-      ) : (
-        <View className="mx-5 overflow-hidden rounded-[28px] border border-slate-200 bg-white">
-          <FlatList
-            data={notifications}
-            keyExtractor={(item) => item.id}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 8 }}
-            renderItem={({ item, index }) => {
-              const meta = typeIcon(item.type)
-              const Icon = meta.icon
-              const isLast = index === notifications.length - 1
+        {notifications.length === 0 ? (
+          <View className="px-6 pt-8 pb-8">
+            <View className="mb-10">
+              <Text
+                className="mb-2 text-[12px] uppercase tracking-[4px]"
+                style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: 'PlusJakartaSans-Bold' }}
+              >
+                Hộp Thư Đến
+              </Text>
+              <Text
+                className="text-[44px] leading-[48px]"
+                style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: 'PlusJakartaSans-ExtraBold' }}
+              >
+                Thông báo.
+              </Text>
+            </View>
 
-              return (
-                <TouchableOpacity
-                  onPress={() => handleTap(item)}
-                  activeOpacity={0.86}
-                  className={`relative flex-row items-start gap-3.5 p-4 ${!item.is_read ? 'bg-sky-50/40' : 'bg-white'}`}
+            <EmptyState
+              icon={<Bell size={28} color={PROFILE_THEME_COLORS.outline} />}
+              title="Chưa có thông báo nào"
+              description="Khi có yêu cầu tham gia, thay đổi kèo hoặc phản hồi mới, bạn sẽ thấy chúng ở đây."
+            />
+          </View>
+        ) : (
+          <View className="px-6 pt-8">
+            <View className="relative mb-10">
+              <View
+                className="absolute -right-6 -top-6 h-40 w-40 rounded-full"
+                style={{ backgroundColor: 'rgba(176,240,214,0.22)' }}
+              />
+              <Text
+                className="mb-2 text-[12px] uppercase tracking-[4px]"
+                style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: 'PlusJakartaSans-Bold' }}
+              >
+                Hộp Thư Đến
+              </Text>
+              <View className="flex-row items-end justify-between gap-4">
+                <Text
+                  className="flex-1 text-[44px] leading-[48px]"
+                  style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: 'PlusJakartaSans-ExtraBold' }}
                 >
-                  {!item.is_read ? (
-                    <View className="absolute left-1.5 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-sky-500" />
-                  ) : null}
-
-                  <View
-                    className={`h-[46px] w-[46px] items-center justify-center rounded-[14px] border ${meta.bg}`}
-                    style={{ borderColor: `${meta.color}22` }}
-                  >
-                    <Icon size={20} color={meta.color} />
-                  </View>
-
-                  <View className="flex-1">
-                    <View className="mb-1 flex-row items-start justify-between gap-2">
-                      <Text
-                        className={`flex-1 text-[15px] leading-5 ${
-                          item.is_read ? 'font-bold text-slate-700' : 'font-black text-slate-900'
-                        }`}
-                      >
-                        {item.title}
-                      </Text>
-                      <Text
-                        className={`text-[11px] ${
-                          item.is_read ? 'font-semibold text-slate-400' : 'font-bold text-sky-600'
-                        }`}
-                      >
-                        {timeAgo(item.created_at)}
-                      </Text>
-                    </View>
-
-                    <Text className="pr-4 text-[13px] leading-[18px] text-slate-500" numberOfLines={3}>
-                      {item.body}
-                    </Text>
-                  </View>
-
-                  {!isLast ? (
-                    <View className="absolute bottom-0 left-[74px] right-4 border-b border-slate-100" />
-                  ) : null}
+                  Thông báo
+                  <Text style={{ color: PROFILE_THEME_COLORS.primaryFixedDim }}>.</Text>
+                </Text>
+                <TouchableOpacity
+                  onPress={markAllAsRead}
+                  activeOpacity={0.9}
+                  disabled={unreadCount === 0}
+                  className="rounded-full px-4 py-2"
+                  style={{
+                    backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHigh,
+                    opacity: unreadCount > 0 ? 1 : 0.5,
+                  }}
+                >
+                  <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Bold' }}>
+                    {unreadCount} Mới
+                  </Text>
                 </TouchableOpacity>
-              )
-            }}
-          />
-        </View>
-      )}
+              </View>
+            </View>
+
+            <View className="gap-4">
+              {notifications.map((item) => {
+                const meta = typeMeta(item.type)
+                const Icon = meta.icon
+
+                return (
+                  <TouchableOpacity
+                    key={item.id}
+                    onPress={() => handleTap(item)}
+                    activeOpacity={0.9}
+                    className="relative overflow-hidden rounded-[32px] p-6"
+                    style={{
+                      backgroundColor: item.is_read ? PROFILE_THEME_COLORS.surfaceContainerLow : PROFILE_THEME_COLORS.surfaceContainerLowest,
+                      shadowColor: PROFILE_THEME_COLORS.onBackground,
+                      shadowOpacity: item.is_read ? 0 : 0.05,
+                      shadowRadius: 18,
+                      shadowOffset: { width: 0, height: 10 },
+                      elevation: item.is_read ? 0 : 3,
+                    }}
+                  >
+                    {!item.is_read ? (
+                      <View
+                        className="absolute left-0 top-1/2 h-12 w-1.5 -translate-y-1/2 rounded-r-full"
+                        style={{ backgroundColor: meta.indicator }}
+                      />
+                    ) : null}
+
+                    <View className="flex-row gap-4">
+                      <View
+                        className="h-12 w-12 items-center justify-center rounded-full"
+                        style={{ backgroundColor: meta.iconBackground }}
+                      >
+                        <Icon size={22} color={meta.iconColor} />
+                      </View>
+
+                      <View className="flex-1" style={{ opacity: item.is_read ? 0.72 : 1 }}>
+                        <View className="mb-1 flex-row items-start justify-between gap-3">
+                          <Text
+                            className="flex-1 text-lg leading-6"
+                            style={{
+                              color: PROFILE_THEME_COLORS.onSurface,
+                              fontFamily: item.is_read ? 'PlusJakartaSans-Bold' : 'PlusJakartaSans-ExtraBold',
+                            }}
+                          >
+                            {item.title}
+                          </Text>
+                          <Text
+                            className="text-[10px] uppercase tracking-[1.6px]"
+                            style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-Bold' }}
+                          >
+                            {timeAgo(item.created_at)}
+                          </Text>
+                        </View>
+
+                        <Text
+                          className="text-sm leading-6"
+                          style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Regular' }}
+                          numberOfLines={3}
+                        >
+                          {item.body}
+                        </Text>
+
+                        {isActionable(item) ? (
+                          <View className="mt-4 flex-row gap-3">
+                            <TouchableOpacity
+                              activeOpacity={0.9}
+                              onPress={() => handleTap(item)}
+                              className="rounded-full px-6 py-2"
+                              style={{ backgroundColor: PROFILE_THEME_COLORS.primary }}
+                            >
+                              <Text
+                                className="text-[11px] uppercase tracking-[2px]"
+                                style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-Bold' }}
+                              >
+                                Chấp nhận
+                              </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              activeOpacity={0.9}
+                              onPress={() => handleTap(item)}
+                              className="rounded-full px-6 py-2"
+                              style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHigh }}
+                            >
+                              <Text
+                                className="text-[11px] uppercase tracking-[2px]"
+                                style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: 'PlusJakartaSans-Bold' }}
+                              >
+                                Từ chối
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
+                        ) : null}
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                )
+              })}
+            </View>
+          </View>
+        )}
+      </ScrollView>
     </SafeAreaView>
   )
 }

@@ -1,17 +1,18 @@
 import { router } from 'expo-router'
-import { Plus } from 'lucide-react-native'
+import { Menu, Plus } from 'lucide-react-native'
 import { memo, useCallback, useState } from 'react'
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
+import { ScreenHeader } from '@/components/design'
+import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { DashboardStatsStrip, buildDashboardStats } from '@/components/home/DashboardStatsStrip'
-import { FamiliarCourtCard, COURT_CARD_HEIGHT } from '@/components/home/FamiliarCourtCard'
+import { FamiliarCourtCard } from '@/components/home/FamiliarCourtCard'
 import { HomeCarouselSection } from '@/components/home/HomeCarouselSection'
 import { HomeGreetingHeader } from '@/components/home/HomeGreetingHeader'
-import { MatchSessionCard, SMART_MATCH_CARD_HEIGHT } from '@/components/home/MatchSessionCard'
-import { PostMatchActionsSection } from '@/components/home/PostMatchActionsSection'
+import { MatchSessionCard } from '@/components/home/MatchSessionCard'
 import { PendingMatchResultCarousel as HomePendingMatchResultCarousel } from '@/components/home/PendingMatchResultCarousel'
-import { ScreenHeader } from '@/components/design'
+import { PostMatchActionsSection } from '@/components/home/PostMatchActionsSection'
 import { useHomeFeedData } from '@/hooks/useHomeFeedData'
 import type { FamiliarCourt, MatchSession } from '@/lib/homeFeed'
 import { useAppTheme } from '@/lib/theme-context'
@@ -73,7 +74,22 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: theme.backgroundMuted }} edges={['top']}>
-      <ScreenHeader compact title="Trang chủ" />
+      <ScreenHeader
+        variant="brand"
+        title="KINETIC"
+        leftSlot={<Menu size={18} color={PROFILE_THEME_COLORS.primary} />}
+        rightSlot={
+          <View
+            className="h-10 w-10 items-center justify-center rounded-full border-2"
+            style={{ borderColor: PROFILE_THEME_COLORS.primaryFixed, backgroundColor: PROFILE_THEME_COLORS.primary }}
+          >
+            <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-Bold' }}>
+              {profile?.name?.charAt(0).toUpperCase() ?? 'U'}
+            </Text>
+          </View>
+        }
+        style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow }}
+      />
       <View className="flex-1" style={{ backgroundColor: theme.backgroundMuted }}>
         <ScrollView
           showsVerticalScrollIndicator={false}
