@@ -1,11 +1,11 @@
 import type { ReactNode } from 'react'
 import { useState } from 'react'
-import { Dimensions, ScrollView, Text, View } from 'react-native'
+import { Dimensions, Text, View } from 'react-native'
 import Animated, {
-  useAnimatedStyle,
-  useAnimatedRef,
-  type SharedValue,
-  useScrollOffset,
+    useAnimatedRef,
+    useAnimatedStyle,
+    useScrollOffset,
+    type SharedValue,
 } from 'react-native-reanimated'
 
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
