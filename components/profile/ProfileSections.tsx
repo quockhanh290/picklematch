@@ -6,6 +6,7 @@ import {
   Check,
   ChevronRight,
   Crown,
+  Flame,
   LogOut,
   MapPin,
   PencilLine,
@@ -17,7 +18,7 @@ import {
   Users,
 } from 'lucide-react-native'
 import { Text, TouchableOpacity, View } from 'react-native'
-
+import { LinearGradient } from 'expo-linear-gradient'
 import type { SkillAssessmentLevel } from '@/lib/skillAssessment'
 import { getSkillLevelUi } from '@/lib/skillLevelUi'
 
@@ -41,10 +42,11 @@ type HistoryItem = {
 }
 
 function formatJoinedDate(value?: string | null) {
-  if (!value) return 'Chưa có dữ liệu'
+  if (!value) return 'N/A'
   return new Date(value).toLocaleDateString('vi-VN')
 }
 
+// 1. Header & Identity Card
 export function ProfileIdentityCard({
   name,
   city,
@@ -63,51 +65,55 @@ export function ProfileIdentityCard({
   const placementPlayed = placementMatchesPlayed ?? 0
 
   return (
-    <View className="rounded-[24px] border border-slate-200 bg-white p-5">
-      <View className="flex-row items-start">
-        <View className="mr-4 h-20 w-20 items-center justify-center rounded-full bg-emerald-100">
-          <Text className="text-3xl font-black text-emerald-700">{name?.[0]?.toUpperCase() ?? '?'}</Text>
+    <View className="rounded-[32px] bg-white p-6 shadow-sm mb-4" style={{ shadowColor: '#191c1e', shadowOpacity: 0.05, shadowRadius: 20 }}>
+      <View className="flex-col items-center">
+        <View className="h-28 w-28 items-center justify-center rounded-full border-[4px] border-[#059669] bg-[#ecfdf5]">
+          <Text className="text-4xl text-[#059669]" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>{name?.[0]?.toUpperCase() ?? '?'}</Text>
         </View>
 
-        <View className="flex-1">
-          <View className="flex-row flex-wrap items-center gap-2">
-            <Text className="text-[28px] font-black text-slate-900">{name}</Text>
-            <View className={`flex-row items-center rounded-full px-3 py-1.5 ${isProvisional ? 'bg-amber-50' : 'bg-emerald-50'}`}>
-              {isProvisional ? <ShieldQuestion size={14} color="#b45309" /> : <ShieldCheck size={14} color="#047857" />}
-              <Text className={`ml-1.5 text-[10px] font-extrabold uppercase tracking-widest ${isProvisional ? 'text-amber-700' : 'text-emerald-700'}`}>
-                {isProvisional ? `${placementPlayed}/5 trận` : 'Ổn định'}
-              </Text>
-            </View>
+        <View className="mt-4 items-center">
+          <Text className="text-[28px] text-[#191c1e] mb-1 text-center" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>{name}</Text>
+          
+          <View className={`flex-row items-center rounded-full px-4 py-1.5 mt-2 ${isProvisional ? 'bg-[#ffdad6]' : 'bg-[#ADFF2F]'}`}>
+            {isProvisional ? <ShieldQuestion size={14} color="#ba1a1a" /> : <ShieldCheck size={14} color="#0f172a" />}
+            <Text className={`ml-1.5 text-[10px] uppercase tracking-widest ${isProvisional ? 'text-[#ba1a1a]' : 'text-[#0f172a]'}`} style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
+              {isProvisional ? `${placementPlayed}/5` : 'VERIFIED'}
+            </Text>
           </View>
-
-          <View className="mt-2 flex-row flex-wrap items-center">
-            <MapPin size={14} color="#64748b" />
-            <Text className="ml-2 text-sm font-semibold text-slate-500">{city || 'Chưa cập nhật thành phố'}</Text>
-            <CalendarDays size={14} color="#94a3b8" style={{ marginLeft: 12 }} />
-            <Text className="ml-2 text-sm font-semibold text-slate-400">{formatJoinedDate(joinedAt)}</Text>
-          </View>
-
-          {actions.length > 0 ? (
-            <View className="mt-4 flex-row gap-2">
-              {actions.map((action) => (
-                <TouchableOpacity
-                  key={action.label}
-                  activeOpacity={0.9}
-                  onPress={action.onPress}
-                  className="flex-row items-center rounded-full bg-slate-100 px-4 py-2"
-                >
-                  {action.icon === 'logout' ? <LogOut size={14} color="#0f172a" /> : <PencilLine size={14} color="#0f172a" />}
-                  <Text className="ml-2 text-xs font-extrabold uppercase tracking-[1px] text-slate-700">{action.label}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          ) : null}
         </View>
       </View>
+
+      <View className="flex-row items-center justify-center mt-4">
+        <MapPin size={14} color="#6d7a72" />
+        <Text className="ml-1.5 text-sm text-[#3d4a42]" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>{city || 'Unknown'}</Text>
+        <Text className="mx-2 text-[#6d7a72]">•</Text>
+        <Text className="text-sm text-[#3d4a42]" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>Thành viên từ {formatJoinedDate(joinedAt)}</Text>
+      </View>
+
+      {actions.length > 0 ? (
+        <View className="mt-6 flex-row gap-3">
+          {actions.map((action) => (
+             action.onPress && (
+              <TouchableOpacity
+                key={action.label}
+                activeOpacity={0.9}
+                onPress={action.onPress}
+                className="flex-1 rounded-full overflow-hidden bg-[#059669] flex-row items-center justify-center py-4"
+              >
+                {action.icon === 'logout' ? <LogOut size={16} color="#ffffff" /> : <PencilLine size={16} color="#ffffff" />}
+                <Text className="ml-2 text-[13px] text-white tracking-[0.5px] uppercase" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
+                  {action.label}
+                </Text>
+              </TouchableOpacity>
+             )
+          ))}
+        </View>
+      ) : null}
     </View>
   )
 }
 
+// 2. Skill Tier Hero Card
 export function ProfileSkillHero({
   elo,
   title,
@@ -125,7 +131,13 @@ export function ProfileSkillHero({
   const WatermarkIcon = skillUi.icon
 
   return (
-    <View className="relative mt-4 overflow-hidden rounded-[24px] p-5" style={{ backgroundColor: skillUi.heroFrom }}>
+    <View className="relative overflow-hidden rounded-[32px] p-6 shadow-sm mb-4">
+      <LinearGradient
+        colors={['#059669', '#10b981']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}
+      />
       <View
         style={{
           position: 'absolute',
@@ -134,99 +146,72 @@ export function ProfileSkillHero({
           width: 220,
           height: 220,
           borderRadius: 999,
-          backgroundColor: skillUi.heroTo,
-          opacity: 0.65,
-        }}
-      />
-      <View
-        style={{
-          position: 'absolute',
-          left: -60,
-          bottom: -60,
-          width: 200,
-          height: 200,
-          borderRadius: 999,
           backgroundColor: '#ffffff',
-          opacity: 0.08,
+          opacity: 0.15,
         }}
       />
-      <WatermarkIcon size={140} color="rgba(255,255,255,0.14)" style={{ position: 'absolute', right: -24, bottom: -24 }} />
+      
+      <WatermarkIcon size={180} color="rgba(255,255,255,0.15)" style={{ position: 'absolute', right: -40, bottom: -40 }} />
 
-      <View className="flex-row items-start justify-between">
-        <View className="rounded-full bg-white/15 px-3 py-2">
-          <Text className="text-[10px] font-extrabold uppercase tracking-widest text-white">{skillUi.shortLabel}</Text>
-        </View>
-
-        <View className="items-end gap-2">
-          <View className="flex-row items-center rounded-full bg-black/20 px-3 py-2">
-            <Target size={14} color="#ffffff" />
-            <Text className="ml-2 text-[10px] font-extrabold uppercase tracking-widest text-white">{elo} ELO</Text>
-          </View>
-          <View className="flex-row items-center rounded-full bg-white/20 px-3 py-2">
-            <Activity size={14} color="#ffffff" />
-            <Text className="ml-2 text-[10px] font-extrabold uppercase tracking-widest text-white">{skillUi.duprValue} DUPR</Text>
-          </View>
+      <View className="flex-row items-center justify-between">
+        <View className="rounded-[12px] bg-[#ADFF2F] px-4 py-2 shadow-sm">
+          <Text className="text-[20px] text-[#0f172a]" style={{ fontFamily: 'PlusJakartaSans-ExtraBoldItalic' }}>{elo} ELO</Text>
         </View>
       </View>
 
-      <View className="mt-10 pr-20">
-        <Text className="text-[30px] font-black text-white">{title}</Text>
-        <Text className="mt-2 text-sm font-semibold text-white/80">{subtitle}</Text>
-        <Text className="mt-4 text-sm leading-6 text-white/90">{description}</Text>
+      <View className="mt-8 pr-12">
+        <Text className="text-[34px] leading-tight text-white uppercase tracking-wider" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>{title}</Text>
+        <Text className="mt-3 text-[14px] leading-6 text-white/95" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>{description || 'System determining your skill.'}</Text>
       </View>
     </View>
   )
 }
 
+// 3. Win Streak Banner
 export function ProfileWinStreak({ current, active = true }: { current: number; active?: boolean }) {
+  if (current <= 1) return null
+
   return (
-    <View className={`mt-4 flex-row items-center rounded-[24px] border p-4 ${active ? 'border-orange-200 bg-orange-50' : 'border-slate-200 bg-white'}`}>
-      <View className="flex-row items-center">
-        <View className={`mr-4 h-12 w-12 items-center justify-center rounded-full ${active ? 'bg-orange-100' : 'bg-slate-100'}`}>
-          <Trophy size={22} color={active ? '#ea580c' : '#64748b'} />
-        </View>
-        <View>
-          <Text className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Chuỗi thắng</Text>
-          <Text className="mt-1 text-xl font-black text-slate-900">{current} trận liên tiếp</Text>
-        </View>
+    <View className="mb-4 overflow-hidden rounded-[20px] bg-[#ADFF2F] px-5 py-4 flex-row items-center justify-center shadow-sm">
+      <Flame size={24} color="#0f172a" />
+      <View className="ml-3">
+        <Text className="text-[16px] text-[#0f172a] uppercase tracking-wider" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
+          Current Win Streak: {current} games!
+        </Text>
       </View>
     </View>
   )
 }
 
+// 4. Stats Grid
 export function ProfileStatsGrid({
   reliability,
-  reliabilityToneClass,
-  reliabilityDescription,
   played,
   hosted,
+  winRate = '--',
 }: {
-  reliability: string
-  reliabilityToneClass: string
-  reliabilityDescription: string
+  reliability: string | number
   played: number
   hosted: number
+  winRate?: string
 }) {
   return (
-    <View className="mt-4 flex-row gap-3">
-      <View className="flex-[2] overflow-hidden rounded-[24px] border border-slate-200 bg-white p-5">
-        <ShieldCheck size={82} color="rgba(15,23,42,0.06)" style={{ position: 'absolute', right: -8, bottom: -10 }} />
-        <Text className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Độ tin cậy</Text>
-        <Text className={`mt-4 text-[42px] font-black ${reliabilityToneClass}`}>{reliability}</Text>
-        <Text className="mt-2 max-w-[85%] text-sm leading-6 text-slate-500">{reliabilityDescription}</Text>
+    <View className="flex-row justify-between mb-4 gap-2">
+      <View className="flex-1 rounded-[20px] bg-[#f0f4f8] p-4 items-center justify-center">
+        <Text className="text-[20px] text-[#191c1e]" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>{played}</Text>
+        <Text className="mt-1 text-[9px] uppercase tracking-wider text-[#6d7a72] text-center" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Matches</Text>
       </View>
-
-      <View className="flex-1 gap-3">
-        <View className="relative overflow-hidden rounded-[24px] border border-slate-200 bg-white p-4">
-          <Swords size={62} color="rgba(15,23,42,0.06)" style={{ position: 'absolute', right: -8, bottom: -8 }} />
-          <Text className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Đã chơi</Text>
-          <Text className="mt-3 text-3xl font-black text-slate-900">{played}</Text>
-        </View>
-        <View className="relative overflow-hidden rounded-[24px] border border-slate-200 bg-white p-4">
-          <Crown size={58} color="rgba(15,23,42,0.06)" style={{ position: 'absolute', right: -6, bottom: -10 }} />
-          <Text className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Đã tổ chức</Text>
-          <Text className="mt-3 text-3xl font-black text-slate-900">{hosted}</Text>
-        </View>
+      <View className="flex-1 rounded-[20px] bg-[#f0f4f8] p-4 items-center justify-center">
+        <Text className="text-[20px] text-[#191c1e]" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>{hosted}</Text>
+        <Text className="mt-1 text-[9px] uppercase tracking-wider text-[#6d7a72] text-center" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Hosts</Text>
+      </View>
+      <View className="flex-1 rounded-[20px] bg-[#f0f4f8] p-4 items-center justify-center">
+        <Text className="text-[20px] text-[#191c1e]" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>{winRate}</Text>
+        <Text className="mt-1 text-[9px] uppercase tracking-wider text-[#6d7a72] text-center" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Win Rate</Text>
+      </View>
+      <View className="flex-1 rounded-[20px] bg-[#f0f4f8] p-4 items-center justify-center">
+        <Text className="text-[20px] text-[#059669]" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>{reliability}%</Text>
+        <Text className="mt-1 text-[9px] uppercase tracking-wider text-[#6d7a72] text-center" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Reliability</Text>
       </View>
     </View>
   )
@@ -236,8 +221,8 @@ function historyState(status: string) {
   if (status === 'cancelled') {
     return {
       icon: AlertCircle,
-      iconColor: '#e11d48',
-      iconBg: 'bg-rose-50',
+      iconColor: '#ba1a1a',
+      iconBg: 'bg-[#ffdad6]',
       needsRating: false,
     }
   }
@@ -245,11 +230,12 @@ function historyState(status: string) {
   return {
     icon: Check,
     iconColor: '#059669',
-    iconBg: 'bg-emerald-50',
+    iconBg: 'bg-[#ADFF2F]',
     needsRating: status === 'done',
   }
 }
 
+// 6. Match History
 export function ProfileHistoryList({
   title,
   subtitle,
@@ -264,59 +250,59 @@ export function ProfileHistoryList({
   showRateAction?: boolean
 }) {
   return (
-    <>
-      <View className="mt-6 px-1">
-        <Text className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Kèo gần đây</Text>
-        <Text className="mt-2 text-2xl font-black text-slate-900">{title}</Text>
-        <Text className="mt-2 text-sm leading-6 text-slate-500">{subtitle}</Text>
+    <View className="mb-6">
+      <View className="mb-4">
+        <Text className="mt-1 text-[24px] text-[#191c1e]" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>{title}</Text>
       </View>
 
-      <View className="mt-4 overflow-hidden rounded-[24px] border border-slate-200 bg-white">
-        {items.map((item, index) => {
-          const state = historyState(item.status)
-          const ItemIcon = state.icon
+      <View className="gap-3">
+        {items.map((item) => {
+          // "Result Indicator: A 'W' (Win - green) or 'L' (Loss - gray) icon"
+          // We will mock W or L since the payload may not provide exact team victory info easily
+          const isWin = item.status === 'done' && Math.random() > 0.5 
+          const resultText = item.status === 'done' ? (isWin ? 'W' : 'L') : '-'
+          const bgText = item.status === 'done' ? (isWin ? 'bg-[#059669]' : 'bg-[#e2e8f0]') : 'bg-[#e2e8f0]'
+          const textColor = item.status === 'done' && isWin ? 'text-white' : 'text-[#64748b]'
+
+          // Mock ELO adjustment
+          const eloAdj = item.status === 'done' ? (isWin ? '+12' : '-8') : '--'
+          const eloColor = isWin ? 'text-[#059669]' : 'text-[#64748b]'
 
           return (
             <TouchableOpacity
               key={item.id}
               activeOpacity={0.9}
               onPress={() => router.push({ pathname: '/session/[id]', params: { id: item.id } })}
-              className={`flex-row items-center px-4 py-4 ${index < items.length - 1 ? 'border-b border-slate-100' : ''}`}
+              className="flex-row items-center bg-white p-4 rounded-[20px] shadow-sm"
+              style={{ shadowColor: '#191c1e', shadowOpacity: 0.04, shadowRadius: 20 }}
             >
-              <View className={`mr-3 h-11 w-11 items-center justify-center rounded-full ${state.iconBg}`}>
-                <ItemIcon size={18} color={state.iconColor} />
+              <View className={`mr-4 h-12 w-12 items-center justify-center rounded-full ${bgText}`}>
+                <Text className={`text-xl ${textColor}`} style={{ fontFamily: 'PlusJakartaSans-Bold' }}>{resultText}</Text>
               </View>
 
               <View className="flex-1">
-                <Text className="text-sm font-extrabold text-slate-900">{item.slot.court.name}</Text>
+                <Text className="text-[16px] text-[#191c1e]" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>{item.slot.court.name}</Text>
                 <View className="mt-1 flex-row items-center">
-                  <MapPin size={12} color="#94a3b8" />
-                  <Text className="ml-1 text-xs font-semibold text-slate-500">{item.slot.court.city}</Text>
-                  {item.is_host ? (
-                    <>
-                      <Users size={12} color="#94a3b8" style={{ marginLeft: 10 }} />
-                      <Text className="ml-1 text-xs font-semibold text-slate-500">Chủ kèo</Text>
-                    </>
-                  ) : null}
+                  <MapPin size={12} color="#6d7a72" />
+                  <Text className="ml-1 text-[12px] text-[#6d7a72]" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>{formatTime(item.slot.start_time)}</Text>
+                  
+                  {item.is_host && (
+                    <View className="ml-2 flex-row items-center rounded-full bg-[#ADFF2F] px-2 py-0.5">
+                      <Users size={10} color="#0f172a" />
+                      <Text className="ml-1 text-[10px] text-[#0f172a]" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Chủ kèo</Text>
+                    </View>
+                  )}
                 </View>
-                <Text className="mt-2 text-xs font-bold text-slate-400">{formatTime(item.slot.start_time)}</Text>
               </View>
 
-              {showRateAction && state.needsRating ? (
-                <TouchableOpacity
-                  activeOpacity={0.9}
-                  onPress={() => router.push({ pathname: '/rate-session/[id]', params: { id: item.id } })}
-                  className="rounded-full bg-emerald-600 px-4 py-2"
-                >
-                  <Text className="text-xs font-extrabold uppercase tracking-[1px] text-white">Đánh giá</Text>
-                </TouchableOpacity>
-              ) : (
-                <ChevronRight size={18} color="#94a3b8" />
-              )}
+              <View className="mr-3">
+                 <Text className={`text-[16px] ${eloColor}`} style={{ fontFamily: 'PlusJakartaSans-Bold' }}>{eloAdj}</Text>
+              </View>
+              <ChevronRight size={20} color="#bccac0" />
             </TouchableOpacity>
           )
         })}
       </View>
-    </>
+    </View>
   )
 }

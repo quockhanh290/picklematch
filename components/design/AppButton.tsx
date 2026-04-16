@@ -58,12 +58,12 @@ export function AppButton({
       {loading ? (
         <View className="flex-row items-center gap-3">
           <ActivityIndicator color={isPrimary ? theme.primaryContrast : theme.primaryStrong} />
-          <Text className="text-base font-extrabold" style={textStyle}>
+          <Text className="text-base font-extrabold" style={{ ...textStyle, fontFamily: 'PlusJakartaSans-Bold' }}>
             Đang xử lý...
           </Text>
         </View>
       ) : (
-        <Text className="text-base font-extrabold" style={textStyle}>
+        <Text className="text-base font-extrabold" style={{ ...textStyle, fontFamily: 'PlusJakartaSans-Bold' }}>
           {label}
         </Text>
       )}

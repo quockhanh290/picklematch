@@ -167,22 +167,25 @@ export default function ProfileScreenContent() {
   const streakActive = playerStats?.streak_fire_active ?? currentWinStreak > 0
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: theme.backgroundMuted }} edges={['top']}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 48 }}>
+    <SafeAreaView className="flex-1" style={{ backgroundColor: '#f7f9fb' }} edges={['top']}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 64 }}>
         <ScreenHeader
           eyebrow="Hồ sơ cá nhân"
           title="Hồ sơ"
           subtitle="Theo dõi trình độ, độ tin cậy và những tín hiệu cộng đồng quanh tài khoản của bạn."
         />
 
-        <View className="px-5">
+        <View className="px-4 mt-2">
           <ProfileIdentityCard
             name={player.name}
             city={player.city}
             joinedAt={player.created_at}
             isProvisional={Boolean(player.is_provisional)}
             placementMatchesPlayed={placementPlayed}
-            actions={[{ label: 'Sửa hồ sơ', icon: 'edit', onPress: () => router.push('/edit-profile' as any) }]}
+            actions={[
+              { label: 'Sửa hồ sơ', icon: 'edit', onPress: () => router.push('/edit-profile' as any) },
+              { label: 'Đăng xuất', icon: 'logout', onPress: logout }
+            ]}
           />
 
           <ProfileSkillHero
@@ -200,39 +203,18 @@ export default function ProfileScreenContent() {
           <ProfileWinStreak current={currentWinStreak} active={streakActive} />
 
           <ProfileStatsGrid
-            reliability={reliability === null ? 'Mới' : `${reliability}%`}
-            reliabilityToneClass={reliabilityTone(reliability)}
-            reliabilityDescription="Độ tin cậy hiện tại dựa trên số trận đã chơi, no-show và tần suất hoàn tất kèo đúng nhịp."
+            reliability={reliability === null ? '--' : reliability}
             played={player.sessions_joined ?? 0}
             hosted={hostedCount}
+            winRate="--"
           />
 
-          <View className="mt-6">
-            {communityTraits.length > 0 ? (
-              <CommunityFeedbackPanel eyebrow="Điểm nổi bật" title="Đánh giá từ cộng đồng" traits={communityTraits} />
-            ) : (
-              <EmptyState
-                icon={<ClipboardList size={28} color="#64748b" />}
-                title="Chưa có đánh giá nào"
-                description="Sau khi chơi thêm vài kèo, phản hồi từ cộng đồng sẽ xuất hiện ở đây."
-              />
-            )}
-          </View>
+          <CommunityFeedbackPanel title="Đánh giá từ cộng đồng" traits={communityTraits} />
 
-          <View className="mt-6">
-            {achievements.length > 0 ? (
-              <TrophyRoomSection badges={achievements} />
-            ) : (
-              <EmptyState
-                icon={<Trophy size={28} color="#64748b" />}
-                title="Chưa mở khoá danh hiệu nào"
-                description="Khi đạt các mốc về phong độ, host uy tín hoặc thành tích, Trophy Room sẽ cập nhật tại đây."
-              />
-            )}
-          </View>
+          <TrophyRoomSection badges={achievements} />
 
           {history.length === 0 ? (
-            <View className="mt-4">
+            <View className="mb-4">
               <EmptyState
                 icon={<CalendarDays size={28} color="#64748b" />}
                 title="Chưa có kèo nào"
@@ -249,15 +231,6 @@ export default function ProfileScreenContent() {
             />
           )}
 
-          <TouchableOpacity
-            activeOpacity={0.9}
-            onPress={logout}
-            className="mt-6 flex-row items-center justify-center rounded-[18px] px-5 py-4"
-            style={{ borderWidth: 1, borderColor: theme.dangerSoft, backgroundColor: theme.surface }}
-          >
-            <LogOut size={16} color={theme.danger} />
-            <Text className="ml-2 text-sm font-bold text-rose-700">Đăng xuất</Text>
-          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>

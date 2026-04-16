@@ -17,7 +17,7 @@ export function StatusBadge({ label, tone = 'neutral' }: Props) {
       className={`${appRadii.sm} border px-3 py-1.5`}
       style={{ backgroundColor: palette.backgroundColor, borderColor: palette.borderColor }}
     >
-      <Text className="text-xs font-bold" style={{ color: palette.textColor }}>
+      <Text className="text-xs font-bold" style={{ color: palette.textColor, fontFamily: 'PlusJakartaSans-Bold' }}>
         {label}
       </Text>
     </View>
