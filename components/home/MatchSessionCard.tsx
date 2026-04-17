@@ -1,7 +1,7 @@
-import { router } from 'expo-router'
 import { LinearGradient } from 'expo-linear-gradient'
-import { CalendarDays, MapPin, Trophy, DollarSign, Star, CheckCheck } from 'lucide-react-native'
+import { router } from 'expo-router'
 import type { LucideIcon } from 'lucide-react-native'
+import { CalendarDays, CheckCheck, DollarSign, MapPin, Star, Trophy } from 'lucide-react-native'
 import { Pressable, Text, View } from 'react-native'
 
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'

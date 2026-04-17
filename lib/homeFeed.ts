@@ -1,6 +1,6 @@
 import { getEloBandForSessionRange } from '@/lib/eloSystem'
-import { getSkillLevelUi } from '@/lib/skillLevelUi'
 import type { SkillAssessmentLevel } from '@/lib/skillAssessment'
+import { getSkillLevelUi } from '@/lib/skillLevelUi'
 
 export type Player = {
   id: string

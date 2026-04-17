@@ -1,5 +1,5 @@
 import { useNotificationsContext } from '@/lib/NotificationsContext'
-import { useAppTheme } from '@/lib/theme-context'
+import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { Tabs } from 'expo-router'
 import { Bell, CalendarDays, Home, Search, User } from 'lucide-react-native'
 import { Text, View } from 'react-native'
@@ -62,23 +62,21 @@ function NotificationIcon({
 
 export default function TabLayout() {
   const { unreadCount } = useNotificationsContext()
-  const theme = useAppTheme()
-
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         sceneStyle: {
-          backgroundColor: theme.background,
+          backgroundColor: PROFILE_THEME_COLORS.background,
         },
-        tabBarActiveTintColor: theme.primary,
-        tabBarInactiveTintColor: theme.textSoft,
+        tabBarActiveTintColor: PROFILE_THEME_COLORS.primary,
+        tabBarInactiveTintColor: PROFILE_THEME_COLORS.outline,
         tabBarStyle: {
           height: 72,
           paddingTop: 8,
           paddingBottom: 10,
-          borderTopColor: theme.border,
-          backgroundColor: theme.surface,
+          borderTopColor: PROFILE_THEME_COLORS.outlineVariant,
+          backgroundColor: PROFILE_THEME_COLORS.surface,
         },
         tabBarLabelStyle: {
           fontSize: 11,
@@ -91,7 +89,7 @@ export default function TabLayout() {
         options={{
           title: 'Trang chủ',
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} Icon={Home} activeColor={theme.primary} inactiveColor={theme.textSoft} />
+            <TabIcon focused={focused} Icon={Home} activeColor={PROFILE_THEME_COLORS.primary} inactiveColor={PROFILE_THEME_COLORS.outline} />
           ),
         }}
       />
@@ -101,7 +99,7 @@ export default function TabLayout() {
         options={{
           title: 'Kèo của tôi',
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} Icon={CalendarDays} activeColor={theme.primary} inactiveColor={theme.textSoft} />
+            <TabIcon focused={focused} Icon={CalendarDays} activeColor={PROFILE_THEME_COLORS.primary} inactiveColor={PROFILE_THEME_COLORS.outline} />
           ),
         }}
       />
@@ -111,7 +109,7 @@ export default function TabLayout() {
         options={{
           title: 'Tìm kèo',
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} Icon={Search} activeColor={theme.primary} inactiveColor={theme.textSoft} />
+            <TabIcon focused={focused} Icon={Search} activeColor={PROFILE_THEME_COLORS.primary} inactiveColor={PROFILE_THEME_COLORS.outline} />
           ),
         }}
       />
@@ -124,9 +122,9 @@ export default function TabLayout() {
             <NotificationIcon
               focused={focused}
               unread={unreadCount}
-              activeColor={theme.primary}
-              inactiveColor={theme.textSoft}
-              dangerColor={theme.danger}
+              activeColor={PROFILE_THEME_COLORS.primary}
+              inactiveColor={PROFILE_THEME_COLORS.outline}
+              dangerColor={PROFILE_THEME_COLORS.error}
             />
           ),
         }}
@@ -137,7 +135,7 @@ export default function TabLayout() {
         options={{
           title: 'Hồ sơ',
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} Icon={User} activeColor={theme.primary} inactiveColor={theme.textSoft} />
+            <TabIcon focused={focused} Icon={User} activeColor={PROFILE_THEME_COLORS.primary} inactiveColor={PROFILE_THEME_COLORS.outline} />
           ),
         }}
       />
