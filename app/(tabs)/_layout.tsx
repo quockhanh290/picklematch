@@ -1,7 +1,7 @@
 import { useNotificationsContext } from '@/lib/NotificationsContext'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { Tabs } from 'expo-router'
-import { Bell, CalendarDays, Home, Search, User } from 'lucide-react-native'
+import { Bell, Calendar, House, MagnifyingGlass, User } from 'phosphor-react-native'
 import { Text, View } from 'react-native'
 
 function TabIcon({
@@ -11,13 +11,13 @@ function TabIcon({
   inactiveColor,
 }: {
   focused: boolean
-  Icon: typeof Home
+  Icon: React.ComponentType<any>
   activeColor: string
   inactiveColor: string
 }) {
   return (
     <View style={{ transform: [{ scale: focused ? 1.08 : 1 }] }}>
-      <Icon size={22} color={focused ? activeColor : inactiveColor} strokeWidth={2.1} />
+      <Icon size={30} color={focused ? activeColor : inactiveColor} weight={focused ? 'fill' : 'regular'} />
     </View>
   )
 }
@@ -36,8 +36,8 @@ function NotificationIcon({
   dangerColor: string
 }) {
   return (
-    <View style={{ width: 28, height: 28, alignItems: 'center', justifyContent: 'center', transform: [{ scale: focused ? 1.08 : 1 }] }}>
-      <Bell size={22} color={focused ? activeColor : inactiveColor} strokeWidth={2.1} />
+    <View style={{ width: 32, height: 32, alignItems: 'center', justifyContent: 'center', transform: [{ scale: focused ? 1.08 : 1 }] }}>
+      <Bell size={30} color={focused ? activeColor : inactiveColor} weight={focused ? 'fill' : 'regular'} />
       {unread > 0 ? (
         <View
           style={{
@@ -72,15 +72,35 @@ export default function TabLayout() {
         tabBarActiveTintColor: PROFILE_THEME_COLORS.primary,
         tabBarInactiveTintColor: PROFILE_THEME_COLORS.outline,
         tabBarStyle: {
-          height: 72,
-          paddingTop: 8,
-          paddingBottom: 10,
+          height: 84,
+          paddingTop: 12,
+          paddingBottom: 16,
           borderTopColor: PROFILE_THEME_COLORS.outlineVariant,
-          backgroundColor: PROFILE_THEME_COLORS.surface,
+          backgroundColor: PROFILE_THEME_COLORS.background,
+          // borderTopLeftRadius: 24,
+          // borderTopRightRadius: 24,
+          // overflow: 'hidden',
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 8 },
+          shadowOpacity: 0.10,
+          shadowRadius: 18,
+          elevation: 12,
+          borderRadius: 24,
+          marginHorizontal: 16,
+          marginBottom: 20,
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          height: 68,
+          paddingTop: 12,
+          paddingBottom: 12,
+          borderWidth: 0,
+          borderTopWidth: 0,
+          borderTopColor: 'transparent',
         },
         tabBarLabelStyle: {
           fontSize: 11,
-          fontWeight: '700',
+          fontFamily: 'PlusJakartaSans-ExtraBold',
         },
       }}
     >
@@ -89,7 +109,7 @@ export default function TabLayout() {
         options={{
           title: 'Trang chủ',
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} Icon={Home} activeColor={PROFILE_THEME_COLORS.primary} inactiveColor={PROFILE_THEME_COLORS.outline} />
+            <TabIcon focused={focused} Icon={House} activeColor={PROFILE_THEME_COLORS.primary} inactiveColor={PROFILE_THEME_COLORS.outline} />
           ),
         }}
       />
@@ -99,7 +119,7 @@ export default function TabLayout() {
         options={{
           title: 'Kèo của tôi',
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} Icon={CalendarDays} activeColor={PROFILE_THEME_COLORS.primary} inactiveColor={PROFILE_THEME_COLORS.outline} />
+            <TabIcon focused={focused} Icon={Calendar} activeColor={PROFILE_THEME_COLORS.primary} inactiveColor={PROFILE_THEME_COLORS.outline} />
           ),
         }}
       />
@@ -109,7 +129,7 @@ export default function TabLayout() {
         options={{
           title: 'Tìm kèo',
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} Icon={Search} activeColor={PROFILE_THEME_COLORS.primary} inactiveColor={PROFILE_THEME_COLORS.outline} />
+            <TabIcon focused={focused} Icon={MagnifyingGlass} activeColor={PROFILE_THEME_COLORS.primary} inactiveColor={PROFILE_THEME_COLORS.outline} />
           ),
         }}
       />

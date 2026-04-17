@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
-import { Flame, Plus } from 'lucide-react-native'
+import { Flame, Plus } from 'phosphor-react-native'
 import { memo, useCallback, useMemo, useState } from 'react'
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -67,7 +67,7 @@ const HomeStreakCard = memo(function HomeStreakCard({ current }: { current: numb
             </View>
             <Text
               className="text-[20px] uppercase tracking-[1px]"
-              style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-Bold', lineHeight: 28 }}
+              style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-ExtraBold', lineHeight: 28 }}
             >
               Chuỗi Ra Sân
             </Text>
@@ -78,7 +78,7 @@ const HomeStreakCard = memo(function HomeStreakCard({ current }: { current: numb
           >
             <Text
               className="text-[18px] uppercase"
-              style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: 'PlusJakartaSans-ExtraBoldItalic' }}
+              style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: 'PlusJakartaSans-ExtraBold' }}
             >
               {current} NGÀY
             </Text>
@@ -159,7 +159,7 @@ export default function HomeScreen() {
           {upcomingMatch ? (
             <View className="mt-8">
               <View className="mb-5">
-                <Text className="mb-3 text-[11px] uppercase tracking-[0.16em]" style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-Bold' }}>
+                <Text className="mb-3 text-[11px] uppercase tracking-[0.16em]" style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-ExtraBold' }}>
                   Sắp diễn ra
                 </Text>
                 <Text className="text-[24px]" style={{ color: PROFILE_THEME_COLORS.onBackground, fontFamily: 'PlusJakartaSans-ExtraBold', lineHeight: 32 }}>
@@ -176,7 +176,7 @@ export default function HomeScreen() {
               style={{ borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest }}
             >
               <ActivityIndicator color={theme.primary} />
-              <Text className="mt-4 text-sm" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-SemiBold' }}>
+              <Text className="mt-4 text-sm" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-ExtraBold' }}>
                 Đang tải dữ liệu thật từ hệ thống...
               </Text>
             </View>
@@ -221,8 +221,11 @@ export default function HomeScreen() {
 
         <Pressable
           onPress={() => router.push('/create-session' as never)}
-          className="absolute bottom-8 right-5 flex-row items-center rounded-full border px-8 py-5"
+          className="absolute flex-row items-center rounded-full px-8 py-5"
           style={{
+            bottom: 100,
+            right: 24,
+            zIndex: 100,
             borderColor: PROFILE_THEME_COLORS.primaryFixed,
             backgroundColor: PROFILE_THEME_COLORS.primary,
             shadowColor: PROFILE_THEME_COLORS.primary,
