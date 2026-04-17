@@ -17,7 +17,7 @@ import { useAppTheme } from '@/lib/theme-context'
 import { useAuth } from '@/lib/useAuth'
 
 const iconStroke = 2.7
-const CAROUSEL_SECTION_HEIGHT = 560
+const CAROUSEL_SECTION_HEIGHT = 430
 const COURT_CAROUSEL_HEIGHT = 272
 
 const SmartMatchCard = memo(function SmartMatchCard({ item, accentMode = 'default' }: { item: MatchSession; accentMode?: 'default' | 'rescue' }) {
@@ -59,18 +59,18 @@ const HomeStreakCard = memo(function HomeStreakCard({ current }: { current: numb
       <View style={{ paddingRight: 0 }}>
         <View className="flex-row items-center justify-between gap-3">
           <View className="flex-1 flex-row items-center">
-          <View
-            className="mr-2 h-9 w-9 items-center justify-center rounded-full"
-            style={{ backgroundColor: 'rgba(255,255,255,0.14)' }}
-          >
-            <Flame size={16} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.3} />
-          </View>
-          <Text
-            className="text-[20px] uppercase tracking-[1px]"
-            style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-Bold', lineHeight: 28 }}
-          >
-            Chuỗi Ra Sân
-          </Text>
+            <View
+              className="mr-2 h-9 w-9 items-center justify-center rounded-full"
+              style={{ backgroundColor: 'rgba(255,255,255,0.14)' }}
+            >
+              <Flame size={16} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.3} />
+            </View>
+            <Text
+              className="text-[20px] uppercase tracking-[1px]"
+              style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-Bold', lineHeight: 28 }}
+            >
+              Chuỗi Ra Sân
+            </Text>
           </View>
           <View
             className="rounded-full px-4 py-2"
@@ -114,7 +114,7 @@ export default function HomeScreen() {
   const upcomingMatch = nextMatch ?? previewUpcomingMatch
   const hasUpcomingMatch = Boolean(upcomingMatch)
   const currentWinStreak = playerStats?.current_win_streak ?? 0
-  const displayWinStreak = currentWinStreak
+  const displayWinStreak = currentWinStreak > 0 ? currentWinStreak : __DEV__ ? 7 : 0
   const statusPrompt = hasUpcomingMatch ? 'Đã sẵn sàng ra sân chưa?' : 'Hôm nay ra sân chứ?'
   const levelPreviewSessions = useMemo(() => (__DEV__ ? buildSkillLevelPreviewSessions() : []), [])
 
@@ -124,7 +124,23 @@ export default function HomeScreen() {
   )
   const renderRescueCard = useCallback((item: MatchSession) => <SmartMatchCard item={item} accentMode="rescue" />, [])
   const renderLevelPreviewCard = useCallback((item: MatchSession) => <SmartMatchCard item={item} />, [])
-  const renderCourtCard = useCallback((item: FamiliarCourt) => <FamiliarCourtCard item={item} />, [])
+  const renderCourtCard = useCallback(
+    (item: FamiliarCourt) => (
+      <FamiliarCourtCard
+        item={item}
+        onPress={() =>
+          router.push({
+            pathname: '/(tabs)/find-session',
+            params: {
+              courtId: item.id,
+              courtName: item.name,
+            },
+          })
+        }
+      />
+    ),
+    [],
+  )
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: PROFILE_THEME_COLORS.background }} edges={['top']}>
@@ -168,7 +184,7 @@ export default function HomeScreen() {
 
           <HomeCarouselSection
             visible={personalizedSessions.length > 0}
-            marginTopClassName="mt-6"
+            marginTopClassName="mt-10"
             eyebrow="Gợi ý hợp gu"
             title="Dành riêng cho bạn"
             items={personalizedSessions}
@@ -189,16 +205,7 @@ export default function HomeScreen() {
             renderCard={renderRescueCard}
           />
 
-          <HomeCarouselSection
-            visible={__DEV__ && levelPreviewSessions.length > 0}
-            eyebrow="DEV Preview"
-            title="Kèo đủ 5 level"
-            items={levelPreviewSessions}
-            activeIndex={levelPreviewIndex}
-            containerHeight={CAROUSEL_SECTION_HEIGHT}
-            onIndexChange={setLevelPreviewIndex}
-            renderCard={renderLevelPreviewCard}
-          />
+
 
           <HomeCarouselSection
             visible={familiarCourts.length > 0}

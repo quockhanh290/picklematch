@@ -122,7 +122,7 @@ const screenWidth = Dimensions.get('window').width
 // section width = screenWidth minus parent paddingHorizontal (20 each side)
 const SECTION_WIDTH = screenWidth - 40
 
-export function PostMatchInboxSection({ pendingMatches, postMatchActions }: { pendingMatches: PendingMatch[]; postMatchActions: PostMatchAction[] }) {
+export function PostMatchInboxSection({ pendingMatches, postMatchActions, marginTopClassName = 'mt-8' }: { pendingMatches: PendingMatch[]; postMatchActions: PostMatchAction[], marginTopClassName?: string }) {
   const [activeIndex, setActiveIndex] = useState(0)
   const scrollRef = useRef<ScrollView>(null)
 
@@ -131,7 +131,7 @@ export function PostMatchInboxSection({ pendingMatches, postMatchActions }: { pe
   if (inboxItems.length === 0) return null
 
   return (
-    <View className="mt-6">
+    <View className={marginTopClassName}>
       {/* Header — outside card, matching carousel section style */}
       <View className="mb-5 flex-row items-start justify-between gap-3">
         <View className="flex-1">
@@ -178,10 +178,15 @@ export function PostMatchInboxSection({ pendingMatches, postMatchActions }: { pe
             <View key={item.key} style={{ width: SECTION_WIDTH }}>
               <View
                 className="relative overflow-hidden rounded-[24px] border px-4 py-3.5"
-                style={{ backgroundColor: urgency.cardBg, borderColor: urgency.borderColor }}
+                style={{
+                  backgroundColor: urgency.cardBg,
+                  borderColor: urgency.borderColor,
+                  borderLeftColor: urgency.accent,
+                  borderLeftWidth: 3,
+                  borderTopLeftRadius: 26,
+                  borderBottomLeftRadius: 26,
+                }}
             >
-              <View className="absolute bottom-0 left-0 top-0 w-1.5" style={{ backgroundColor: urgency.accent }} />
-
               <View className="mb-2 flex-row flex-wrap items-center justify-between gap-x-3 gap-y-2">
                 <View className="min-w-0 flex-1 flex-row items-center pr-2">
                   <View className="h-8 w-8 items-center justify-center rounded-full" style={{ backgroundColor: urgency.iconBg }}>
@@ -230,7 +235,7 @@ export function PostMatchInboxSection({ pendingMatches, postMatchActions }: { pe
 
       {/* Dots */}
       {inboxItems.length > 1 ? (
-        <View className="mt-5 flex-row items-center justify-center gap-2 px-5">
+        <View className="mt-4 flex-row items-center justify-center gap-2 px-5">
           {inboxItems.map((_, index) => (
             <View
               key={index}

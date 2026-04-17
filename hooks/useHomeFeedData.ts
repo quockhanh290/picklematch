@@ -61,7 +61,7 @@ export function useHomeFeedData(userId?: string | null, isAuthLoading?: boolean)
       const profilePromise = userId
         ? supabase
             .from('players')
-            .select('id, name, current_elo, elo, reliability_score, host_reputation')
+            .select('id, name, current_elo, elo, reliability_score, host_reputation, favorite_court_ids')
             .eq('id', userId)
             .maybeSingle()
         : Promise.resolve({ data: null })
@@ -128,6 +128,7 @@ export function useHomeFeedData(userId?: string | null, isAuthLoading?: boolean)
       const openSessions = ((openSessionsResult.data ?? []) as unknown as HomeSessionRecordRaw[]).map(normalizeHomeSessionRecord)
       const nextProfile = (profileResult.data ?? null) as HomeProfile | null
       const nextPlayerStats = (playerStatsResult.data ?? null) as PlayerStatsRecord | null
+      const favoriteCourtIds = nextProfile?.favorite_court_ids?.filter(Boolean) ?? []
       const pendingRows = (pendingMatchesResult.data ?? []) as PendingMatchRaw[]
       const postMatchRows = (playerPostMatchActionsResult.data ?? []) as Array<{
         player_id: string
@@ -156,6 +157,16 @@ export function useHomeFeedData(userId?: string | null, isAuthLoading?: boolean)
       }>
       const overviewRows = (overviewResult.data ?? []) as MySessionOverviewRow[]
       const viewerElo = nextProfile?.current_elo ?? nextProfile?.elo ?? null
+
+      let favoriteCourtsMeta: Array<{ id: string; name?: string | null; address?: string | null; city?: string | null }> = []
+      if (favoriteCourtIds.length > 0) {
+        const { data: favoriteCourtsData } = await supabase
+          .from('courts')
+          .select('id, name, address, city')
+          .in('id', favoriteCourtIds)
+
+        favoriteCourtsMeta = (favoriteCourtsData ?? []) as Array<{ id: string; name?: string | null; address?: string | null; city?: string | null }>
+      }
 
       const sortedOpenSessions = [...openSessions].sort(
         (left, right) => Date.parse(left.slot?.start_time ?? '') - Date.parse(right.slot?.start_time ?? ''),
@@ -261,7 +272,12 @@ export function useHomeFeedData(userId?: string | null, isAuthLoading?: boolean)
           .sort((left, right) => right.matchScore - left.matchScore)
           .slice(0, 5),
       )
-      setFamiliarCourts(buildLiveFamiliarCourts(sortedOpenSessions))
+      setFamiliarCourts(
+        buildLiveFamiliarCourts(sortedOpenSessions, {
+          favoriteCourtIds,
+          favoriteCourtsMeta,
+        }),
+      )
     } catch (error) {
       console.warn('[HomeScreen] fetchHomeData failed:', error)
       setProfile(null)

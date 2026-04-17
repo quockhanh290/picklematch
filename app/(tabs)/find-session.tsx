@@ -5,7 +5,7 @@ import { getSkillLevelUi, getSkillTargetElo } from '@/lib/skillLevelUi'
 import { supabase } from '@/lib/supabase'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import * as Linking from 'expo-linking'
-import { router, useFocusEffect } from 'expo-router'
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
 import {
     Map,
     MapPin,
@@ -50,7 +50,7 @@ type Session = {
     start_time: string
     end_time: string
     price: number
-    court: { name: string; address: string; city: string } | null
+    court: { id: string; name: string; address: string; city: string } | null
   } | null
   player_count: number
 }
@@ -260,6 +260,7 @@ function SearchResultCard({
 }
 
 export default function FindSession() {
+  const params = useLocalSearchParams<{ courtId?: string; courtName?: string }>()
   const [sessions, setSessions] = useState<Session[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -271,6 +272,7 @@ export default function FindSession() {
     level3: false,
     rescue: false,
   })
+  const [preferredCourtFilter, setPreferredCourtFilter] = useState<{ id?: string; name?: string } | null>(null)
   const [playerProfile, setPlayerProfile] = useState<PlayerQueueProfile | null>(null)
   const [smartQueueEnabled, setSmartQueueEnabled] = useState(false)
   const [smartQueueHydrated, setSmartQueueHydrated] = useState(false)
@@ -288,7 +290,7 @@ export default function FindSession() {
         host:host_id ( name, is_provisional, current_elo, elo, self_assessed_level, skill_label ),
         slot:slot_id (
           start_time, end_time, price,
-          court:court_id ( name, address, city )
+          court:court_id ( id, name, address, city )
         ),
         session_players ( player_id )
       `,
@@ -438,6 +440,22 @@ export default function FindSession() {
     void applySmartQueueFilters(true)
   }, [applySmartQueueFilters, playerProfile?.id, smartQueueHydrated])
 
+  useEffect(() => {
+    const routeCourtId = typeof params.courtId === 'string' ? params.courtId : undefined
+    const routeCourtName = typeof params.courtName === 'string' ? params.courtName : undefined
+
+    if (!routeCourtId && !routeCourtName) return
+
+    setPreferredCourtFilter({
+      id: routeCourtId,
+      name: routeCourtName,
+    })
+
+    if (routeCourtName) {
+      setQuery(routeCourtName)
+    }
+  }, [params.courtId, params.courtName])
+
   const filteredSessions = useMemo(() => {
     const normalizedSearch = normalizeText(query)
 
@@ -464,6 +482,13 @@ export default function FindSession() {
           if (!city.includes('ho chi minh') && !city.includes('thu duc')) return false
         }
 
+        if (preferredCourtFilter?.id) {
+          if (session.slot?.court?.id !== preferredCourtFilter.id) return false
+        } else if (preferredCourtFilter?.name) {
+          const sessionCourtName = normalizeText(session.slot?.court?.name)
+          if (sessionCourtName !== normalizeText(preferredCourtFilter.name)) return false
+        }
+
         return true
       })
       .sort((left, right) => {
@@ -476,7 +501,7 @@ export default function FindSession() {
           computeMatchScore(left, quickFilters.rescue, quickFilters.level3)
         )
       })
-  }, [query, quickFilters, sessions, sortMode])
+  }, [preferredCourtFilter, query, quickFilters, sessions, sortMode])
 
   const stickyHeader = (
     <View className="border-b border-slate-100 bg-white/80 px-6 pb-4 pt-3">
@@ -535,6 +560,23 @@ export default function FindSession() {
           )
         })}
       </ScrollView>
+
+      {preferredCourtFilter ? (
+        <View className="mt-4 flex-row items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+          <View className="flex-1 pr-3">
+            <Text className="text-[11px] font-bold uppercase tracking-widest text-emerald-700">Đang lọc theo sân quen</Text>
+            <Text numberOfLines={1} className="mt-1 text-[13px] font-black text-emerald-900">
+              {preferredCourtFilter.name ?? 'Sân đã chọn'}
+            </Text>
+          </View>
+          <Pressable
+            onPress={() => setPreferredCourtFilter(null)}
+            className="rounded-full bg-emerald-700 px-3 py-2 active:scale-[0.98]"
+          >
+            <Text className="text-[11px] font-black uppercase tracking-widest text-white">Bỏ lọc</Text>
+          </Pressable>
+        </View>
+      ) : null}
     </View>
   )
 

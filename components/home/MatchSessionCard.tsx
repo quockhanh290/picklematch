@@ -1,6 +1,6 @@
 import { router } from 'expo-router'
 import { LinearGradient } from 'expo-linear-gradient'
-import { CalendarDays, MapPin, Trophy, DollarSign, Star } from 'lucide-react-native'
+import { CalendarDays, MapPin, Trophy, DollarSign, Star, CheckCheck } from 'lucide-react-native'
 import type { LucideIcon } from 'lucide-react-native'
 import { Pressable, Text, View } from 'react-native'
 
@@ -111,12 +111,14 @@ function HeroMatchSessionCard({ item, actionLabel }: { item: MatchSession; actio
   return (
     <Pressable
       onPress={() => router.push({ pathname: '/session/[id]' as never, params: { id: item.id } })}
-      className="overflow-hidden rounded-[32px] px-6 pt-6 pb-4"
+      className="overflow-hidden rounded-[34px] px-6 pt-6 pb-4"
       style={{
         minHeight: 400,
         backgroundColor: 'transparent',
         borderWidth: 1,
         borderColor: PROFILE_THEME_COLORS.primary,
+        borderLeftWidth: 3,
+        borderLeftColor: PROFILE_THEME_COLORS.primary,
         shadowColor: withAlpha(PROFILE_THEME_COLORS.primary, 0.4),
         shadowOpacity: 0.08,
         shadowRadius: 14,
@@ -150,8 +152,8 @@ function HeroMatchSessionCard({ item, actionLabel }: { item: MatchSession; actio
           style={{
             color: withAlpha(PROFILE_THEME_COLORS.onSurfaceVariant, 0.44),
             fontFamily: 'PlusJakartaSans-ExtraBoldItalic',
-            fontSize: 48,
-            lineHeight: 58,
+            fontSize: 44,
+            lineHeight: 52,
           }}
         >
           {timeRangeLabel}
@@ -193,7 +195,7 @@ function HeroMatchSessionCard({ item, actionLabel }: { item: MatchSession; actio
               borderColor: PROFILE_THEME_COLORS.outlineVariant,
             }}
           >
-            <MapPin size={14} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />
+            <CheckCheck size={14} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />
             <Text
               className="ml-1.5"
               style={{
@@ -585,7 +587,7 @@ function SessionListCard({
 
       <View className="mt-3 flex-row items-center gap-2">
         {item.isRanked ? <MiniBadgeLight icon={Trophy} label="Kèo tính điểm" tone="neutral" size="lg" /> : null}
-        <MiniBadgeLight icon={MapPin} label={item.statusLabel} tone="neutral" size="lg" />
+        <MiniBadgeLight icon={CheckCheck} label={item.statusLabel} tone="neutral" size="lg" />
         <View
           className="flex-row items-center rounded-full px-3 py-2"
           style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant }}

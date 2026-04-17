@@ -2,10 +2,10 @@ import type { ReactNode } from 'react'
 import { useState } from 'react'
 import { Dimensions, Text, View } from 'react-native'
 import Animated, {
-    useAnimatedRef,
-    useAnimatedStyle,
-    useScrollOffset,
-    type SharedValue,
+  useAnimatedRef,
+  useAnimatedStyle,
+  useScrollOffset,
+  type SharedValue,
 } from 'react-native-reanimated'
 
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
@@ -180,7 +180,7 @@ export function HomeCarouselSection<T>({
         renderCard={renderCard}
         onIndexChange={onIndexChange}
       />
-      <View className="mt-4">
+      <View className="mt-4 items-center">
         <CarouselDots count={items.length} activeIndex={activeIndex} />
       </View>
     </View>
