@@ -17,14 +17,14 @@ export function HomeGreetingHeader({
     <View className="flex-row items-start justify-between px-1 py-1">
       <View className="flex-1 pr-4">
         <View className="flex-row items-center">
-          <Text className="text-[30px] leading-[36px]" style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: 'PlusJakartaSans-ExtraBold' }}>
+          <Text className="text-[28px] leading-[34px]" style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: 'PlusJakartaSans-ExtraBold' }}>
             Chào, {name}
           </Text>
           <View className="ml-2 rounded-full p-2" style={{ backgroundColor: PROFILE_THEME_COLORS.secondaryContainer }}>
             <Hand size={18} color={PROFILE_THEME_COLORS.primary} strokeWidth={iconStroke} />
           </View>
         </View>
-        <Text className="mt-2 text-[15px]" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-ExtraBoldItalic' }}>
+        <Text className="mt-2 text-[14px]" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-BoldItalic', lineHeight: 22 }}>
           {statusPrompt}
         </Text>
       </View>

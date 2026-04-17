@@ -42,7 +42,7 @@ export function useHomeFeedData(userId?: string | null, isAuthLoading?: boolean)
         .from('sessions')
         .select(
           `
-          id, host_id, elo_min, elo_max, max_players, status, court_booking_status, created_at,
+          id, host_id, is_ranked, elo_min, elo_max, max_players, status, court_booking_status, created_at,
           host:host_id ( id, name, current_elo, elo, self_assessed_level, skill_label, reliability_score, host_reputation ),
           slot:slot_id (
             id, start_time, end_time, price,
@@ -255,7 +255,7 @@ export function useHomeFeedData(userId?: string | null, isAuthLoading?: boolean)
           .filter((session) => {
             const activePlayers = session.session_players.filter((player) => player.status !== 'rejected').length
             const slotsLeft = Math.max(session.max_players - activePlayers, 0)
-            return slotsLeft > 0 && slotsLeft <= 2
+            return slotsLeft > 0 && slotsLeft <= 2 && isWithinNext24Hours(session.slot?.start_time ?? '')
           })
           .map((session) => mapLiveSessionToMatchSession(session, { viewerId: userId, viewerElo, urgent: true }))
           .sort((left, right) => right.matchScore - left.matchScore)

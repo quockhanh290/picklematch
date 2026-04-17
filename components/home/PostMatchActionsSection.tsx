@@ -20,7 +20,7 @@ export function PostMatchActionsSection({ items }: { items: PostMatchAction[] })
           const buttonClasses = isConfirm ? 'bg-indigo-600' : 'bg-amber-500'
 
           return (
-            <View key={`${item.actionType}-${item.id}`} className={`rounded-[28px] border p-4 ${cardClasses}`}>
+            <View key={`${item.actionType}-${item.id}`} className={`rounded-[24px] border p-4 ${cardClasses}`}>
               <View className="flex-row items-start">
                 <View className="mt-1 h-11 w-11 items-center justify-center rounded-full bg-white/90">
                   {isConfirm ? (
@@ -44,7 +44,7 @@ export function PostMatchActionsSection({ items }: { items: PostMatchAction[] })
 
               <Pressable
                 onPress={() => router.push({ pathname: '/session/[id]/confirm-result' as never, params: { id: item.id } })}
-                className={`mt-4 h-12 items-center justify-center rounded-2xl ${buttonClasses}`}
+                className={`mt-4 h-12 items-center justify-center rounded-full ${buttonClasses}`}
               >
                 <Text className="text-[13px] font-black uppercase tracking-[0.08em] text-white">
                   {isConfirm ? 'Mở xác nhận' : 'Báo kết quả'}

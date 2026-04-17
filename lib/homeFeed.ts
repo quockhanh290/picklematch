@@ -11,6 +11,7 @@ export type Player = {
 
 export type Host = {
   name: string
+  initials: string
   rating: number
   vibe: string
 }
@@ -18,6 +19,7 @@ export type Host = {
 export type HomeSessionRecord = {
   id: string
   host_id: string
+  is_ranked?: boolean | null
   elo_min: number
   elo_max: number
   max_players: number
@@ -138,6 +140,9 @@ export type MatchSession = {
   openSlotsLabel: string
   statusLabel: string
   countdownLabel?: string
+  isRanked?: boolean
+  activePlayers: number
+  maxPlayers: number
   levelId: SkillAssessmentLevel['id']
   host: Host
   players: Player[]
@@ -218,7 +223,11 @@ export function formatPendingResultTimeLabel(endTime: string) {
 
 export function formatPriceLabel(totalPrice: number, maxPlayers: number) {
   const pricePerPlayer = Math.round(totalPrice / Math.max(maxPlayers, 1))
-  return `${pricePerPlayer.toLocaleString('vi-VN')}d`
+  if (pricePerPlayer >= 1000) {
+    const thousands = pricePerPlayer / 1000
+    return `${thousands % 1 === 0 ? thousands.toFixed(0) : thousands.toFixed(1)}K`
+  }
+  return `${pricePerPlayer}`
 }
 
 export function getInitials(name: string) {
@@ -275,10 +284,10 @@ export function getLiveHostRating(session: HomeSessionRecord, hostAverageRating?
 }
 
 export function buildLiveHostVibe(session: HomeSessionRecord, slotsLeft: number) {
-  if (session.court_booking_status === 'confirmed' && slotsLeft <= 1) return 'Đã chốt sân, vào là chạy kèo'
-  if (slotsLeft <= 2) return 'Đang chờ ghép nốt đội hình đẹp'
+  if (session.court_booking_status === 'confirmed' && slotsLeft <= 1) return 'Host đã chốt sân, vào là ghép nhanh'
   if ((session.host?.reliability_score ?? 0) >= 95) return 'Host uy tín, phản hồi thường rất nhanh'
-  return 'Kèo đang mở, dễ ghép người và vào sân'
+  if (slotsLeft <= 2) return 'Host đang ưu tiên chốt đội hình sớm'
+  return 'Host mở kèo rõ ràng, dễ theo và dễ ghép'
 }
 
 export function computeLiveMatchScore(session: HomeSessionRecord, viewerElo?: number | null, joined?: boolean) {
@@ -309,7 +318,7 @@ export function mapLiveSessionToMatchSession(
     session.session_players.some((player) => player.player_id === options?.viewerId)
   const players = session.session_players
     .filter((player) => player.status !== 'rejected' && player.player)
-    .slice(0, 3)
+    .slice(0, 4)
     .map((sessionPlayer) => ({
       id: sessionPlayer.player?.id ?? sessionPlayer.player_id,
       name: sessionPlayer.player?.name ?? 'Người chơi',
@@ -334,9 +343,13 @@ export function mapLiveSessionToMatchSession(
     openSlotsLabel: urgent ? `Thiếu ${Math.max(slotsLeft, 1)} người` : `${slotsLeft} chỗ trống`,
     statusLabel: getStatusLabel(session.court_booking_status),
     countdownLabel: isWithinNext24Hours(session.slot?.start_time ?? '') ? formatCountdownLabelFromStartTime(session.slot?.start_time ?? '') : undefined,
+    isRanked: session.is_ranked ?? true,
+    activePlayers,
+    maxPlayers: session.max_players,
     levelId,
     host: {
       name: session.host?.name ?? 'Ẩn danh',
+      initials: getInitials(session.host?.name ?? 'Ẩn danh'),
       rating: getLiveHostRating(session, options?.hostAverageRating),
       vibe: buildLiveHostVibe(session, slotsLeft),
     },
@@ -383,4 +396,165 @@ export function buildLiveFamiliarCourts(sessions: HomeSessionRecord[]) {
             : 'Đang có tín hiệu mở kèo, đáng để theo dõi',
       image: COURT_FALLBACK_IMAGES[index % COURT_FALLBACK_IMAGES.length],
     }))
+}
+
+function buildMockPlayers(count: number): Player[] {
+  const names = ['Nam Long', 'Quang Minh', 'Phuong Anh', 'Bao Tran', 'Khanh Linh', 'Hoang Vu', 'Gia Han', 'Huy Khoa']
+
+  return Array.from({ length: count }).map((_, index) => {
+    const name = names[index % names.length]
+    return {
+      id: `mock-player-${index + 1}`,
+      name,
+      initials: getInitials(name),
+      badge: index % 2 === 0 ? 'trusted' : 'streak',
+    }
+  })
+}
+
+type SkillLevelPreviewCase = {
+  id: string
+  courtName: string
+  address: string
+  timeLabel: string
+  priceLabel: string
+  levelId: SkillAssessmentLevel['id']
+  statusLabel: string
+  isRanked: boolean
+  urgent: boolean
+  activePlayers: number
+  maxPlayers: number
+}
+
+export function buildSkillLevelPreviewSessions(): MatchSession[] {
+  const mockHost: Host = {
+    name: 'Host Minh Quan',
+    initials: 'MQ',
+    rating: 4.8,
+    vibe: 'Host mở kèo rõ ràng, dễ theo và dễ ghép',
+  }
+
+  const scenarios: SkillLevelPreviewCase[] = [
+    {
+      id: 'mock-level-1-open',
+      courtName: 'Tao Dan Rookie Court',
+      address: '55C Nguyen Thi Minh Khai, Ben Thanh, Q1, TP.HCM',
+      timeLabel: '18:00 - 20:00',
+      priceLabel: '70K',
+      levelId: 'level_1',
+      statusLabel: 'Chưa chốt sân',
+      isRanked: false,
+      urgent: false,
+      activePlayers: 2,
+      maxPlayers: 6,
+    },
+    {
+      id: 'mock-level-2-open',
+      courtName: 'Phu Tho Basics Arena',
+      address: '219 Ly Thuong Kiet, Ward 15, Q11, TP.HCM',
+      timeLabel: '07:00 - 09:00',
+      priceLabel: '85K',
+      levelId: 'level_2',
+      statusLabel: 'Sân đã chốt',
+      isRanked: true,
+      urgent: false,
+      activePlayers: 4,
+      maxPlayers: 6,
+    },
+    {
+      id: 'mock-level-3-urgent',
+      courtName: 'Rach Mieu Match Point',
+      address: '1 Hoa Su, Ward 7, Phu Nhuan, TP.HCM',
+      timeLabel: '20:30 - 22:00',
+      priceLabel: '95K',
+      levelId: 'level_3',
+      statusLabel: 'Sân đã chốt',
+      isRanked: false,
+      urgent: true,
+      activePlayers: 5,
+      maxPlayers: 6,
+    },
+    {
+      id: 'mock-level-4-ranked',
+      courtName: 'Celadon Medal Hub',
+      address: '88 N1, Son Ky, Tan Phu, TP.HCM',
+      timeLabel: '06:00 - 08:00',
+      priceLabel: '115K',
+      levelId: 'level_4',
+      statusLabel: 'Sân đã chốt',
+      isRanked: true,
+      urgent: false,
+      activePlayers: 6,
+      maxPlayers: 8,
+    },
+    {
+      id: 'mock-level-5-ranked-urgent',
+      courtName: 'Global Elite Championship Court',
+      address: 'Do Xuan Hop, An Phu, Thu Duc, TP.HCM',
+      timeLabel: '19:00 - 21:00',
+      priceLabel: '140K',
+      levelId: 'level_5',
+      statusLabel: 'Sân đã chốt',
+      isRanked: true,
+      urgent: true,
+      activePlayers: 5,
+      maxPlayers: 6,
+    },
+  ]
+
+  return scenarios.map((session) => ({
+    id: session.id,
+    title: session.urgent ? 'Cần chốt đội hình' : 'Kèo phù hợp',
+    bookingId: `BK-${session.id.slice(0, 6).toUpperCase()}`,
+    courtName: session.courtName,
+    address: session.address,
+    matchScore: session.urgent ? 94 : session.isRanked ? 91 : 88,
+    skillLabel: getSkillLevelUi(session.levelId).shortLabel,
+    timeLabel: session.timeLabel,
+    priceLabel: session.priceLabel,
+    openSlotsLabel: `${Math.max(session.maxPlayers - session.activePlayers, 0)} chỗ trống`,
+    statusLabel: session.statusLabel,
+    isRanked: session.isRanked,
+    activePlayers: session.activePlayers,
+    maxPlayers: session.maxPlayers,
+    levelId: session.levelId,
+    host: mockHost,
+    players: buildMockPlayers(session.activePlayers),
+    urgent: session.urgent,
+    joined: false,
+  }))
+}
+
+export function buildUpcomingMatchPreviewSession(): MatchSession {
+  const host: Host = {
+    name: 'Host Gia Huy',
+    initials: 'GH',
+    rating: 4.9,
+    vibe: 'Host đúng giờ, tổ chức kèo nhanh và rõ ràng',
+  }
+
+  const levelId: SkillAssessmentLevel['id'] = 'level_3'
+
+  return {
+    id: 'mock-upcoming-hero',
+    title: 'Kèo sắp diễn ra',
+    bookingId: 'BK-HERO01',
+    courtName: 'Văn Thánh Riverside Court',
+    address: '561A Dien Bien Phu, Binh Thanh, TP.HCM',
+    matchScore: 93,
+    skillLabel: getSkillLevelUi(levelId).shortLabel,
+    timeLabel: 'Hôm nay • 19:30 - 21:00',
+    priceLabel: '95K',
+    openSlotsLabel: '2 chỗ trống',
+    statusLabel: 'Sân đã chốt',
+    countdownLabel: 'Bắt đầu sau 2 giờ 15 phút',
+    isRanked: true,
+    activePlayers: 4,
+    maxPlayers: 6,
+    levelId,
+    host,
+    players: buildMockPlayers(4),
+    urgent: false,
+    joined: true,
+  }
 }

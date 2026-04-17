@@ -1,7 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
 import { Flame, Plus } from 'lucide-react-native'
-import { memo, useCallback, useState } from 'react'
+import { memo, useCallback, useMemo, useState } from 'react'
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
@@ -9,21 +9,19 @@ import { FamiliarCourtCard } from '@/components/home/FamiliarCourtCard'
 import { HomeCarouselSection } from '@/components/home/HomeCarouselSection'
 import { HomeGreetingHeader } from '@/components/home/HomeGreetingHeader'
 import { MatchSessionCard } from '@/components/home/MatchSessionCard'
-import { PendingMatchResultCarousel as HomePendingMatchResultCarousel } from '@/components/home/PendingMatchResultCarousel'
-import { PostMatchActionsSection } from '@/components/home/PostMatchActionsSection'
+import { PostMatchInboxSection } from '@/components/home/PostMatchInboxSection'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { useHomeFeedData } from '@/hooks/useHomeFeedData'
-import type { FamiliarCourt, MatchSession } from '@/lib/homeFeed'
+import { buildSkillLevelPreviewSessions, buildUpcomingMatchPreviewSession, type FamiliarCourt, type MatchSession } from '@/lib/homeFeed'
 import { useAppTheme } from '@/lib/theme-context'
 import { useAuth } from '@/lib/useAuth'
 
 const iconStroke = 2.7
-const CAROUSEL_SECTION_HEIGHT = 536
+const CAROUSEL_SECTION_HEIGHT = 560
 const COURT_CAROUSEL_HEIGHT = 272
-const HOME_MOCK_STREAK_DAYS = 7
 
-const SmartMatchCard = memo(function SmartMatchCard({ item }: { item: MatchSession }) {
-  return <MatchSessionCard item={item} variant="standard" actionLabel={item.joined ? 'Xem kèo' : 'Vào kèo'} />
+const SmartMatchCard = memo(function SmartMatchCard({ item, accentMode = 'default' }: { item: MatchSession; accentMode?: 'default' | 'rescue' }) {
+  return <MatchSessionCard item={item} variant="standard" actionLabel={item.joined ? 'Xem kèo' : 'Vào kèo'} accentMode={accentMode} />
 })
 
 const SmartQueueHeroStyledCard = memo(function SmartQueueHeroStyledCard({ item }: { item: MatchSession }) {
@@ -69,7 +67,7 @@ const HomeStreakCard = memo(function HomeStreakCard({ current }: { current: numb
           </View>
           <Text
             className="text-[20px] uppercase tracking-[1px]"
-            style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-Bold', lineHeight: 32 }}
+            style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-Bold', lineHeight: 28 }}
           >
             Chuỗi Ra Sân
           </Text>
@@ -94,9 +92,9 @@ const HomeStreakCard = memo(function HomeStreakCard({ current }: { current: numb
 export default function HomeScreen() {
   const theme = useAppTheme()
   const { userId, isLoading: isAuthLoading } = useAuth()
-  const [pendingMatchIndex, setPendingMatchIndex] = useState(0)
   const [personalizedIndex, setPersonalizedIndex] = useState(0)
   const [rescueIndex, setRescueIndex] = useState(0)
+  const [levelPreviewIndex, setLevelPreviewIndex] = useState(0)
   const [courtIndex, setCourtIndex] = useState(0)
   const {
     refreshing,
@@ -112,16 +110,20 @@ export default function HomeScreen() {
     onRefresh,
   } = useHomeFeedData(userId, isAuthLoading)
 
-  const hasUpcomingMatch = Boolean(nextMatch)
+  const previewUpcomingMatch = useMemo(() => (__DEV__ ? buildUpcomingMatchPreviewSession() : null), [])
+  const upcomingMatch = nextMatch ?? previewUpcomingMatch
+  const hasUpcomingMatch = Boolean(upcomingMatch)
   const currentWinStreak = playerStats?.current_win_streak ?? 0
-  const displayWinStreak = currentWinStreak > 0 ? currentWinStreak : HOME_MOCK_STREAK_DAYS
+  const displayWinStreak = currentWinStreak
   const statusPrompt = hasUpcomingMatch ? 'Đã sẵn sàng ra sân chưa?' : 'Hôm nay ra sân chứ?'
+  const levelPreviewSessions = useMemo(() => (__DEV__ ? buildSkillLevelPreviewSessions() : []), [])
 
   const renderPersonalizedCard = useCallback(
     (item: MatchSession) => (hasUpcomingMatch ? <SmartMatchCard item={item} /> : <SmartQueueHeroStyledCard item={item} />),
     [hasUpcomingMatch],
   )
-  const renderRescueCard = useCallback((item: MatchSession) => <SmartMatchCard item={item} />, [])
+  const renderRescueCard = useCallback((item: MatchSession) => <SmartMatchCard item={item} accentMode="rescue" />, [])
+  const renderLevelPreviewCard = useCallback((item: MatchSession) => <SmartMatchCard item={item} />, [])
   const renderCourtCard = useCallback((item: FamiliarCourt) => <FamiliarCourtCard item={item} />, [])
 
   return (
@@ -136,23 +138,25 @@ export default function HomeScreen() {
 
           <HomeStreakCard current={displayWinStreak} />
 
-          <HomePendingMatchResultCarousel
-            items={pendingMatches}
-            activeIndex={pendingMatchIndex}
-            onIndexChange={setPendingMatchIndex}
-          />
+          <PostMatchInboxSection pendingMatches={pendingMatches} postMatchActions={postMatchActions} />
 
-          <PostMatchActionsSection items={postMatchActions} />
-
-          {nextMatch ? (
+          {upcomingMatch ? (
             <View className="mt-8">
-              <HeroThemeCard item={nextMatch} actionLabel="Sẵn sàng" />
+              <View className="mb-5">
+                <Text className="mb-3 text-[11px] uppercase tracking-[0.16em]" style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-Bold' }}>
+                  Sắp diễn ra
+                </Text>
+                <Text className="text-[24px]" style={{ color: PROFILE_THEME_COLORS.onBackground, fontFamily: 'PlusJakartaSans-ExtraBold', lineHeight: 32 }}>
+                  Trận của bạn
+                </Text>
+              </View>
+              <HeroThemeCard item={upcomingMatch} actionLabel="Sẵn sàng" />
             </View>
           ) : null}
 
           {loading ? (
             <View
-              className="mt-8 items-center rounded-[28px] border py-12"
+              className="mt-8 items-center rounded-[24px] border py-12"
               style={{ borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest }}
             >
               <ActivityIndicator color={theme.primary} />
@@ -183,6 +187,17 @@ export default function HomeScreen() {
             containerHeight={CAROUSEL_SECTION_HEIGHT}
             onIndexChange={setRescueIndex}
             renderCard={renderRescueCard}
+          />
+
+          <HomeCarouselSection
+            visible={__DEV__ && levelPreviewSessions.length > 0}
+            eyebrow="DEV Preview"
+            title="Kèo đủ 5 level"
+            items={levelPreviewSessions}
+            activeIndex={levelPreviewIndex}
+            containerHeight={CAROUSEL_SECTION_HEIGHT}
+            onIndexChange={setLevelPreviewIndex}
+            renderCard={renderLevelPreviewCard}
           />
 
           <HomeCarouselSection

@@ -34,7 +34,7 @@ export function DashboardStatsStrip({ items }: { items: DashboardStatItem[] }) {
 
   return (
     <View
-      className="mt-6 flex-row rounded-[30px] border px-4 py-6"
+      className="mt-6 flex-row rounded-[32px] border px-4 py-6"
       style={{
         backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
         borderColor: PROFILE_THEME_COLORS.outlineVariant,
@@ -65,7 +65,7 @@ export function DashboardStatsStrip({ items }: { items: DashboardStatItem[] }) {
                   {item.label}
                 </Text>
               </View>
-              <Text className="mt-4 text-center text-[28px]" style={{ color: valueColor, fontFamily: 'PlusJakartaSans-ExtraBold' }}>
+              <Text className="mt-4 text-center text-[28px]" style={{ color: valueColor, fontFamily: 'PlusJakartaSans-ExtraBold', lineHeight: 36 }}>
                 {item.value}
               </Text>
             </View>

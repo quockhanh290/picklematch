@@ -1,13 +1,14 @@
 import { router } from 'expo-router'
-import { Clock, MapPin, Star, Users } from 'lucide-react-native'
+import { LinearGradient } from 'expo-linear-gradient'
+import { CalendarDays, MapPin, Trophy, DollarSign, Star } from 'lucide-react-native'
 import type { LucideIcon } from 'lucide-react-native'
 import { Pressable, Text, View } from 'react-native'
 
+import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import type { MatchSession } from '@/lib/homeFeed'
 import { getSkillLevelUi } from '@/lib/skillLevelUi'
 
-const iconStroke = 2.7
-export const SMART_MATCH_CARD_HEIGHT = 520
+export const SMART_MATCH_CARD_HEIGHT = 380
 
 function hexToRgb(hex: string) {
   const clean = hex.replace('#', '')
@@ -21,68 +22,50 @@ function hexToRgb(hex: string) {
   }
 }
 
-function relativeLuminance(hex: string) {
+function withAlpha(hex: string, alpha: number) {
   const { r, g, b } = hexToRgb(hex)
-  const channels = [r, g, b].map((value) => {
-    const srgb = value / 255
-    return srgb <= 0.03928 ? srgb / 12.92 : ((srgb + 0.055) / 1.055) ** 2.4
-  })
-  return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2]
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
 
-function getHeroTextPalette(baseColor: string) {
-  const isDark = relativeLuminance(baseColor) < 0.3
-
-  return isDark
-    ? {
-        primary: '#ffffff',
-        secondary: 'rgba(255,255,255,0.84)',
-        tertiary: 'rgba(255,255,255,0.68)',
-        softChip: 'rgba(255,255,255,0.18)',
-        contrastChip: 'rgba(15,23,42,0.18)',
-        cardBg: 'rgba(255,255,255,0.10)',
-        cardBorder: 'rgba(255,255,255,0.16)',
-        actionBg: '#ffffff',
-        actionText: '#0f172a',
-      }
-    : {
-        primary: '#0f172a',
-        secondary: 'rgba(15,23,42,0.84)',
-        tertiary: 'rgba(15,23,42,0.62)',
-        softChip: 'rgba(255,255,255,0.38)',
-        contrastChip: 'rgba(15,23,42,0.10)',
-        cardBg: 'rgba(255,255,255,0.42)',
-        cardBorder: 'rgba(255,255,255,0.24)',
-        actionBg: '#0f172a',
-        actionText: '#ffffff',
-      }
-}
-
-function MiniBadge({
+function MiniBadgeLight({
   icon: Icon,
   label,
   tone = 'neutral',
+  size = 'md',
 }: {
   icon: LucideIcon
   label: string
-  tone?: 'neutral' | 'success' | 'urgent' | 'dark'
+  tone?: 'neutral' | 'success' | 'urgent'
+  size?: 'md' | 'lg'
 }) {
+  const isLarge = size === 'lg'
   const palette =
     tone === 'success'
       ? { bg: '#ecfdf5', border: '#a7f3d0', text: '#047857', icon: '#047857' }
       : tone === 'urgent'
         ? { bg: '#fff7ed', border: '#fdba74', text: '#c2410c', icon: '#c2410c' }
-        : tone === 'dark'
-          ? { bg: 'rgba(15,23,42,0.8)', border: 'rgba(15,23,42,0.08)', text: '#ffffff', icon: '#ffffff' }
-          : { bg: '#f8fafc', border: '#e2e8f0', text: '#334155', icon: '#334155' }
+        : {
+            bg: PROFILE_THEME_COLORS.surfaceContainerLow,
+            border: PROFILE_THEME_COLORS.outlineVariant,
+            text: PROFILE_THEME_COLORS.onSurfaceVariant,
+            icon: PROFILE_THEME_COLORS.onSurfaceVariant,
+          }
 
   return (
     <View
-      className="flex-row items-center rounded-full px-3 py-2"
+      className={`flex-row items-center rounded-full ${isLarge ? 'px-3.5 py-2' : 'px-3 py-1.5'}`}
       style={{ backgroundColor: palette.bg, borderWidth: 1, borderColor: palette.border }}
     >
-      <Icon size={14} color={palette.icon} strokeWidth={iconStroke} />
-      <Text className="ml-2 text-xs font-bold" style={{ color: palette.text }}>
+      <Icon size={isLarge ? 15 : 14} color={palette.icon} strokeWidth={2.5} />
+      <Text
+        className="ml-1.5"
+        style={{
+          color: palette.text,
+          fontFamily: 'PlusJakartaSans-SemiBold',
+          fontSize: 12,
+          lineHeight: 18,
+        }}
+      >
         {label}
       </Text>
     </View>
@@ -93,135 +76,699 @@ export function MatchSessionCard({
   item,
   variant,
   actionLabel,
+  accentMode = 'default',
 }: {
   item: MatchSession
   variant: 'hero' | 'smart' | 'standard'
   actionLabel: string
+  accentMode?: 'default' | 'rescue'
 }) {
+  if (variant === 'hero') {
+    return <HeroMatchSessionCard item={item} actionLabel={actionLabel} />
+  }
+
+  return <SessionListCard item={item} actionLabel={actionLabel} accentMode={accentMode} />
+}
+
+function HeroMatchSessionCard({ item, actionLabel }: { item: MatchSession; actionLabel: string }) {
   const levelUi = getSkillLevelUi(item.levelId)
-  const Icon = levelUi.icon
-  const palette = getHeroTextPalette(levelUi.heroFrom)
-  const isHero = variant === 'hero'
-  const isSmart = variant === 'smart'
+  const LevelIcon = levelUi.icon
+  const [, clockPart] = item.timeLabel.split('•').map((part) => part.trim())
+  const timeRangeLabel = clockPart ?? item.timeLabel
+  const compactAddress = item.address
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .slice(0, 2)
+    .join(', ')
+  const heroProgressPercent = Math.max(0, Math.min((item.activePlayers / Math.max(item.maxPlayers, 1)) * 100, 100))
+  const heroVisiblePlayers = item.players.slice(0, 4)
+  const heroRemainingPlayers = item.players.length - heroVisiblePlayers.length
+  const heroNameLength = item.courtName.length
+  const heroTitleFontSize = heroNameLength > 52 ? 24 : heroNameLength > 40 ? 27 : heroNameLength > 30 ? 31 : 36
+  const heroTitleLineHeight = heroTitleFontSize + 9
 
   return (
     <Pressable
       onPress={() => router.push({ pathname: '/session/[id]' as never, params: { id: item.id } })}
-      className="overflow-hidden rounded-[36px] p-5"
+      className="overflow-hidden rounded-[32px] px-6 pt-6 pb-4"
       style={{
-        minHeight: SMART_MATCH_CARD_HEIGHT,
-        backgroundColor: levelUi.heroFrom,
+        minHeight: 400,
+        backgroundColor: 'transparent',
         borderWidth: 1,
-        borderColor: palette.cardBorder,
-        shadowColor: levelUi.heroTo,
-        shadowOpacity: isHero ? 0.28 : 0.18,
-        shadowRadius: isHero ? 24 : 18,
-        shadowOffset: { width: 0, height: isHero ? 16 : 12 },
-        elevation: isHero ? 9 : 5,
+        borderColor: PROFILE_THEME_COLORS.primary,
+        shadowColor: withAlpha(PROFILE_THEME_COLORS.primary, 0.4),
+        shadowOpacity: 0.08,
+        shadowRadius: 14,
+        shadowOffset: { width: 0, height: 6 },
+        elevation: 3,
       }}
     >
-      <View className="absolute -right-10 -top-12 h-40 w-40 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.12)' }} />
-      <View className="absolute -left-10 bottom-20 h-28 w-28 rounded-full" style={{ backgroundColor: 'rgba(15,23,42,0.08)' }} />
-
-      <View className="flex-row items-start justify-between">
-        <View className="flex-1 pr-4">
-          <View className="flex-row items-center">
-            <View className="rounded-full px-3 py-2" style={{ backgroundColor: palette.softChip }}>
-              <Text className="text-[11px] font-black uppercase tracking-[1.8px]" style={{ color: palette.primary }}>
-                {isHero ? 'Kèo kế tiếp' : isSmart ? 'Gợi ý hợp gu' : 'Đang ghép kèo'}
-              </Text>
-            </View>
-            {item.countdownLabel ? (
-              <View className="ml-2 rounded-full px-3 py-2" style={{ backgroundColor: palette.contrastChip }}>
-                <Text className="text-[11px] font-black uppercase tracking-[1.4px]" style={{ color: palette.primary }}>
-                  {item.countdownLabel}
-                </Text>
-              </View>
-            ) : null}
-          </View>
-
-          <Text className="mt-4 text-[28px] font-black leading-[34px]" style={{ color: palette.primary }}>
-            {item.title}
-          </Text>
-          <Text className="mt-2 text-[15px] font-semibold" style={{ color: palette.secondary }}>
+      <View className="flex-1">
+        <View className="flex-row items-start justify-between">
+          <Text
+            className="flex-1 pr-3"
+            numberOfLines={2}
+            ellipsizeMode="tail"
+            adjustsFontSizeToFit
+            minimumFontScale={0.68}
+            style={{
+              color: PROFILE_THEME_COLORS.primary,
+              fontFamily: 'PlusJakartaSans-ExtraBold',
+              fontSize: heroTitleFontSize,
+              lineHeight: heroTitleLineHeight,
+              letterSpacing: 0.8,
+              textTransform: 'uppercase',
+            }}
+          >
             {item.courtName}
-          </Text>
-          <Text className="mt-2 text-sm leading-6" style={{ color: palette.tertiary }}>
-            {item.address}
           </Text>
         </View>
 
-        <View className="rounded-[24px] p-4" style={{ backgroundColor: palette.cardBg, borderWidth: 1, borderColor: palette.cardBorder }}>
-          <Icon size={24} color={palette.primary} strokeWidth={2.5} />
-          <Text className="mt-3 text-xs font-black uppercase tracking-[1.6px]" style={{ color: palette.secondary }}>
-            Trình độ
+        <Text
+          className="mt-0"
+          style={{
+            color: withAlpha(PROFILE_THEME_COLORS.onSurfaceVariant, 0.44),
+            fontFamily: 'PlusJakartaSans-ExtraBoldItalic',
+            fontSize: 48,
+            lineHeight: 58,
+          }}
+        >
+          {timeRangeLabel}
+        </Text>
+
+        <View className="mt-1.5">
+          <View
+            className="self-start flex-row items-center rounded-full px-3 py-1.5"
+            style={{
+              backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
+              borderWidth: 1,
+              borderColor: PROFILE_THEME_COLORS.outlineVariant,
+              maxWidth: '100%',
+            }}
+          >
+            <MapPin size={13} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />
+            <Text
+              className="ml-1.5"
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              style={{
+                color: PROFILE_THEME_COLORS.onSurfaceVariant,
+                fontFamily: 'PlusJakartaSans-SemiBold',
+                fontSize: 12,
+                lineHeight: 17,
+              }}
+            >
+              {compactAddress || item.address}
+            </Text>
+          </View>
+        </View>
+
+        <View className="mt-2 flex-row flex-wrap items-center gap-2">
+          <View
+            className="flex-row items-center rounded-full px-3 py-2"
+            style={{
+              backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
+              borderWidth: 1,
+              borderColor: PROFILE_THEME_COLORS.outlineVariant,
+            }}
+          >
+            <MapPin size={14} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />
+            <Text
+              className="ml-1.5"
+              style={{
+                color: PROFILE_THEME_COLORS.onSurfaceVariant,
+                fontFamily: 'PlusJakartaSans-SemiBold',
+                fontSize: 12,
+                lineHeight: 18,
+              }}
+            >
+              {item.statusLabel}
+            </Text>
+          </View>
+
+          <View
+            className="flex-row items-center rounded-full px-3 py-2"
+            style={{
+              backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
+              borderWidth: 1,
+              borderColor: PROFILE_THEME_COLORS.outlineVariant,
+            }}
+          >
+            <LevelIcon size={14} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />
+            <Text
+              className="ml-1.5"
+              style={{
+                color: PROFILE_THEME_COLORS.onSurfaceVariant,
+                fontFamily: 'PlusJakartaSans-SemiBold',
+                fontSize: 12,
+                lineHeight: 18,
+              }}
+            >
+              {item.skillLabel}
+            </Text>
+          </View>
+
+          <View
+            className="flex-row items-center rounded-full px-4 py-2"
+            style={{
+              backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
+              borderWidth: 1,
+              borderColor: PROFILE_THEME_COLORS.outlineVariant,
+            }}
+          >
+            <DollarSign size={15} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.5} />
+            <Text
+              className="ml-2"
+              style={{
+                color: PROFILE_THEME_COLORS.onSurfaceVariant,
+                fontFamily: 'PlusJakartaSans-SemiBold',
+                fontSize: 12,
+                lineHeight: 18,
+              }}
+            >
+              {item.priceLabel}/ng
+            </Text>
+          </View>
+        </View>
+
+        <View className="mt-4 rounded-[24px] p-3.5" style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow }}>
+          <View className="flex-row items-center justify-between">
+            <View className="mr-3 flex-1 flex-row items-center">
+              <View
+                className="mr-3 h-11 w-11 items-center justify-center rounded-full"
+                style={{
+                  backgroundColor: PROFILE_THEME_COLORS.primary,
+                  borderWidth: 1,
+                  borderColor: withAlpha(PROFILE_THEME_COLORS.primary, 0.14),
+                }}
+              >
+                <Text
+                  style={{
+                    color: PROFILE_THEME_COLORS.onPrimary,
+                    fontFamily: 'PlusJakartaSans-ExtraBold',
+                    fontSize: 15,
+                  }}
+                >
+                  {item.host.initials}
+                </Text>
+              </View>
+
+              <View className="flex-1">
+                <View className="flex-row items-center gap-2">
+                  <Text
+                    numberOfLines={1}
+                    style={{
+                      color: PROFILE_THEME_COLORS.onSurface,
+                      fontFamily: 'PlusJakartaSans-SemiBold',
+                      fontSize: 13,
+                    }}
+                  >
+                    {item.host.name}
+                  </Text>
+                  <View className="flex-row items-center rounded-full px-2 py-2" style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHighest }}>
+                    <Star size={11} color={PROFILE_THEME_COLORS.primary} fill={PROFILE_THEME_COLORS.primary} strokeWidth={2.2} />
+                    <Text
+                      className="ml-1"
+                      style={{
+                        color: PROFILE_THEME_COLORS.onSurface,
+                        fontFamily: 'PlusJakartaSans-SemiBold',
+                        fontSize: 11,
+                      }}
+                    >
+                      {item.host.rating.toFixed(1)}
+                    </Text>
+                  </View>
+                </View>
+
+                <Text
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                  style={{
+                    color: PROFILE_THEME_COLORS.onSurfaceVariant,
+                    fontFamily: 'PlusJakartaSans-Regular',
+                    fontSize: 11,
+                    lineHeight: 16,
+                  }}
+                >
+                  {item.host.vibe}
+                </Text>
+              </View>
+            </View>
+
+            <View className="items-end">
+              <Text
+                style={{
+                  color: PROFILE_THEME_COLORS.onSurface,
+                  fontFamily: 'PlusJakartaSans-ExtraBold',
+                  fontSize: 16,
+                }}
+              >
+                {item.activePlayers}/{item.maxPlayers}
+              </Text>
+              <Text
+                style={{
+                  color: PROFILE_THEME_COLORS.onSurfaceVariant,
+                  fontFamily: 'PlusJakartaSans-Regular',
+                  fontSize: 10,
+                }}
+              >
+                người chơi
+              </Text>
+            </View>
+          </View>
+
+          <View className="mt-3 h-2 rounded-full overflow-hidden" style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHighest }}>
+            <LinearGradient
+              colors={[PROFILE_THEME_COLORS.primary, PROFILE_THEME_COLORS.tertiary]}
+              start={{ x: 0, y: 0.5 }}
+              end={{ x: 1, y: 0.5 }}
+              style={{ width: `${heroProgressPercent}%`, height: '100%', borderRadius: 999 }}
+            />
+          </View>
+
+          <View className="mt-3 flex-row items-center justify-between gap-3">
+            <View className="flex-1 flex-row items-center">
+              {heroVisiblePlayers.map((player, index) => (
+                <View
+                  key={player.id}
+                  className={`h-8 w-8 items-center justify-center rounded-full ${index === 0 ? '' : '-ml-2.5'}`}
+                  style={{
+                    backgroundColor: PROFILE_THEME_COLORS.primary,
+                    borderWidth: 2,
+                    borderColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: PROFILE_THEME_COLORS.onPrimary,
+                      fontFamily: 'PlusJakartaSans-Bold',
+                      fontSize: 10,
+                    }}
+                  >
+                    {player.initials}
+                  </Text>
+                </View>
+              ))}
+
+              {heroRemainingPlayers > 0 ? (
+                <View
+                  className="-ml-2.5 h-8 w-8 items-center justify-center rounded-full"
+                  style={{
+                    backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHighest,
+                    borderWidth: 2,
+                    borderColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: PROFILE_THEME_COLORS.onSurfaceVariant,
+                      fontFamily: 'PlusJakartaSans-SemiBold',
+                      fontSize: 10,
+                    }}
+                  >
+                    +{heroRemainingPlayers}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+
+            <View
+              className="rounded-full px-4 py-2"
+              style={{
+                backgroundColor: PROFILE_THEME_COLORS.primary,
+              }}
+            >
+              <Text
+                style={{
+                  color: PROFILE_THEME_COLORS.onPrimary,
+                  fontFamily: 'PlusJakartaSans-ExtraBold',
+                  fontSize: 11,
+                  textTransform: 'uppercase',
+                  letterSpacing: 1.2,
+                }}
+              >
+                {actionLabel}
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
+    </Pressable>
+  )
+}
+
+function SessionListCard({
+  item,
+  actionLabel,
+  accentMode,
+}: {
+  item: MatchSession
+  actionLabel: string
+  accentMode: 'default' | 'rescue'
+}) {
+  const levelUi = getSkillLevelUi(item.levelId)
+  const Icon = levelUi.icon
+  const [datePart, clockPart] = item.timeLabel.split('•').map((part) => part.trim())
+  const timeRangeLabel = clockPart ?? item.timeLabel
+  const compactDateLabel = clockPart ? datePart : item.timeLabel
+  const localizedDateLabel = compactDateLabel
+    .replace('CN', 'Chủ nhật')
+    .replace('T2', 'Thứ 2')
+    .replace('T3', 'Thứ 3')
+    .replace('T4', 'Thứ 4')
+    .replace('T5', 'Thứ 5')
+    .replace('T6', 'Thứ 6')
+    .replace('T7', 'Thứ 7')
+  const fullDateLabel = localizedDateLabel.replace(/,\s*(\d{1,2})\/(\d{1,2})$/, (_, day, month) => {
+    const dayNumber = Number.parseInt(day, 10)
+    const monthNumber = Number.parseInt(month, 10)
+    return `, ${dayNumber} Tháng ${monthNumber}`
+  })
+  const addressParts = item.address
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean)
+  const compactAddress =
+    addressParts.length >= 3
+      ? `${addressParts[0]}, ${addressParts[addressParts.length - 2]}, ${addressParts[addressParts.length - 1]}`
+      : item.address
+  const progressPercent = Math.max(0, Math.min((item.activePlayers / Math.max(item.maxPlayers, 1)) * 100, 100))
+  const visiblePlayers = item.players.slice(0, 4)
+  const remainingPlayers = item.players.length - visiblePlayers.length
+  const isRescueAccent = accentMode === 'rescue'
+  const accentColor = isRescueAccent ? PROFILE_THEME_COLORS.error : PROFILE_THEME_COLORS.primary
+  const onAccentColor = isRescueAccent ? PROFILE_THEME_COLORS.onError : PROFILE_THEME_COLORS.onPrimary
+  const accentSurfaceColor = isRescueAccent ? PROFILE_THEME_COLORS.onErrorContainer : PROFILE_THEME_COLORS.surfaceTint
+
+  return (
+    <Pressable
+      onPress={() => router.push({ pathname: '/session/[id]' as never, params: { id: item.id } })}
+      className="overflow-hidden rounded-[32px] p-5"
+      style={{
+        minHeight: 300,
+        backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+        shadowColor: '#0f172a',
+        shadowOpacity: 0.06,
+        shadowRadius: 14,
+        shadowOffset: { width: 0, height: 6 },
+        elevation: 3,
+      }}
+    >
+      <View
+        className="relative -mx-5 -mt-5 overflow-hidden px-5 pt-5 pb-4"
+      >
+        <LinearGradient
+          colors={[accentColor, accentSurfaceColor]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}
+        />
+        <Icon
+          size={98}
+          color="rgba(255,255,255,0.12)"
+          style={{ position: 'absolute', right: -4, bottom: -10 }}
+        />
+
+        <View className="flex-row items-start">
+          <Text
+            className="flex-1"
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.72}
+            ellipsizeMode="tail"
+            style={{
+              color: onAccentColor,
+              fontFamily: 'PlusJakartaSans-ExtraBold',
+              fontSize: 32,
+              lineHeight: 38,
+              letterSpacing: 0.8,
+              textTransform: 'uppercase',
+            }}
+          >
+            {item.courtName}
           </Text>
-          <Text className="mt-1 text-lg font-black" style={{ color: palette.primary }}>
-            {item.skillLabel}
+        </View>
+
+        <Text
+          className="mt-1"
+          style={{
+            color: withAlpha(onAccentColor, 0.68),
+            fontFamily: 'PlusJakartaSans-ExtraBoldItalic',
+            fontSize: 36,
+            lineHeight: 42,
+          }}
+        >
+          {timeRangeLabel}
+        </Text>
+
+        <View className="mt-2">
+          <View
+            className="self-start flex-row items-center rounded-full px-3.5 py-2"
+            style={{ backgroundColor: withAlpha(onAccentColor, 0.14), maxWidth: '100%' }}
+          >
+            <MapPin size={13} color={withAlpha(onAccentColor, 0.78)} strokeWidth={2.5} />
+            <Text
+              className="ml-1.5"
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              style={{
+                color: withAlpha(onAccentColor, 0.86),
+                fontFamily: 'PlusJakartaSans-SemiBold',
+                fontSize: 13,
+                lineHeight: 18,
+              }}
+            >
+              {compactAddress}
+            </Text>
+          </View>
+        </View>
+
+        <View className="mt-3 flex-row flex-wrap items-center gap-2">
+          <View
+            className="flex-row items-center rounded-full px-3.5 py-2"
+            style={{ backgroundColor: withAlpha(onAccentColor, 0.14) }}
+          >
+            <CalendarDays size={13} color={withAlpha(onAccentColor, 0.78)} strokeWidth={2.5} />
+            <Text
+              className="ml-1.5"
+              style={{
+                color: withAlpha(onAccentColor, 0.86),
+                fontFamily: 'PlusJakartaSans-SemiBold',
+                fontSize: 13,
+                lineHeight: 18,
+              }}
+            >
+              {fullDateLabel}
+            </Text>
+          </View>
+
+          <View
+            className="flex-row items-center rounded-full px-3.5 py-2"
+            style={{ backgroundColor: withAlpha(onAccentColor, 0.14) }}
+          >
+            <Icon size={13} color={withAlpha(onAccentColor, 0.78)} strokeWidth={2.5} />
+            <Text
+              className="ml-1.5"
+              style={{
+                color: withAlpha(onAccentColor, 0.86),
+                fontFamily: 'PlusJakartaSans-SemiBold',
+                fontSize: 13,
+                lineHeight: 18,
+              }}
+            >
+              {item.skillLabel}
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      <View className="mt-3 flex-row items-center gap-2">
+        {item.isRanked ? <MiniBadgeLight icon={Trophy} label="Kèo tính điểm" tone="neutral" size="lg" /> : null}
+        <MiniBadgeLight icon={MapPin} label={item.statusLabel} tone="neutral" size="lg" />
+        <View
+          className="flex-row items-center rounded-full px-3 py-2"
+          style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant }}
+        >
+          <DollarSign size={15} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.5} />
+          <Text
+            className="ml-1.5"
+            style={{
+              color: PROFILE_THEME_COLORS.onSurfaceVariant,
+              fontFamily: 'PlusJakartaSans-SemiBold',
+              fontSize: 12,
+              lineHeight: 18,
+            }}
+          >
+            {item.priceLabel}/ng
           </Text>
         </View>
       </View>
 
-      <View className="mt-6 rounded-[28px] p-4" style={{ backgroundColor: palette.cardBg, borderWidth: 1, borderColor: palette.cardBorder }}>
-        <View className="flex-row flex-wrap gap-2">
-          <MiniBadge icon={Clock} label={item.timeLabel} tone="dark" />
-          <MiniBadge icon={MapPin} label={item.statusLabel} tone={item.urgent ? 'urgent' : 'neutral'} />
-          <MiniBadge icon={Users} label={item.openSlotsLabel} tone={item.urgent ? 'urgent' : 'success'} />
-        </View>
+      <View
+        className="mt-4 rounded-[24px] p-3.5"
+        style={{
+          backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
+        }}
+      >
+        <View className="flex-row items-center justify-between">
+          <View className="mr-3 flex-1 flex-row items-center">
+            <View
+              className="mr-3 h-11 w-11 items-center justify-center rounded-full"
+              style={{
+                backgroundColor: accentColor,
+                borderWidth: 1,
+                borderColor: withAlpha(accentColor, 0.14),
+              }}
+            >
+              <Text
+                style={{
+                  color: onAccentColor,
+                  fontFamily: 'PlusJakartaSans-ExtraBold',
+                  fontSize: 15,
+                }}
+              >
+                {item.host.initials}
+              </Text>
+            </View>
 
-        <View className="mt-5 flex-row items-start justify-between">
-          <View className="flex-1 pr-3">
-            <Text className="text-[12px] font-black uppercase tracking-[1.6px]" style={{ color: palette.secondary }}>
-              Chủ kèo
-            </Text>
-            <Text className="mt-2 text-xl font-black" style={{ color: palette.primary }}>
-              {item.host.name}
-            </Text>
-            <View className="mt-2 flex-row items-center">
-              <Star size={14} color={palette.primary} strokeWidth={2.5} />
-              <Text className="ml-1.5 text-sm font-bold" style={{ color: palette.secondary }}>
-                {item.host.rating.toFixed(1)} • {item.host.vibe}
+            <View className="flex-1">
+              <View className="flex-row items-center gap-2">
+                <Text
+                  numberOfLines={1}
+                  style={{
+                    color: PROFILE_THEME_COLORS.onSurface,
+                    fontFamily: 'PlusJakartaSans-SemiBold',
+                    fontSize: 13,
+                  }}
+                >
+                  {item.host.name}
+                </Text>
+                <View className="flex-row items-center rounded-full px-2 py-2" style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHighest }}>
+                  <Star size={11} color={accentColor} fill={accentColor} strokeWidth={2.2} />
+                  <Text
+                    className="ml-1"
+                    style={{
+                      color: PROFILE_THEME_COLORS.onSurface,
+                      fontFamily: 'PlusJakartaSans-SemiBold',
+                      fontSize: 11,
+                    }}
+                  >
+                    {item.host.rating.toFixed(1)}
+                  </Text>
+                </View>
+              </View>
+
+              <Text
+                numberOfLines={1}
+                ellipsizeMode="tail"
+                style={{
+                  color: PROFILE_THEME_COLORS.onSurfaceVariant,
+                  fontFamily: 'PlusJakartaSans-Regular',
+                  fontSize: 11,
+                  lineHeight: 16,
+                }}
+              >
+                {item.host.vibe}
               </Text>
             </View>
           </View>
 
           <View className="items-end">
-            <Text className="text-[12px] font-black uppercase tracking-[1.6px]" style={{ color: palette.secondary }}>
-              Chi phí
+            <Text
+              style={{
+                color: PROFILE_THEME_COLORS.onSurface,
+                fontFamily: 'PlusJakartaSans-ExtraBold',
+                fontSize: 16,
+              }}
+            >
+              {item.activePlayers}/{item.maxPlayers}
             </Text>
-            <Text className="mt-2 text-2xl font-black" style={{ color: palette.primary }}>
-              {item.priceLabel}
+            <Text
+              style={{
+                color: PROFILE_THEME_COLORS.onSurfaceVariant,
+                fontFamily: 'PlusJakartaSans-Regular',
+                fontSize: 10,
+              }}
+            >
+              người chơi
             </Text>
           </View>
         </View>
-      </View>
 
-      <View className="mt-6 flex-row items-center justify-between">
-        <View className="flex-row items-center">
-          {item.players.slice(0, 3).map((player, index) => (
-            <View
-              key={player.id}
-              className="h-11 w-11 items-center justify-center rounded-full border-2"
-              style={{
-                marginLeft: index === 0 ? 0 : -10,
-                backgroundColor: 'rgba(255,255,255,0.18)',
-                borderColor: 'rgba(255,255,255,0.9)',
-              }}
-            >
-              <Text className="text-xs font-black" style={{ color: palette.primary }}>
-                {player.initials}
-              </Text>
-            </View>
-          ))}
-          <Text className="ml-3 text-sm font-semibold" style={{ color: palette.secondary }}>
-            {item.players.length > 0 ? `${item.players.length} người đã vào` : 'Đang mở ghép người'}
-          </Text>
+        <View className="mt-3 h-2 rounded-full overflow-hidden" style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHighest }}>
+          <LinearGradient
+            colors={[accentColor, isRescueAccent ? PROFILE_THEME_COLORS.onErrorContainer : PROFILE_THEME_COLORS.tertiary]}
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
+            style={{ width: `${progressPercent}%`, height: '100%', borderRadius: 999 }}
+          />
         </View>
 
-        <View className="rounded-full px-5 py-3" style={{ backgroundColor: palette.actionBg }}>
-          <Text className="text-[12px] font-black uppercase tracking-[1.6px]" style={{ color: palette.actionText }}>
-            {actionLabel}
-          </Text>
+        <View className="mt-3 flex-row items-center justify-between gap-3">
+          <View className="flex-1 flex-row items-center">
+            {visiblePlayers.map((player, index) => (
+              <View
+                key={player.id}
+                className={`h-8 w-8 items-center justify-center rounded-full ${index === 0 ? '' : '-ml-2.5'}`}
+                style={{
+                  backgroundColor: accentColor,
+                  borderWidth: 2,
+                  borderColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+                }}
+              >
+                <Text
+                  style={{
+                    color: onAccentColor,
+                    fontFamily: 'PlusJakartaSans-Bold',
+                    fontSize: 10,
+                  }}
+                >
+                  {player.initials}
+                </Text>
+              </View>
+            ))}
+
+            {remainingPlayers > 0 ? (
+              <View
+                className="-ml-2.5 h-8 w-8 items-center justify-center rounded-full"
+                style={{
+                  backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHighest,
+                  borderWidth: 2,
+                  borderColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+                }}
+              >
+                <Text
+                  style={{
+                    color: PROFILE_THEME_COLORS.onSurfaceVariant,
+                    fontFamily: 'PlusJakartaSans-SemiBold',
+                    fontSize: 10,
+                  }}
+                >
+                  +{remainingPlayers}
+                </Text>
+              </View>
+            ) : null}
+          </View>
+
+          <View
+            className="rounded-full px-4 py-2"
+            style={{
+              backgroundColor: accentColor,
+            }}
+          >
+            <Text
+              style={{
+                color: onAccentColor,
+                fontFamily: 'PlusJakartaSans-ExtraBold',
+                fontSize: 11,
+                textTransform: 'uppercase',
+                letterSpacing: 1.3,
+              }}
+            >
+              {actionLabel}
+            </Text>
+          </View>
         </View>
       </View>
     </Pressable>

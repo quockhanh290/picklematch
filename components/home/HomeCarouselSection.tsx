@@ -23,7 +23,8 @@ function CarouselDots({ count, activeIndex }: { count: number; activeIndex: numb
       {Array.from({ length: count }).map((_, index) => (
         <View
           key={index}
-          className={`h-2 rounded-full ${index === activeIndex ? 'w-6 bg-slate-900' : 'w-2 bg-slate-300'}`}
+          className={`h-2 rounded-full ${index === activeIndex ? 'w-6' : 'w-2'}`}
+          style={{ backgroundColor: index === activeIndex ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant }}
         />
       ))}
     </View>
@@ -135,10 +136,10 @@ function SectionHeader({
 }) {
   return (
     <View className="mb-5">
-      <Text className="mb-3 text-[11px] uppercase tracking-[3.8px]" style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-Bold' }}>
+      <Text className="mb-3 text-[11px] uppercase tracking-[0.16em]" style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-Bold' }}>
         {eyebrow}
       </Text>
-      <Text className="text-[28px]" style={{ color: PROFILE_THEME_COLORS.onBackground, fontFamily: 'PlusJakartaSans-ExtraBold' }}>
+      <Text className="text-[24px]" style={{ color: PROFILE_THEME_COLORS.onBackground, fontFamily: 'PlusJakartaSans-ExtraBold', lineHeight: 32 }}>
         {title}
       </Text>
     </View>

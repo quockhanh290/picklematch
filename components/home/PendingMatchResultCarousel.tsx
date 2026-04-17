@@ -39,7 +39,7 @@ function PendingMatchResultCard({ item }: { item: PendingMatch }) {
       <View className="absolute -right-8 -top-10 h-28 w-28 rounded-full bg-amber-400/10" />
 
       <View
-        className="h-12 w-12 items-center justify-center rounded-2xl bg-amber-500"
+        className="h-12 w-12 items-center justify-center rounded-full bg-amber-500"
         style={{
           shadowColor: '#f59e0b',
           shadowOpacity: 0.18,
@@ -61,7 +61,7 @@ function PendingMatchResultCard({ item }: { item: PendingMatch }) {
 
       <Pressable
         onPress={() => router.push({ pathname: '/match-result/[id]' as any, params: { id: item.id } })}
-        className="rounded-xl bg-slate-900 px-4 py-2.5"
+        className="rounded-full bg-slate-900 px-4 py-2.5"
       >
         <Text className="text-[11px] font-black uppercase text-white">NHẬP NGAY</Text>
       </Pressable>
