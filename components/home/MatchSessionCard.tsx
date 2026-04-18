@@ -113,20 +113,21 @@ function HeroMatchSessionCard({ item, actionLabel }: { item: MatchSession; actio
       onPress={() => router.push({ pathname: '/session/[id]' as never, params: { id: item.id } })}
       className="overflow-hidden rounded-[34px] px-6 pt-6 pb-4"
       style={{
-        minHeight: 400,
-        backgroundColor: 'transparent',
-        borderWidth: 1,
-        borderColor: PROFILE_THEME_COLORS.primary,
+        backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
         borderLeftWidth: 3,
         borderLeftColor: PROFILE_THEME_COLORS.primary,
-        shadowColor: withAlpha(PROFILE_THEME_COLORS.primary, 0.4),
-        shadowOpacity: 0.08,
+        shadowColor: '#0f172a',
+        shadowOpacity: 0.06,
         shadowRadius: 14,
         shadowOffset: { width: 0, height: 6 },
         elevation: 3,
       }}
     >
-      <View className="flex-1">
+      {/* Skill icon watermark top-right editorial style */}
+      <View style={{ position: 'absolute', top: 0, right: -24, zIndex: 0, opacity: 0.12 }} pointerEvents="none">
+        <LevelIcon size={120} color={PROFILE_THEME_COLORS.primary} />
+      </View>
+      <View>
         <View className="flex-row items-start justify-between">
           <Text
             className="flex-1 pr-3"
@@ -148,7 +149,9 @@ function HeroMatchSessionCard({ item, actionLabel }: { item: MatchSession; actio
         </View>
 
         <Text
-          className="mt-0"
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.6}
           style={{
             color: withAlpha(PROFILE_THEME_COLORS.onSurfaceVariant, 0.44),
             fontFamily: 'PlusJakartaSans-ExtraBoldItalic',
@@ -613,7 +616,7 @@ function SessionListCard({
           backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
         }}
       >
-        <View className="flex-row items-center justify-between">
+<View className="flex-row items-center justify-between">
           <View className="mr-3 flex-1 flex-row items-center">
             <View
               className="mr-3 h-11 w-11 items-center justify-center rounded-full"

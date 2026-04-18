@@ -420,6 +420,8 @@ export default function HostReviewCenterScreen() {
     )
 
     setSubmittingId(null)
+    // Điều hướng sang màn chi tiết kèo sau khi duyệt xong
+    router.replace({ pathname: '/session/[id]', params: { id: session.id } })
   }
 
   async function rejectRequest(requestId: string, playerId: string) {

@@ -1,32 +1,34 @@
-import { ScreenHeader } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { getSkillLevelFromEloRange, getSkillLevelFromPlayer } from '@/lib/skillAssessment'
-import { getSkillLevelUi, getSkillTargetElo } from '@/lib/skillLevelUi'
+import { getSkillLevelUi } from '@/lib/skillLevelUi'
 import { supabase } from '@/lib/supabase'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { LinearGradient } from 'expo-linear-gradient'
 import * as Linking from 'expo-linking'
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
 import {
-    Map,
-    MapPin,
-    Menu,
-    Search,
-    SlidersHorizontal,
-    Sparkles,
-    TrendingUp,
-    Users,
+  AlertCircle,
+  CalendarDays,
+  Map,
+  MapPin,
+  Search,
+  ShieldCheck,
+  SlidersHorizontal,
+  Sparkles,
+  UserRound,
+  X,
 } from 'lucide-react-native'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-    ActivityIndicator,
-    Alert,
-    FlatList,
-    Pressable,
-    RefreshControl,
-    ScrollView,
-    Text,
-    TextInput,
-    View,
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
@@ -37,7 +39,6 @@ type Session = {
   max_players: number
   status: string
   court_booking_status: 'confirmed' | 'unconfirmed'
-  // `slot.price` is the total court/session fee. UI renders a per-person estimate from this value.
   host: {
     name: string
     is_provisional?: boolean | null
@@ -80,28 +81,37 @@ const QUICK_FILTERS: { id: QuickFilterId; label: string }[] = [
   { id: 'rescue', label: 'Cần người gấp 🔥' },
 ]
 
+function hexToRgb(hex: string) {
+  const clean = hex.replace('#', '')
+  const value = clean.length === 3 ? clean.split('').map((c) => c + c).join('') : clean
+  const n = Number.parseInt(value, 16)
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 }
+}
+
+function withAlpha(hex: string, alpha: number) {
+  const { r, g, b } = hexToRgb(hex)
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
+}
+
 function formatPrice(price: number, maxPlayers: number) {
   const pricePerPlayer = maxPlayers > 0 ? Math.round(price / maxPlayers) : price
   return `${Math.max(1, Math.round(pricePerPlayer / 1000))}k`
 }
 
 function formatDateTime(start: string, end: string) {
-  const startDate = new Date(start)
-  const endDate = new Date(end)
-  const pad = (value: number) => value.toString().padStart(2, '0')
-
+  const s = new Date(start)
+  const e = new Date(end)
+  const pad = (v: number) => v.toString().padStart(2, '0')
+  const weekday = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][s.getDay()]
   return {
-    dayLabel: `${pad(startDate.getDate())}/${pad(startDate.getMonth() + 1)}`,
-    timeLabel: `${pad(startDate.getHours())}:${pad(startDate.getMinutes())} - ${pad(endDate.getHours())}:${pad(
-      endDate.getMinutes(),
-    )}`,
+    dayLabel: `${weekday} ${pad(s.getDate())}/${pad(s.getMonth() + 1)}`,
+    timeLabel: `${pad(s.getHours())}:${pad(s.getMinutes())} - ${pad(e.getHours())}:${pad(e.getMinutes())}`,
   }
 }
 
 function buildSearchIndex(session: Session) {
   const court = session.slot?.court
   const skill = getSkillLevelFromEloRange(session.elo_min, session.elo_max)
-
   return [court?.name, court?.address, court?.city, skill.title, session.host?.name]
     .filter(Boolean)
     .join(' ')
@@ -109,11 +119,7 @@ function buildSearchIndex(session: Session) {
 }
 
 function normalizeText(value?: string | null) {
-  return (value ?? '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .trim()
+  return (value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
 }
 
 function computeMatchScore(session: Session, rescueMode: boolean, level3Mode: boolean) {
@@ -121,9 +127,7 @@ function computeMatchScore(session: Session, rescueMode: boolean, level3Mode: bo
   const startAt = new Date(session.slot?.start_time ?? 0).getTime()
   const hoursUntilStart = (startAt - Date.now()) / 3600000
   const skill = getSkillLevelFromEloRange(session.elo_min, session.elo_max)
-
   let score = 74
-
   if (session.court_booking_status === 'confirmed') score += 10
   if (slotsLeft > 0) score += 6
   if (slotsLeft === 1) score += 4
@@ -131,129 +135,250 @@ function computeMatchScore(session: Session, rescueMode: boolean, level3Mode: bo
   if (hoursUntilStart > 24 && hoursUntilStart <= 72) score += 2
   if (rescueMode && slotsLeft <= 2) score += 6
   if (level3Mode && skill.id === 'level_3') score += 8
-
   return Math.max(78, Math.min(score, 99))
 }
 
-function SearchResultCard({
-  session,
-  rescueMode,
-}: {
-  session: Session
-  rescueMode: boolean
-}) {
+const BADGE = {
+  backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
+  borderWidth: 1,
+  borderColor: PROFILE_THEME_COLORS.outlineVariant,
+} as const
+
+function SearchResultCard({ session, rescueMode }: { session: Session; rescueMode: boolean }) {
   const court = session.slot?.court
-  const formatted = formatDateTime(session.slot?.start_time ?? new Date().toISOString(), session.slot?.end_time ?? new Date().toISOString())
+  const { dayLabel, timeLabel } = formatDateTime(
+    session.slot?.start_time ?? new Date().toISOString(),
+    session.slot?.end_time ?? new Date().toISOString(),
+  )
   const skillLevel = getSkillLevelFromEloRange(session.elo_min, session.elo_max)
   const skillUi = getSkillLevelUi(skillLevel.id)
-  const hostSkillLevel = getSkillLevelFromPlayer(session.host ?? {})
-  const hostSkillUi = hostSkillLevel ? getSkillLevelUi(hostSkillLevel.id) : null
-  const matchScore = computeMatchScore(session, rescueMode, skillLevel.id === 'level_3')
+  const SkillIcon = skillUi.icon
   const slotsLeft = Math.max(session.max_players - session.player_count, 0)
+  const isFull = slotsLeft === 0
+  const isBooked = session.court_booking_status === 'confirmed'
+  const progress = session.max_players > 0 ? Math.min(session.player_count / session.max_players, 1) : 0
+  const progressPercent = Math.max(progress * 100, 0)
+  const hostInitials = (session.host?.name || '?').slice(0, 1).toUpperCase()
+  const address = [court?.address, court?.city].filter(Boolean).join(', ')
+  const compactAddress = address.split(',').map((p) => p.trim()).filter(Boolean).slice(0, 2).join(', ')
+  const matchScore = computeMatchScore(session, rescueMode, skillLevel.id === 'level_3')
+
   const openSessionDetail = () =>
     router.push({
       pathname: '/session/[id]',
-      params: {
-        id: session.id,
-        navStartedAt: String(Date.now()),
-        navSource: 'find-session',
-      },
+      params: { id: session.id, navStartedAt: String(Date.now()), navSource: 'find-session' },
     })
 
   return (
     <Pressable
       onPress={openSessionDetail}
-      className="mb-5 rounded-[36px] border border-slate-200 bg-white p-5 shadow-sm active:scale-[0.98]"
+      className="mb-4 overflow-hidden rounded-[34px] px-6 pt-6 pb-4"
+      style={{
+        backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+        borderLeftWidth: 3,
+        borderLeftColor: PROFILE_THEME_COLORS.primary,
+        shadowColor: '#0f172a',
+        shadowOpacity: 0.06,
+        shadowRadius: 14,
+        shadowOffset: { width: 0, height: 6 },
+        elevation: 3,
+      }}
     >
-      <View className="flex-row items-start justify-between gap-3">
-        <View className="flex-1 flex-row flex-wrap items-center gap-2">
-          <View className={`rounded-full px-3 py-1.5 ${session.court_booking_status === 'confirmed' ? 'bg-emerald-100' : 'bg-amber-100'}`}>
+      <View style={{ position: 'absolute', top: -10, right: -16, zIndex: 0, opacity: 0.07 }} pointerEvents="none">
+        <SkillIcon size={96} color={PROFILE_THEME_COLORS.primary} strokeWidth={1.4} />
+      </View>
+
+      <Text
+        numberOfLines={2}
+        ellipsizeMode="tail"
+        style={{
+          color: PROFILE_THEME_COLORS.primary,
+          fontFamily: 'PlusJakartaSans-ExtraBold',
+          fontSize: 20,
+          lineHeight: 24,
+          letterSpacing: 0.8,
+          textTransform: 'uppercase',
+        }}
+      >
+        {court?.name ?? 'Kèo Pickleball'}
+      </Text>
+
+      {compactAddress ? (
+        <View className="mt-1">
+          <View
+            className="self-start flex-row items-center rounded-full px-3 py-1.5"
+            style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, maxWidth: '100%' }}
+          >
+            <MapPin size={13} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />
             <Text
-              className={`text-[11px] font-bold uppercase tracking-widest ${
-                session.court_booking_status === 'confirmed' ? 'text-emerald-700' : 'text-amber-700'
-              }`}
+              className="ml-1.5"
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              style={{
+                color: PROFILE_THEME_COLORS.onSurfaceVariant,
+                fontFamily: 'PlusJakartaSans-SemiBold',
+                fontSize: 13,
+                lineHeight: 18,
+              }}
             >
-              {session.court_booking_status === 'confirmed' ? 'Sân đã chốt' : 'Đang giữ sân'}
+              {compactAddress}
             </Text>
           </View>
+        </View>
+      ) : null}
 
-          <View className="rounded-full bg-indigo-100 px-3 py-1.5">
-            <Text className="text-[11px] font-bold uppercase tracking-widest text-indigo-700">{formatted.timeLabel}</Text>
-          </View>
+      <View className="mt-2 flex-row flex-wrap gap-2">
+        <View className="flex-row items-center rounded-full px-3 py-1.5" style={BADGE}>
+          <CalendarDays size={13} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />
+          <Text
+            className="ml-1.5"
+            numberOfLines={1}
+            style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13, lineHeight: 18 }}
+          >
+            {dayLabel} • {timeLabel}
+          </Text>
         </View>
 
-        <View className="rounded-full bg-indigo-600 px-3 py-2">
-          <Text className="text-[12px] font-black text-white">{matchScore}% phù hợp</Text>
+        <View className="flex-row items-center rounded-full px-3 py-1.5" style={BADGE}>
+          <SkillIcon size={13} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />
+          <Text
+            className="ml-1.5"
+            style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13, lineHeight: 18 }}
+          >
+            {skillUi.shortLabel}
+          </Text>
         </View>
-      </View>
 
-      <View className="mt-4">
-        <Text className="text-[22px] font-black text-slate-950">{court?.name ?? 'PickleMatch Arena'}</Text>
-        <View className="mt-2 flex-row items-start gap-2">
-          <MapPin size={16} color="#64748b" strokeWidth={2.5} />
-          <Text className="flex-1 text-sm leading-6 text-slate-500">
-            {court?.address ?? 'Đang cập nhật địa chỉ'}
-            {court?.city ? `, ${court.city}` : ''}
+        <View className="flex-row items-center rounded-full px-3 py-1.5" style={BADGE}>
+          {isBooked
+            ? <ShieldCheck size={13} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />
+            : <AlertCircle size={13} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />}
+          <Text
+            className="ml-1.5"
+            style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13, lineHeight: 18 }}
+          >
+            {isBooked ? 'Sân đã chốt' : 'Chờ xác nhận'}
+          </Text>
+        </View>
+
+        <View
+          className="flex-row items-center rounded-full px-3 py-1.5"
+          style={{ backgroundColor: withAlpha(PROFILE_THEME_COLORS.primary, 0.1) }}
+        >
+          <Text
+            style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 12, lineHeight: 18 }}
+          >
+            {matchScore}% phù hợp
           </Text>
         </View>
       </View>
 
-      <View className="mt-4 flex-row flex-wrap gap-2">
-        <View className={`rounded-full border px-3 py-2 ${skillUi.borderClassName} ${skillUi.tagClassName}`}>
-          <Text className={`text-[12px] font-bold uppercase tracking-widest ${skillUi.textClassName}`}>{skillUi.shortLabel}</Text>
-        </View>
-
-        <View className="rounded-full border border-slate-200 bg-slate-50 px-3 py-2">
-          <Text className="text-[12px] font-bold uppercase tracking-widest text-slate-600">
-            ELO {getSkillTargetElo(session.elo_min, session.elo_max)}
-          </Text>
-        </View>
-
-        <View className="rounded-full border border-slate-200 bg-slate-50 px-3 py-2">
-          <Text className="text-[12px] font-bold uppercase tracking-widest text-slate-600">DUPR {skillUi.duprValue}</Text>
-        </View>
-
-        {rescueMode ? (
-          <View className="rounded-full border border-rose-200 bg-rose-50 px-3 py-2">
-            <Text className="text-[12px] font-bold uppercase tracking-widest text-rose-600">Cần người gấp</Text>
-          </View>
-        ) : null}
-      </View>
-
-      <View className="mt-4 border-t border-slate-50 pt-4">
-        <View className="flex-row items-end justify-between gap-4">
-          <View className="flex-1">
-            <Text className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Chủ kèo</Text>
-            <Text className="mt-1 text-base font-black text-slate-900">{session.host?.name ?? 'Ẩn danh'}</Text>
-            <View className="mt-2 flex-row flex-wrap items-center gap-2">
-              <View className="flex-row items-center gap-2 rounded-full bg-slate-100 px-3 py-2">
-                <Users size={14} color="#475569" strokeWidth={2.5} />
-                <Text className="text-[11px] font-bold uppercase tracking-widest text-slate-600">
-                  {session.player_count}/{session.max_players} chỗ
-                </Text>
-              </View>
-
-              {hostSkillUi ? (
-                <View className="rounded-full bg-slate-100 px-3 py-2">
-                  <Text className="text-[11px] font-bold uppercase tracking-widest text-slate-600">{hostSkillUi.shortLabel}</Text>
-                </View>
-              ) : null}
+      <View
+        className="mt-4 rounded-[24px] p-3.5"
+        style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow }}
+      >
+        <View className="flex-row items-center justify-between">
+          <View className="mr-3 flex-1 flex-row items-center">
+            <View
+              className="mr-3 h-11 w-11 items-center justify-center rounded-full"
+              style={{
+                backgroundColor: PROFILE_THEME_COLORS.primary,
+                borderWidth: 1,
+                borderColor: withAlpha(PROFILE_THEME_COLORS.primary, 0.14),
+              }}
+            >
+              <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 15 }}>
+                {hostInitials}
+              </Text>
+            </View>
+            <View className="flex-1">
+              <Text
+                numberOfLines={1}
+                style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13 }}
+              >
+                {session.host?.name ?? 'Ẩn danh'}
+              </Text>
+              <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Regular', fontSize: 11, marginTop: 1 }}>
+                Chủ kèo
+              </Text>
             </View>
           </View>
 
           <View className="items-end">
-            <Text className="text-[11px] font-bold uppercase tracking-widest text-slate-400">{formatted.dayLabel}</Text>
-            <Text className="mt-1 text-2xl font-black text-slate-950">{formatPrice(session.slot?.price ?? 0, session.max_players)}</Text>
-            <Text className="mt-1 text-xs font-semibold text-slate-500">{slotsLeft > 0 ? `${slotsLeft} chỗ trống` : 'Đã đủ người'}</Text>
-
-            <Pressable
-              onPress={openSessionDetail}
-              className="mt-3 rounded-2xl bg-emerald-600 px-6 py-2.5 active:scale-[0.98]"
-            >
-              <Text className="text-[12px] font-black uppercase tracking-widest text-white">Vào kèo</Text>
-            </Pressable>
+            <Text style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 18 }}>
+              {formatPrice(session.slot?.price ?? 0, session.max_players)}
+            </Text>
+            <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Regular', fontSize: 10 }}>
+              /người
+            </Text>
           </View>
         </View>
+
+        <View
+          className="mt-3 h-2 overflow-hidden rounded-full"
+          style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHighest }}
+        >
+          <LinearGradient
+            colors={[PROFILE_THEME_COLORS.primary, PROFILE_THEME_COLORS.tertiary]}
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
+            style={{ width: `${Math.max(progressPercent, 8)}%`, height: '100%', borderRadius: 999 }}
+          />
+        </View>
+
+        <View className="mt-2 flex-row items-center justify-between">
+          <View className="flex-row items-center">
+            {Array.from({ length: Math.min(session.player_count, 4) }).map((_, index) => (
+              <View
+                key={index}
+                className={`h-7 w-7 items-center justify-center rounded-full ${index === 0 ? '' : '-ml-2'}`}
+                style={{
+                  backgroundColor: PROFILE_THEME_COLORS.primary,
+                  borderWidth: 2,
+                  borderColor: PROFILE_THEME_COLORS.surfaceContainerLow,
+                }}
+              >
+                <UserRound size={12} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.2} />
+              </View>
+            ))}
+            {session.player_count > 4 ? (
+              <View
+                className="-ml-2 h-7 w-7 items-center justify-center rounded-full"
+                style={{
+                  backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHighest,
+                  borderWidth: 2,
+                  borderColor: PROFILE_THEME_COLORS.surfaceContainerLow,
+                }}
+              >
+                <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 9 }}>
+                  +{session.player_count - 4}
+                </Text>
+              </View>
+            ) : null}
+          </View>
+          <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 12 }}>
+            {isFull ? 'Đã đủ người' : `Còn ${slotsLeft} chỗ`}
+          </Text>
+        </View>
+
+        <Pressable
+          onPress={openSessionDetail}
+          className="mt-3 flex-row items-center justify-center rounded-[20px] px-4 py-3.5"
+          style={{
+            backgroundColor: isFull ? PROFILE_THEME_COLORS.surfaceContainerHighest : PROFILE_THEME_COLORS.primary,
+          }}
+        >
+          <Text
+            style={{
+              color: isFull ? PROFILE_THEME_COLORS.onSurfaceVariant : PROFILE_THEME_COLORS.onPrimary,
+              fontFamily: 'PlusJakartaSans-ExtraBold',
+              fontSize: 13,
+              letterSpacing: 0.5,
+            }}
+          >
+            {isFull ? 'Đã đủ người' : 'Vào kèo'}
+          </Text>
+        </Pressable>
       </View>
     </Pressable>
   )
@@ -281,71 +406,45 @@ export default function FindSession() {
 
   const fetchSessions = useCallback(async () => {
     setLoading(true)
-
     const { data, error } = await supabase
       .from('sessions')
       .select(
-        `
-        id, elo_min, elo_max, max_players, status, court_booking_status,
+        `id, elo_min, elo_max, max_players, status, court_booking_status,
         host:host_id ( name, is_provisional, current_elo, elo, self_assessed_level, skill_label ),
         slot:slot_id (
           start_time, end_time, price,
           court:court_id ( id, name, address, city )
         ),
-        session_players ( player_id )
-      `,
+        session_players ( player_id )`,
       )
       .eq('status', 'open')
       .order('created_at', { ascending: false })
       .limit(50)
 
     if (!error && data) {
-      const mapped = data.map((session: any) => ({
-        ...session,
-        player_count: (session.session_players ?? []).length,
-      })) as Session[]
-
-      setSessions(mapped)
+      setSessions(data.map((s: any) => ({ ...s, player_count: (s.session_players ?? []).length })) as Session[])
     } else {
       setSessions([])
     }
-
     setLoading(false)
   }, [])
 
-  useEffect(() => {
-    fetchSessions()
-  }, [fetchSessions])
-
   const fetchPlayerProfile = useCallback(async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
+    const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       setPlayerProfile(null)
       setSmartQueueEnabled(false)
       setSmartQueueHydrated(true)
       return
     }
-
     const [{ data: profile }, storedFlag] = await Promise.all([
-      supabase
-        .from('players')
-        .select('id, city, current_elo, elo, self_assessed_level, skill_label, favorite_court_ids')
-        .eq('id', user.id)
-        .single(),
+      supabase.from('players').select('id, city, current_elo, elo, self_assessed_level, skill_label, favorite_court_ids').eq('id', user.id).single(),
       AsyncStorage.getItem(getSmartQueueKey(user.id)),
     ])
-
     setPlayerProfile((profile as PlayerQueueProfile | null) ?? null)
     setSmartQueueEnabled(storedFlag === '1')
     setSmartQueueHydrated(true)
   }, [])
-
-  useEffect(() => {
-    void fetchPlayerProfile()
-  }, [fetchPlayerProfile])
 
   useFocusEffect(
     useCallback(() => {
@@ -361,19 +460,7 @@ export default function FindSession() {
   }, [fetchPlayerProfile, fetchSessions])
 
   const toggleQuickFilter = useCallback((filterId: QuickFilterId) => {
-    setQuickFilters((current) => {
-      if (filterId === 'nearby') {
-        return {
-          ...current,
-          nearby: !current.nearby,
-        }
-      }
-
-      return {
-        ...current,
-        [filterId]: !current[filterId],
-      }
-    })
+    setQuickFilters((current) => ({ ...current, [filterId]: !current[filterId] }))
   }, [])
 
   const activeFiltersCount = Object.values(quickFilters).filter(Boolean).length
@@ -381,11 +468,9 @@ export default function FindSession() {
   const openMapSearch = useCallback(async () => {
     const fallbackQuery = query.trim() || playerProfile?.city?.trim() || sessions[0]?.slot?.court?.city?.trim() || 'Hồ Chí Minh'
     const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fallbackQuery)}`
-
     try {
       await Linking.openURL(url)
-    } catch (error) {
-      console.warn('[FindSession] open map search failed:', error)
+    } catch {
       Alert.alert('Không mở được bản đồ', 'Vui lòng thử lại sau ít phút.')
     }
   }, [playerProfile?.city, query, sessions])
@@ -403,34 +488,22 @@ export default function FindSession() {
         )
         return
       }
-
       if (!enabled) {
         setSmartQueueEnabled(false)
         setQuickFilters({ nearby: false, recent: false, level3: false, rescue: false })
         setQuery('')
-        if (smartQueueStorageKey) {
-          await AsyncStorage.setItem(smartQueueStorageKey, '0')
-        }
+        if (smartQueueStorageKey) await AsyncStorage.setItem(smartQueueStorageKey, '0')
         return
       }
-
       const playerLevel = getSkillLevelFromPlayer(playerProfile)
       const nextQuery = playerProfile.city?.trim() ?? ''
       const normalizedCity = normalizeText(playerProfile.city)
       const canUseNearbyFilter = normalizedCity.includes('ho chi minh') || normalizedCity.includes('thu duc')
-
       setSortMode('match')
       setQuery(nextQuery)
-      setQuickFilters({
-        nearby: canUseNearbyFilter,
-        recent: true,
-        level3: playerLevel?.id === 'level_3',
-        rescue: false,
-      })
+      setQuickFilters({ nearby: canUseNearbyFilter, recent: true, level3: playerLevel?.id === 'level_3', rescue: false })
       setSmartQueueEnabled(true)
-      if (smartQueueStorageKey) {
-        await AsyncStorage.setItem(smartQueueStorageKey, '1')
-      }
+      if (smartQueueStorageKey) await AsyncStorage.setItem(smartQueueStorageKey, '1')
     },
     [playerProfile, smartQueueStorageKey],
   )
@@ -443,92 +516,109 @@ export default function FindSession() {
   useEffect(() => {
     const routeCourtId = typeof params.courtId === 'string' ? params.courtId : undefined
     const routeCourtName = typeof params.courtName === 'string' ? params.courtName : undefined
-
     if (!routeCourtId && !routeCourtName) return
-
-    setPreferredCourtFilter({
-      id: routeCourtId,
-      name: routeCourtName,
-    })
-
-    if (routeCourtName) {
-      setQuery(routeCourtName)
-    }
+    setPreferredCourtFilter({ id: routeCourtId, name: routeCourtName })
+    if (routeCourtName) setQuery(routeCourtName)
   }, [params.courtId, params.courtName])
 
   const filteredSessions = useMemo(() => {
     const normalizedSearch = normalizeText(query)
-
     return sessions
       .filter((session) => {
-        const searchMatches = !normalizedSearch || buildSearchIndex(session).includes(normalizedSearch)
-        if (!searchMatches) return false
-
-        if (quickFilters.level3 && getSkillLevelFromEloRange(session.elo_min, session.elo_max).id !== 'level_3') {
-          return false
-        }
-
-        if (quickFilters.rescue && session.max_players - session.player_count > 2) {
-          return false
-        }
-
+        if (normalizedSearch && !buildSearchIndex(session).includes(normalizedSearch)) return false
+        if (quickFilters.level3 && getSkillLevelFromEloRange(session.elo_min, session.elo_max).id !== 'level_3') return false
+        if (quickFilters.rescue && session.max_players - session.player_count > 2) return false
         if (quickFilters.recent) {
           const hoursUntilStart = (new Date(session.slot?.start_time ?? 0).getTime() - Date.now()) / 3600000
           if (hoursUntilStart < 0 || hoursUntilStart > 48) return false
         }
-
         if (quickFilters.nearby) {
           const city = normalizeText(session.slot?.court?.city)
           if (!city.includes('ho chi minh') && !city.includes('thu duc')) return false
         }
-
         if (preferredCourtFilter?.id) {
           if (session.slot?.court?.id !== preferredCourtFilter.id) return false
         } else if (preferredCourtFilter?.name) {
-          const sessionCourtName = normalizeText(session.slot?.court?.name)
-          if (sessionCourtName !== normalizeText(preferredCourtFilter.name)) return false
+          if (normalizeText(session.slot?.court?.name) !== normalizeText(preferredCourtFilter.name)) return false
         }
-
         return true
       })
-      .sort((left, right) => {
+      .sort((a, b) => {
         if (sortMode === 'time') {
-          return new Date(left.slot?.start_time ?? 0).getTime() - new Date(right.slot?.start_time ?? 0).getTime()
+          return new Date(a.slot?.start_time ?? 0).getTime() - new Date(b.slot?.start_time ?? 0).getTime()
         }
-
         return (
-          computeMatchScore(right, quickFilters.rescue, quickFilters.level3) -
-          computeMatchScore(left, quickFilters.rescue, quickFilters.level3)
+          computeMatchScore(b, quickFilters.rescue, quickFilters.level3) -
+          computeMatchScore(a, quickFilters.rescue, quickFilters.level3)
         )
       })
   }, [preferredCourtFilter, query, quickFilters, sessions, sortMode])
 
-  const stickyHeader = (
-    <View className="border-b border-slate-100 bg-white/80 px-6 pb-4 pt-3">
-      <View className="flex-row items-center gap-3">
-        <View className="h-14 flex-1 flex-row items-center gap-3 rounded-[24px] border border-slate-200 bg-slate-50 px-4">
-          <Search size={18} color="#94a3b8" strokeWidth={2.5} />
-          <TextInput
-            value={query}
-            onChangeText={setQuery}
-            placeholder="Tìm sân, quận hoặc trình độ..."
-            placeholderTextColor="#94a3b8"
-            className="flex-1 text-[15px] font-semibold text-slate-900"
-          />
+  const listHeader = useMemo(() => (
+    <View>
+      {/* Page title */}
+      <View className="flex-row items-start justify-between px-5 pt-5 pb-4">
+        <View className="flex-1 pr-4">
+          <Text
+            className="text-[11px] uppercase tracking-[0.16em]"
+            style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-ExtraBold' }}
+          >
+            KHÁM PHÁ
+          </Text>
+          <Text
+            className="mt-2 text-[28px] leading-[34px]"
+            style={{ color: PROFILE_THEME_COLORS.onBackground, fontFamily: 'PlusJakartaSans-ExtraBold' }}
+          >
+            Tìm kèo
+          </Text>
         </View>
 
         <Pressable
           onPress={() => void openMapSearch()}
-          className="h-14 w-14 items-center justify-center rounded-[24px] bg-slate-900 shadow-lg shadow-slate-900/20 active:scale-[0.98]"
+          className="mt-1 h-16 w-16 items-center justify-center rounded-full"
+          style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow }}
         >
-          <Map size={20} color="#ffffff" strokeWidth={2.5} />
+          <Map size={24} color={PROFILE_THEME_COLORS.primary} strokeWidth={2.4} />
         </Pressable>
       </View>
 
+      {/* Search bar */}
+      <View className="px-5 pb-3">
+        <View
+          className="h-14 flex-row items-center rounded-[24px] px-4"
+          style={{
+            backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
+            borderWidth: 1,
+            borderColor: PROFILE_THEME_COLORS.outlineVariant,
+          }}
+        >
+          <Search size={18} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />
+          <TextInput
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Tìm sân, quận hoặc trình độ..."
+            placeholderTextColor={PROFILE_THEME_COLORS.outline}
+            style={{
+              flex: 1,
+              marginLeft: 10,
+              fontSize: 15,
+              fontFamily: 'PlusJakartaSans-SemiBold',
+              color: PROFILE_THEME_COLORS.onSurface,
+            }}
+          />
+          {query.length > 0 ? (
+            <Pressable onPress={() => setQuery('')} className="ml-2 p-1">
+              <X size={16} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />
+            </Pressable>
+          ) : null}
+        </View>
+      </View>
+
+      {/* Quick filters */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ gap: 8, paddingTop: 16, paddingRight: 24 }}
+        contentContainerStyle={{ gap: 8, paddingHorizontal: 20, paddingBottom: 16 }}
       >
         <Pressable
           onPress={() =>
@@ -538,162 +628,243 @@ export default function FindSession() {
                 : { ...current, recent: true, rescue: true },
             )
           }
-          className="flex-row items-center gap-2 rounded-full bg-emerald-600 px-4 py-2.5 active:scale-[0.98]"
+          className="flex-row items-center rounded-full px-4 py-2.5"
+          style={{
+            backgroundColor: activeFiltersCount > 0 ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surfaceContainerLow,
+            borderWidth: 1,
+            borderColor: activeFiltersCount > 0 ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
+          }}
         >
-          <SlidersHorizontal size={14} color="#ffffff" strokeWidth={2.5} />
-          <Text className="text-[12px] font-black text-white">BỘ LỌC</Text>
+          <SlidersHorizontal
+            size={13}
+            color={activeFiltersCount > 0 ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant}
+            strokeWidth={2.5}
+          />
+          <Text
+            className="ml-1.5"
+            style={{
+              color: activeFiltersCount > 0 ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant,
+              fontFamily: 'PlusJakartaSans-ExtraBold',
+              fontSize: 12,
+            }}
+          >
+            {activeFiltersCount > 0 ? `Bỏ lọc (${activeFiltersCount})` : 'Bộ lọc'}
+          </Text>
         </Pressable>
 
         {QUICK_FILTERS.map((filter) => {
           const active = quickFilters[filter.id]
-
           return (
             <Pressable
               key={filter.id}
               onPress={() => toggleQuickFilter(filter.id)}
-              className={`rounded-full border px-5 py-2.5 active:scale-[0.98] ${
-                active ? 'border-slate-900 bg-slate-900' : 'border-slate-200 bg-white'
-              }`}
+              className="rounded-full px-4 py-2.5"
+              style={{
+                backgroundColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surfaceContainerLow,
+                borderWidth: 1,
+                borderColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
+              }}
             >
-              <Text className={`text-[12px] font-black uppercase ${active ? 'text-white' : 'text-slate-600'}`}>{filter.label}</Text>
+              <Text
+                style={{
+                  color: active ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant,
+                  fontFamily: 'PlusJakartaSans-ExtraBold',
+                  fontSize: 12,
+                }}
+              >
+                {filter.label}
+              </Text>
             </Pressable>
           )
         })}
       </ScrollView>
 
+      {/* Preferred court filter banner */}
       {preferredCourtFilter ? (
-        <View className="mt-4 flex-row items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+        <View
+          className="mx-5 mb-4 flex-row items-center rounded-[20px] px-4 py-3"
+          style={{
+            backgroundColor: PROFILE_THEME_COLORS.secondaryContainer,
+          }}
+        >
           <View className="flex-1 pr-3">
-            <Text className="text-[11px] font-bold uppercase tracking-widest text-emerald-700">Đang lọc theo sân quen</Text>
-            <Text numberOfLines={1} className="mt-1 text-[13px] font-black text-emerald-900">
+            <Text
+              style={{ color: PROFILE_THEME_COLORS.onSecondaryContainer, fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 10, letterSpacing: 1.5, textTransform: 'uppercase' }}
+            >
+              Đang lọc theo sân quen
+            </Text>
+            <Text
+              numberOfLines={1}
+              className="mt-1"
+              style={{ color: PROFILE_THEME_COLORS.onSecondaryContainer, fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 13 }}
+            >
               {preferredCourtFilter.name ?? 'Sân đã chọn'}
             </Text>
           </View>
           <Pressable
             onPress={() => setPreferredCourtFilter(null)}
-            className="rounded-full bg-emerald-700 px-3 py-2 active:scale-[0.98]"
+            className="flex-row items-center rounded-full px-3 py-2"
+            style={{ backgroundColor: withAlpha(PROFILE_THEME_COLORS.onSecondaryContainer, 0.12) }}
           >
-            <Text className="text-[11px] font-black uppercase tracking-widest text-white">Bỏ lọc</Text>
+            <X size={13} color={PROFILE_THEME_COLORS.onSecondaryContainer} strokeWidth={2.5} />
+            <Text
+              className="ml-1"
+              style={{ color: PROFILE_THEME_COLORS.onSecondaryContainer, fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 12 }}
+            >
+              Bỏ lọc
+            </Text>
           </Pressable>
         </View>
       ) : null}
-    </View>
-  )
 
-  const listIntro = (
-    <View className="px-6 pb-4 pt-6">
-      <View className="flex-row items-center justify-between gap-4">
-        <View className="flex-1">
-          <Text className="text-[24px] font-black text-slate-950">
-            {loading ? 'Đang tải kết quả phù hợp' : `Kết quả phù hợp (${filteredSessions.length})`}
-          </Text>
-          <Text className="mt-1 text-sm text-slate-500">
+      {/* Results header */}
+      <View className="flex-row items-center justify-between px-5 pb-4">
+        <View className="flex-1 pr-4">
+          <Text
+            style={{ color: PROFILE_THEME_COLORS.onBackground, fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 16 }}
+          >
             {loading
-              ? 'Hệ thống đang làm mới danh sách kèo hợp gu cho bạn.'
-              : 'Khám phá các kèo có điểm match cao nhất cho gu chơi của bạn.'}
+              ? 'Đang tải...'
+              : filteredSessions.length > 0
+                ? `${filteredSessions.length} kèo phù hợp`
+                : 'Không tìm thấy kèo'}
           </Text>
         </View>
 
         <Pressable
           onPress={() => setSortMode((current) => (current === 'match' ? 'time' : 'match'))}
-          className="rounded-full border border-slate-200 bg-white px-4 py-3 active:scale-[0.98]"
+          className="flex-row items-center rounded-full px-4 py-2.5"
+          style={BADGE}
         >
-          <Text className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Sắp xếp theo</Text>
-          <Text className="mt-1 text-[13px] font-black text-slate-900">
-            {sortMode === 'match' ? 'Độ phù hợp' : 'Giờ chơi'}
+          <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 12 }}>
+            {sortMode === 'match' ? 'Độ phù hợp ↕' : 'Giờ chơi ↕'}
           </Text>
         </Pressable>
       </View>
     </View>
-  )
+  ), [loading, filteredSessions.length, query, activeFiltersCount, quickFilters, preferredCourtFilter, sortMode, openMapSearch, toggleQuickFilter, setQuery, setQuickFilters, setSortMode, setPreferredCourtFilter])
 
-  const smartQueueFooter = (
-    <View className="px-6 pb-10">
-      {filteredSessions.length === 0 ? (
-        <View className="mb-5 rounded-[28px] border border-slate-200 bg-white p-5">
-          <Text className="text-[12px] font-bold uppercase tracking-widest text-slate-400">Hiện chưa có kèo khớp</Text>
-          <Text className="mt-3 text-[22px] font-black text-slate-950">Thử đổi từ khóa hoặc bật gợi ý hợp gu</Text>
-          <Text className="mt-2 text-sm leading-6 text-slate-500">
-            Hệ thống sẽ tiếp tục săn các trận phù hợp hơn để bạn không bỏ lỡ cơ hội vào sân đúng gu.
+  const listFooter = useMemo(() => (
+    <View className="px-5 pb-10">
+      {!loading && filteredSessions.length === 0 ? (
+        <View
+          className="mb-4 rounded-[28px] px-6 py-7"
+          style={{
+            backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+            borderLeftWidth: 3,
+            borderLeftColor: PROFILE_THEME_COLORS.primary,
+            shadowColor: '#0f172a',
+            shadowOpacity: 0.04,
+            shadowRadius: 10,
+            shadowOffset: { width: 0, height: 4 },
+            elevation: 2,
+          }}
+        >
+          <Text style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 10, letterSpacing: 2, textTransform: 'uppercase' }}>
+            Chưa có kèo khớp
+          </Text>
+          <Text className="mt-3" style={{ color: PROFILE_THEME_COLORS.onBackground, fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 22, lineHeight: 28 }}>
+            Thử đổi bộ lọc hoặc bật gợi ý hợp gu
+          </Text>
+          <Text className="mt-2" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Regular', fontSize: 14, lineHeight: 22 }}>
+            Hệ thống sẽ tiếp tục săn trận phù hợp để bạn không bỏ lỡ cơ hội vào sân đúng gu.
           </Text>
         </View>
       ) : null}
 
-      <View className="items-center rounded-[32px] border border-indigo-100 bg-indigo-50 p-6">
-        <View className="h-14 w-14 items-center justify-center rounded-full bg-white">
-          <TrendingUp size={24} color="#4f46e5" strokeWidth={2.5} />
-        </View>
-        <Text className="mt-4 text-center text-[24px] font-black text-slate-950">Chưa thấy kèo ưng ý?</Text>
-        <Text className="mt-3 text-center text-sm leading-6 text-slate-600">
-          Bật gợi ý hợp gu để nhận cảnh báo ngay khi có trận vừa trình, vừa giờ, vừa khoảng cách bạn đang săn.
+      <View
+        className="rounded-[28px] px-6 py-6"
+        style={{
+          backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+          borderLeftWidth: 3,
+          borderLeftColor: PROFILE_THEME_COLORS.primary,
+          shadowColor: '#0f172a',
+          shadowOpacity: 0.04,
+          shadowRadius: 10,
+          shadowOffset: { width: 0, height: 4 },
+          elevation: 2,
+        }}
+      >
+        <Text style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 10, letterSpacing: 2, textTransform: 'uppercase' }}>
+          Gợi ý thông minh
         </Text>
+        <Text className="mt-3" style={{ color: PROFILE_THEME_COLORS.onBackground, fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 22, lineHeight: 28 }}>
+          Chưa thấy kèo ưng ý?
+        </Text>
+        <Text className="mt-2" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Regular', fontSize: 14, lineHeight: 22 }}>
+          Bật gợi ý hợp gu để ưu tiên kèo vừa trình, vừa giờ, vừa khoảng cách bạn đang săn.
+        </Text>
+
+        {smartQueueEnabled ? (
+          <Text
+            className="mt-3"
+            style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 12, lineHeight: 18 }}
+          >
+            Đang ưu tiên kèo gần {playerProfile?.city?.trim() || 'gu của bạn'} và khớp nhịp chơi hiện tại
+          </Text>
+        ) : null}
 
         <Pressable
           onPress={() => void applySmartQueueFilters(!smartQueueEnabled)}
           disabled={!smartQueueHydrated}
-          className={`mt-5 flex-row items-center gap-2 rounded-2xl px-5 py-3 active:scale-[0.98] ${
-            !smartQueueHydrated ? 'bg-slate-400 opacity-70' : smartQueueEnabled ? 'bg-slate-900' : 'bg-indigo-600'
-          }`}
+          className="mt-4 flex-row items-center justify-center rounded-[20px] px-4 py-3.5"
+          style={{
+            backgroundColor: smartQueueEnabled
+              ? PROFILE_THEME_COLORS.surfaceContainerHighest
+              : PROFILE_THEME_COLORS.primary,
+            opacity: !smartQueueHydrated ? 0.5 : 1,
+          }}
         >
-          <Sparkles size={16} color="#ffffff" strokeWidth={2.5} />
-          <Text className="text-[12px] font-black uppercase tracking-widest text-white">
+          <Sparkles
+            size={15}
+            color={smartQueueEnabled ? PROFILE_THEME_COLORS.onSurfaceVariant : PROFILE_THEME_COLORS.onPrimary}
+            strokeWidth={2.3}
+          />
+          <Text
+            className="ml-2 text-[13px]"
+            style={{
+              color: smartQueueEnabled ? PROFILE_THEME_COLORS.onSurfaceVariant : PROFILE_THEME_COLORS.onPrimary,
+              fontFamily: 'PlusJakartaSans-ExtraBold',
+            }}
+          >
             {smartQueueEnabled ? 'Tắt gợi ý hợp gu' : 'Bật gợi ý hợp gu'}
           </Text>
         </Pressable>
-
-        {smartQueueEnabled ? (
-          <Text className="mt-3 text-center text-xs font-bold uppercase tracking-widest text-slate-500">
-            Đang ưu tiên kèo gần {playerProfile?.city?.trim() || 'gu của bạn'} và khớp nhịp chơi hiện tại
-          </Text>
-        ) : null}
       </View>
     </View>
-  )
+  ), [loading, filteredSessions.length, smartQueueEnabled, smartQueueHydrated, playerProfile?.city, applySmartQueueFilters])
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-50" edges={['top']}>
-      <ScreenHeader
-        variant="brand"
-        title="KINETIC"
-        leftSlot={<Menu size={18} color={PROFILE_THEME_COLORS.primary} />}
-        rightSlot={
-          <View
-            className="h-10 w-10 items-center justify-center rounded-full border-2"
-            style={{ borderColor: PROFILE_THEME_COLORS.primaryFixed, backgroundColor: PROFILE_THEME_COLORS.primary }}
-          >
-            <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-Bold' }}>U</Text>
-          </View>
-        }
-        style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow }}
-      />
+    <SafeAreaView className="flex-1" style={{ backgroundColor: PROFILE_THEME_COLORS.background }} edges={['top']}>
       {loading ? (
         <View className="flex-1">
-          {stickyHeader}
-          <View className="px-6 pt-10">
-            {listIntro}
-            <ActivityIndicator color="#059669" />
+          {listHeader}
+          <View className="flex-1 items-center justify-center">
+            <ActivityIndicator size="large" color={PROFILE_THEME_COLORS.primary} />
+            <Text
+              className="mt-4 text-[14px]"
+              style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-SemiBold' }}
+            >
+              Đang tải kèo phù hợp...
+            </Text>
           </View>
         </View>
       ) : (
         <FlatList
           data={filteredSessions}
           keyExtractor={(item) => item.id}
-          renderItem={({ item, index }) => (
-            <View className={index === 0 ? 'px-6 pt-6 pb-1' : 'px-6'}>
+          renderItem={({ item }) => (
+            <View className="px-5">
               <SearchResultCard session={item} rescueMode={quickFilters.rescue} />
             </View>
           )}
-          ListHeaderComponent={
-            <View>
-              {stickyHeader}
-              {filteredSessions.length > 0 ? listIntro : null}
-            </View>
-          }
-          ListEmptyComponent={null}
-          ListFooterComponent={smartQueueFooter}
+          ListHeaderComponent={listHeader}
+          ListFooterComponent={listFooter}
           contentContainerStyle={{ paddingBottom: 12 }}
           showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#059669" />}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={PROFILE_THEME_COLORS.primary} />
+          }
         />
       )}
     </SafeAreaView>

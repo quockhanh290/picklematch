@@ -1,15 +1,18 @@
+import { LinearGradient } from 'expo-linear-gradient'
 import type { LucideIcon } from 'lucide-react-native'
 import {
   Activity,
   AlertCircle,
+  CalendarDays,
   CircleDollarSign,
-  Clock3,
   MapPin,
   ShieldCheck,
   Target,
   Users,
 } from 'lucide-react-native'
-import { Text, TouchableOpacity, View } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
+
+import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 
 type Props = {
   courtName: string
@@ -34,15 +37,25 @@ type Props = {
   onPress: () => void
   disabled?: boolean
   containerClassName?: string
+  actionLabel?: string
+}
+
+function hexToRgb(hex: string) {
+  const clean = hex.replace('#', '')
+  const value = clean.length === 3 ? clean.split('').map((c) => c + c).join('') : clean
+  const n = Number.parseInt(value, 16)
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 }
+}
+
+function withAlpha(hex: string, alpha: number) {
+  const { r, g, b } = hexToRgb(hex)
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
 
 function extractCounts(label: string) {
   const match = label.match(/(\d+)\s*\/\s*(\d+)/)
   if (!match) return null
-  return {
-    first: Number(match[1]),
-    second: Number(match[2]),
-  }
+  return { first: Number(match[1]), second: Number(match[2]) }
 }
 
 function compactPriceLabel(label: string, divisor?: number) {
@@ -55,6 +68,12 @@ function compactPriceLabel(label: string, divisor?: number) {
   return `${Math.round(normalized / 1000)}K`
 }
 
+const BADGE_STYLE = {
+  backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
+  borderWidth: 1,
+  borderColor: PROFILE_THEME_COLORS.outlineVariant,
+} as const
+
 export function FeedMatchCard({
   courtName,
   address,
@@ -63,20 +82,22 @@ export function FeedMatchCard({
   bookingStatus,
   skillLabel,
   skillIcon: SkillIcon,
-  skillTagClassName,
-  skillTextClassName,
-  skillBorderClassName,
-  skillIconColor,
+  skillTagClassName: _skillTagClassName,
+  skillTextClassName: _skillTextClassName,
+  skillBorderClassName: _skillBorderClassName,
+  skillIconColor: _skillIconColor,
   eloValue,
   duprValue,
+  matchTypeLabel: _matchTypeLabel,
   hostName,
-  hostSkillIcon: HostSkillIcon,
+  hostSkillIcon: _hostSkillIcon,
   priceLabel,
   priceDivisor,
   availabilityLabel,
   onPress,
   disabled = false,
   containerClassName = 'mx-5 mb-4',
+  actionLabel = 'Vào kèo',
 }: Props) {
   const isConfirmed = bookingStatus === 'confirmed'
   const avatarLetter = (hostName || '?').slice(0, 1).toUpperCase()
@@ -85,95 +106,304 @@ export function FeedMatchCard({
     availabilityLabel.toLowerCase().includes('đầy') ||
     availabilityLabel.toLowerCase().includes('đủ người') ||
     (counts ? counts.first >= counts.second : false)
+  const progressPercent = counts
+    ? Math.max(0, Math.min((counts.first / Math.max(counts.second, 1)) * 100, 100))
+    : 0
+  const compactAddress = address
+    .split(',')
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .slice(0, 2)
+    .join(', ')
+  const nameLength = courtName.length
+  const titleFontSize = nameLength > 52 ? 24 : nameLength > 40 ? 27 : nameLength > 30 ? 31 : 36
+  const titleLineHeight = titleFontSize + 9
 
   return (
-    <TouchableOpacity
-      activeOpacity={disabled ? 1 : 0.95}
-      className={`${containerClassName} rounded-[28px] border border-slate-200 bg-white px-4 py-3.5`}
+    <Pressable
       onPress={onPress}
       disabled={disabled}
+      className={`${containerClassName} overflow-hidden rounded-[34px] px-6 pt-6 pb-4`}
+      style={{
+        backgroundColor: 'transparent',
+        borderWidth: 1,
+        borderColor: PROFILE_THEME_COLORS.primary,
+        borderLeftWidth: 3,
+        borderLeftColor: PROFILE_THEME_COLORS.primary,
+        shadowColor: withAlpha(PROFILE_THEME_COLORS.primary, 0.4),
+        shadowOpacity: 0.08,
+        shadowRadius: 14,
+        shadowOffset: { width: 0, height: 6 },
+        elevation: 3,
+      }}
     >
-      <View className="flex-row items-center justify-between">
-        <View className={`flex-row items-center rounded-full px-3 py-2 ${isConfirmed ? 'bg-emerald-50' : 'bg-orange-50'}`}>
-          {isConfirmed ? <ShieldCheck size={14} color="#047857" /> : <AlertCircle size={14} color="#c2410c" />}
-          <Text className={`ml-2 text-xs font-bold ${isConfirmed ? 'text-emerald-700' : 'text-orange-700'}`}>
+      <Text
+        numberOfLines={2}
+        ellipsizeMode="tail"
+        adjustsFontSizeToFit
+        minimumFontScale={0.68}
+        style={{
+          color: PROFILE_THEME_COLORS.primary,
+          fontFamily: 'PlusJakartaSans-ExtraBold',
+          fontSize: titleFontSize,
+          lineHeight: titleLineHeight,
+          letterSpacing: 0.8,
+          textTransform: 'uppercase',
+        }}
+      >
+        {courtName}
+      </Text>
+
+      <Text
+        style={{
+          color: withAlpha(PROFILE_THEME_COLORS.onSurfaceVariant, 0.44),
+          fontFamily: 'PlusJakartaSans-ExtraBoldItalic',
+          fontSize: 44,
+          lineHeight: 52,
+        }}
+      >
+        {timeLabel}
+      </Text>
+
+      <View className="mt-1.5">
+        <View
+          className="self-start flex-row items-center rounded-full px-3 py-1.5"
+          style={{ ...BADGE_STYLE, maxWidth: '100%' }}
+        >
+          <MapPin size={13} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />
+          <Text
+            className="ml-1.5"
+            numberOfLines={1}
+            ellipsizeMode="tail"
+            style={{
+              color: PROFILE_THEME_COLORS.onSurfaceVariant,
+              fontFamily: 'PlusJakartaSans-SemiBold',
+              fontSize: 12,
+              lineHeight: 17,
+            }}
+          >
+            {compactAddress || address}
+          </Text>
+        </View>
+      </View>
+
+      <View className="mt-2 flex-row flex-wrap items-center gap-2">
+        <View className="flex-row items-center rounded-full px-3 py-2" style={BADGE_STYLE}>
+          {isConfirmed
+            ? <ShieldCheck size={14} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />
+            : <AlertCircle size={14} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />}
+          <Text
+            className="ml-1.5"
+            style={{
+              color: PROFILE_THEME_COLORS.onSurfaceVariant,
+              fontFamily: 'PlusJakartaSans-SemiBold',
+              fontSize: 12,
+              lineHeight: 18,
+            }}
+          >
             {isConfirmed ? 'Sân đã chốt' : 'Chờ xác nhận'}
           </Text>
         </View>
 
-        <View className="flex-row items-center rounded-full bg-indigo-50 px-3 py-2">
-          <Clock3 size={14} color="#4338ca" />
-          <Text className="ml-2 text-xs font-bold text-indigo-700">
-            {timeLabel}
-            {dateLabel ? ` • ${dateLabel}` : ''}
-          </Text>
-        </View>
-      </View>
-
-      <View className="mt-3">
-        <View className="flex-row items-center gap-2">
-          <Text className="flex-1 text-xl font-black text-gray-900" numberOfLines={1}>
-            {courtName}
-          </Text>
-          <View className={`flex-row items-center rounded-full border px-3 py-1.5 ${isFull ? 'border-rose-700/10 bg-rose-50' : 'border-emerald-700/10 bg-emerald-50'}`}>
-            <Users size={12} color={isFull ? '#be123c' : '#047857'} />
-            <Text className={`ml-1.5 text-[10px] font-bold uppercase tracking-[1px] ${isFull ? 'text-rose-700' : 'text-emerald-700'}`}>
-              {counts ? `${counts.first}/${counts.second}` : availabilityLabel}
+        {dateLabel ? (
+          <View className="flex-row items-center rounded-full px-3 py-2" style={BADGE_STYLE}>
+            <CalendarDays size={14} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />
+            <Text
+              className="ml-1.5"
+              style={{
+                color: PROFILE_THEME_COLORS.onSurfaceVariant,
+                fontFamily: 'PlusJakartaSans-SemiBold',
+                fontSize: 12,
+                lineHeight: 18,
+              }}
+            >
+              {dateLabel}
             </Text>
           </View>
+        ) : null}
+
+        <View className="flex-row items-center rounded-full px-3 py-2" style={BADGE_STYLE}>
+          <SkillIcon size={14} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />
+          <Text
+            className="ml-1.5"
+            style={{
+              color: PROFILE_THEME_COLORS.onSurfaceVariant,
+              fontFamily: 'PlusJakartaSans-SemiBold',
+              fontSize: 12,
+              lineHeight: 18,
+            }}
+          >
+            {skillLabel}
+          </Text>
         </View>
 
-        <View className="mt-1.5 flex-row items-center">
-          <MapPin size={15} color="#6b7280" />
-          <Text className="ml-2 flex-1 text-sm text-gray-500" numberOfLines={1}>
-            {address}
+        <View className="flex-row items-center rounded-full px-3 py-2" style={BADGE_STYLE}>
+          <Target size={14} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />
+          <Text
+            className="ml-1.5"
+            style={{
+              color: PROFILE_THEME_COLORS.onSurfaceVariant,
+              fontFamily: 'PlusJakartaSans-SemiBold',
+              fontSize: 12,
+              lineHeight: 18,
+            }}
+          >
+            {eloValue} ELO
+          </Text>
+        </View>
+
+        <View className="flex-row items-center rounded-full px-3 py-2" style={BADGE_STYLE}>
+          <Activity size={14} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />
+          <Text
+            className="ml-1.5"
+            style={{
+              color: PROFILE_THEME_COLORS.onSurfaceVariant,
+              fontFamily: 'PlusJakartaSans-SemiBold',
+              fontSize: 12,
+              lineHeight: 18,
+            }}
+          >
+            {duprValue} DUPR
+          </Text>
+        </View>
+
+        <View className="flex-row items-center rounded-full px-3 py-2" style={BADGE_STYLE}>
+          <CircleDollarSign size={14} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />
+          <Text
+            className="ml-1.5"
+            style={{
+              color: PROFILE_THEME_COLORS.onSurfaceVariant,
+              fontFamily: 'PlusJakartaSans-SemiBold',
+              fontSize: 12,
+              lineHeight: 18,
+            }}
+          >
+            {compactPriceLabel(priceLabel, priceDivisor)}/ng
           </Text>
         </View>
       </View>
 
-      <View className="mt-3 flex-row flex-wrap gap-2">
-        <View className={`flex-row items-center rounded-full border px-3 py-2 ${skillTagClassName} ${skillBorderClassName}`}>
-          <SkillIcon size={13} color={skillIconColor} />
-          <Text className={`ml-2 text-xs font-semibold uppercase tracking-[0.8px] ${skillTextClassName}`}>{skillLabel}</Text>
-        </View>
-
-        <View className="flex-row items-center rounded-full border border-slate-200 bg-slate-100 px-3 py-2">
-          <Target size={12} color="#64748b" />
-          <Text className="ml-1.5 text-xs font-semibold uppercase tracking-[0.8px] text-slate-500">{eloValue} ELO</Text>
-        </View>
-
-        <View className="flex-row items-center rounded-full border border-slate-200 bg-slate-100 px-3 py-2">
-          <Activity size={12} color="#64748b" />
-          <Text className="ml-1.5 text-xs font-semibold uppercase tracking-[0.8px] text-slate-500">{duprValue} DUPR</Text>
-        </View>
-      </View>
-
-      <View className="my-3 h-px bg-gray-100" />
-
-      <View className="flex-row items-center justify-between">
-        <View className="flex-1 flex-row items-center">
-          <View className="relative h-10 w-10 items-center justify-center rounded-full bg-slate-900">
-            <Text className="text-sm font-black text-white">{avatarLetter}</Text>
+      <View
+        className="mt-4 rounded-[24px] p-3.5"
+        style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow }}
+      >
+        <View className="flex-row items-center justify-between">
+          <View className="mr-3 flex-1 flex-row items-center">
             <View
-              className="absolute -bottom-1 -right-1 h-5 w-5 items-center justify-center rounded-full bg-slate-100"
-              style={{ borderWidth: 3, borderColor: '#ffffff' }}
+              className="mr-3 h-11 w-11 items-center justify-center rounded-full"
+              style={{
+                backgroundColor: PROFILE_THEME_COLORS.primary,
+                borderWidth: 1,
+                borderColor: withAlpha(PROFILE_THEME_COLORS.primary, 0.14),
+              }}
             >
-              {HostSkillIcon ? <HostSkillIcon size={10} color="#475569" /> : <SkillIcon size={10} color="#475569" />}
+              <Text
+                style={{
+                  color: PROFILE_THEME_COLORS.onPrimary,
+                  fontFamily: 'PlusJakartaSans-ExtraBold',
+                  fontSize: 15,
+                }}
+              >
+                {avatarLetter}
+              </Text>
+            </View>
+
+            <View className="flex-1">
+              <Text
+                numberOfLines={1}
+                style={{
+                  color: PROFILE_THEME_COLORS.onSurface,
+                  fontFamily: 'PlusJakartaSans-SemiBold',
+                  fontSize: 13,
+                }}
+              >
+                {hostName || 'Ẩn danh'}
+              </Text>
             </View>
           </View>
 
-          <View className="ml-3 flex-1">
-            <Text className="text-sm font-bold text-gray-900" numberOfLines={1}>
-              {hostName || 'Ẩn danh'}
+          <View className="items-end">
+            <Text
+              style={{
+                color: PROFILE_THEME_COLORS.onSurface,
+                fontFamily: 'PlusJakartaSans-ExtraBold',
+                fontSize: 16,
+              }}
+            >
+              {counts ? `${counts.first}/${counts.second}` : availabilityLabel}
+            </Text>
+            <Text
+              style={{
+                color: PROFILE_THEME_COLORS.onSurfaceVariant,
+                fontFamily: 'PlusJakartaSans-Regular',
+                fontSize: 10,
+              }}
+            >
+              người chơi
             </Text>
           </View>
         </View>
 
-        <View className="ml-3 flex-row items-center rounded-full border border-amber-200 bg-amber-50 px-3 py-2">
-          <CircleDollarSign size={14} color="#b45309" />
-          <Text className="ml-1.5 text-sm font-bold text-amber-700">{compactPriceLabel(priceLabel, priceDivisor)}</Text>
+        <View
+          className="mt-3 h-2 rounded-full overflow-hidden"
+          style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHighest }}
+        >
+          <LinearGradient
+            colors={[PROFILE_THEME_COLORS.primary, PROFILE_THEME_COLORS.tertiary]}
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
+            style={{ width: `${progressPercent}%`, height: '100%', borderRadius: 999 }}
+          />
+        </View>
+
+        <View className="mt-3 flex-row items-center justify-between gap-3">
+          <View className="flex-1 flex-row items-center">
+            <View
+              className="flex-row items-center rounded-full px-3 py-2"
+              style={{
+                backgroundColor: isFull
+                  ? PROFILE_THEME_COLORS.errorContainer
+                  : PROFILE_THEME_COLORS.surfaceContainerHighest,
+                borderWidth: 1,
+                borderColor: isFull ? PROFILE_THEME_COLORS.error : PROFILE_THEME_COLORS.outlineVariant,
+              }}
+            >
+              <Users
+                size={13}
+                color={isFull ? PROFILE_THEME_COLORS.onErrorContainer : PROFILE_THEME_COLORS.onSurfaceVariant}
+                strokeWidth={2.3}
+              />
+              <Text
+                className="ml-1.5"
+                style={{
+                  color: isFull ? PROFILE_THEME_COLORS.onErrorContainer : PROFILE_THEME_COLORS.onSurfaceVariant,
+                  fontFamily: 'PlusJakartaSans-SemiBold',
+                  fontSize: 12,
+                }}
+              >
+                {isFull ? 'Đầy chỗ' : `Còn ${counts ? counts.second - counts.first : '?'} chỗ`}
+              </Text>
+            </View>
+          </View>
+
+          <View
+            className="rounded-full px-4 py-2"
+            style={{ backgroundColor: PROFILE_THEME_COLORS.primary }}
+          >
+            <Text
+              style={{
+                color: PROFILE_THEME_COLORS.onPrimary,
+                fontFamily: 'PlusJakartaSans-ExtraBold',
+                fontSize: 11,
+                textTransform: 'uppercase',
+                letterSpacing: 1.3,
+              }}
+            >
+              {actionLabel}
+            </Text>
+          </View>
         </View>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   )
 }

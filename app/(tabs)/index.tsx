@@ -43,6 +43,7 @@ const HomeStreakCard = memo(function HomeStreakCard({ current }: { current: numb
 
   return (
     <View className="relative mt-5 overflow-hidden rounded-[32px] px-6 py-5 shadow-sm">
+      <View style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, backgroundColor: 'rgba(255,255,255,0.7)' }} />
       <LinearGradient
         colors={[PROFILE_THEME_COLORS.primaryContainer, PROFILE_THEME_COLORS.tertiaryContainer]}
         start={{ x: 0, y: 0 }}

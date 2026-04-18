@@ -1,35 +1,48 @@
-import { ScreenHeader, SectionCard, StatusBadge } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
-import { getShadowStyle } from '@/lib/designSystem'
+import { getEloBandForSessionRange } from '@/lib/eloSystem'
+import { getSessionSkillLabel } from '@/lib/sessionDetail'
+import { getSkillLevelUi } from '@/lib/skillLevelUi'
 import { supabase } from '@/lib/supabase'
-import { useAppTheme } from '@/lib/theme-context'
 import { useAuth } from '@/lib/useAuth'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
 import {
-    CalendarDays,
-    CheckCircle2,
-    Clock,
-    Pencil as Edit3,
-    FileText,
-    Hourglass,
-    Menu,
-    Share2,
-    Star,
-    Users,
+  AlertCircle,
+  CalendarDays,
+  Pencil as Edit3,
+  FileText,
+  Hourglass,
+  MapPin,
+  Plus,
+  Share2,
+  ShieldCheck,
+  Star,
+  UserRound,
 } from 'lucide-react-native'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
-    ActivityIndicator,
-    FlatList,
-    Pressable,
-    RefreshControl,
-    Share,
-    StyleSheet,
-    Text,
-    View,
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  Share,
+  Text,
+  View,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+
+function hexToRgb(hex: string) {
+  const clean = hex.replace('#', '')
+  const value = clean.length === 3 ? clean.split('').map((c) => c + c).join('') : clean
+  const n = Number.parseInt(value, 16)
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 }
+}
+
+function withAlpha(hex: string, alpha: number) {
+  const { r, g, b } = hexToRgb(hex)
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
+}
 
 type SessionRequestStatus = 'pending' | 'accepted' | 'rejected' | null
 type SessionRole = 'host' | 'player'
@@ -49,6 +62,9 @@ type MySession = {
   host_name: string
   player_count: number
   max_players: number
+  elo_min: number | null
+  elo_max: number | null
+  has_rated: boolean
 }
 
 type MySessionsCache = {
@@ -87,19 +103,13 @@ function sessionsFingerprint(items: MySession[]) {
       host_name: item.host_name,
       player_count: item.player_count,
       max_players: item.max_players,
+      elo_min: item.elo_min,
+      elo_max: item.elo_max,
     })),
   )
 }
 
-type MySessionsTheme = ReturnType<typeof useAppTheme>
-
-function MySessionsEmptyStateCard({
-  activeTab,
-  theme,
-}: {
-  activeTab: SessionTab
-  theme: MySessionsTheme
-}) {
+function MySessionsEmptyStateCard({ activeTab }: { activeTab: SessionTab }) {
   const config =
     activeTab === 'upcoming'
       ? {
@@ -120,24 +130,59 @@ function MySessionsEmptyStateCard({
           }
 
   return (
-    <SectionCard className="px-6 py-7">
-      <Text className="text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: theme.textSoft }}>
+    <View
+      className="rounded-[28px] px-6 py-7"
+      style={{
+        backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+        borderLeftWidth: 3,
+        borderLeftColor: PROFILE_THEME_COLORS.primary,
+        shadowColor: '#0f172a',
+        shadowOpacity: 0.04,
+        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 4 },
+        elevation: 2,
+      }}
+    >
+      <Text
+        style={{
+          color: PROFILE_THEME_COLORS.outline,
+          fontFamily: 'PlusJakartaSans-ExtraBold',
+          fontSize: 10,
+          letterSpacing: 2,
+          textTransform: 'uppercase',
+        }}
+      >
         {config.eyebrow}
       </Text>
-      <Text className="mt-3 text-[24px] font-black leading-[30px]" style={{ color: theme.text }}>
+      <Text
+        className="mt-3"
+        style={{
+          color: PROFILE_THEME_COLORS.onBackground,
+          fontFamily: 'PlusJakartaSans-ExtraBold',
+          fontSize: 22,
+          lineHeight: 28,
+        }}
+      >
         {config.title}
       </Text>
-      <Text className="mt-2 text-[14px] leading-6" style={{ color: theme.textMuted }}>
+      <Text
+        className="mt-2"
+        style={{
+          color: PROFILE_THEME_COLORS.onSurfaceVariant,
+          fontFamily: 'PlusJakartaSans-Regular',
+          fontSize: 14,
+          lineHeight: 22,
+        }}
+      >
         {config.description}
       </Text>
-    </SectionCard>
+    </View>
   )
 }
 
 function MySessionCard({
   item,
   tab,
-  theme,
   onOpenSessionDetail,
   onOpenRateSession,
   onShare,
@@ -146,174 +191,423 @@ function MySessionCard({
 }: {
   item: MySession
   tab: SessionTab
-  theme: MySessionsTheme
   onOpenSessionDetail: (sessionId: string) => void
   onOpenRateSession: (sessionId: string) => void
   onShare: (session?: MySession) => void | Promise<void>
   formatDatePart: (value: string) => string
   formatTimeRange: (start: string, end: string) => string
 }) {
+  const skillBand = getEloBandForSessionRange(item.elo_min ?? 0, item.elo_max ?? 0)
+  const skillUi = getSkillLevelUi(skillBand.levelId)
+  const SkillIcon = skillUi.icon
   const isHost = item.role === 'host'
   const isBooked = item.court_booking_status === 'confirmed'
   const progress = item.max_players > 0 ? Math.min(item.player_count / item.max_players, 1) : 0
+  const progressPercent = Math.max(progress * 100, 0)
   const address = [item.court_address, item.court_city].filter(Boolean).join(', ')
-  const cardStyle = useMemo(
-    () => ({
-      backgroundColor: theme.surface,
-      borderColor: theme.border,
-      ...getShadowStyle(theme),
-    }),
-    [theme],
-  )
-  const bookedBadgeStyle = useMemo(() => ({ backgroundColor: theme.primarySoft }), [theme])
-  const idBadgeStyle = useMemo(() => ({ backgroundColor: theme.surfaceAlt }), [theme])
-  const metaCardStyle = useMemo(() => ({ backgroundColor: theme.surfaceAlt }), [theme])
-  const progressTrackStyle = useMemo(() => ({ backgroundColor: theme.surfaceAlt }), [theme])
-  const progressFillStyle = useMemo(
-    () => ({ width: `${Math.max(progress * 100, 8)}%` as `${number}%`, backgroundColor: theme.primary }),
-    [progress, theme],
-  )
-  const pendingCardStyle = useMemo(
-    () => ({ borderColor: theme.warning, backgroundColor: theme.warningSoft }),
-    [theme],
-  )
-  const primaryActionStyle = useMemo(
-    () => ({ borderColor: theme.border, backgroundColor: theme.surface }),
-    [theme],
-  )
-  const secondaryActionStyle = useMemo(() => ({ backgroundColor: theme.accent }), [theme])
-  const historyActionStyle = useMemo(
-    () => ({ backgroundColor: item.status === 'done' ? theme.text : theme.surfaceAlt }),
-    [item.status, theme],
-  )
+  const compactAddress = address.split(',').map((p) => p.trim()).filter(Boolean).slice(0, 2).join(', ')
+  const hostInitials = (item.host_name || '?').slice(0, 1).toUpperCase()
+
+  const BADGE = {
+    backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
+    borderWidth: 1,
+    borderColor: PROFILE_THEME_COLORS.outlineVariant,
+  } as const
 
   return (
     <Pressable
       onPress={() => onOpenSessionDetail(item.id)}
-      className="mb-4 rounded-[32px] border p-5 active:scale-[0.98]"
-      style={cardStyle}
+      className="mb-4 overflow-hidden rounded-[34px] px-6 pt-6 pb-4"
+      style={{
+        backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+        borderLeftWidth: 3,
+        borderLeftColor: PROFILE_THEME_COLORS.primary,
+        shadowColor: '#0f172a',
+        shadowOpacity: 0.06,
+        shadowRadius: 14,
+        shadowOffset: { width: 0, height: 6 },
+        elevation: 3,
+      }}
     >
-      <View className="flex-row items-start justify-between">
-        <View className="mr-3 flex-1 flex-row flex-wrap items-center gap-2">
-          <StatusBadge label={isHost ? 'Bạn là chủ kèo' : 'Bạn là người chơi'} tone={isHost ? 'info' : 'neutral'} />
+      <View style={{ position: 'absolute', top: -6, right: -16, zIndex: 0, opacity: 0.07 }} pointerEvents="none">
+        <SkillIcon size={96} color={PROFILE_THEME_COLORS.primary} strokeWidth={1.4} />
+      </View>
 
-          {isBooked ? (
-            <View className="rounded-full px-3 py-2" style={bookedBadgeStyle}>
-              <View className="flex-row items-center">
-                <CheckCircle2 size={13} color={theme.primary} strokeWidth={2.4} />
-                <Text className="ml-1.5 text-[10px] font-black uppercase tracking-[0.12em]" style={{ color: theme.primaryStrong }}>
-                  Đã chốt sân
-                </Text>
-              </View>
+      <Text
+        numberOfLines={2}
+        ellipsizeMode="tail"
+        style={{
+          color: PROFILE_THEME_COLORS.primary,
+          fontFamily: 'PlusJakartaSans-ExtraBold',
+          fontSize: 20,
+          lineHeight: 24,
+          letterSpacing: 0.8,
+          textTransform: 'uppercase',
+        }}
+      >
+        {item.court_name}
+      </Text>
+
+      {compactAddress ? (
+        <View className="mt-1">
+          <View
+            className="self-start flex-row items-center rounded-full px-3 py-1.5"
+            style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, maxWidth: '100%' }}
+          >
+            <MapPin size={13} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />
+            <Text
+              className="ml-1.5"
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              style={{
+                color: PROFILE_THEME_COLORS.onSurfaceVariant,
+                fontFamily: 'PlusJakartaSans-SemiBold',
+                fontSize: 13,
+                lineHeight: 18,
+              }}
+            >
+              {compactAddress}
+            </Text>
+          </View>
+        </View>
+      ) : null}
+
+      <View className="mt-1 flex-row flex-wrap gap-2">
+        <View className="flex-row items-center rounded-full px-3 py-1.5" style={BADGE}>
+          <CalendarDays size={13} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />
+          <Text
+            className="ml-1.5"
+            numberOfLines={1}
+            ellipsizeMode="tail"
+            style={{
+              color: PROFILE_THEME_COLORS.onSurfaceVariant,
+              fontFamily: 'PlusJakartaSans-SemiBold',
+              fontSize: 13,
+              lineHeight: 18,
+            }}
+          >
+            {`${formatDatePart(item.start_time)} • ${formatTimeRange(item.start_time, item.end_time)}`}
+          </Text>
+        </View>
+
+        <View className="flex-row items-center rounded-full px-3 py-1.5" style={BADGE}>
+          <SkillIcon size={13} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />
+          <Text
+            className="ml-1.5"
+            style={{
+              color: PROFILE_THEME_COLORS.onSurfaceVariant,
+              fontFamily: 'PlusJakartaSans-SemiBold',
+              fontSize: 13,
+              lineHeight: 18,
+            }}
+          >
+            {getSessionSkillLabel(item.elo_min ?? 0, item.elo_max ?? 0)}
+          </Text>
+        </View>
+
+        <View
+          className="flex-row items-center rounded-full px-3 py-1.5"
+          style={isHost ? { backgroundColor: PROFILE_THEME_COLORS.primary } : BADGE}
+        >
+          <UserRound
+            size={13}
+            color={isHost ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant}
+            strokeWidth={2.4}
+          />
+          <Text
+            className="ml-1.5"
+            style={{
+              color: isHost ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant,
+              fontFamily: 'PlusJakartaSans-SemiBold',
+              fontSize: 13,
+              lineHeight: 18,
+            }}
+          >
+            {isHost ? 'Chủ kèo' : 'Người chơi'}
+          </Text>
+        </View>
+
+        <View className="flex-row items-center rounded-full px-3 py-1.5" style={BADGE}>
+          {isBooked
+            ? <ShieldCheck size={13} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />
+            : <AlertCircle size={13} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />}
+          <Text
+            className="ml-1.5"
+            style={{
+              color: PROFILE_THEME_COLORS.onSurfaceVariant,
+              fontFamily: 'PlusJakartaSans-SemiBold',
+              fontSize: 13,
+              lineHeight: 18,
+            }}
+          >
+            {isBooked ? 'Sân đã chốt' : 'Chờ xác nhận'}
+          </Text>
+        </View>
+      </View>
+
+      {tab === 'history' ? (() => {
+        const canRate = item.status === 'done' && !item.has_rated
+        const label = item.status === 'cancelled'
+          ? 'Kèo đã bị hủy'
+          : item.has_rated
+            ? 'Bạn đã đánh giá kèo này'
+            : 'Đánh giá trận đấu'
+        return (
+          <Pressable
+            onPress={canRate ? () => onOpenRateSession(item.id) : undefined}
+            className="mt-4 flex-row items-center justify-center rounded-[20px] px-4 py-3.5"
+            style={{
+              backgroundColor: canRate
+                ? PROFILE_THEME_COLORS.primary
+                : PROFILE_THEME_COLORS.surfaceContainerLowest,
+              borderWidth: canRate ? 0 : 1,
+              borderColor: PROFILE_THEME_COLORS.outlineVariant,
+              opacity: item.status === 'cancelled' ? 0.5 : 1,
+            }}
+          >
+            <Star
+              size={15}
+              color={canRate ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant}
+              strokeWidth={2.3}
+            />
+            <Text
+              className="ml-2 text-[13px]"
+              style={{
+                color: canRate ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant,
+                fontFamily: 'PlusJakartaSans-ExtraBold',
+              }}
+            >
+              {label}
+            </Text>
+          </Pressable>
+        )
+      })() : (
+      <View
+        className="mt-4 rounded-[24px] p-3.5"
+        style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow }}
+      >
+        <View className="flex-row items-center justify-between">
+          <View className="mr-3 flex-1 flex-row items-center">
+            <View
+              className="mr-3 h-11 w-11 items-center justify-center rounded-full"
+              style={{
+                backgroundColor: PROFILE_THEME_COLORS.primary,
+                borderWidth: 1,
+                borderColor: withAlpha(PROFILE_THEME_COLORS.primary, 0.14),
+              }}
+            >
+              <Text
+                style={{
+                  color: PROFILE_THEME_COLORS.onPrimary,
+                  fontFamily: 'PlusJakartaSans-ExtraBold',
+                  fontSize: 15,
+                }}
+              >
+                {hostInitials}
+              </Text>
+            </View>
+
+            <View className="flex-1">
+              <Text
+                numberOfLines={1}
+                style={{
+                  color: PROFILE_THEME_COLORS.onSurface,
+                  fontFamily: 'PlusJakartaSans-SemiBold',
+                  fontSize: 13,
+                }}
+              >
+                {item.host_name || 'Ẩn danh'}
+              </Text>
+            </View>
+          </View>
+
+          <View className="items-end">
+            <Text
+              style={{
+                color: PROFILE_THEME_COLORS.onSurface,
+                fontFamily: 'PlusJakartaSans-ExtraBold',
+                fontSize: 16,
+              }}
+            >
+              {item.player_count}/{item.max_players}
+            </Text>
+            <Text
+              style={{
+                color: PROFILE_THEME_COLORS.onSurfaceVariant,
+                fontFamily: 'PlusJakartaSans-Regular',
+                fontSize: 10,
+              }}
+            >
+              người chơi
+            </Text>
+          </View>
+        </View>
+
+        <View
+          className="mt-3 h-2 overflow-hidden rounded-full"
+          style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHighest }}
+        >
+          <LinearGradient
+            colors={[PROFILE_THEME_COLORS.primary, PROFILE_THEME_COLORS.tertiary]}
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
+            style={{ width: `${Math.max(progressPercent, 8)}%`, height: '100%', borderRadius: 999 }}
+          />
+        </View>
+
+        <View className="mt-3 flex-row items-center">
+          {Array.from({ length: Math.min(item.player_count, 4) }).map((_, index) => (
+            <View
+              key={index}
+              className={`h-8 w-8 items-center justify-center rounded-full ${index === 0 ? '' : '-ml-2.5'}`}
+              style={{
+                backgroundColor: PROFILE_THEME_COLORS.primary,
+                borderWidth: 2,
+                borderColor: PROFILE_THEME_COLORS.surfaceContainerLow,
+              }}
+            >
+              <UserRound size={14} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.2} />
+            </View>
+          ))}
+          {item.player_count > 4 ? (
+            <View
+              className="-ml-2.5 h-8 w-8 items-center justify-center rounded-full"
+              style={{
+                backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHighest,
+                borderWidth: 2,
+                borderColor: PROFILE_THEME_COLORS.surfaceContainerLow,
+              }}
+            >
+              <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 10 }}>
+                +{item.player_count - 4}
+              </Text>
             </View>
           ) : null}
         </View>
 
-        <View className="rounded-full px-3 py-2" style={idBadgeStyle}>
-          <Text className="text-[10px] font-black uppercase tracking-[0.12em]" style={{ color: theme.textMuted }}>
-            #{item.id.slice(0, 6)}
-          </Text>
-        </View>
-      </View>
+        {tab === 'pending' ? (
+          <View className="mt-3 gap-2">
+            <View
+              className="flex-row items-center rounded-[16px] px-4 py-3"
+              style={{
+                backgroundColor: isHost
+                  ? PROFILE_THEME_COLORS.secondaryContainer
+                  : PROFILE_THEME_COLORS.surfaceContainerHighest,
+              }}
+            >
+              <Hourglass
+                size={14}
+                color={isHost ? PROFILE_THEME_COLORS.onSecondaryContainer : PROFILE_THEME_COLORS.onSurfaceVariant}
+                strokeWidth={2.3}
+              />
+              <Text
+                className="ml-2 flex-1 text-[12px] leading-5"
+                style={{
+                  color: isHost ? PROFILE_THEME_COLORS.onSecondaryContainer : PROFILE_THEME_COLORS.onSurfaceVariant,
+                  fontFamily: 'PlusJakartaSans-SemiBold',
+                }}
+              >
+                {isHost
+                  ? 'Có người đang chờ bạn duyệt yêu cầu tham gia.'
+                  : 'Đang chờ chủ kèo phản hồi yêu cầu tham gia của bạn.'}
+              </Text>
+            </View>
 
-      <View className="mt-5">
-        <Text className="text-[19px] font-black" style={{ color: theme.text }}>{item.court_name}</Text>
-        {address ? <Text className="mt-2 text-[14px]" style={{ color: theme.textMuted }}>{address}</Text> : null}
-      </View>
+            <View className="flex-row gap-3">
+              <Pressable
+                onPress={() => onOpenSessionDetail(item.id)}
+                className="flex-1 flex-row items-center justify-center rounded-[20px] px-4 py-3.5"
+                style={{
+                  backgroundColor: isHost ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surfaceContainerLowest,
+                  borderWidth: isHost ? 0 : 1,
+                  borderColor: PROFILE_THEME_COLORS.outlineVariant,
+                }}
+              >
+                <FileText
+                  size={15}
+                  color={isHost ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurface}
+                  strokeWidth={2.3}
+                />
+                <Text
+                  className="ml-2 text-[13px]"
+                  style={{
+                    color: isHost ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurface,
+                    fontFamily: 'PlusJakartaSans-ExtraBold',
+                  }}
+                >
+                  {isHost ? 'Duyệt yêu cầu' : 'Xem chi tiết'}
+                </Text>
+              </Pressable>
 
-      <View className="mt-5 rounded-[22px] px-4 py-3" style={metaCardStyle}>
-        <View className="flex-row flex-wrap items-center gap-4">
-          <View className="flex-row items-center">
-            <CalendarDays size={15} color={theme.textMuted} strokeWidth={2.3} />
-            <Text className="ml-2 text-[13px] font-semibold" style={{ color: theme.text }}>{formatDatePart(item.start_time)}</Text>
+              <Pressable
+                onPress={() => void onShare(item)}
+                className="flex-1 flex-row items-center justify-center rounded-[20px] px-4 py-3.5"
+                style={{ backgroundColor: PROFILE_THEME_COLORS.secondaryContainer }}
+              >
+                <Share2 size={15} color={PROFILE_THEME_COLORS.onSecondaryContainer} strokeWidth={2.3} />
+                <Text
+                  className="ml-2 text-[13px]"
+                  style={{ color: PROFILE_THEME_COLORS.onSecondaryContainer, fontFamily: 'PlusJakartaSans-ExtraBold' }}
+                >
+                  Chia sẻ
+                </Text>
+              </Pressable>
+            </View>
           </View>
+        ) : null}
 
-          <View className="flex-row items-center">
-            <Clock size={15} color={theme.textMuted} strokeWidth={2.3} />
-            <Text className="ml-2 text-[13px] font-semibold" style={{ color: theme.text }}>
-              {formatTimeRange(item.start_time, item.end_time)}
-            </Text>
+        {tab === 'upcoming' ? (
+          <View className="mt-3 flex-row gap-3">
+            <Pressable
+              onPress={() => onOpenSessionDetail(item.id)}
+              className="flex-1 flex-row items-center justify-center rounded-[20px] px-4 py-3.5"
+              style={{
+                backgroundColor: isHost ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surfaceContainerLowest,
+                borderWidth: isHost ? 0 : 1,
+                borderColor: PROFILE_THEME_COLORS.outlineVariant,
+              }}
+            >
+              {isHost
+                ? <Edit3 size={15} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.3} />
+                : <FileText size={15} color={PROFILE_THEME_COLORS.onSurface} strokeWidth={2.3} />}
+              <Text
+                className="ml-2 text-[13px]"
+                style={{
+                  color: isHost ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurface,
+                  fontFamily: 'PlusJakartaSans-ExtraBold',
+                }}
+              >
+                {isHost ? 'Sửa kèo' : 'Chi tiết'}
+              </Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => void onShare(item)}
+              className="flex-1 flex-row items-center justify-center rounded-[20px] px-4 py-3.5"
+              style={{ backgroundColor: PROFILE_THEME_COLORS.secondaryContainer }}
+            >
+              <Share2 size={15} color={PROFILE_THEME_COLORS.onSecondaryContainer} strokeWidth={2.3} />
+              <Text
+                className="ml-2 text-[13px]"
+                style={{ color: PROFILE_THEME_COLORS.onSecondaryContainer, fontFamily: 'PlusJakartaSans-ExtraBold' }}
+              >
+                Chia sẻ
+              </Text>
+            </Pressable>
           </View>
-        </View>
+        ) : null}
+
       </View>
-
-      <View className="mt-5">
-        <View className="flex-row items-center justify-between">
-          <View className="flex-row items-center">
-            <Users size={15} color={theme.text} strokeWidth={2.3} />
-            <Text className="ml-2 text-[14px] font-bold" style={{ color: theme.text }}>
-              {item.player_count}/{item.max_players} người tham gia
-            </Text>
-          </View>
-          <Text className="text-[12px] font-bold" style={{ color: theme.textSoft }}>{Math.round(progress * 100)}%</Text>
-        </View>
-
-        <View className="mt-3 h-2 overflow-hidden rounded-full" style={progressTrackStyle}>
-          <View className="h-2 rounded-full" style={progressFillStyle} />
-        </View>
-      </View>
-
-      {tab === 'pending' ? (
-        <View className="mt-5 rounded-[24px] border px-4 py-4" style={pendingCardStyle}>
-          <View className="flex-row items-center">
-            <Hourglass size={16} color={theme.warning} strokeWidth={2.3} />
-            <Text className="ml-2 text-[14px] font-black" style={{ color: theme.warning }}>
-              {isHost ? 'Có người đang chờ bạn duyệt' : 'Đang chờ phản hồi'}
-            </Text>
-          </View>
-          <Text className="mt-2 text-[13px] leading-5" style={{ color: theme.warning }}>
-            {isHost
-              ? 'Mở chi tiết kèo để xem và duyệt những người chơi vừa gửi yêu cầu tham gia.'
-              : 'Chủ kèo sẽ duyệt yêu cầu tham gia của bạn trong thời gian sớm nhất.'}
-          </Text>
-        </View>
-      ) : null}
-
-      {tab === 'upcoming' ? (
-        <View className="mt-5 flex-row gap-3">
-          <Pressable
-            onPress={() => onOpenSessionDetail(item.id)}
-            className="flex-1 flex-row items-center justify-center rounded-[22px] border px-4 py-4"
-            style={primaryActionStyle}
-          >
-            {isHost ? <Edit3 size={16} color={theme.text} strokeWidth={2.3} /> : <FileText size={16} color={theme.text} strokeWidth={2.3} />}
-            <Text className="ml-2 text-[14px] font-black" style={{ color: theme.text }}>{isHost ? 'Sửa kèo' : 'Chi tiết'}</Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => void onShare(item)}
-            className="flex-1 flex-row items-center justify-center rounded-[22px] px-4 py-4"
-            style={secondaryActionStyle}
-          >
-            <Share2 size={16} color="#000000" strokeWidth={2.3} />
-            <Text className="ml-2 text-[14px] font-black text-black">Chia sẻ</Text>
-          </Pressable>
-        </View>
-      ) : null}
-
-      {tab === 'history' ? (
-        <Pressable
-          onPress={() => (item.status === 'done' ? onOpenRateSession(item.id) : onOpenSessionDetail(item.id))}
-          className="mt-5 flex-row items-center justify-center rounded-[22px] px-4 py-4"
-          style={historyActionStyle}
-        >
-          <Star size={16} color={item.status === 'done' ? theme.accent : theme.textMuted} strokeWidth={2.3} />
-          <Text className="ml-2 text-[14px] font-black" style={{ color: item.status === 'done' ? theme.primaryContrast : theme.textMuted }}>
-            Đánh giá trận đấu
-          </Text>
-        </Pressable>
-      ) : null}
+      )}
     </Pressable>
   )
 }
 
 export default function MySessions() {
-  const theme = useAppTheme()
   const { userId, isLoading: isAuthLoading } = useAuth()
   const [sessions, setSessions] = useState<MySession[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
-  const [myId, setMyId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<SessionTab>('upcoming')
   const initInFlightRef = useRef(false)
   const fetchInFlightRef = useRef<Promise<void> | null>(null)
@@ -410,6 +704,9 @@ export default function MySessions() {
           host_name: session.host_name ?? (session.role === 'host' ? 'Bạn' : 'Ẩn danh'),
           player_count: session.player_count ?? 0,
           max_players: session.max_players ?? 0,
+          elo_min: session.elo_min ?? null,
+          elo_max: session.elo_max ?? null,
+          has_rated: session.has_rated ?? false,
         }))
 
         nextSessions.sort((a, b) => {
@@ -420,11 +717,7 @@ export default function MySessions() {
           return safeATime - safeBTime
         })
 
-        const nextCache = {
-          userId: nextUserId,
-          sessions: nextSessions,
-          updatedAt: Date.now(),
-        }
+        const nextCache = { userId: nextUserId, sessions: nextSessions, updatedAt: Date.now() }
         mySessionsCacheByUser.set(nextUserId, nextCache)
 
         try {
@@ -463,13 +756,10 @@ export default function MySessions() {
       if (isAuthLoading) return
 
       if (!userId) {
-        setMyId(null)
         setSessions([])
         setLoading(false)
         return
       }
-
-      setMyId(userId)
 
       const bootstrapCache = mySessionsCacheByUser.get(userId) ?? null
       if (bootstrapCache?.sessions.length) {
@@ -526,26 +816,20 @@ export default function MySessions() {
     return `${startHour}:${startMinute} - ${endHour}:${endMinute}`
   }
 
-  function resolveTab(session: MySession): SessionTab {
-    if (session.role === 'host' && session.request_status === 'pending') return 'pending'
-    if (session.role === 'player' && session.request_status === 'pending') return 'pending'
+  const resolveTabForSession = useCallback((session: MySession): SessionTab => {
+    if (session.request_status === 'pending') return 'pending'
     if (session.status === 'done' || session.status === 'cancelled') return 'history'
     return 'upcoming'
-  }
+  }, [])
 
   function shareMessage(session?: MySession) {
-    if (!session) {
-      return 'Lịch chơi PickleMatch của tôi đang được cập nhật.'
-    }
-
+    if (!session) return 'Lịch chơi PickleMatch của tôi đang được cập nhật.'
     return [
       'Cùng xem kèo pickleball này nhé:',
       session.court_name,
       `${formatDatePart(session.start_time)} • ${formatTimeRange(session.start_time, session.end_time)}`,
       session.court_address ? `${session.court_address}${session.court_city ? `, ${session.court_city}` : ''}` : '',
-    ]
-      .filter(Boolean)
-      .join('\n')
+    ].filter(Boolean).join('\n')
   }
 
   async function handleShare(session?: MySession) {
@@ -569,15 +853,13 @@ export default function MySessions() {
       TAB_OPTIONS.reduce<Record<SessionTab, MySession[]>>(
         (acc, tab) => {
           acc[tab.key] = sessions
-            .filter((session) => resolveTab(session) === tab.key)
+            .filter((session) => resolveTabForSession(session) === tab.key)
             .sort((a, b) => {
               const aTime = new Date(a.start_time).getTime()
               const bTime = new Date(b.start_time).getTime()
               const safeATime = Number.isNaN(aTime) ? (tab.key === 'history' ? 0 : Number.MAX_SAFE_INTEGER) : aTime
               const safeBTime = Number.isNaN(bTime) ? (tab.key === 'history' ? 0 : Number.MAX_SAFE_INTEGER) : bTime
-
               if (tab.key === 'history') return safeBTime - safeATime
-
               const bookingWeight =
                 Number(b.court_booking_status === 'confirmed') - Number(a.court_booking_status === 'confirmed')
               if (bookingWeight !== 0) return bookingWeight
@@ -587,110 +869,141 @@ export default function MySessions() {
         },
         { upcoming: [], pending: [], history: [] },
       ),
-    [sessions],
+    [sessions, resolveTabForSession],
   )
 
   const activeSessions = sessionsByTab[activeTab]
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: theme.background }} edges={['top']}>
-      <ScreenHeader
-        variant="brand"
-        title="KINETIC"
-        leftSlot={<Menu size={18} color={PROFILE_THEME_COLORS.primary} />}
-        rightSlot={
-          <View className="flex-row items-center gap-2">
-            <Pressable
-              onPress={() => void handleShare()}
-              className="h-10 w-10 items-center justify-center rounded-2xl border"
-              style={{ ...getShadowStyle(theme), borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest }}
-            >
-              <Share2 size={16} color={PROFILE_THEME_COLORS.primary} strokeWidth={2.3} />
-            </Pressable>
-            <View
-              className="h-10 w-10 items-center justify-center rounded-full border-2"
-              style={{ borderColor: PROFILE_THEME_COLORS.primaryFixed, backgroundColor: PROFILE_THEME_COLORS.primary }}
-            >
-              <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-Bold' }}>U</Text>
-            </View>
-          </View>
-        }
-        style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow }}
-      />
+    <SafeAreaView className="flex-1" style={{ backgroundColor: PROFILE_THEME_COLORS.background }} edges={['top']}>
       {loading ? (
         <View className="flex-1 items-center justify-center px-6">
-          <ActivityIndicator size="large" color={theme.info} />
-          <Text className="mt-4 text-[14px] font-semibold" style={{ color: theme.textMuted }}>Đang tải kèo của bạn...</Text>
+          <ActivityIndicator size="large" color={PROFILE_THEME_COLORS.primary} />
+          <Text
+            className="mt-4 text-[14px]"
+            style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-SemiBold' }}
+          >
+            Đang tải kèo của bạn...
+          </Text>
         </View>
       ) : (
-        <FlatList
-          data={activeSessions}
-          keyExtractor={(item) => `${activeTab}-${item.id}`}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 36 }}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.info} />}
-          ListHeaderComponent={
-            <View>
-              <View className="rounded-[24px] p-1.5" style={{ backgroundColor: theme.surfaceAlt }}>
-                <View className="flex-row gap-1.5">
+        <View className="flex-1">
+          <FlatList
+            data={activeSessions}
+            keyExtractor={(item) => `${activeTab}-${item.id}`}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 160 }}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={PROFILE_THEME_COLORS.primary} />}
+            ListHeaderComponent={
+              <View>
+                <View className="flex-row items-start justify-between py-1 mb-6">
+                  <View className="flex-1 pr-4">
+                    <Text
+                      className="text-[11px] uppercase tracking-[0.16em]"
+                      style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-ExtraBold' }}
+                    >
+                      LỊCH CỦA TÔI
+                    </Text>
+                    <Text
+                      className="mt-2 text-[28px] leading-[34px]"
+                      style={{ color: PROFILE_THEME_COLORS.onBackground, fontFamily: 'PlusJakartaSans-ExtraBold' }}
+                    >
+                      Kèo của tôi
+                    </Text>
+                  </View>
+                  <Pressable
+                    onPress={() => router.push('/(tabs)/profile' as never)}
+                    className="mt-1 h-16 w-16 items-center justify-center rounded-full p-1.5"
+                    style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow }}
+                  >
+                    <View
+                      className="flex-1 self-stretch items-center justify-center rounded-full"
+                      style={{ backgroundColor: PROFILE_THEME_COLORS.primaryContainer }}
+                    >
+                      <UserRound size={30} color={PROFILE_THEME_COLORS.onPrimaryContainer} strokeWidth={2.4} />
+                    </View>
+                  </Pressable>
+                </View>
+
+                <View
+                  className="rounded-[24px] p-1.5 flex-row gap-1.5"
+                  style={{
+                    backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
+                    borderWidth: 1,
+                    borderColor: PROFILE_THEME_COLORS.outlineVariant,
+                  }}
+                >
                   {TAB_OPTIONS.map((tab) => {
                     const active = tab.key === activeTab
                     return (
                       <Pressable
                         key={tab.key}
                         onPress={() => setActiveTab(tab.key)}
-                        style={[styles.segmentButton, active ? styles.segmentButtonActive : null]}
+                        className="flex-1 rounded-[18px] px-3 py-3 items-center"
+                        style={active ? {
+                          backgroundColor: PROFILE_THEME_COLORS.primary,
+                          shadowColor: withAlpha(PROFILE_THEME_COLORS.primary, 0.4),
+                          shadowOpacity: 0.22,
+                          shadowRadius: 10,
+                          shadowOffset: { width: 0, height: 4 },
+                          elevation: 3,
+                        } : undefined}
                       >
-                        <Text style={[styles.segmentLabel, { color: active ? '#020617' : '#64748b' }]}>
+                        <Text
+                          style={{
+                            color: active ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant,
+                            fontFamily: 'PlusJakartaSans-ExtraBold',
+                            fontSize: 13,
+                          }}
+                        >
                           {tab.label}
                         </Text>
                       </Pressable>
                     )
                   })}
                 </View>
-              </View>
 
-              <View className="pt-5" />
-            </View>
-          }
-          ListEmptyComponent={<MySessionsEmptyStateCard activeTab={activeTab} theme={theme} />}
-          renderItem={({ item }) => (
-            <MySessionCard
-              item={item}
-              tab={activeTab}
-              theme={theme}
-              onOpenSessionDetail={openSessionDetail}
-              onOpenRateSession={openRateSession}
-              onShare={handleShare}
-              formatDatePart={formatDatePart}
-              formatTimeRange={formatTimeRange}
-            />
-          )}
-        />
+                <View className="pt-5" />
+              </View>
+            }
+            ListEmptyComponent={<MySessionsEmptyStateCard activeTab={activeTab} />}
+            renderItem={({ item }) => (
+              <MySessionCard
+                item={item}
+                tab={activeTab}
+                onOpenSessionDetail={openSessionDetail}
+                onOpenRateSession={openRateSession}
+                onShare={handleShare}
+                formatDatePart={formatDatePart}
+                formatTimeRange={formatTimeRange}
+              />
+            )}
+          />
+
+          <Pressable
+            onPress={() => router.push('/create-session' as never)}
+            className="absolute flex-row items-center rounded-full px-8 py-5"
+            style={{
+              bottom: 100,
+              right: 24,
+              zIndex: 100,
+              backgroundColor: PROFILE_THEME_COLORS.primary,
+              shadowColor: PROFILE_THEME_COLORS.primary,
+              shadowOpacity: 0.28,
+              shadowRadius: 24,
+              shadowOffset: { width: 0, height: 16 },
+            }}
+          >
+            <Plus size={20} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.7} />
+            <Text
+              className="ml-3 text-sm uppercase tracking-[2.6px]"
+              style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-ExtraBold' }}
+            >
+              Tạo kèo mới
+            </Text>
+          </Pressable>
+        </View>
       )}
     </SafeAreaView>
   )
 }
-
-const styles = StyleSheet.create({
-  segmentButton: {
-    flex: 1,
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-  },
-  segmentButtonActive: {
-    borderRadius: 20,
-    backgroundColor: '#ffffff',
-    shadowColor: '#0f172a',
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
-  },
-  segmentLabel: {
-    textAlign: 'center',
-    fontSize: 13,
-    fontWeight: '900',
-  },
-})
