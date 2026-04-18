@@ -1,5 +1,5 @@
-import { useNotificationsContext } from '@/lib/NotificationsContext'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { useNotificationsContext } from '@/lib/NotificationsContext'
 import { Tabs } from 'expo-router'
 import { Bell, Calendar, House, MagnifyingGlass, User } from 'phosphor-react-native'
 import { Text, View } from 'react-native'
