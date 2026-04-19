@@ -104,6 +104,8 @@ function HeroMatchSessionCard({ item, actionLabel }: { item: MatchSession; actio
   const heroProgressPercent = Math.max(0, Math.min((item.activePlayers / Math.max(item.maxPlayers, 1)) * 100, 100))
   const heroVisiblePlayers = item.players.slice(0, 4)
   const heroRemainingPlayers = item.players.length - heroVisiblePlayers.length
+  const heroDisplayCap = Math.min(item.maxPlayers, 4)
+  const heroEmptySlots = Math.max(heroDisplayCap - heroVisiblePlayers.length, 0)
   const heroNameLength = item.courtName.length
   const heroTitleFontSize = heroNameLength > 52 ? 24 : heroNameLength > 40 ? 27 : heroNameLength > 30 ? 31 : 36
   const heroTitleLineHeight = heroTitleFontSize + 9
@@ -359,6 +361,8 @@ function HeroMatchSessionCard({ item, actionLabel }: { item: MatchSession; actio
                   key={player.id}
                   className={`h-8 w-8 items-center justify-center rounded-full ${index === 0 ? '' : '-ml-2.5'}`}
                   style={{
+                    position: 'relative',
+                    zIndex: 20 - index,
                     backgroundColor: PROFILE_THEME_COLORS.primary,
                     borderWidth: 2,
                     borderColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
@@ -376,10 +380,37 @@ function HeroMatchSessionCard({ item, actionLabel }: { item: MatchSession; actio
                 </View>
               ))}
 
+              {Array.from({ length: heroEmptySlots }).map((_, index) => (
+                <View
+                  key={`hero-empty-${index}`}
+                  className={`h-8 w-8 items-center justify-center rounded-full ${heroVisiblePlayers.length === 0 && index === 0 ? '' : '-ml-2.5'}`}
+                  style={{
+                    position: 'relative',
+                    zIndex: 1,
+                    backgroundColor: 'transparent',
+                    borderWidth: 1.5,
+                    borderStyle: 'dashed',
+                    borderColor: PROFILE_THEME_COLORS.outlineVariant,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: PROFILE_THEME_COLORS.outlineVariant,
+                      fontFamily: 'PlusJakartaSans-ExtraBold',
+                      fontSize: 10,
+                    }}
+                  >
+                    +
+                  </Text>
+                </View>
+              ))}
+
               {heroRemainingPlayers > 0 ? (
                 <View
                   className="-ml-2.5 h-8 w-8 items-center justify-center rounded-full"
                   style={{
+                    position: 'relative',
+                    zIndex: 2,
                     backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHighest,
                     borderWidth: 2,
                     borderColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
@@ -461,6 +492,8 @@ function SessionListCard({
   const progressPercent = Math.max(0, Math.min((item.activePlayers / Math.max(item.maxPlayers, 1)) * 100, 100))
   const visiblePlayers = item.players.slice(0, 4)
   const remainingPlayers = item.players.length - visiblePlayers.length
+  const displayCap = Math.min(item.maxPlayers, 4)
+  const emptySlots = Math.max(displayCap - visiblePlayers.length, 0)
   const isRescueAccent = accentMode === 'rescue'
   const accentColor = isRescueAccent ? PROFILE_THEME_COLORS.error : PROFILE_THEME_COLORS.primary
   const onAccentColor = isRescueAccent ? PROFILE_THEME_COLORS.onError : PROFILE_THEME_COLORS.onPrimary
@@ -717,6 +750,8 @@ function SessionListCard({
                 key={player.id}
                 className={`h-8 w-8 items-center justify-center rounded-full ${index === 0 ? '' : '-ml-2.5'}`}
                 style={{
+                  position: 'relative',
+                  zIndex: 20 - index,
                   backgroundColor: accentColor,
                   borderWidth: 2,
                   borderColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
@@ -734,10 +769,37 @@ function SessionListCard({
               </View>
             ))}
 
+            {Array.from({ length: emptySlots }).map((_, index) => (
+              <View
+                key={`list-empty-${index}`}
+                className={`h-8 w-8 items-center justify-center rounded-full ${visiblePlayers.length === 0 && index === 0 ? '' : '-ml-2.5'}`}
+                style={{
+                  position: 'relative',
+                  zIndex: 1,
+                  backgroundColor: 'transparent',
+                  borderWidth: 1.5,
+                  borderStyle: 'dashed',
+                  borderColor: PROFILE_THEME_COLORS.outlineVariant,
+                }}
+              >
+                <Text
+                  style={{
+                    color: PROFILE_THEME_COLORS.outlineVariant,
+                    fontFamily: 'PlusJakartaSans-ExtraBold',
+                    fontSize: 10,
+                  }}
+                >
+                  +
+                </Text>
+              </View>
+            ))}
+
             {remainingPlayers > 0 ? (
               <View
                 className="-ml-2.5 h-8 w-8 items-center justify-center rounded-full"
                 style={{
+                  position: 'relative',
+                  zIndex: 2,
                   backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHighest,
                   borderWidth: 2,
                   borderColor: PROFILE_THEME_COLORS.surfaceContainerLowest,

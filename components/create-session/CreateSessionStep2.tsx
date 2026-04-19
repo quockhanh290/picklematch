@@ -1,10 +1,9 @@
-import { ArrowRight, Check, Clock3, ExternalLink, ShieldCheck, Wallet } from 'lucide-react-native'
-import { KeyboardAvoidingView, Platform, ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { ArrowRight, Check, ExternalLink, ShieldCheck, TrendingUp, Wallet } from 'lucide-react-native'
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
-import {
-  CREATE_SESSION_SKILL_INACTIVE_CLASSNAME,
-  CREATE_SESSION_SKILL_OPTIONS,
-} from './skillLevelOptions'
+import { CREATE_SESSION_SKILL_OPTIONS } from './skillLevelOptions'
 
 type Props = {
   maxPlayers: number
@@ -44,66 +43,65 @@ type Props = {
 const PLAYER_OPTIONS = [2, 4, 6, 8]
 const DEADLINE_OPTIONS = [2, 4, 8, 24]
 
-const BOOKING_THEME = {
-  confirmed: {
-    borderColor: '#10b981',
-    backgroundColor: '#ecfdf5',
-    titleColor: '#064e3b',
-    bodyColor: '#047857',
-    indicatorBorderColor: '#059669',
-    indicatorBackgroundColor: '#10b981',
-  },
-  unconfirmed: {
-    borderColor: '#f59e0b',
-    backgroundColor: '#fffbeb',
-    titleColor: '#78350f',
-    bodyColor: '#b45309',
-    indicatorBorderColor: '#d97706',
-    indicatorBackgroundColor: '#f59e0b',
-  },
-  inactive: {
-    borderColor: '#e2e8f0',
-    backgroundColor: '#ffffff',
-    titleColor: '#0f172a',
-    bodyColor: '#64748b',
-    indicatorBorderColor: '#cbd5e1',
-    indicatorBackgroundColor: '#ffffff',
-  },
+const card = {
+  borderRadius: 20,
+  borderWidth: 1,
+  borderColor: PROFILE_THEME_COLORS.outlineVariant,
+  backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+  padding: 16,
+  marginBottom: 12,
 } as const
 
-function SkillSelector({
-  value,
-  onChange,
-  label,
-}: {
-  value: number
-  onChange: (level: number) => void
-  label: string
-}) {
+const sectionLabel = {
+  fontFamily: 'PlusJakartaSans-ExtraBold' as const,
+  fontSize: 10,
+  textTransform: 'uppercase' as const,
+  letterSpacing: 1.8,
+  color: PROFILE_THEME_COLORS.outline,
+  marginBottom: 12,
+}
+
+const textInput = {
+  borderRadius: 14,
+  borderWidth: 1,
+  borderColor: PROFILE_THEME_COLORS.outlineVariant,
+  backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
+  paddingHorizontal: 14,
+  paddingVertical: 12,
+  fontFamily: 'PlusJakartaSans-Regular' as const,
+  fontSize: 14,
+  color: PROFILE_THEME_COLORS.onSurface,
+}
+
+function SkillSelector({ value, onChange, label }: { value: number; onChange: (level: number) => void; label: string }) {
   return (
-    <View className="mb-3 rounded-[16px] border border-slate-200 bg-white p-3">
-      <Text className="mb-3 ml-1 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">{label}</Text>
-      <View className="flex-row flex-wrap gap-2">
+    <View style={{ ...card, marginBottom: 10 }}>
+      <Text style={sectionLabel}>{label}</Text>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
         {CREATE_SESSION_SKILL_OPTIONS.map((option) => {
           const Icon = option.icon
           const active = value === option.id
-
           return (
-            <TouchableOpacity
+            <Pressable
               key={option.id}
-              activeOpacity={0.92}
               onPress={() => onChange(option.id)}
-              className={`flex-row items-center gap-1.5 rounded-[12px] border px-3 py-2.5 ${
-                active
-                  ? `${option.activeClassName} ${option.textClassName}`
-                  : CREATE_SESSION_SKILL_INACTIVE_CLASSNAME
-              }`}
+              style={({ pressed }) => ({
+                flexDirection: 'row', alignItems: 'center', gap: 6,
+                borderRadius: 12, borderWidth: 1,
+                borderColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
+                backgroundColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surfaceContainerLow,
+                paddingHorizontal: 12, paddingVertical: 8,
+                opacity: pressed ? 0.85 : 1,
+              })}
             >
-              <Icon size={15} color={active ? option.iconColor : '#64748b'} />
-              <Text className={`text-[13px] ${active ? `font-bold ${option.textClassName}` : 'font-medium text-slate-500'}`}>
+              <Icon size={14} color={active ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant} />
+              <Text style={{
+                fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13,
+                color: active ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant,
+              }}>
                 {option.label}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           )
         })}
       </View>
@@ -112,253 +110,260 @@ function SkillSelector({
 }
 
 function BookingStatusCard({
-  active,
-  title,
-  description,
-  tone,
-  onPress,
+  active, title, description, tone, onPress,
 }: {
-  active: boolean
-  title: string
-  description: string
-  tone: 'confirmed' | 'unconfirmed'
-  onPress: () => void
+  active: boolean; title: string; description: string; tone: 'confirmed' | 'unconfirmed'; onPress: () => void
 }) {
-  const theme = active ? BOOKING_THEME[tone] : BOOKING_THEME.inactive
+  const isConfirmed = tone === 'confirmed'
+  const activeBg = isConfirmed ? PROFILE_THEME_COLORS.secondaryContainer : '#fff8e6'
+  const activeBorder = isConfirmed ? PROFILE_THEME_COLORS.surfaceTint : '#d97706'
+  const activeDot = isConfirmed ? PROFILE_THEME_COLORS.surfaceTint : '#d97706'
+  const activeText = isConfirmed ? PROFILE_THEME_COLORS.surfaceTint : '#78350f'
+  const activeBody = isConfirmed ? PROFILE_THEME_COLORS.onPrimaryFixedVariant : '#92400e'
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.92}
+    <Pressable
       onPress={onPress}
-      className="flex-row items-start gap-3 rounded-[16px] border p-3.5"
-      style={{
-        borderColor: theme.borderColor,
-        backgroundColor: theme.backgroundColor,
-      }}
+      style={({ pressed }) => ({
+        flexDirection: 'row', alignItems: 'flex-start', gap: 12,
+        borderRadius: 16, borderWidth: 1,
+        borderColor: active ? activeBorder : PROFILE_THEME_COLORS.outlineVariant,
+        backgroundColor: active ? activeBg : PROFILE_THEME_COLORS.surfaceContainerLowest,
+        padding: 14,
+        opacity: pressed ? 0.88 : 1,
+      })}
     >
-      <View
-        className="mt-0.5 h-5 w-5 items-center justify-center rounded-full border"
-        style={{
-          borderColor: theme.indicatorBorderColor,
-          backgroundColor: theme.indicatorBackgroundColor,
-        }}
-      >
+      <View style={{
+        marginTop: 2, width: 20, height: 20, borderRadius: 999,
+        borderWidth: 1,
+        borderColor: active ? activeDot : PROFILE_THEME_COLORS.outlineVariant,
+        backgroundColor: active ? activeDot : PROFILE_THEME_COLORS.surfaceContainerLowest,
+        alignItems: 'center', justifyContent: 'center',
+      }}>
         {active ? <Check size={12} color="#ffffff" /> : null}
       </View>
-      <View className="flex-1">
-        <Text className="text-[14px] font-bold" style={{ color: theme.titleColor }}>
+      <View style={{ flex: 1 }}>
+        <Text style={{
+          fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 14,
+          color: active ? activeText : PROFILE_THEME_COLORS.onSurface,
+        }}>
           {title}
         </Text>
-        <Text className="mt-0.5 text-[12px] leading-snug" style={{ color: active ? theme.bodyColor : theme.bodyColor }}>
+        <Text style={{
+          fontFamily: 'PlusJakartaSans-Regular', fontSize: 12, lineHeight: 18, marginTop: 2,
+          color: active ? activeBody : PROFILE_THEME_COLORS.onSurfaceVariant,
+        }}>
           {description}
         </Text>
       </View>
-    </TouchableOpacity>
+    </Pressable>
+  )
+}
+
+function ToggleRow({ icon: Icon, iconBg, iconColor, title, subtitle, value, onToggle, disabled, helperText, helperRed }: {
+  icon: any; iconBg: string; iconColor: string; title: string; subtitle: string
+  value: boolean; onToggle: (v: boolean) => void; disabled?: boolean
+  helperText?: string | null; helperRed?: boolean
+}) {
+  return (
+    <View style={{ ...card, marginBottom: 10 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: iconBg, alignItems: 'center', justifyContent: 'center' }}>
+          <Icon size={18} color={iconColor} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 14, color: PROFILE_THEME_COLORS.onSurface }}>{title}</Text>
+          <Text style={{ fontFamily: 'PlusJakartaSans-Regular', fontSize: 12, lineHeight: 18, color: PROFILE_THEME_COLORS.onSurfaceVariant, marginTop: 2 }}>
+            {subtitle}
+          </Text>
+          {helperText ? (
+            <Text style={{ fontFamily: 'PlusJakartaSans-Regular', fontSize: 12, color: helperRed ? '#d97706' : PROFILE_THEME_COLORS.onSurfaceVariant, marginTop: 4 }}>
+              {helperText}
+            </Text>
+          ) : null}
+        </View>
+        <Switch
+          value={value}
+          onValueChange={onToggle}
+          disabled={disabled}
+          trackColor={{ false: PROFILE_THEME_COLORS.outlineVariant, true: PROFILE_THEME_COLORS.primaryFixedDim }}
+          thumbColor={PROFILE_THEME_COLORS.surfaceContainerLowest}
+        />
+      </View>
+    </View>
   )
 }
 
 export function CreateSessionStep2({
-  maxPlayers,
-  setMaxPlayers,
-  minSkill,
-  setMinSkill,
-  maxSkill,
-  setMaxSkill,
-  bookingStatus,
-  setBookingStatus,
-  wantsBookingNow,
-  setWantsBookingNow,
-  bookingReference,
-  setBookingReference,
-  bookingName,
-  setBookingName,
-  bookingPhone,
-  setBookingPhone,
-  bookingNotes,
-  setBookingNotes,
-  canOpenBookingLink,
-  onOpenBookingLink,
-  deadlineHours,
-  setDeadlineHours,
-  requireApproval,
-  setRequireApproval,
-  isRanked,
-  setIsRanked,
-  canToggleRanked,
-  rankedHelperText,
-  totalCostStr,
-  setTotalCostStr,
-  costPerPerson,
+  maxPlayers, setMaxPlayers,
+  minSkill, setMinSkill, maxSkill, setMaxSkill,
+  bookingStatus, setBookingStatus,
+  wantsBookingNow, setWantsBookingNow,
+  bookingReference, setBookingReference,
+  bookingName, setBookingName,
+  bookingPhone, setBookingPhone,
+  bookingNotes, setBookingNotes,
+  canOpenBookingLink, onOpenBookingLink,
+  deadlineHours, setDeadlineHours,
+  requireApproval, setRequireApproval,
+  isRanked, setIsRanked, canToggleRanked, rankedHelperText,
+  totalCostStr, setTotalCostStr, costPerPerson,
   onContinue,
 }: Props) {
   return (
     <KeyboardAvoidingView
-      className="flex-1"
+      style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
     >
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 132 }}
+        contentContainerStyle={{ paddingBottom: 100 }}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
-        className="flex-1"
+        style={{ flex: 1 }}
       >
-        <Text className="mb-3 text-[13px] font-bold text-slate-900">{'\u0053\u1ed1\u0020\u006e\u0067\u01b0\u1eddi\u0020\u0063\u0068\u01a1\u0069'}</Text>
-        <View className="mb-6 flex-row gap-3">
+        {/* Số người */}
+        <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 14, color: PROFILE_THEME_COLORS.onSurface, marginBottom: 10 }}>
+          Số người chơi
+        </Text>
+        <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
           {PLAYER_OPTIONS.map((num) => (
-            <TouchableOpacity
+            <Pressable
               key={num}
-              activeOpacity={0.92}
               onPress={() => setMaxPlayers(num)}
-              className={`flex-1 rounded-[14px] border py-3 ${
-                maxPlayers === num
-                  ? 'border-emerald-500 bg-emerald-50'
-                  : 'border-slate-200 bg-white'
-              }`}
+              style={({ pressed }) => ({
+                flex: 1, borderRadius: 14, borderWidth: 1,
+                borderColor: maxPlayers === num ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
+                backgroundColor: maxPlayers === num ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surfaceContainerLowest,
+                paddingVertical: 12, alignItems: 'center',
+                opacity: pressed ? 0.85 : 1,
+              })}
             >
-              <Text
-                className={`text-center text-[14px] font-black ${
-                  maxPlayers === num ? 'text-emerald-700' : 'text-slate-600'
-                }`}
-              >
+              <Text style={{
+                fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 15,
+                color: maxPlayers === num ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant,
+              }}>
                 {num}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           ))}
         </View>
 
-        <SkillSelector
-          value={minSkill}
-          onChange={setMinSkill}
-          label={'\u0054\u0072\u00ec\u006e\u0068\u0020\u0111\u1ed9\u0020\u0074\u1ed1\u0069\u0020\u0074\u0068\u0069\u1ec3\u0075'}
-        />
-        <SkillSelector
-          value={maxSkill}
-          onChange={setMaxSkill}
-          label={'\u0054\u0072\u00ec\u006e\u0068\u0020\u0111\u1ed9\u0020\u0074\u1ed1\u0069\u0020\u0111\u0061'}
-        />
+        {/* Skill selectors */}
+        <SkillSelector value={minSkill} onChange={setMinSkill} label="Trình độ tối thiểu" />
+        <SkillSelector value={maxSkill} onChange={setMaxSkill} label="Trình độ tối đa" />
 
-        <Text className="mb-3 mt-3 text-[13px] font-bold text-slate-900">
-          {'\u0054\u0072\u1ea1\u006e\u0067\u0020\u0074\u0068\u00e1\u0069\u0020\u0111\u1eb7\u0074\u0020\u0073\u00e2\u006e'}
+        {/* Booking status */}
+        <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 14, color: PROFILE_THEME_COLORS.onSurface, marginTop: 6, marginBottom: 10 }}>
+          Trạng thái đặt sân
         </Text>
-
         <BookingStatusCard
           active={bookingStatus === 'confirmed'}
-          title={'\u0053\u00e2\u006e\u0020\u0111\u00e3\u0020\u0078\u00e1\u0063\u0020\u006e\u0068\u1ead\u006e'}
-          description={'\u0053\u00e2\u006e\u0020\u0111\u00e3\u0020\u0111\u01b0\u1ee3\u0063\u0020\u0111\u1eb7\u0074\u0020\u0076\u00e0\u0020\u0073\u1eb5\u006e\u0020\u0073\u00e0\u006e\u0067\u0020\u0111\u0103\u006e\u0067\u0020\u006b\u00e8\u006f\u0020\u006e\u0067\u0061\u0079\u002e'}
+          title="Sân đã xác nhận"
+          description="Sân đã được đặt và sẵn sàng đăng kèo ngay."
           tone="confirmed"
-          onPress={() => {
-            setBookingStatus('confirmed')
-            setWantsBookingNow(null)
-          }}
+          onPress={() => { setBookingStatus('confirmed'); setWantsBookingNow(null) }}
         />
-
-        <View className="h-3" />
-
+        <View style={{ height: 10 }} />
         <BookingStatusCard
           active={bookingStatus === 'unconfirmed'}
-          title={'\u0043\u0068\u01b0\u0061\u0020\u0078\u00e1\u0063\u0020\u006e\u0068\u1ead\u006e'}
-          description={'\u0042\u1ea1\u006e\u0020\u0063\u00f3\u0020\u0074\u0068\u1ec3\u0020\u0111\u0103\u006e\u0067\u0020\u0074\u0072\u01b0\u1edb\u0063\u0020\u0072\u1ed3\u0069\u0020\u0063\u1ead\u0070\u0020\u006e\u0068\u1ead\u0074\u0020\u0062\u006f\u006f\u006b\u0069\u006e\u0067\u0020\u0073\u0061\u0075\u002e'}
+          title="Chưa xác nhận"
+          description="Bạn có thể đăng trước rồi cập nhật booking sau."
           tone="unconfirmed"
           onPress={() => setBookingStatus('unconfirmed')}
         />
 
         {bookingStatus === 'unconfirmed' ? (
-          <View className="mt-3 rounded-[16px] border border-slate-200 bg-white p-3.5">
-            <Text className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
-              {'\u0048\u1ed7\u0020\u0074\u0072\u1ee3\u0020\u0062\u006f\u006f\u006b\u0069\u006e\u0067'}
+          <View style={{ ...card, marginTop: 10 }}>
+            <Text style={sectionLabel}>Hỗ trợ booking</Text>
+            <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 14, color: PROFILE_THEME_COLORS.onSurface }}>
+              Bạn có muốn đặt sân ngay bây giờ không?
             </Text>
-            <Text className="mt-3 text-[14px] font-bold text-slate-900">
-              {'\u0042\u1ea1\u006e\u0020\u0063\u00f3\u0020\u006d\u0075\u1ed1\u006e\u0020\u0111\u1eb7\u0074\u0020\u0073\u00e2\u006e\u0020\u006e\u0067\u0061\u0079\u0020\u0062\u00e2\u0079\u0020\u0067\u0069\u1edd\u0020\u006b\u0068\u00f4\u006e\u0067\u003f'}
-            </Text>
-            <Text className="mt-1 text-[12px] leading-snug text-slate-500">
-              {'\u004e\u1ebf\u0075\u0020\u0063\u00f3\u002c\u0020\u0062\u1ea1\u006e\u0020\u0063\u00f3\u0020\u0074\u0068\u1ec3\u0020\u006d\u1edf\u0020\u006c\u0069\u006e\u006b\u0020\u0062\u006f\u006f\u006b\u0069\u006e\u0067\u0020\u0076\u00e0\u0020\u006c\u01b0\u0075\u0020\u0074\u0068\u00f4\u006e\u0067\u0020\u0074\u0069\u006e\u0020\u006e\u0067\u0061\u0079\u0020\u0074\u1ea1\u0069\u0020\u0111\u00e2\u0079\u002e'}
+            <Text style={{ fontFamily: 'PlusJakartaSans-Regular', fontSize: 12, lineHeight: 18, color: PROFILE_THEME_COLORS.onSurfaceVariant, marginTop: 4 }}>
+              Nếu có, bạn có thể mở link booking và lưu thông tin ngay tại đây.
             </Text>
 
-            <View className="mt-3 flex-row gap-3">
-              <TouchableOpacity
-                activeOpacity={0.92}
+            <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
+              <Pressable
                 onPress={() => setWantsBookingNow(true)}
-                className={`flex-1 items-center rounded-[14px] border py-3 ${
-                  wantsBookingNow === true
-                    ? 'border-emerald-500 bg-emerald-50'
-                    : 'border-slate-200 bg-white'
-                }`}
+                style={({ pressed }) => ({
+                  flex: 1, alignItems: 'center', borderRadius: 14, borderWidth: 1,
+                  borderColor: wantsBookingNow === true ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
+                  backgroundColor: wantsBookingNow === true ? PROFILE_THEME_COLORS.secondaryContainer : PROFILE_THEME_COLORS.surfaceContainerLowest,
+                  paddingVertical: 12, opacity: pressed ? 0.85 : 1,
+                })}
               >
-                <Text className={`text-[13px] font-black ${wantsBookingNow === true ? 'text-emerald-700' : 'text-slate-600'}`}>
-                  {'\u0043\u00f3'}
+                <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 13, color: wantsBookingNow === true ? PROFILE_THEME_COLORS.surfaceTint : PROFILE_THEME_COLORS.onSurfaceVariant }}>
+                  Có
                 </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                activeOpacity={0.92}
+              </Pressable>
+              <Pressable
                 onPress={() => setWantsBookingNow(false)}
-                className={`flex-1 items-center rounded-[14px] border py-3 ${
-                  wantsBookingNow === false
-                    ? 'border-slate-900 bg-slate-900'
-                    : 'border-slate-200 bg-white'
-                }`}
+                style={({ pressed }) => ({
+                  flex: 1, alignItems: 'center', borderRadius: 14, borderWidth: 1,
+                  borderColor: wantsBookingNow === false ? PROFILE_THEME_COLORS.inverseSurface : PROFILE_THEME_COLORS.outlineVariant,
+                  backgroundColor: wantsBookingNow === false ? PROFILE_THEME_COLORS.inverseSurface : PROFILE_THEME_COLORS.surfaceContainerLowest,
+                  paddingVertical: 12, opacity: pressed ? 0.85 : 1,
+                })}
               >
-                <Text className={`text-[13px] font-black ${wantsBookingNow === false ? 'text-white' : 'text-slate-600'}`}>
-                  {'\u0043\u0068\u01b0\u0061'}
+                <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 13, color: wantsBookingNow === false ? PROFILE_THEME_COLORS.inverseOnSurface : PROFILE_THEME_COLORS.onSurfaceVariant }}>
+                  Chưa
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
 
             {wantsBookingNow ? (
-              <View className="mt-3 rounded-[14px] border border-amber-200 bg-amber-50 p-3">
-                <Text className="text-[12px] font-medium leading-snug text-amber-800">
-                  {'\u004d\u1edf\u0020\u006c\u0069\u006e\u006b\u0020\u0111\u1eb7\u0074\u0020\u0073\u00e2\u006e\u0020\u0111\u1ec3\u0020\u0074\u0068\u1ef1\u0063\u0020\u0068\u0069\u1ec7\u006e\u0020\u0062\u006f\u006f\u006b\u0069\u006e\u0067\u002c\u0020\u0073\u0061\u0075\u0020\u0111\u00f3\u0020\u0062\u1ea1\u006e\u0020\u0063\u00f3\u0020\u0074\u0068\u1ec3\u0020\u006e\u0068\u1ead\u0070\u0020\u0074\u0068\u00f4\u006e\u0067\u0020\u0074\u0069\u006e\u0020\u0062\u00ea\u006e\u0020\u0064\u01b0\u1edb\u0069\u0020\u0111\u1ec3\u0020\u0064\u1ec5\u0020\u0074\u0068\u0065\u006f\u0020\u0064\u00f5\u0069\u002e'}
+              <View style={{
+                marginTop: 12, borderRadius: 14, borderWidth: 1,
+                borderColor: PROFILE_THEME_COLORS.outlineVariant,
+                backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
+                padding: 12,
+              }}>
+                <Text style={{ fontFamily: 'PlusJakartaSans-Regular', fontSize: 12, lineHeight: 18, color: PROFILE_THEME_COLORS.onSurfaceVariant }}>
+                  Mở link đặt sân để thực hiện booking, sau đó bạn có thể nhập thông tin bên dưới để dễ theo dõi.
                 </Text>
-
-                <TouchableOpacity
-                  activeOpacity={0.92}
+                <Pressable
                   onPress={onOpenBookingLink}
-                  className={`mt-3 flex-row items-center justify-center rounded-[14px] py-3 ${
-                    canOpenBookingLink ? 'bg-emerald-600' : 'bg-slate-400'
-                  }`}
+                  style={({ pressed }) => ({
+                    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+                    marginTop: 10, borderRadius: 14,
+                    backgroundColor: canOpenBookingLink ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outline,
+                    paddingVertical: 12, opacity: pressed ? 0.85 : 1,
+                  })}
                 >
-                  <ExternalLink size={16} color="#ffffff" />
-                  <Text className="ml-2 text-[13px] font-bold text-white">
-                    {'\u004d\u1edf\u0020\u006c\u0069\u006e\u006b\u0020\u0062\u006f\u006f\u006b\u0069\u006e\u0067\u0020\u0063\u1ee7\u0061\u0020\u0073\u00e2\u006e'}
+                  <ExternalLink size={16} color={PROFILE_THEME_COLORS.onPrimary} />
+                  <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13, color: PROFILE_THEME_COLORS.onPrimary }}>
+                    Mở link booking của sân
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
 
-                <View className="mt-3 gap-3">
+                <View style={{ gap: 8, marginTop: 10 }}>
                   <TextInput
-                    value={bookingReference}
-                    onChangeText={setBookingReference}
-                    placeholder={'\u004d\u00e3\u0020\u0062\u006f\u006f\u006b\u0069\u006e\u0067\u0020\u002f\u0020\u006d\u00e3\u0020\u0111\u1eb7\u0074\u0020\u0073\u00e2\u006e'}
-                    placeholderTextColor="#94a3b8"
-                    className="rounded-[14px] border border-slate-200 bg-white px-3.5 py-3 text-[14px] text-slate-900"
+                    value={bookingReference} onChangeText={setBookingReference}
+                    placeholder="Mã booking / mã đặt sân"
+                    placeholderTextColor={PROFILE_THEME_COLORS.outline}
+                    style={textInput}
                   />
-
                   <TextInput
-                    value={bookingName}
-                    onChangeText={setBookingName}
-                    placeholder={'\u0054\u00ea\u006e\u0020\u006e\u0067\u01b0\u1eddi\u0020\u0111\u1eb7\u0074'}
-                    placeholderTextColor="#94a3b8"
-                    className="rounded-[14px] border border-slate-200 bg-white px-3.5 py-3 text-[14px] text-slate-900"
+                    value={bookingName} onChangeText={setBookingName}
+                    placeholder="Tên người đặt"
+                    placeholderTextColor={PROFILE_THEME_COLORS.outline}
+                    style={textInput}
                   />
-
                   <TextInput
-                    value={bookingPhone}
-                    onChangeText={setBookingPhone}
+                    value={bookingPhone} onChangeText={setBookingPhone}
                     keyboardType="phone-pad"
-                    placeholder={'\u0053\u1ed1\u0020\u0111\u0069\u1ec7\u006e\u0020\u0074\u0068\u006f\u1ea1\u0069\u0020\u0062\u006f\u006f\u006b\u0069\u006e\u0067'}
-                    placeholderTextColor="#94a3b8"
-                    className="rounded-[14px] border border-slate-200 bg-white px-3.5 py-3 text-[14px] text-slate-900"
+                    placeholder="Số điện thoại booking"
+                    placeholderTextColor={PROFILE_THEME_COLORS.outline}
+                    style={textInput}
                   />
-
                   <TextInput
-                    value={bookingNotes}
-                    onChangeText={setBookingNotes}
+                    value={bookingNotes} onChangeText={setBookingNotes}
                     multiline
-                    placeholder={'\u0047\u0068\u0069\u0020\u0063\u0068\u00fa\u0020\u0062\u006f\u006f\u006b\u0069\u006e\u0067'}
-                    placeholderTextColor="#94a3b8"
-                    className="min-h-[96px] rounded-[14px] border border-slate-200 bg-white px-3.5 py-3 text-[14px] text-slate-900"
-                    style={{ textAlignVertical: 'top' }}
+                    placeholder="Ghi chú booking"
+                    placeholderTextColor={PROFILE_THEME_COLORS.outline}
+                    style={{ ...textInput, minHeight: 88, textAlignVertical: 'top' }}
                   />
                 </View>
               </View>
@@ -366,116 +371,108 @@ export function CreateSessionStep2({
           </View>
         ) : null}
 
-        <View className="mt-6 rounded-[16px] border border-slate-200 bg-white p-3">
-          <Text className="mb-3 ml-1 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
-            {'\u0044\u0065\u0061\u0064\u006c\u0069\u006e\u0065\u0020\u0074\u0068\u0061\u006d\u0020\u0067\u0069\u0061'}
-          </Text>
-          <View className="flex-row flex-wrap gap-2">
+        {/* Deadline */}
+        <View style={{ ...card, marginTop: 6 }}>
+          <Text style={sectionLabel}>Deadline tham gia</Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
             {DEADLINE_OPTIONS.map((hours) => (
-              <TouchableOpacity
+              <Pressable
                 key={hours}
-                activeOpacity={0.92}
                 onPress={() => setDeadlineHours(hours)}
-                className={`rounded-[12px] border px-3 py-2.5 ${
-                  deadlineHours === hours
-                    ? 'border-rose-300 bg-rose-50'
-                    : 'border-slate-200 bg-slate-50'
-                }`}
+                style={({ pressed }) => ({
+                  borderRadius: 12, borderWidth: 1,
+                  borderColor: deadlineHours === hours ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
+                  backgroundColor: deadlineHours === hours ? PROFILE_THEME_COLORS.secondaryContainer : PROFILE_THEME_COLORS.surfaceContainerLow,
+                  paddingHorizontal: 14, paddingVertical: 9,
+                  opacity: pressed ? 0.85 : 1,
+                })}
               >
-                <Text className={`text-[13px] font-bold ${deadlineHours === hours ? 'text-rose-700' : 'text-slate-500'}`}>
-                  {`${hours} \u0067\u0069\u1edd`}
+                <Text style={{
+                  fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13,
+                  color: deadlineHours === hours ? PROFILE_THEME_COLORS.surfaceTint : PROFILE_THEME_COLORS.onSurfaceVariant,
+                }}>
+                  {`${hours} giờ`}
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             ))}
           </View>
         </View>
 
-        <View className="mt-3 rounded-[16px] border border-slate-200 bg-white p-3.5">
-          <View className="flex-row items-center justify-between gap-3">
-            <View className="flex-1 flex-row items-start gap-3">
-              <View className="mt-0.5 h-9 w-9 items-center justify-center rounded-[12px] bg-indigo-50">
-                <ShieldCheck size={18} color="#4f46e5" />
-              </View>
-              <View className="flex-1">
-                <Text className="text-[14px] font-bold text-slate-900">{'\u0054\u1ef1\u0020\u0111\u1ed9\u006e\u0067\u0020\u0064\u0075\u0079\u1ec7\u0074'}</Text>
-                <Text className="mt-0.5 text-[12px] leading-snug text-slate-500">
-                  {'\u0042\u1ead\u0074\u0020\u0111\u1ec3\u0020\u006e\u0067\u01b0\u1eddi\u0020\u0063\u0068\u01a1\u0069\u0020\u0076\u00e0\u006f\u0020\u006b\u00e8\u006f\u0020\u006e\u0067\u0061\u0079\u002c\u0020\u0074\u1eaft\u0020\u0111\u1ec3\u0020\u0068\u006f\u0073\u0074\u0020\u0064\u0075\u0079\u1ec7\u0074\u0020\u0074\u0068\u1ee7\u0020\u0063\u00f4\u006e\u0067\u002e'}
-                </Text>
-              </View>
-            </View>
-            <Switch
-              value={!requireApproval}
-              onValueChange={(value) => setRequireApproval(!value)}
-              trackColor={{ false: '#cbd5e1', true: '#86efac' }}
-              thumbColor="#ffffff"
-            />
-          </View>
-        </View>
+        {/* Toggles */}
+        <ToggleRow
+          icon={ShieldCheck}
+          iconBg={PROFILE_THEME_COLORS.secondaryContainer}
+          iconColor={PROFILE_THEME_COLORS.surfaceTint}
+          title="Tự động duyệt"
+          subtitle="Bật để người chơi vào kèo ngay, tắt để host duyệt thủ công."
+          value={!requireApproval}
+          onToggle={(v) => setRequireApproval(!v)}
+        />
 
-        <View className="mt-3 rounded-[16px] border border-slate-200 bg-white p-3.5">
-          <View className="flex-row items-center justify-between gap-3">
-            <View className="flex-1 flex-row items-start gap-3">
-              <View className="mt-0.5 h-9 w-9 items-center justify-center rounded-[12px] bg-amber-50">
-                <ShieldCheck size={18} color="#d97706" />
-              </View>
-              <View className="flex-1">
-                <Text className="text-[14px] font-bold text-slate-900">Kèo tính Elo</Text>
-                <Text className="mt-0.5 text-[12px] leading-snug text-slate-500">
-                  Bật để trận này cập nhật Elo khi kết quả được chốt. Tắt nếu đây là kèo giao lưu hoặc không muốn ảnh hưởng xếp hạng.
-                </Text>
-                {rankedHelperText ? (
-                  <Text className={`mt-2 text-[12px] font-medium ${canToggleRanked ? 'text-slate-500' : 'text-amber-700'}`}>
-                    {rankedHelperText}
-                  </Text>
-                ) : null}
-              </View>
-            </View>
-            <Switch
-              value={isRanked}
-              onValueChange={setIsRanked}
-              disabled={!canToggleRanked}
-              trackColor={{ false: '#cbd5e1', true: '#fcd34d' }}
-              thumbColor="#ffffff"
-            />
-          </View>
-        </View>
+        <ToggleRow
+          icon={TrendingUp}
+          iconBg="#fff8e6"
+          iconColor="#d97706"
+          title="Kèo tính Elo"
+          subtitle="Bật để trận này cập nhật Elo khi kết quả được chốt."
+          value={isRanked}
+          onToggle={setIsRanked}
+          disabled={!canToggleRanked}
+          helperText={rankedHelperText}
+          helperRed={!canToggleRanked}
+        />
 
-        <View className="mt-3 rounded-[16px] border border-slate-200 bg-white p-3.5">
-          <Text className="mb-3 ml-1 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
-            {'\u0043\u0068\u0069\u0020\u0070\u0068\u00ed'}
-          </Text>
-          <View className="flex-row items-center gap-3 rounded-[14px] border border-slate-200 bg-slate-50 px-3.5">
-            <Wallet size={18} color="#64748b" />
+        {/* Chi phí */}
+        <View style={card}>
+          <Text style={sectionLabel}>Chi phí</Text>
+          <View style={{
+            flexDirection: 'row', alignItems: 'center', gap: 10,
+            borderRadius: 14, borderWidth: 1,
+            borderColor: PROFILE_THEME_COLORS.outlineVariant,
+            backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
+            paddingHorizontal: 14,
+          }}>
+            <Wallet size={18} color={PROFILE_THEME_COLORS.onSurfaceVariant} />
             <TextInput
               value={totalCostStr}
               onChangeText={setTotalCostStr}
               keyboardType="number-pad"
-              placeholder={'\u0056\u00ed\u0020\u0064\u1ee5\u003a\u0020\u0038\u0030\u0030\u0030\u0030\u0030'}
-              placeholderTextColor="#94a3b8"
-              className="flex-1 py-3 text-[14px] font-bold text-slate-900"
+              placeholder="Ví dụ: 80000"
+              placeholderTextColor={PROFILE_THEME_COLORS.outline}
+              style={{ flex: 1, paddingVertical: 12, fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 14, color: PROFILE_THEME_COLORS.onSurface }}
             />
           </View>
-          <View className="mt-3 flex-row items-center gap-2">
-            <Clock3 size={14} color="#64748b" />
-            <Text className="text-[12px] font-medium text-slate-500">
-              {costPerPerson > 0
-                ? `${costPerPerson.toLocaleString('vi-VN')}\u0111/\u006e\u0067\u01b0\u1eddi`
-                : '\u0110\u1ec3\u0020\u0074\u0072\u1ed1\u006e\u0067\u0020\u006e\u1ebf\u0075\u0020\u006d\u0075\u1ed1\u006e\u0020\u0074\u1ea1\u006f\u0020\u006b\u00e8\u006f\u0020\u006d\u0069\u1ec5\u006e\u0020\u0070\u0068\u00ed'}
-            </Text>
-          </View>
+          <Text style={{ fontFamily: 'PlusJakartaSans-Regular', fontSize: 12, color: PROFILE_THEME_COLORS.onSurfaceVariant, marginTop: 8 }}>
+            {costPerPerson > 0
+              ? `${costPerPerson.toLocaleString('vi-VN')}đ/người`
+              : 'Để trống nếu muốn tạo kèo miễn phí'}
+          </Text>
         </View>
       </ScrollView>
 
-      <View className="absolute bottom-0 left-0 right-0 border-t border-slate-200 bg-white/95 px-4 pb-8 pt-3 backdrop-blur-md">
-        <TouchableOpacity
-          activeOpacity={0.92}
+      <SafeAreaView
+        edges={['bottom']}
+        style={{
+          position: 'absolute', bottom: 0, left: 0, right: 0,
+          borderTopWidth: 1, borderTopColor: PROFILE_THEME_COLORS.outlineVariant,
+          backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+          paddingHorizontal: 20, paddingTop: 14, paddingBottom: 12,
+        }}
+      >
+        <Pressable
           onPress={onContinue}
-          className="h-14 w-full flex-row items-center justify-center rounded-[14px] bg-emerald-600 active:scale-95"
+          style={({ pressed }) => ({
+            height: 54, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+            borderRadius: 14, backgroundColor: PROFILE_THEME_COLORS.primary,
+            opacity: pressed ? 0.88 : 1,
+          })}
         >
-          <Text className="text-[16px] font-bold tracking-wide text-white">{'\u0054\u0069\u1ebf\u0070\u0020\u0074\u1ee5\u0063'}</Text>
-          <ArrowRight size={18} color="white" />
-        </TouchableOpacity>
-      </View>
+          <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 16, color: PROFILE_THEME_COLORS.onPrimary }}>
+            Tiếp tục
+          </Text>
+          <ArrowRight size={18} color={PROFILE_THEME_COLORS.onPrimary} />
+        </Pressable>
+      </SafeAreaView>
     </KeyboardAvoidingView>
   )
 }

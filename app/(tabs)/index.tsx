@@ -12,7 +12,7 @@ import { MatchSessionCard } from '@/components/home/MatchSessionCard'
 import { PostMatchInboxSection } from '@/components/home/PostMatchInboxSection'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { useHomeFeedData } from '@/hooks/useHomeFeedData'
-import { buildSkillLevelPreviewSessions, buildUpcomingMatchPreviewSession, type FamiliarCourt, type MatchSession } from '@/lib/homeFeed'
+import { buildUpcomingMatchPreviewSession, type FamiliarCourt, type MatchSession } from '@/lib/homeFeed'
 import { useAppTheme } from '@/lib/theme-context'
 import { useAuth } from '@/lib/useAuth'
 
@@ -95,7 +95,6 @@ export default function HomeScreen() {
   const { userId, isLoading: isAuthLoading } = useAuth()
   const [personalizedIndex, setPersonalizedIndex] = useState(0)
   const [rescueIndex, setRescueIndex] = useState(0)
-  const [levelPreviewIndex, setLevelPreviewIndex] = useState(0)
   const [courtIndex, setCourtIndex] = useState(0)
   const {
     refreshing,
@@ -117,14 +116,12 @@ export default function HomeScreen() {
   const currentWinStreak = playerStats?.current_win_streak ?? 0
   const displayWinStreak = currentWinStreak > 0 ? currentWinStreak : __DEV__ ? 7 : 0
   const statusPrompt = hasUpcomingMatch ? 'Đã sẵn sàng ra sân chưa?' : 'Hôm nay ra sân chứ?'
-  const levelPreviewSessions = useMemo(() => (__DEV__ ? buildSkillLevelPreviewSessions() : []), [])
 
   const renderPersonalizedCard = useCallback(
     (item: MatchSession) => (hasUpcomingMatch ? <SmartMatchCard item={item} /> : <SmartQueueHeroStyledCard item={item} />),
     [hasUpcomingMatch],
   )
   const renderRescueCard = useCallback((item: MatchSession) => <SmartMatchCard item={item} accentMode="rescue" />, [])
-  const renderLevelPreviewCard = useCallback((item: MatchSession) => <SmartMatchCard item={item} />, [])
   const renderCourtCard = useCallback(
     (item: FamiliarCourt) => (
       <FamiliarCourtCard

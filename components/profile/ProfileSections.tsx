@@ -4,8 +4,6 @@ import { getSkillLevelUi } from '@/lib/skillLevelUi'
 import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
 import {
-  AlertCircle,
-  Check,
   ChevronRight,
   Flame,
   LogOut,
@@ -272,24 +270,6 @@ export function ProfileStatsGrid({
       </View>
     </View>
   )
-}
-
-function historyState(status: string) {
-  if (status === 'cancelled') {
-    return {
-      icon: AlertCircle,
-      iconColor: PROFILE_THEME_COLORS.error,
-      iconBg: PROFILE_THEME_COLORS.errorContainer,
-      needsRating: false,
-    }
-  }
-
-  return {
-    icon: Check,
-    iconColor: PROFILE_THEME_COLORS.primary,
-    iconBg: PROFILE_THEME_COLORS.primaryFixed,
-    needsRating: status === 'done',
-  }
 }
 
 // 6. Match History

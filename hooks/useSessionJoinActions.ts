@@ -132,23 +132,32 @@ export function useSessionJoinActions({
   const leaveSession = useCallback(async () => {
     if (!session || !userId) return
 
-    Alert.alert('Rời kèo?', 'Bạn chắc chắn muốn rời kèo này?', [
+    const hostFlow = isHost
+    const title = hostFlow ? 'Hủy kèo?' : 'Rời kèo?'
+    const message = hostFlow
+      ? 'Bạn chắc chắn muốn hủy kèo này? Kèo sẽ bị hủy cho tất cả người chơi.'
+      : 'Bạn chắc chắn muốn rời kèo này?'
+    const destructiveText = hostFlow ? 'Hủy kèo' : 'Rời kèo'
+
+    Alert.alert(title, message, [
       { text: 'Ở lại', style: 'cancel' },
       {
-        text: 'Rời kèo',
+        text: destructiveText,
         style: 'destructive',
         onPress: async () => {
           setLeaving(true)
-          const { error } = await supabase
-            .from('session_players')
-            .delete()
-            .eq('session_id', session.id)
-            .eq('player_id', userId)
+          const { error } = hostFlow
+            ? await supabase.rpc('cancel_host_session', { p_session_id: session.id })
+            : await supabase
+                .from('session_players')
+                .delete()
+                .eq('session_id', session.id)
+                .eq('player_id', userId)
 
           setLeaving(false)
 
           if (error) {
-            Alert.alert('Không thể rời kèo', error.message)
+            Alert.alert(hostFlow ? 'Không thể hủy kèo' : 'Không thể rời kèo', error.message)
             return
           }
 
@@ -156,7 +165,7 @@ export function useSessionJoinActions({
         },
       },
     ])
-  }, [refreshSession, session, userId])
+  }, [isHost, refreshSession, session, userId])
 
   function handleSmartJoinPress(onOpenJoinModal: () => void) {
     if (matchStatus === 'MATCHED' && !hostRequiresApproval) {

@@ -1,5 +1,6 @@
-import { Repeat2 } from 'lucide-react-native'
-import { Text, TouchableOpacity, View } from 'react-native'
+import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { Repeat2, Shuffle } from 'lucide-react-native'
+import { Pressable, Text, View } from 'react-native'
 
 import type { ArrangementPlayer } from '@/lib/sessionDetail'
 
@@ -19,6 +20,100 @@ type Props = {
   renderPlayerRow: (player: ArrangementPlayer, mode: 'normal' | 'arranging') => React.ReactNode
 }
 
+function TeamHeader({ label, badge, avgElo }: { label: string; badge: string; avgElo: number }) {
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+        <Text
+          style={{
+            fontFamily: 'PlusJakartaSans-ExtraBold',
+            fontSize: 13,
+            letterSpacing: 2.4,
+            textTransform: 'uppercase',
+            color: PROFILE_THEME_COLORS.onSurfaceVariant,
+          }}
+        >
+          {label}
+        </Text>
+        {avgElo > 0 && (
+          <View
+            style={{
+              borderRadius: 999,
+              paddingHorizontal: 10,
+              paddingVertical: 4,
+              backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
+              borderWidth: 1,
+              borderColor: PROFILE_THEME_COLORS.outlineVariant,
+            }}
+          >
+            <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 11, color: PROFILE_THEME_COLORS.outline }}>
+              TB {avgElo} ELO
+            </Text>
+          </View>
+        )}
+      </View>
+      <View
+        style={{
+          width: 32,
+          height: 32,
+          borderRadius: 999,
+          backgroundColor: PROFILE_THEME_COLORS.primary,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 14, color: PROFILE_THEME_COLORS.onPrimary }}>
+          {badge}
+        </Text>
+      </View>
+    </View>
+  )
+}
+
+function EmptySlot() {
+  return (
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderRadius: 24,
+        borderWidth: 1.5,
+        borderStyle: 'dashed',
+        borderColor: PROFILE_THEME_COLORS.outlineVariant,
+        backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+      }}
+    >
+      <View
+        style={{
+          width: 48,
+          height: 48,
+          borderRadius: 999,
+          borderWidth: 1.5,
+          borderStyle: 'dashed',
+          borderColor: PROFILE_THEME_COLORS.outlineVariant,
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginRight: 14,
+        }}
+      >
+        <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 20, color: PROFILE_THEME_COLORS.outlineVariant }}>
+          +
+        </Text>
+      </View>
+      <View>
+        <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 14, color: PROFILE_THEME_COLORS.outline }}>
+          Đang chờ...
+        </Text>
+        <Text style={{ fontFamily: 'PlusJakartaSans-Regular', fontSize: 11, color: PROFILE_THEME_COLORS.outlineVariant, marginTop: 2 }}>
+          Vị trí trống
+        </Text>
+      </View>
+    </View>
+  )
+}
+
 export function PlayerRosterSection({
   arrangedPlayers,
   maxPlayers,
@@ -35,100 +130,122 @@ export function PlayerRosterSection({
   renderPlayerRow,
 }: Props) {
   return (
-    <>
-      <View className="mt-6 flex-row items-center justify-between gap-3">
-        <View className="flex-1">
-          <Text className="text-[22px] font-black text-slate-950">{`Người chơi • ${arrangedPlayers.length}/${maxPlayers}`}</Text>
-          {sessionStatus === 'open' && spotsLeft > 0 ? (
-            <Text className="mt-1 text-[13px] font-bold text-emerald-600">
-              {spotsLeft === 1 ? 'Còn 1 chỗ cuối' : `Còn ${spotsLeft} chỗ trống`}
-            </Text>
-          ) : (
-            <Text className="mt-1 text-[13px] font-medium text-slate-500">Danh sách hiện tại của kèo này.</Text>
-          )}
+    <View style={{ marginTop: 24 }}>
+      {/* Section header */}
+      <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 16 }}>
+        <View>
+          <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 20, color: PROFILE_THEME_COLORS.onBackground }}>
+            Danh sách thi đấu
+          </Text>
+          <Text
+            style={{
+              fontFamily: 'PlusJakartaSans-SemiBold',
+              fontSize: 13,
+              color: sessionStatus === 'open' && spotsLeft > 0
+                ? PROFILE_THEME_COLORS.surfaceTint
+                : PROFILE_THEME_COLORS.onSurfaceVariant,
+              marginTop: 4,
+            }}
+          >
+            {arrangedPlayers.length}/{maxPlayers} người chơi
+            {sessionStatus === 'open' && spotsLeft > 0 ? ` • Còn ${spotsLeft} chỗ` : ''}
+          </Text>
         </View>
 
-        {isHost ? (
-          <TouchableOpacity
-            className={`min-w-[140px] flex-row items-center justify-center rounded-[24px] px-5 py-4 shadow-sm ${
-              isArranging ? 'bg-slate-900' : 'bg-slate-100'
-            }`}
+        {isHost && (
+          <Pressable
             onPress={() => setIsArranging((prev) => !prev)}
-            activeOpacity={0.9}
+            style={({ pressed }) => ({
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 6,
+              borderRadius: 20,
+              paddingHorizontal: 16,
+              paddingVertical: 10,
+              backgroundColor: isArranging ? PROFILE_THEME_COLORS.inverseSurface : PROFILE_THEME_COLORS.surfaceContainerHighest,
+              opacity: pressed ? 0.85 : 1,
+            })}
           >
-            {isArranging ? <Repeat2 size={16} color="#ffffff" strokeWidth={2.5} /> : null}
-            <Text className={`text-[12px] font-black uppercase tracking-[0.08em] ${isArranging ? 'text-white' : 'text-slate-700'}`}>
-              {isArranging ? ' XONG' : 'Sắp xếp đội'}
+            <Repeat2
+              size={14}
+              color={isArranging ? PROFILE_THEME_COLORS.surfaceContainerLowest : PROFILE_THEME_COLORS.onSurface}
+              strokeWidth={2.5}
+            />
+            <Text
+              style={{
+                fontFamily: 'PlusJakartaSans-ExtraBold',
+                fontSize: 12,
+                letterSpacing: 0.5,
+                color: isArranging ? PROFILE_THEME_COLORS.surfaceContainerLowest : PROFILE_THEME_COLORS.onSurface,
+              }}
+            >
+              {isArranging ? 'Xong' : 'Chỉnh đội'}
             </Text>
-          </TouchableOpacity>
-        ) : null}
-      </View>
-
-      {isHost && isArranging ? (
-        <View className="mt-4 gap-3">
-          <View className="rounded-[28px] border border-dashed border-indigo-200 bg-indigo-50 px-5 py-5">
-            <Text className="text-[13px] leading-7 text-indigo-600">
-              Nhấn vào biểu tượng đổi đội để chuyển người chơi giữa Team A và Team B.
-            </Text>
-          </View>
-
-          <TouchableOpacity
-            className="self-start rounded-[20px] bg-indigo-600 px-5 py-3 shadow-sm"
-            onPress={onAutoBalance}
-            activeOpacity={0.9}
-          >
-            <Text className="text-[12px] font-black uppercase tracking-[0.08em] text-white">Chia đội tự động</Text>
-          </TouchableOpacity>
-        </View>
-      ) : null}
-
-      <View className="mt-3">
-        {isArranging ? (
-          <View className="mt-6 gap-6">
-            <View>
-              <View className="mb-4 flex-row items-center justify-between px-2">
-                <Text className="text-[18px] font-black uppercase tracking-[0.14em] text-slate-900">ĐỘI A</Text>
-                <View className="rounded-2xl border border-slate-200 bg-white px-4 py-2">
-                  <Text className="text-[12px] font-black uppercase tracking-[0.04em] text-slate-400">{`ELO TB: ${averageTeamA}`}</Text>
-                </View>
-              </View>
-              <View className="gap-3">
-                {teamA.length > 0 ? teamA.map((player) => renderPlayerRow(player, 'arranging')) : null}
-              </View>
-            </View>
-
-            <View>
-              <View className="mb-4 flex-row items-center justify-between px-2">
-                <Text className="text-[18px] font-black uppercase tracking-[0.14em] text-slate-900">ĐỘI B</Text>
-                <View className="rounded-2xl border border-slate-200 bg-white px-4 py-2">
-                  <Text className="text-[12px] font-black uppercase tracking-[0.04em] text-slate-400">{`ELO TB: ${averageTeamB}`}</Text>
-                </View>
-              </View>
-              <View className="gap-3">
-                {teamB.length > 0 ? teamB.map((player) => renderPlayerRow(player, 'arranging')) : null}
-              </View>
-            </View>
-          </View>
-        ) : (
-          <View className="gap-3">
-            {arrangedPlayers.map((player) => renderPlayerRow(player, 'normal'))}
-
-            {Array.from({ length: spotsLeft }).map((_, index) => (
-              <View
-                key={`empty-slot-${index}`}
-                className="rounded-3xl border border-dashed border-slate-200 bg-slate-50 px-4 py-5"
-              >
-                <View className="flex-row items-center gap-3">
-                  <View className="h-14 w-14 items-center justify-center rounded-full border border-dashed border-slate-300 bg-white">
-                    <Text className="text-[18px] font-black text-slate-400">?</Text>
-                  </View>
-                  <Text className="text-[14px] font-bold text-slate-400">Chờ người chơi...</Text>
-                </View>
-              </View>
-            ))}
-          </View>
+          </Pressable>
         )}
       </View>
-    </>
+
+      {/* Edit mode hint + auto balance */}
+      {isHost && isArranging && (
+        <View style={{ marginBottom: 14, gap: 10 }}>
+          <View
+            style={{
+              borderRadius: 20,
+              paddingHorizontal: 16,
+              paddingVertical: 12,
+              backgroundColor: PROFILE_THEME_COLORS.secondaryContainer,
+              borderWidth: 1,
+              borderStyle: 'dashed',
+              borderColor: PROFILE_THEME_COLORS.outlineVariant,
+            }}
+          >
+            <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13, lineHeight: 20, color: PROFILE_THEME_COLORS.surfaceTint }}>
+              Nhấn icon đổi đội để chuyển người chơi giữa Đội A và Đội B.
+            </Text>
+          </View>
+          <Pressable
+            onPress={onAutoBalance}
+            style={({ pressed }) => ({
+              alignSelf: 'flex-start',
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 8,
+              borderRadius: 20,
+              paddingHorizontal: 16,
+              paddingVertical: 10,
+              backgroundColor: PROFILE_THEME_COLORS.primary,
+              opacity: pressed ? 0.88 : 1,
+            })}
+          >
+            <Shuffle size={14} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.5} />
+            <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 12, letterSpacing: 0.5, color: PROFILE_THEME_COLORS.onPrimary }}>
+              Chia đội tự động
+            </Text>
+          </Pressable>
+        </View>
+      )}
+
+      {/* Team A */}
+      <View style={{ marginBottom: 20 }}>
+        <TeamHeader label="Đội A" badge="A" avgElo={averageTeamA} />
+        <View style={{ gap: 10 }}>
+          {teamA.length > 0
+            ? teamA.map((player) => renderPlayerRow(player, isArranging ? 'arranging' : 'normal'))
+            : <EmptySlot />}
+        </View>
+      </View>
+
+      {/* Team B */}
+      <View>
+        <TeamHeader label="Đội B" badge="B" avgElo={averageTeamB} />
+        <View style={{ gap: 10 }}>
+          {teamB.map((player) => renderPlayerRow(player, isArranging ? 'arranging' : 'normal'))}
+          {Array.from({ length: spotsLeft }).map((_, i) => (
+            <EmptySlot key={`empty-${i}`} />
+          ))}
+          {teamB.length === 0 && spotsLeft === 0 && <EmptySlot />}
+        </View>
+      </View>
+    </View>
   )
 }

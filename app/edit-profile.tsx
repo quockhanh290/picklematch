@@ -1,6 +1,6 @@
 import { AppInput, EmptyState, ScreenHeader, StatusBadge } from '@/components/design'
 import { PROFILE_SKILL_HERO_TONE, ProfileSkillHero } from '@/components/profile/ProfileSections'
-import { getEloBandByLegacySkillLabel, getUserDescriptionForLevelId } from '@/lib/eloSystem'
+import { getEloBandByLegacySkillLabel } from '@/lib/eloSystem'
 import { getSkillLevelById, type SkillAssessmentLevel } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
 import { router } from 'expo-router'
@@ -284,7 +284,6 @@ export default function EditProfile() {
   }
 
   const currentLevel = getSkillLevelById(selectedLevelId)
-  const currentDescription = getUserDescriptionForLevelId(selectedLevelId)
   const heroTitleSize = width < 360 ? 36 : width < 420 ? 44 : 52
   const heroTitleLineHeight = width < 360 ? 50 : width < 420 ? 60 : 70
   const heroCardSize = Math.min(width - 48, 360)

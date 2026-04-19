@@ -158,7 +158,6 @@ export default function RateSessionScreen() {
   const [players, setPlayers] = useState<PlayerInSession[]>([])
   const [ratings, setRatings] = useState<Record<string, RatingEntry>>({})
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [sessionEndTime, setSessionEndTime] = useState<string | null>(null)
   const [completedCount, setCompletedCount] = useState(0)
   const [alreadyRated, setAlreadyRated] = useState(false)
 
@@ -216,7 +215,6 @@ export default function RateSessionScreen() {
     }
 
     const typedSession = session as unknown as SessionRecord
-    setSessionEndTime(typedSession.slot?.end_time ?? null)
 
     const { data: existingRatings } = await supabase
       .from('ratings')

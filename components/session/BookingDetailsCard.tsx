@@ -1,3 +1,6 @@
+import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { FileText, Hash, Phone, ShieldAlert, ShieldCheck, User } from 'lucide-react-native'
+import type { ComponentType } from 'react'
 import { Text, View } from 'react-native'
 
 type Props = {
@@ -8,6 +11,64 @@ type Props = {
   bookingNotes?: string | null
 }
 
+function InfoRow({
+  icon: Icon,
+  label,
+  value,
+  showDivider = true,
+}: {
+  icon: ComponentType<any>
+  label: string
+  value: string
+  showDivider?: boolean
+}) {
+  return (
+    <>
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <View
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 999,
+            backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Icon size={18} color={PROFILE_THEME_COLORS.primary} strokeWidth={2.4} />
+        </View>
+        <View style={{ marginLeft: 14, flex: 1 }}>
+          <Text
+            style={{
+              fontSize: 10,
+              fontFamily: 'PlusJakartaSans-ExtraBold',
+              textTransform: 'uppercase',
+              letterSpacing: 1.8,
+              color: PROFILE_THEME_COLORS.outline,
+            }}
+          >
+            {label}
+          </Text>
+          <Text
+            style={{
+              marginTop: 3,
+              fontSize: 14,
+              fontFamily: 'PlusJakartaSans-SemiBold',
+              color: PROFILE_THEME_COLORS.onSurface,
+              lineHeight: 20,
+            }}
+          >
+            {value}
+          </Text>
+        </View>
+      </View>
+      {showDivider && (
+        <View style={{ height: 1, backgroundColor: PROFILE_THEME_COLORS.outlineVariant, marginVertical: 14 }} />
+      )}
+    </>
+  )
+}
+
 export function BookingDetailsCard({
   courtBookingStatus,
   bookingReference,
@@ -15,61 +76,107 @@ export function BookingDetailsCard({
   bookingPhone,
   bookingNotes,
 }: Props) {
+  const isConfirmed = courtBookingStatus === 'confirmed'
+  const rows = (
+    [
+      bookingReference ? { icon: Hash, label: 'Mã đặt sân', value: bookingReference } : null,
+      bookingName ? { icon: User, label: 'Tên đặt sân', value: bookingName } : null,
+      bookingPhone ? { icon: Phone, label: 'Số điện thoại', value: bookingPhone } : null,
+      bookingNotes ? { icon: FileText, label: 'Ghi chú', value: bookingNotes } : null,
+    ] as ({ icon: ComponentType<any>; label: string; value: string } | null)[]
+  ).filter((r): r is { icon: ComponentType<any>; label: string; value: string } => r !== null)
+
+  if (rows.length === 0) return null
+
   return (
-    <View className="mt-5 rounded-[32px] border border-slate-200 bg-slate-50 p-5">
-      <View className="flex-row items-center justify-between gap-3">
+    <View
+      style={{
+        marginTop: 16,
+        borderRadius: 28,
+        backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+        shadowColor: '#0f172a',
+        shadowOpacity: 0.06,
+        shadowRadius: 14,
+        shadowOffset: { width: 0, height: 6 },
+        elevation: 3,
+        overflow: 'hidden',
+      }}
+    >
+      {/* Header */}
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          paddingHorizontal: 20,
+          paddingTop: 18,
+          paddingBottom: 14,
+          borderBottomWidth: 1,
+          borderBottomColor: PROFILE_THEME_COLORS.outlineVariant,
+        }}
+      >
         <View>
-          <Text className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-400">
+          <Text
+            style={{
+              fontSize: 10,
+              fontFamily: 'PlusJakartaSans-ExtraBold',
+              textTransform: 'uppercase',
+              letterSpacing: 1.8,
+              color: PROFILE_THEME_COLORS.outline,
+            }}
+          >
             Thông tin đặt sân
           </Text>
-          <Text className="mt-1 text-[15px] font-bold text-slate-900">
-            Chỉ host nhìn thấy phần này để tiện check sân.
+          <Text
+            style={{
+              marginTop: 3,
+              fontSize: 13,
+              fontFamily: 'PlusJakartaSans-SemiBold',
+              color: PROFILE_THEME_COLORS.onSurfaceVariant,
+            }}
+          >
+            Chỉ bạn (host) nhìn thấy phần này
           </Text>
         </View>
-
         <View
-          className={`rounded-full px-3 py-2 ${
-            courtBookingStatus === 'confirmed' ? 'bg-emerald-100' : 'bg-amber-100'
-          }`}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderRadius: 999,
+            paddingHorizontal: 12,
+            paddingVertical: 7,
+            backgroundColor: isConfirmed
+              ? PROFILE_THEME_COLORS.secondaryContainer
+              : PROFILE_THEME_COLORS.surfaceContainerHighest,
+          }}
         >
+          {isConfirmed
+            ? <ShieldCheck size={13} color={PROFILE_THEME_COLORS.surfaceTint} strokeWidth={2.5} />
+            : <ShieldAlert size={13} color={PROFILE_THEME_COLORS.outline} strokeWidth={2.5} />}
           <Text
-            className={`text-[11px] font-black uppercase tracking-[0.08em] ${
-              courtBookingStatus === 'confirmed' ? 'text-emerald-700' : 'text-amber-700'
-            }`}
+            style={{
+              marginLeft: 6,
+              fontSize: 12,
+              fontFamily: 'PlusJakartaSans-ExtraBold',
+              color: isConfirmed ? PROFILE_THEME_COLORS.surfaceTint : PROFILE_THEME_COLORS.outline,
+            }}
           >
-            {courtBookingStatus === 'confirmed' ? 'Đã chốt sân' : 'Chờ xác nhận'}
+            {isConfirmed ? 'Đã chốt sân' : 'Chờ xác nhận'}
           </Text>
         </View>
       </View>
 
-      <View className="mt-4 gap-3">
-        {bookingReference ? (
-          <View className="rounded-[22px] bg-white px-4 py-3">
-            <Text className="text-[11px] font-black uppercase tracking-[0.08em] text-slate-400">Mã đặt sân</Text>
-            <Text className="mt-1 text-[14px] font-bold text-slate-900">{bookingReference}</Text>
-          </View>
-        ) : null}
-
-        {bookingName ? (
-          <View className="rounded-[22px] bg-white px-4 py-3">
-            <Text className="text-[11px] font-black uppercase tracking-[0.08em] text-slate-400">Tên đặt sân</Text>
-            <Text className="mt-1 text-[14px] font-bold text-slate-900">{bookingName}</Text>
-          </View>
-        ) : null}
-
-        {bookingPhone ? (
-          <View className="rounded-[22px] bg-white px-4 py-3">
-            <Text className="text-[11px] font-black uppercase tracking-[0.08em] text-slate-400">Số điện thoại</Text>
-            <Text className="mt-1 text-[14px] font-bold text-slate-900">{bookingPhone}</Text>
-          </View>
-        ) : null}
-
-        {bookingNotes ? (
-          <View className="rounded-[22px] bg-white px-4 py-3">
-            <Text className="text-[11px] font-black uppercase tracking-[0.08em] text-slate-400">Ghi chú</Text>
-            <Text className="mt-1 text-[14px] leading-6 text-slate-700">{bookingNotes}</Text>
-          </View>
-        ) : null}
+      {/* Info rows */}
+      <View style={{ paddingHorizontal: 20, paddingTop: 18, paddingBottom: 20 }}>
+        {rows.map((row, index) => (
+          <InfoRow
+            key={row.label}
+            icon={row.icon}
+            label={row.label}
+            value={row.value}
+            showDivider={index < rows.length - 1}
+          />
+        ))}
       </View>
     </View>
   )

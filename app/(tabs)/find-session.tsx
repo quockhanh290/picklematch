@@ -20,12 +20,16 @@ import {
 } from 'lucide-react-native'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
+  ADVANCED_FILTER_INITIAL,
+  AdvancedFilter,
+  AdvancedSessionFilterModal,
+} from '@/components/find-session/AdvancedSessionFilterModal'
+import {
   ActivityIndicator,
   Alert,
   FlatList,
   Pressable,
   RefreshControl,
-  ScrollView,
   Text,
   TextInput,
   View,
@@ -73,13 +77,6 @@ const SMART_QUEUE_STORAGE_PREFIX = '@picklematch/smart-queue:'
 function getSmartQueueKey(userId: string) {
   return `${SMART_QUEUE_STORAGE_PREFIX}${userId}`
 }
-
-const QUICK_FILTERS: { id: QuickFilterId; label: string }[] = [
-  { id: 'nearby', label: 'Gần tôi' },
-  { id: 'recent', label: 'Gần đây' },
-  { id: 'level3', label: 'Nấc 3' },
-  { id: 'rescue', label: 'Cần người gấp 🔥' },
-]
 
 function hexToRgb(hex: string) {
   const clean = hex.replace('#', '')
@@ -384,6 +381,12 @@ function SearchResultCard({ session, rescueMode }: { session: Session; rescueMod
   )
 }
 
+function extractDistrict(address?: string | null): string | null {
+  if (!address) return null
+  const match = address.match(/(?:Quận|Huyện)\s+[^,\n]+/i)
+  return match ? match[0].trim() : null
+}
+
 export default function FindSession() {
   const params = useLocalSearchParams<{ courtId?: string; courtName?: string }>()
   const [sessions, setSessions] = useState<Session[]>([])
@@ -398,11 +401,29 @@ export default function FindSession() {
     rescue: false,
   })
   const [preferredCourtFilter, setPreferredCourtFilter] = useState<{ id?: string; name?: string } | null>(null)
+  const [filterModalVisible, setFilterModalVisible] = useState(false)
+  const [advancedFilter, setAdvancedFilter] = useState<AdvancedFilter>(ADVANCED_FILTER_INITIAL)
   const [playerProfile, setPlayerProfile] = useState<PlayerQueueProfile | null>(null)
   const [smartQueueEnabled, setSmartQueueEnabled] = useState(false)
   const [smartQueueHydrated, setSmartQueueHydrated] = useState(false)
 
   const smartQueueStorageKey = playerProfile?.id ? getSmartQueueKey(playerProfile.id) : null
+
+  const activeAdvancedFiltersCount = useMemo(
+    () =>
+      [
+        advancedFilter.district,
+        advancedFilter.date,
+        advancedFilter.weekend,
+        advancedFilter.timeSlot,
+        advancedFilter.skillLevel,
+        advancedFilter.priceMin != null,
+        advancedFilter.priceMax != null,
+        advancedFilter.bookingStatus,
+        advancedFilter.slotsLeft != null,
+      ].filter(Boolean).length,
+    [advancedFilter],
+  )
 
   const fetchSessions = useCallback(async () => {
     setLoading(true)
@@ -459,12 +480,6 @@ export default function FindSession() {
     setRefreshing(false)
   }, [fetchPlayerProfile, fetchSessions])
 
-  const toggleQuickFilter = useCallback((filterId: QuickFilterId) => {
-    setQuickFilters((current) => ({ ...current, [filterId]: !current[filterId] }))
-  }, [])
-
-  const activeFiltersCount = Object.values(quickFilters).filter(Boolean).length
-
   const openMapSearch = useCallback(async () => {
     const fallbackQuery = query.trim() || playerProfile?.city?.trim() || sessions[0]?.slot?.court?.city?.trim() || 'Hồ Chí Minh'
     const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fallbackQuery)}`
@@ -511,7 +526,7 @@ export default function FindSession() {
   useEffect(() => {
     if (!smartQueueHydrated || !playerProfile?.id || !smartQueueEnabled) return
     void applySmartQueueFilters(true)
-  }, [applySmartQueueFilters, playerProfile?.id, smartQueueHydrated])
+  }, [applySmartQueueFilters, playerProfile?.id, smartQueueEnabled, smartQueueHydrated])
 
   useEffect(() => {
     const routeCourtId = typeof params.courtId === 'string' ? params.courtId : undefined
@@ -521,38 +536,105 @@ export default function FindSession() {
     if (routeCourtName) setQuery(routeCourtName)
   }, [params.courtId, params.courtName])
 
+  // Build list of all districts from sessions
+  const allDistricts = useMemo(() => {
+    const set = new Set<string>()
+    sessions.forEach((s) => {
+      const d = extractDistrict(s.slot?.court?.address)
+      if (d) set.add(d)
+    })
+    return Array.from(set)
+  }, [sessions])
+
+  // Build list of skill levels
+  const skillLevels = [
+    { id: 'level_1', label: 'Mới chơi' },
+    { id: 'level_2', label: 'Cơ bản' },
+    { id: 'level_3', label: 'Trung cấp' },
+    { id: 'level_4', label: 'Khá' },
+    { id: 'level_5', label: 'Nâng cao' },
+  ]
+
   const filteredSessions = useMemo(() => {
     const normalizedSearch = normalizeText(query)
-    return sessions
-      .filter((session) => {
-        if (normalizedSearch && !buildSearchIndex(session).includes(normalizedSearch)) return false
-        if (quickFilters.level3 && getSkillLevelFromEloRange(session.elo_min, session.elo_max).id !== 'level_3') return false
-        if (quickFilters.rescue && session.max_players - session.player_count > 2) return false
-        if (quickFilters.recent) {
-          const hoursUntilStart = (new Date(session.slot?.start_time ?? 0).getTime() - Date.now()) / 3600000
-          if (hoursUntilStart < 0 || hoursUntilStart > 48) return false
+    return sessions.filter((session) => {
+      // Search bar
+      if (normalizedSearch && !buildSearchIndex(session).includes(normalizedSearch)) return false
+      // Quick filters
+      // advancedFilter.skillLevel takes precedence over quickFilters.level3 to avoid conflict
+      if (!advancedFilter.skillLevel && quickFilters.level3 && getSkillLevelFromEloRange(session.elo_min, session.elo_max).id !== 'level_3') return false
+      if (quickFilters.rescue && session.max_players - session.player_count > 2) return false
+      if (quickFilters.recent) {
+        const hoursUntilStart = (new Date(session.slot?.start_time ?? 0).getTime() - Date.now()) / 3600000
+        if (hoursUntilStart < 0 || hoursUntilStart > 48) return false
+      }
+      if (quickFilters.nearby) {
+        const city = normalizeText(session.slot?.court?.city)
+        if (!city.includes('ho chi minh') && !city.includes('thu duc')) return false
+      }
+      // Preferred court
+      if (preferredCourtFilter?.id) {
+        if (session.slot?.court?.id !== preferredCourtFilter.id) return false
+      } else if (preferredCourtFilter?.name) {
+        if (normalizeText(session.slot?.court?.name) !== normalizeText(preferredCourtFilter.name)) return false
+      }
+      // Advanced filter
+      // District
+      if (advancedFilter.district) {
+        const d = extractDistrict(session.slot?.court?.address)
+        if (d !== advancedFilter.district) return false
+      }
+      // Date
+      if (advancedFilter.weekend) {
+        const day = session.slot?.start_time ? new Date(session.slot.start_time).getDay() : -1
+        if (day !== 0 && day !== 6) return false
+      } else if (advancedFilter.date && /^\d{2}\/\d{2}\/\d{4}$/.test(advancedFilter.date)) {
+        const s = session.slot?.start_time ? new Date(session.slot.start_time) : null
+        const [d, m, y] = advancedFilter.date.split('/')
+        if (!s || s.getDate() !== Number(d) || s.getMonth() + 1 !== Number(m) || s.getFullYear() !== Number(y)) return false
+      }
+      // Time slot
+      if (advancedFilter.timeSlot) {
+        const s = session.slot?.start_time ? new Date(session.slot.start_time) : null
+        if (s) {
+          const hour = s.getHours()
+          if (advancedFilter.timeSlot === 'Sáng' && (hour < 5 || hour >= 12)) return false
+          if (advancedFilter.timeSlot === 'Chiều' && (hour < 12 || hour >= 18)) return false
+          if (advancedFilter.timeSlot === 'Tối' && (hour < 18 || hour >= 23)) return false
         }
-        if (quickFilters.nearby) {
-          const city = normalizeText(session.slot?.court?.city)
-          if (!city.includes('ho chi minh') && !city.includes('thu duc')) return false
+      }
+      // Skill level
+      if (advancedFilter.skillLevel) {
+        if (getSkillLevelFromEloRange(session.elo_min, session.elo_max).id !== advancedFilter.skillLevel) return false
+      }
+      // Price (skip if invalid range)
+      if (typeof advancedFilter.priceMin === 'number' || typeof advancedFilter.priceMax === 'number') {
+        const validRange = !(typeof advancedFilter.priceMin === 'number' && typeof advancedFilter.priceMax === 'number' && advancedFilter.priceMin > advancedFilter.priceMax)
+        if (validRange) {
+          const pricePer = session.max_players > 0 ? Math.round((session.slot?.price ?? 0) / session.max_players) : 0
+          if (typeof advancedFilter.priceMin === 'number' && pricePer < advancedFilter.priceMin * 1000) return false
+          if (typeof advancedFilter.priceMax === 'number' && pricePer > advancedFilter.priceMax * 1000) return false
         }
-        if (preferredCourtFilter?.id) {
-          if (session.slot?.court?.id !== preferredCourtFilter.id) return false
-        } else if (preferredCourtFilter?.name) {
-          if (normalizeText(session.slot?.court?.name) !== normalizeText(preferredCourtFilter.name)) return false
-        }
-        return true
-      })
-      .sort((a, b) => {
-        if (sortMode === 'time') {
-          return new Date(a.slot?.start_time ?? 0).getTime() - new Date(b.slot?.start_time ?? 0).getTime()
-        }
-        return (
-          computeMatchScore(b, quickFilters.rescue, quickFilters.level3) -
-          computeMatchScore(a, quickFilters.rescue, quickFilters.level3)
-        )
-      })
-  }, [preferredCourtFilter, query, quickFilters, sessions, sortMode])
+      }
+      // Booking status
+      if (advancedFilter.bookingStatus) {
+        if (session.court_booking_status !== advancedFilter.bookingStatus) return false
+      }
+      // Slots left (at least N)
+      if (typeof advancedFilter.slotsLeft === 'number') {
+        if ((session.max_players - session.player_count) < advancedFilter.slotsLeft) return false
+      }
+      return true
+    }).sort((a, b) => {
+      if (sortMode === 'time') {
+        return new Date(a.slot?.start_time ?? 0).getTime() - new Date(b.slot?.start_time ?? 0).getTime()
+      }
+      return (
+        computeMatchScore(b, quickFilters.rescue, quickFilters.level3) -
+        computeMatchScore(a, quickFilters.rescue, quickFilters.level3)
+      )
+    })
+  }, [preferredCourtFilter, query, quickFilters, sessions, sortMode, advancedFilter])
 
   const listHeader = useMemo(() => (
     <View>
@@ -614,70 +696,35 @@ export default function FindSession() {
         </View>
       </View>
 
-      {/* Quick filters */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ gap: 8, paddingHorizontal: 20, paddingBottom: 16 }}
-      >
+      {/* Bộ lọc nâng cao */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 16 }}>
         <Pressable
-          onPress={() =>
-            setQuickFilters((current) =>
-              activeFiltersCount > 0
-                ? { nearby: false, recent: false, level3: false, rescue: false }
-                : { ...current, recent: true, rescue: true },
-            )
-          }
+          onPress={() => setFilterModalVisible(true)}
           className="flex-row items-center rounded-full px-4 py-2.5"
           style={{
-            backgroundColor: activeFiltersCount > 0 ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surfaceContainerLow,
+            backgroundColor: activeAdvancedFiltersCount > 0 ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surfaceContainerLow,
             borderWidth: 1,
-            borderColor: activeFiltersCount > 0 ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
+            borderColor: activeAdvancedFiltersCount > 0 ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
+            marginRight: 8,
           }}
         >
           <SlidersHorizontal
             size={13}
-            color={activeFiltersCount > 0 ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant}
+            color={activeAdvancedFiltersCount > 0 ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant}
             strokeWidth={2.5}
           />
           <Text
             className="ml-1.5"
             style={{
-              color: activeFiltersCount > 0 ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant,
+              color: activeAdvancedFiltersCount > 0 ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant,
               fontFamily: 'PlusJakartaSans-ExtraBold',
               fontSize: 12,
             }}
           >
-            {activeFiltersCount > 0 ? `Bỏ lọc (${activeFiltersCount})` : 'Bộ lọc'}
+            {activeAdvancedFiltersCount > 0 ? `Bộ lọc (${activeAdvancedFiltersCount})` : 'Bộ lọc nâng cao'}
           </Text>
         </Pressable>
-
-        {QUICK_FILTERS.map((filter) => {
-          const active = quickFilters[filter.id]
-          return (
-            <Pressable
-              key={filter.id}
-              onPress={() => toggleQuickFilter(filter.id)}
-              className="rounded-full px-4 py-2.5"
-              style={{
-                backgroundColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surfaceContainerLow,
-                borderWidth: 1,
-                borderColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
-              }}
-            >
-              <Text
-                style={{
-                  color: active ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant,
-                  fontFamily: 'PlusJakartaSans-ExtraBold',
-                  fontSize: 12,
-                }}
-              >
-                {filter.label}
-              </Text>
-            </Pressable>
-          )
-        })}
-      </ScrollView>
+      </View>
 
       {/* Preferred court filter banner */}
       {preferredCourtFilter ? (
@@ -742,7 +789,7 @@ export default function FindSession() {
         </Pressable>
       </View>
     </View>
-  ), [loading, filteredSessions.length, query, activeFiltersCount, quickFilters, preferredCourtFilter, sortMode, openMapSearch, toggleQuickFilter, setQuery, setQuickFilters, setSortMode, setPreferredCourtFilter])
+  ), [loading, filteredSessions.length, query, activeAdvancedFiltersCount, preferredCourtFilter, sortMode, openMapSearch])
 
   const listFooter = useMemo(() => (
     <View className="px-5 pb-10">
@@ -867,6 +914,16 @@ export default function FindSession() {
           }
         />
       )}
+      <AdvancedSessionFilterModal
+        visible={filterModalVisible}
+        onClose={() => setFilterModalVisible(false)}
+        filter={advancedFilter}
+        setFilter={setAdvancedFilter}
+        onApply={() => setFilterModalVisible(false)}
+        onReset={() => setAdvancedFilter(ADVANCED_FILTER_INITIAL)}
+        districts={allDistricts}
+        skillLevels={skillLevels}
+      />
     </SafeAreaView>
   )
 }

@@ -273,9 +273,13 @@ export function formatCountdownLabelFromStartTime(startTime: string) {
 }
 
 export function getLevelIdFromSession(session: Pick<HomeSessionRecord, 'elo_min' | 'elo_max' | 'host'>): SkillAssessmentLevel['id'] {
+  if (Number.isFinite(session.elo_min) && Number.isFinite(session.elo_max)) {
+    return getEloBandForSessionRange(session.elo_min, session.elo_max).levelId
+  }
+
   const hostLevel = session.host?.self_assessed_level as SkillAssessmentLevel['id'] | undefined
   if (hostLevel) return hostLevel
-  return getEloBandForSessionRange(session.elo_min, session.elo_max).levelId
+  return 'level_3'
 }
 
 export function getLivePlayerBadge(player?: { reliability_score?: number | null }): Player['badge'] {

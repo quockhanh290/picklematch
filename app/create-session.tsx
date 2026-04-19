@@ -1,6 +1,7 @@
 import { CreateSessionStep1 } from '@/components/create-session/CreateSessionStep1'
 import { CreateSessionStep2 } from '@/components/create-session/CreateSessionStep2'
 import { CreateSessionStep3 } from '@/components/create-session/CreateSessionStep3'
+import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { CREATE_SESSION_ELO_LEVELS } from '@/lib/eloSystem'
 import { supabase } from '@/lib/supabase'
 import { type NearByCourt, useNearbyCourts } from '@/lib/useNearbyCourts'
@@ -8,7 +9,7 @@ import * as Linking from 'expo-linking'
 import { useRouter } from 'expo-router'
 import { ArrowLeft } from 'lucide-react-native'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Alert, Pressable, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 function fmtDuration(start: Date, end: Date): string {
@@ -37,20 +38,29 @@ function withTime(base: Date, time: Date): Date {
 
 function WizardHeader({ title, subtitle }: { title: string; subtitle: string }) {
   return (
-    <View style={s.headerWrap}>
-      <Text style={s.headerEyebrow}>Tạo kèo</Text>
-      <Text style={s.headerTitle}>{title}</Text>
-      <Text style={s.headerSubtitle}>{subtitle}</Text>
+    <View style={{ marginBottom: 20 }}>
+      <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', color: PROFILE_THEME_COLORS.outline, marginBottom: 6 }}>
+        Tạo kèo
+      </Text>
+      <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 28, color: PROFILE_THEME_COLORS.onBackground, marginBottom: 6, lineHeight: 34 }}>
+        {title}
+      </Text>
+      <Text style={{ fontFamily: 'PlusJakartaSans-Regular', fontSize: 14, lineHeight: 21, color: PROFILE_THEME_COLORS.onSurfaceVariant }}>
+        {subtitle}
+      </Text>
     </View>
   )
 }
 
 function BackLink({ label, onPress }: { label: string; onPress: () => void }) {
   return (
-    <TouchableOpacity onPress={onPress} style={s.backLink} activeOpacity={0.85}>
-      <ArrowLeft size={16} color="#059669" />
-      <Text style={s.backLinkText}>{label}</Text>
-    </TouchableOpacity>
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 14, opacity: pressed ? 0.7 : 1 })}
+    >
+      <ArrowLeft size={16} color={PROFILE_THEME_COLORS.primary} />
+      <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 14, color: PROFILE_THEME_COLORS.primary }}>{label}</Text>
+    </Pressable>
   )
 }
 
@@ -249,14 +259,8 @@ export default function CreateSession() {
   async function submit() {
     if (!selectedCourt || !startTime || !endTime) return
 
-    setSubmitting(true)
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
+    const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      setSubmitting(false)
       Alert.alert('Cần đăng nhập', 'Bạn cần đăng nhập để tạo kèo.', [
         { text: 'Đăng nhập', onPress: () => router.push('/login') },
         { text: 'Hủy', style: 'cancel' },
@@ -264,12 +268,14 @@ export default function CreateSession() {
       return
     }
 
+    setSubmitting(true)
+
+    const sendBookingDetails = bookingStatus === 'confirmed' || wantsBookingNow === true
     const fillDeadline = new Date(Date.now() + deadlineHours * 3_600_000)
     const { data: newSessionId, error: createError } = await supabase.rpc('create_session_with_host', {
       p_court_id: selectedCourt.id,
       p_start_time: startTime.toISOString(),
       p_end_time: endTime.toISOString(),
-      p_price: totalCost,
       p_elo_min: eloMin,
       p_elo_max: eloMax,
       p_is_ranked: isRanked,
@@ -278,10 +284,10 @@ export default function CreateSession() {
       p_total_cost: totalCost || null,
       p_require_approval: requireApproval,
       p_court_booking_status: bookingStatus,
-      p_booking_reference: bookingReference.trim() || null,
-      p_booking_name: bookingName.trim() || null,
-      p_booking_phone: bookingPhone.trim() || null,
-      p_booking_notes: bookingNotes.trim() || null,
+      p_booking_reference: sendBookingDetails ? bookingReference.trim() || null : null,
+      p_booking_name: sendBookingDetails ? bookingName.trim() || null : null,
+      p_booking_phone: sendBookingDetails ? bookingPhone.trim() || null : null,
+      p_booking_notes: sendBookingDetails ? bookingNotes.trim() || null : null,
       p_booking_confirmed_at: bookingStatus === 'confirmed' ? new Date().toISOString() : null,
     })
 
@@ -300,13 +306,9 @@ export default function CreateSession() {
 
   if (step === 1) {
     return (
-      <SafeAreaView style={s.container} edges={['top']}>
-        <BackLink label="Quay lại" onPress={() => router.back()} />
-        <WizardHeader
-          title="Tạo kèo mới"
-          subtitle="Bước 1/3 · Chọn sân và khung giờ phù hợp để bắt đầu tạo trận."
-        />
+      <SafeAreaView style={{ flex: 1, backgroundColor: PROFILE_THEME_COLORS.background, paddingHorizontal: 20 }} edges={['top']}>
         <CreateSessionStep1
+          onBack={() => router.back()}
           courts={courts}
           loadingCourts={loadingCourts}
           fallbackMode={fallbackMode}
@@ -358,7 +360,7 @@ export default function CreateSession() {
 
   if (step === 2) {
     return (
-      <SafeAreaView style={s.container} edges={['top']}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: PROFILE_THEME_COLORS.background, paddingHorizontal: 20 }} edges={['top']}>
         <BackLink label="Đổi sân / giờ" onPress={() => setStep(1)} />
         <WizardHeader
           title="Cấu hình kèo"
@@ -407,7 +409,7 @@ export default function CreateSession() {
   }
 
   return (
-    <SafeAreaView style={s.container} edges={['top']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: PROFILE_THEME_COLORS.background, paddingHorizontal: 20 }} edges={['top']}>
       <BackLink label="Chỉnh lại" onPress={() => setStep(2)} />
       <WizardHeader
         title="Xác nhận và đăng kèo"
@@ -419,6 +421,7 @@ export default function CreateSession() {
         startTime={startTime}
         endTime={endTime}
         maxPlayers={maxPlayers}
+        minSkill={minSkill}
         maxSkill={maxSkill}
         bookingStatus={bookingStatus}
         deadlineHours={deadlineHours}
@@ -430,20 +433,3 @@ export default function CreateSession() {
     </SafeAreaView>
   )
 }
-
-const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f4', paddingHorizontal: 20 },
-  headerWrap: { marginBottom: 20 },
-  headerEyebrow: {
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-    color: '#6b7280',
-    marginBottom: 8,
-  },
-  headerTitle: { fontSize: 30, fontWeight: '900', color: '#020617', marginBottom: 8 },
-  headerSubtitle: { fontSize: 14, lineHeight: 21, color: '#64748b' },
-  backLink: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
-  backLinkText: { fontSize: 14, color: '#059669', fontWeight: '700' },
-})

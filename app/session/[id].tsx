@@ -2,9 +2,10 @@ import * as Linking from 'expo-linking'
 import { router, useLocalSearchParams } from 'expo-router'
 import {
     CheckCheck,
+    LogOut,
     Repeat2,
+    Save,
     Share2,
-    Shield,
     ShieldAlert,
 } from 'lucide-react-native'
 import { useMemo, useState } from 'react'
@@ -21,21 +22,22 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { ScreenHeader } from '@/components/design'
-import { BookingDetailsCard } from '@/components/session/BookingDetailsCard'
+import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { JoinRequestModal } from '@/components/session/JoinRequestModal'
 import { PlayerRosterSection } from '@/components/session/PlayerRosterSection'
-import { SessionBottomBar } from '@/components/session/SessionBottomBar'
 import { SessionMetaCard } from '@/components/session/SessionMetaCard'
+import { SmartJoinButton } from '@/components/session/SmartJoinButton'
 import { useSessionArrangement } from '@/hooks/useSessionArrangement'
 import { useSessionDetail } from '@/hooks/useSessionDetail'
 import { useSessionJoinActions } from '@/hooks/useSessionJoinActions'
+import { getEloBandForSessionRange } from '@/lib/eloSystem'
 import {
     formatPricePerPerson,
     formatTimeRange,
     getInitials,
-    getSessionSkillLabel,
     type ArrangementPlayer,
 } from '@/lib/sessionDetail'
+import { getSkillLevelUi } from '@/lib/skillLevelUi'
 import { useAuth } from '@/lib/useAuth'
 
 export default function SessionDetailScreen() {
@@ -120,12 +122,12 @@ export default function SessionDetailScreen() {
     )
   }
 
-  const sessionSkillLabel = getSessionSkillLabel(session.elo_min, session.elo_max)
+  const sessionSkillBand = getEloBandForSessionRange(session.elo_min, session.elo_max)
+  const sessionSkillLabel = sessionSkillBand.shortLabel
   const spotsLeft = Math.max(0, session.max_players - arrangedPlayers.length)
-  const hasBookingDetails = Boolean(
-    session.booking_reference || session.booking_name || session.booking_phone || session.booking_notes,
-  )
   const viewerSessionPlayer = session.session_players.find((item) => item.player_id === userId) ?? null
+  const showBottomActions = isHost || hasJoined || canShowJoinActions
+  const hostActionBusy = savingArrangement || leaving
   const canRespondToResult =
     !isHost &&
     hasJoined &&
@@ -140,41 +142,118 @@ export default function SessionDetailScreen() {
     )
 
   function renderPlayerRow(player: ArrangementPlayer, mode: 'normal' | 'arranging') {
+    const levelUi = getSkillLevelUi(player.levelId)
+    const LevelIcon = levelUi.icon
+
     return (
       <View
         key={`${mode}-${player.id}`}
-        className="rounded-[32px] border border-slate-100 bg-white px-5 py-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)]"
+        style={{
+          position: 'relative',
+          overflow: 'hidden',
+          borderRadius: 28,
+          borderWidth: 1,
+          borderColor: PROFILE_THEME_COLORS.outlineVariant,
+          backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+          paddingHorizontal: 18,
+          paddingVertical: 14,
+          shadowColor: '#0f172a',
+          shadowOpacity: 0.05,
+          shadowRadius: 12,
+          shadowOffset: { width: 0, height: 5 },
+          elevation: 2,
+        }}
       >
-        <View className="flex-row items-center gap-4">
-          <View className="relative h-16 w-16 items-center justify-center rounded-full border border-slate-100 bg-slate-100">
-            <Text className="text-[18px] font-black text-slate-800">{getInitials(player.name)}</Text>
-            <View className="absolute -bottom-1 -right-1 h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-white shadow-sm">
-              <Shield size={12} color="#10b981" strokeWidth={2.5} />
+        <View
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            right: -14,
+            top: -8,
+            opacity: 0.12,
+          }}
+        >
+          <LevelIcon size={78} color={PROFILE_THEME_COLORS.primary} />
+        </View>
+
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+          <View
+            style={{
+              position: 'relative',
+              width: 62,
+              height: 62,
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: 999,
+              borderWidth: 1,
+              borderColor: PROFILE_THEME_COLORS.primary,
+              backgroundColor: PROFILE_THEME_COLORS.primary,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 18,
+                fontFamily: 'PlusJakartaSans-ExtraBold',
+                color: PROFILE_THEME_COLORS.onPrimary,
+              }}
+            >
+              {getInitials(player.name)}
+            </Text>
+            <View
+              style={{
+                position: 'absolute',
+                right: -3,
+                bottom: -3,
+                width: 24,
+                height: 24,
+                borderRadius: 999,
+                borderWidth: 2,
+                borderColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+                backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHighest,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <LevelIcon size={12} color={levelUi.iconColor} strokeWidth={2.5} />
             </View>
           </View>
 
-          <View className="flex-1">
-            <Text className="text-[17px] font-black text-slate-950">{player.name}</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 18, fontFamily: 'PlusJakartaSans-ExtraBold', color: PROFILE_THEME_COLORS.onSurface }}>
+              {player.name}
+            </Text>
 
-            <View className="mt-2 flex-row flex-wrap items-center gap-x-3 gap-y-1">
-              <Text className="text-[13px] font-bold text-slate-400">{`Elo ${player.elo}`}</Text>
-              <Text className="text-[13px] font-black text-orange-500">{player.skillTag}</Text>
+            <View style={{ marginTop: 6, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}>
+              <Text style={{ fontSize: 13, fontFamily: 'PlusJakartaSans-ExtraBold', color: PROFILE_THEME_COLORS.surfaceTint }}>
+                {player.skillTag}
+              </Text>
 
               {mode === 'normal' &&
               player.reliability !== null &&
               player.reliability !== undefined ? (
-                <Text className="text-[12px] font-semibold text-emerald-600">{`${player.reliability}% uy tín`}</Text>
+                <Text style={{ fontSize: 12, fontFamily: 'PlusJakartaSans-SemiBold', color: PROFILE_THEME_COLORS.primary }}>
+                  {`${player.reliability}% uy tín`}
+                </Text>
               ) : null}
             </View>
           </View>
 
           {mode === 'arranging' ? (
             <TouchableOpacity
-              className="h-14 w-14 items-center justify-center rounded-[22px] border border-slate-100 bg-slate-50"
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: 18,
+                borderWidth: 1,
+                borderColor: PROFILE_THEME_COLORS.outlineVariant,
+                backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHigh,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
               onPress={() => switchTeam(player.id)}
               activeOpacity={0.9}
             >
-              <Repeat2 size={21} color="#4f46e5" strokeWidth={2.5} />
+              <Repeat2 size={20} color={PROFILE_THEME_COLORS.primary} strokeWidth={2.5} />
             </TouchableOpacity>
           ) : null}
         </View>
@@ -189,7 +268,7 @@ export default function SessionDetailScreen() {
         stickyHeaderIndices={[0]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void onRefresh()} />}
         contentContainerStyle={{
-          paddingBottom: (isHost || hasJoined || canShowJoinActions ? 112 : 48) + insets.bottom,
+          paddingBottom: 48 + insets.bottom,
           paddingHorizontal: 20,
         }}
       >
@@ -219,6 +298,7 @@ export default function SessionDetailScreen() {
         />
 
         <SessionMetaCard
+          skillLevelId={sessionSkillBand.levelId}
           sessionSkillLabel={sessionSkillLabel}
           courtBookingStatus={session.court_booking_status}
           courtName={session.slot.court.name}
@@ -226,17 +306,9 @@ export default function SessionDetailScreen() {
           courtCity={session.slot.court.city}
           timeLabel={formatTimeRange(session.slot.start_time, session.slot.end_time)}
           priceLabel={formatPricePerPerson(session.slot.price, session.max_players)}
+          isRanked={session.is_ranked}
+          hostNote={session.booking_notes}
         />
-
-        {isHost && hasBookingDetails ? (
-          <BookingDetailsCard
-            courtBookingStatus={session.court_booking_status}
-            bookingReference={session.booking_reference}
-            bookingName={session.booking_name}
-            bookingPhone={session.booking_phone}
-            bookingNotes={session.booking_notes}
-          />
-        ) : null}
 
         {canRespondToResult ? (
           <View
@@ -306,24 +378,128 @@ export default function SessionDetailScreen() {
           averageTeamB={averageTeamB}
           renderPlayerRow={renderPlayerRow}
         />
-      </ScrollView>
 
-      <SessionBottomBar
-        visible={isHost || hasJoined || canShowJoinActions}
-        bottomInset={insets.bottom}
-        isHost={isHost}
-        hasJoined={hasJoined}
-        arrangementDirty={arrangementDirty}
-        savingArrangement={savingArrangement}
-        onSaveArrangement={() => void onSaveArrangement()}
-        leaving={leaving}
-        onLeaveSession={() => void leaveSession()}
-        matchStatus={matchStatus}
-        requestStatus={requestStatus}
-        hostResponseTemplate={hostResponseTemplate}
-        loading={joining || requesting}
-        onSmartJoinPress={() => handleSmartJoinPress(() => setJoinModalVisible(true))}
-      />
+        {showBottomActions ? (
+          <View style={{ marginTop: 20, paddingBottom: 8 }}>
+            {isHost ? (
+              <View style={{ width: '100%', flexDirection: 'row', alignSelf: 'center' }}>
+                <TouchableOpacity
+                  onPress={() => void onSaveArrangement()}
+                  disabled={!arrangementDirty || hostActionBusy}
+                  activeOpacity={0.84}
+                style={{
+                  flex: 1,
+                  paddingHorizontal: 14,
+                  minHeight: 52,
+                  paddingVertical: 11,
+                  borderRadius: 999,
+                  borderWidth: 1.5,
+                  borderColor: PROFILE_THEME_COLORS.primary,
+                  backgroundColor: PROFILE_THEME_COLORS.primary,
+                  opacity: !arrangementDirty || (hostActionBusy && !savingArrangement) ? 0.55 : 1,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  {savingArrangement ? (
+                    <ActivityIndicator
+                      size="small"
+                      color={PROFILE_THEME_COLORS.onPrimary}
+                    />
+                  ) : (
+                    <Save
+                      size={16}
+                      strokeWidth={2.5}
+                      color={PROFILE_THEME_COLORS.onPrimary}
+                    />
+                  )}
+                  <Text
+                    style={{
+                      fontSize: 15,
+                      fontFamily: 'PlusJakartaSans-ExtraBold',
+                      color: PROFILE_THEME_COLORS.onPrimary,
+                    }}
+                  >
+                    {savingArrangement ? 'Đang lưu...' : 'Lưu thay đổi'}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => void leaveSession()}
+                  disabled={hostActionBusy}
+                  activeOpacity={0.84}
+                  style={{
+                    flex: 1,
+                    marginLeft: 10,
+                    paddingHorizontal: 14,
+                  minHeight: 52,
+                  paddingVertical: 11,
+                  borderRadius: 999,
+                  borderWidth: 1.5,
+                  borderColor: '#e11d48',
+                  backgroundColor: '#e11d48',
+                  opacity: hostActionBusy ? 0.55 : 1,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  {leaving ? (
+                    <ActivityIndicator size="small" color="#ffffff" />
+                  ) : (
+                    <LogOut size={16} strokeWidth={2.5} color="#ffffff" />
+                  )}
+                  <Text style={{ fontSize: 15, fontFamily: 'PlusJakartaSans-ExtraBold', color: '#ffffff' }}>
+                    {leaving ? 'Đang hủy...' : 'Hủy kèo'}
+                  </Text>
+                </View>
+                </TouchableOpacity>
+              </View>
+            ) : hasJoined ? (
+              <TouchableOpacity
+                onPress={() => void leaveSession()}
+                disabled={leaving}
+                activeOpacity={0.84}
+                style={{
+                  alignSelf: 'center',
+                  minWidth: 190,
+                  paddingHorizontal: 20,
+                  minHeight: 52,
+                  paddingVertical: 11,
+                  borderRadius: 999,
+                  borderWidth: 2,
+                  borderColor: '#e11d48',
+                  backgroundColor: '#e11d48',
+                  opacity: leaving ? 0.55 : 1,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  {leaving ? (
+                    <ActivityIndicator size="small" color="#ffffff" />
+                  ) : (
+                    <LogOut size={18} strokeWidth={2.5} color="#ffffff" />
+                  )}
+                  <Text style={{ fontSize: 15, fontFamily: 'PlusJakartaSans-ExtraBold', color: '#ffffff' }}>
+                    {leaving ? 'Đang rời...' : 'Rời kèo'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ) : (
+              <SmartJoinButton
+                matchStatus={matchStatus}
+                requestStatus={requestStatus}
+                hostResponseTemplate={hostResponseTemplate}
+                loading={joining || requesting}
+                onPress={() => handleSmartJoinPress(() => setJoinModalVisible(true))}
+              />
+            )}
+          </View>
+        ) : null}
+      </ScrollView>
 
       <JoinRequestModal
         visible={joinModalVisible}

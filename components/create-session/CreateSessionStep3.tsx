@@ -1,5 +1,7 @@
-import { ShieldCheck } from 'lucide-react-native'
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
+import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { Info } from 'lucide-react-native'
 
 import { FeedMatchCard } from '@/components/session/FeedMatchCard'
 import type { NearByCourt } from '@/lib/useNearbyCourts'
@@ -12,6 +14,7 @@ type Props = {
   startTime: Date
   endTime: Date
   maxPlayers: number
+  minSkill: number
   maxSkill: number
   bookingStatus: 'confirmed' | 'unconfirmed'
   deadlineHours: number
@@ -36,33 +39,39 @@ function formatPrice(pricePerPerson: number) {
   return `${Math.round(pricePerPerson / 1000)}K`
 }
 
+function SummaryRow({ label, value, valueColor }: { label: string; value: string; valueColor?: string }) {
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 13, paddingHorizontal: 16 }}>
+      <Text style={{ fontFamily: 'PlusJakartaSans-Regular', fontSize: 13, color: PROFILE_THEME_COLORS.onSurfaceVariant }}>
+        {label}
+      </Text>
+      <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13, color: valueColor ?? PROFILE_THEME_COLORS.onSurface }}>
+        {value}
+      </Text>
+    </View>
+  )
+}
+
 export function CreateSessionStep3({
-  selectedCourt,
-  selectedDate,
-  startTime,
-  endTime,
-  maxPlayers,
-  maxSkill,
-  bookingStatus,
-  deadlineHours,
-  requireApproval,
-  pricePerPerson,
-  onCreate,
-  submitting = false,
+  selectedCourt, selectedDate, startTime, endTime,
+  maxPlayers, minSkill, maxSkill, bookingStatus, deadlineHours,
+  requireApproval, pricePerPerson, onCreate, submitting = false,
 }: Props) {
+  const minSkillOption = getCreateSessionSkillOption(minSkill)
   const skill = getCreateSessionSkillOption(maxSkill)
-  const SkillIcon = skill.icon
-  const skillTagClassName = skill.activeClassName.split(' ').find(token => token.startsWith('bg-')) ?? 'bg-slate-100'
-  const skillBorderClassName = skill.activeClassName.split(' ').find(token => token.startsWith('border-')) ?? 'border-slate-300'
+  const skillTagClassName = skill.activeClassName.split(' ').find(t => t.startsWith('bg-')) ?? 'bg-slate-100'
+  const skillBorderClassName = skill.activeClassName.split(' ').find(t => t.startsWith('border-')) ?? 'border-slate-300'
 
   return (
-    <View className="flex-1">
+    <View style={{ flex: 1 }}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 132 }}
-        className="flex-1"
+        contentContainerStyle={{ paddingBottom: 100 }}
+        style={{ flex: 1 }}
       >
-        <Text className="mb-2 ml-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">Xem trước</Text>
+        <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 10, textTransform: 'uppercase', letterSpacing: 1.8, color: PROFILE_THEME_COLORS.outline, marginBottom: 10, marginLeft: 4 }}>
+          Xem trước
+        </Text>
 
         <FeedMatchCard
           containerClassName="mb-0"
@@ -87,46 +96,65 @@ export function CreateSessionStep3({
           disabled
         />
 
-        <View className="mt-1 overflow-hidden rounded-[16px] border border-slate-200 bg-white">
-          <View className="flex-row items-center justify-between border-b border-slate-100 p-3.5">
-            <Text className="text-[13px] font-medium text-slate-500">Trình tối đa</Text>
-            <View className="flex-row items-center gap-1.5">
-              <SkillIcon size={14} color={skill.iconColor} />
-              <Text className={`text-[13px] font-bold ${skill.textClassName}`}>{skill.label}</Text>
-            </View>
-          </View>
-
-          <View className="flex-row items-center justify-between border-b border-slate-100 p-3.5">
-            <Text className="text-[13px] font-medium text-slate-500">Tự duyệt</Text>
-            <Text className="text-[13px] font-bold text-slate-900">{requireApproval ? 'Tắt' : 'Bật'}</Text>
-          </View>
-
-          <View className="flex-row items-center justify-between p-3.5">
-            <Text className="text-[13px] font-medium text-slate-500">Hạn chốt</Text>
-            <Text className="text-[13px] font-bold text-rose-600">{`${deadlineHours} giờ`}</Text>
-          </View>
+        {/* Summary */}
+        <View style={{
+          marginTop: 12, borderRadius: 20, borderWidth: 1,
+          borderColor: PROFILE_THEME_COLORS.outlineVariant,
+          backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+          overflow: 'hidden',
+        }}>
+          <SummaryRow label="Trình tối thiểu" value={minSkillOption.label} />
+          <View style={{ height: 1, backgroundColor: PROFILE_THEME_COLORS.outlineVariant }} />
+          <SummaryRow label="Trình tối đa" value={skill.label} />
+          <View style={{ height: 1, backgroundColor: PROFILE_THEME_COLORS.outlineVariant }} />
+          <SummaryRow label="Tự duyệt" value={requireApproval ? 'Tắt' : 'Bật'} />
+          <View style={{ height: 1, backgroundColor: PROFILE_THEME_COLORS.outlineVariant }} />
+          <SummaryRow
+            label="Hạn chốt"
+            value={`${deadlineHours} giờ`}
+            valueColor={PROFILE_THEME_COLORS.surfaceTint}
+          />
         </View>
 
-        <View className="mt-5 flex-row items-start gap-3 rounded-[16px] border border-indigo-100 bg-indigo-50 p-4">
-          <ShieldCheck size={20} color="#6366f1" />
-          <Text className="flex-1 text-[13px] font-medium leading-relaxed text-indigo-800">
+        {/* Info banner */}
+        <View style={{
+          flexDirection: 'row', alignItems: 'flex-start', gap: 12,
+          marginTop: 16, borderRadius: 20, borderWidth: 1,
+          borderColor: PROFILE_THEME_COLORS.outlineVariant,
+          backgroundColor: PROFILE_THEME_COLORS.secondaryContainer,
+          padding: 16,
+        }}>
+          <Info size={18} color={PROFILE_THEME_COLORS.surfaceTint} />
+          <Text style={{ flex: 1, fontFamily: 'PlusJakartaSans-Regular', fontSize: 13, lineHeight: 20, color: PROFILE_THEME_COLORS.surfaceTint }}>
             Kiểm tra lại trình độ, chi phí và trạng thái booking để bài đăng ra feed đúng ngay từ lần đầu.
           </Text>
         </View>
       </ScrollView>
 
-      <View className="absolute bottom-0 left-0 right-0 border-t border-slate-200 bg-white/95 px-4 pb-8 pt-3 backdrop-blur-md">
-        <TouchableOpacity
-          activeOpacity={0.92}
+      <SafeAreaView
+        edges={['bottom']}
+        style={{
+          position: 'absolute', bottom: 0, left: 0, right: 0,
+          borderTopWidth: 1, borderTopColor: PROFILE_THEME_COLORS.outlineVariant,
+          backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+          paddingHorizontal: 20, paddingTop: 14, paddingBottom: 12,
+        }}
+      >
+        <Pressable
           onPress={onCreate}
           disabled={submitting}
-          className="h-14 w-full flex-row items-center justify-center rounded-[14px] bg-emerald-600 active:scale-95"
+          style={({ pressed }) => ({
+            height: 54, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
+            borderRadius: 14, backgroundColor: PROFILE_THEME_COLORS.primary,
+            opacity: submitting ? 0.7 : pressed ? 0.88 : 1,
+          })}
         >
-          <Text className="text-[16px] font-bold tracking-wide text-white">
+          {submitting ? <ActivityIndicator size="small" color={PROFILE_THEME_COLORS.onPrimary} /> : null}
+          <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 16, color: PROFILE_THEME_COLORS.onPrimary }}>
             {submitting ? 'Đang tạo kèo...' : 'Tạo kèo'}
           </Text>
-        </TouchableOpacity>
-      </View>
+        </Pressable>
+      </SafeAreaView>
     </View>
   )
 }

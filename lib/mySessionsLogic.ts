@@ -1,5 +1,5 @@
-// Logic tách riêng để test độc lập, không phụ thuộc React/Context
-import type { SessionRole, SessionRequestStatus } from './my-sessions.types'
+export type SessionRequestStatus = 'pending' | 'accepted' | 'rejected' | null
+export type SessionRole = 'host' | 'player'
 
 export type MySessionLike = {
   role: SessionRole

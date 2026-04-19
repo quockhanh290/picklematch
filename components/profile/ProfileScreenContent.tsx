@@ -220,13 +220,6 @@ export default function ProfileScreenContent() {
     return `${weekday} ${day} · ${hh}:${mm}`
   }
 
-  function reliabilityTone(score: number | null) {
-    if (score === null) return 'text-slate-700'
-    if (score >= 90) return 'text-emerald-700'
-    if (score >= 70) return 'text-amber-600'
-    return 'text-rose-600'
-  }
-
   const communityTraits = useMemo<FeedbackTrait[]>(() => buildCommunityTraits(ratingTags), [ratingTags])
 
   useEffect(() => {

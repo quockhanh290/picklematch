@@ -1,9 +1,11 @@
 import {
+  getEloBandByLevelId,
   getEloBandByLegacySkillLabel,
   getEloBandForElo,
   getEloBandForSessionRange,
   getShortLabelForLevelId,
 } from '@/lib/eloSystem'
+import type { EloLevelId } from '@/lib/eloSystem'
 
 export type EloPlayer = {
   elo?: number | null
@@ -43,6 +45,7 @@ export type ArrangementPlayer = {
   elo: number
   team: 1 | 2
   reliability: number | null
+  levelId: EloLevelId
   skillTag: string
 }
 
@@ -76,15 +79,19 @@ export function getReliability(player?: ReliablePlayer | null) {
   return Math.max(0, Math.min(100, Math.round(((joined - noShow) / joined) * 100)))
 }
 
-export function getSkillTag(player?: SkillPlayer | null) {
+export function getSkillLevelId(player?: SkillPlayer | null): EloLevelId {
   const levelId = player?.self_assessed_level
-  if (levelId) return getShortLabelForLevelId(levelId)
+  if (levelId) return getEloBandByLevelId(levelId)?.levelId ?? 'level_3'
 
   const legacy = player?.skill_label
-  if (legacy) return getEloBandByLegacySkillLabel(legacy).shortLabel
+  if (legacy) return getEloBandByLegacySkillLabel(legacy).levelId
 
   const elo = getComparableElo(player)
-  return getEloBandForElo(elo)?.shortLabel ?? 'Trung cấp'
+  return getEloBandForElo(elo)?.levelId ?? 'level_3'
+}
+
+export function getSkillTag(player?: SkillPlayer | null) {
+  return getShortLabelForLevelId(getSkillLevelId(player))
 }
 
 export function getSessionSkillLabel(eloMin: number, eloMax: number) {
@@ -113,6 +120,7 @@ export function buildArrangementPlayers(session: ArrangementSession) {
     name: session.host.name,
     elo: getComparableElo(session.host),
     reliability: getReliability(session.host),
+    levelId: getSkillLevelId(session.host),
     skillTag: getSkillTag(session.host),
     team: 1,
   })
@@ -123,6 +131,7 @@ export function buildArrangementPlayers(session: ArrangementSession) {
       name: entry.player?.name ?? 'Người chơi',
       elo: getComparableElo(entry.player),
       reliability: getReliability(entry.player),
+      levelId: getSkillLevelId(entry.player),
       skillTag: getSkillTag(entry.player),
       team: entry.team_no === 2 ? 2 : 1,
     })

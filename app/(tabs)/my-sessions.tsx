@@ -1,10 +1,12 @@
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { getEloBandForSessionRange } from '@/lib/eloSystem'
+import { resolveTab, type SessionRequestStatus, type SessionRole } from '@/lib/mySessionsLogic'
 import { getSessionSkillLabel } from '@/lib/sessionDetail'
 import { getSkillLevelUi } from '@/lib/skillLevelUi'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/lib/useAuth'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { useFocusEffect } from '@react-navigation/native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
 import {
@@ -44,8 +46,6 @@ function withAlpha(hex: string, alpha: number) {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
 
-type SessionRequestStatus = 'pending' | 'accepted' | 'rejected' | null
-type SessionRole = 'host' | 'player'
 type SessionTab = 'upcoming' | 'pending' | 'history'
 
 type MySession = {
@@ -75,7 +75,6 @@ type MySessionsCache = {
 
 const mySessionsCacheByUser = new Map<string, MySessionsCache>()
 const MY_SESSIONS_LAST_USER_KEY = 'my_sessions_last_user_id_v1'
-const MY_SESSIONS_CACHE_FRESH_MS = 30_000
 
 function getMySessionsCacheKey(userId: string) {
   return `my_sessions_overview_cache_v1:${userId}`
@@ -105,8 +104,26 @@ function sessionsFingerprint(items: MySession[]) {
       max_players: item.max_players,
       elo_min: item.elo_min,
       elo_max: item.elo_max,
+      has_rated: item.has_rated,
     })),
   )
+}
+
+function formatDatePart(value: string) {
+  const date = new Date(value)
+  const weekday = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][date.getDay()]
+  const day = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}`
+  return `${weekday} ${day}`
+}
+
+function formatTimeRange(start: string, end: string) {
+  const startDate = new Date(start)
+  const endDate = new Date(end)
+  const startHour = startDate.getHours().toString().padStart(2, '0')
+  const startMinute = startDate.getMinutes().toString().padStart(2, '0')
+  const endHour = endDate.getHours().toString().padStart(2, '0')
+  const endMinute = endDate.getMinutes().toString().padStart(2, '0')
+  return `${startHour}:${startMinute} - ${endHour}:${endMinute}`
 }
 
 function MySessionsEmptyStateCard({ activeTab }: { activeTab: SessionTab }) {
@@ -204,6 +221,10 @@ function MySessionCard({
   const isBooked = item.court_booking_status === 'confirmed'
   const progress = item.max_players > 0 ? Math.min(item.player_count / item.max_players, 1) : 0
   const progressPercent = Math.max(progress * 100, 0)
+  const visiblePlayerCount = Math.min(item.player_count, 4)
+  const displayCap = Math.min(item.max_players, 4)
+  const emptySlots = Math.max(displayCap - visiblePlayerCount, 0)
+  const remainingPlayers = Math.max(item.player_count - visiblePlayerCount, 0)
   const address = [item.court_address, item.court_city].filter(Boolean).join(', ')
   const compactAddress = address.split(',').map((p) => p.trim()).filter(Boolean).slice(0, 2).join(', ')
   const hostInitials = (item.host_name || '?').slice(0, 1).toUpperCase()
@@ -456,11 +477,13 @@ function MySessionCard({
         </View>
 
         <View className="mt-3 flex-row items-center">
-          {Array.from({ length: Math.min(item.player_count, 4) }).map((_, index) => (
+          {Array.from({ length: visiblePlayerCount }).map((_, index) => (
             <View
               key={index}
               className={`h-8 w-8 items-center justify-center rounded-full ${index === 0 ? '' : '-ml-2.5'}`}
               style={{
+                position: 'relative',
+                zIndex: 20 - index,
                 backgroundColor: PROFILE_THEME_COLORS.primary,
                 borderWidth: 2,
                 borderColor: PROFILE_THEME_COLORS.surfaceContainerLow,
@@ -469,17 +492,45 @@ function MySessionCard({
               <UserRound size={14} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.2} />
             </View>
           ))}
-          {item.player_count > 4 ? (
+
+          {Array.from({ length: emptySlots }).map((_, index) => (
+            <View
+              key={`empty-${index}`}
+              className={`h-8 w-8 items-center justify-center rounded-full ${visiblePlayerCount === 0 && index === 0 ? '' : '-ml-2.5'}`}
+              style={{
+                position: 'relative',
+                zIndex: 1,
+                backgroundColor: 'transparent',
+                borderWidth: 1.5,
+                borderStyle: 'dashed',
+                borderColor: PROFILE_THEME_COLORS.outlineVariant,
+              }}
+            >
+              <Text
+                style={{
+                  color: PROFILE_THEME_COLORS.outlineVariant,
+                  fontFamily: 'PlusJakartaSans-ExtraBold',
+                  fontSize: 10,
+                }}
+              >
+                +
+              </Text>
+            </View>
+          ))}
+
+          {remainingPlayers > 0 ? (
             <View
               className="-ml-2.5 h-8 w-8 items-center justify-center rounded-full"
               style={{
+                position: 'relative',
+                zIndex: 2,
                 backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHighest,
                 borderWidth: 2,
                 borderColor: PROFILE_THEME_COLORS.surfaceContainerLow,
               }}
             >
               <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 10 }}>
-                +{item.player_count - 4}
+                +{remainingPlayers}
               </Text>
             </View>
           ) : null}
@@ -763,8 +814,6 @@ export default function MySessions() {
 
       const bootstrapCache = mySessionsCacheByUser.get(userId) ?? null
       if (bootstrapCache?.sessions.length) {
-        const cacheAgeMs = Date.now() - bootstrapCache.updatedAt
-        if (cacheAgeMs < MY_SESSIONS_CACHE_FRESH_MS) return
         void fetchMySessions(userId, { showLoader: false, runMaintenance: false })
         return
       }
@@ -789,6 +838,13 @@ export default function MySessions() {
     void init()
   }, [init])
 
+  useFocusEffect(
+    useCallback(() => {
+      if (!userId) return
+      void fetchMySessions(userId, { showLoader: false, runMaintenance: false })
+    }, [fetchMySessions, userId]),
+  )
+
   const onRefresh = useCallback(async () => {
     if (!userId) return
     setRefreshing(true)
@@ -799,28 +855,6 @@ export default function MySessions() {
     }
   }, [fetchMySessions, userId])
 
-  function formatDatePart(value: string) {
-    const date = new Date(value)
-    const weekday = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][date.getDay()]
-    const day = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}`
-    return `${weekday} ${day}`
-  }
-
-  function formatTimeRange(start: string, end: string) {
-    const startDate = new Date(start)
-    const endDate = new Date(end)
-    const startHour = startDate.getHours().toString().padStart(2, '0')
-    const startMinute = startDate.getMinutes().toString().padStart(2, '0')
-    const endHour = endDate.getHours().toString().padStart(2, '0')
-    const endMinute = endDate.getMinutes().toString().padStart(2, '0')
-    return `${startHour}:${startMinute} - ${endHour}:${endMinute}`
-  }
-
-  const resolveTabForSession = useCallback((session: MySession): SessionTab => {
-    if (session.request_status === 'pending') return 'pending'
-    if (session.status === 'done' || session.status === 'cancelled') return 'history'
-    return 'upcoming'
-  }, [])
 
   function shareMessage(session?: MySession) {
     if (!session) return 'Lịch chơi PickleMatch của tôi đang được cập nhật.'
@@ -853,7 +887,7 @@ export default function MySessions() {
       TAB_OPTIONS.reduce<Record<SessionTab, MySession[]>>(
         (acc, tab) => {
           acc[tab.key] = sessions
-            .filter((session) => resolveTabForSession(session) === tab.key)
+            .filter((session) => resolveTab(session) === tab.key)
             .sort((a, b) => {
               const aTime = new Date(a.start_time).getTime()
               const bTime = new Date(b.start_time).getTime()
@@ -869,7 +903,7 @@ export default function MySessions() {
         },
         { upcoming: [], pending: [], history: [] },
       ),
-    [sessions, resolveTabForSession],
+    [sessions],
   )
 
   const activeSessions = sessionsByTab[activeTab]
