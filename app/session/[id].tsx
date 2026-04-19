@@ -1,23 +1,23 @@
 import * as Linking from 'expo-linking'
 import { router, useLocalSearchParams } from 'expo-router'
 import {
-    CheckCheck,
-    LogOut,
-    Repeat2,
-    Save,
-    Share2,
-    ShieldAlert,
+  CheckCheck,
+  LogOut,
+  Repeat2,
+  Save,
+  Share2,
+  ShieldAlert,
 } from 'lucide-react-native'
 import { useMemo, useState } from 'react'
 import {
-    ActivityIndicator,
-    Alert,
-    RefreshControl,
-    ScrollView,
-    Share,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  RefreshControl,
+  ScrollView,
+  Share,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
@@ -32,10 +32,10 @@ import { useSessionDetail } from '@/hooks/useSessionDetail'
 import { useSessionJoinActions } from '@/hooks/useSessionJoinActions'
 import { getEloBandForSessionRange } from '@/lib/eloSystem'
 import {
-    formatPricePerPerson,
-    formatTimeRange,
-    getInitials,
-    type ArrangementPlayer,
+  formatPricePerPerson,
+  formatTimeRange,
+  getInitials,
+  type ArrangementPlayer,
 } from '@/lib/sessionDetail'
 import { getSkillLevelUi } from '@/lib/skillLevelUi'
 import { useAuth } from '@/lib/useAuth'

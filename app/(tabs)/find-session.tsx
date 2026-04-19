@@ -1,3 +1,8 @@
+import {
+    ADVANCED_FILTER_INITIAL,
+    AdvancedFilter,
+    AdvancedSessionFilterModal,
+} from '@/components/find-session/AdvancedSessionFilterModal'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { getSkillLevelFromEloRange, getSkillLevelFromPlayer } from '@/lib/skillAssessment'
 import { getSkillLevelUi } from '@/lib/skillLevelUi'
@@ -7,32 +12,27 @@ import { LinearGradient } from 'expo-linear-gradient'
 import * as Linking from 'expo-linking'
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
 import {
-  AlertCircle,
-  CalendarDays,
-  Map,
-  MapPin,
-  Search,
-  ShieldCheck,
-  SlidersHorizontal,
-  Sparkles,
-  UserRound,
-  X,
+    AlertCircle,
+    CalendarDays,
+    Map,
+    MapPin,
+    Search,
+    ShieldCheck,
+    SlidersHorizontal,
+    Sparkles,
+    UserRound,
+    X,
 } from 'lucide-react-native'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  ADVANCED_FILTER_INITIAL,
-  AdvancedFilter,
-  AdvancedSessionFilterModal,
-} from '@/components/find-session/AdvancedSessionFilterModal'
-import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Pressable,
-  RefreshControl,
-  Text,
-  TextInput,
-  View,
+    ActivityIndicator,
+    Alert,
+    FlatList,
+    Pressable,
+    RefreshControl,
+    Text,
+    TextInput,
+    View,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
