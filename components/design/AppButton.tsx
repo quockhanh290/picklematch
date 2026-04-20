@@ -1,6 +1,7 @@
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native'
 
 import { useAppTheme } from '@/lib/theme-context'
+import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 
 type Props = {
   label: string
@@ -25,8 +26,8 @@ export function AppButton({
 
   const buttonStyle = isPrimary
     ? {
-        backgroundColor: theme.primary,
-        borderColor: theme.primary,
+        backgroundColor: PROFILE_THEME_COLORS.primary || theme.primary,
+        borderColor: PROFILE_THEME_COLORS.primary || theme.primary,
         borderRadius: theme.radiusMd,
       }
     : isSecondary

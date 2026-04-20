@@ -1,9 +1,9 @@
 import DateTimePicker from '@react-native-community/datetimepicker'
-import { ScreenHeader } from '@/components/design'
+import { ScreenHeader, AppButton } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { Calendar, Clock3, Info, MapPin, Search, SlidersHorizontal } from 'lucide-react-native'
 import { useEffect, useMemo, useState } from 'react'
-import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native'
+import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View, Keyboard } from 'react-native'
 
 import type { NearByCourt } from '@/lib/useNearbyCourts'
 
@@ -158,7 +158,7 @@ const sectionCard = {
 } as const
 
 const pickerHeader = {
-  width: '100%',
+  width: '100%' as any,
   maxWidth: 360,
   flexDirection: 'row' as const,
   alignItems: 'center' as const,
@@ -381,6 +381,7 @@ export function CreateSessionStep1({
                     onCourtSelect(nextCourt)
                     setKeyword('')
                     setIsChoosingCourt(false)
+                    Keyboard.dismiss()
                   }}
                 />
               ))
@@ -660,20 +661,14 @@ export function CreateSessionStep1({
       </View>
 
       {canContinue ? (
-        <Pressable
-          onPress={onContinue}
-          style={({ pressed }) => ({
-            height: 56,
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: 16,
-            backgroundColor: PROFILE_THEME_COLORS.primary,
-            marginBottom: 8,
-            opacity: pressed ? 0.88 : 1,
-          })}
-        >
-          <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 16, color: PROFILE_THEME_COLORS.onPrimary }}>Tiếp theo</Text>
-        </Pressable>
+        <View style={{ marginBottom: 8 }}>
+          <AppButton
+            label="Tiếp theo"
+            onPress={onContinue}
+            fullWidth
+            variant="primary"
+          />
+        </View>
       ) : null}
     </ScrollView>
   )
