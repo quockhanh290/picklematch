@@ -67,11 +67,8 @@ function formatTime(date: Date | null) {
 
 function formatHeroDateLabel(date: Date | null) {
   if (!date) return 'Chưa chọn ngày'
-  const today = startOfDay(new Date())
-  const target = startOfDay(date)
-  const diffDays = Math.round((target.getTime() - today.getTime()) / 86_400_000)
-  const prefix = diffDays === 0 ? 'Hôm nay' : diffDays === 1 ? 'Ngày mai' : WEEKDAY_LABELS[date.getDay()]
-  return `${prefix}, ${date.getDate()} Thg ${date.getMonth() + 1}`
+  const weekdayLong = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'][date.getDay()]
+  return `${weekdayLong}, ngày ${date.getDate()} tháng ${date.getMonth() + 1}`
 }
 
 function formatDistance(distance?: number) {
@@ -156,11 +153,13 @@ const sectionCard = {
   borderWidth: 1,
   borderColor: PROFILE_THEME_COLORS.outlineVariant,
   backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
-  padding: 16,
-  marginBottom: 16,
+  padding: 18,
+  marginBottom: 18,
 } as const
 
 const pickerHeader = {
+  width: '100%',
+  maxWidth: 360,
   flexDirection: 'row' as const,
   alignItems: 'center' as const,
   justifyContent: 'space-between' as const,
@@ -199,6 +198,7 @@ export function CreateSessionStep1({
   onContinue,
 }: Props) {
   const [showDatePicker, setShowDatePicker] = useState(false)
+  const [isChoosingCourt, setIsChoosingCourt] = useState(false)
   const [draftDate, setDraftDate] = useState(selectedDate ?? new Date())
   const [draftStartTime, setDraftStartTime] = useState(startTime ?? defaultPickerValue('start'))
   const [draftEndTime, setDraftEndTime] = useState(endTime ?? defaultPickerValue('end'))
@@ -213,6 +213,7 @@ export function CreateSessionStep1({
   }, [selectedDate])
 
   const canContinue = !!selectedCourt && !!selectedDate && !!startTime && !!endTime && !timeError
+  const showCourtPicker = !selectedCourt || isChoosingCourt
 
   useEffect(() => {
     if (showStartPicker) {
@@ -312,7 +313,11 @@ export function CreateSessionStep1({
           <Search size={16} color={PROFILE_THEME_COLORS.outline} />
           <TextInput
             value={keyword}
-            onChangeText={setKeyword}
+            onFocus={() => setIsChoosingCourt(true)}
+            onChangeText={(value) => {
+              setKeyword(value)
+              setIsChoosingCourt(true)
+            }}
             placeholder="Tìm tên sân hoặc khu vực..."
             placeholderTextColor={PROFILE_THEME_COLORS.outline}
             style={{ flex: 1, fontFamily: 'PlusJakartaSans-Regular', fontSize: 14, color: PROFILE_THEME_COLORS.onSurface, padding: 0 }}
@@ -324,33 +329,38 @@ export function CreateSessionStep1({
         </View>
       </View>
 
-      {selectedCourt ? (
-        <View style={sectionCard}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 15, color: PROFILE_THEME_COLORS.onSurface }}>Sân đã chọn</Text>
-            <Pressable onPress={onChangeCourt} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
-              <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13, color: PROFILE_THEME_COLORS.primary }}>Đổi sân</Text>
-            </Pressable>
-          </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-            <View style={{ width: 40, height: 40, borderRadius: 999, backgroundColor: PROFILE_THEME_COLORS.secondaryContainer, alignItems: 'center', justifyContent: 'center' }}>
-              <MapPin size={18} color={PROFILE_THEME_COLORS.surfaceTint} />
+      <View style={sectionCard}>
+        {selectedCourt ? (
+          <>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+              <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 15, color: PROFILE_THEME_COLORS.onSurface }}>Sân đã chọn</Text>
+              <Pressable onPress={() => setIsChoosingCourt((v) => !v)} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
+                <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13, color: PROFILE_THEME_COLORS.primary }}>
+                  {showCourtPicker ? 'Đóng chọn sân' : 'Đổi sân'}
+                </Text>
+              </Pressable>
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 15, color: PROFILE_THEME_COLORS.onSurface }} numberOfLines={1}>
-                {selectedCourt.name}
-              </Text>
-              <Text style={{ fontFamily: 'PlusJakartaSans-Regular', fontSize: 12, lineHeight: 18, color: PROFILE_THEME_COLORS.onSurfaceVariant, marginTop: 2 }} numberOfLines={2}>
-                {selectedCourt.address}
-                {selectedCourt.city ? ` · ${selectedCourt.city}` : ''}
-              </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              <View style={{ width: 40, height: 40, borderRadius: 999, backgroundColor: PROFILE_THEME_COLORS.secondaryContainer, alignItems: 'center', justifyContent: 'center' }}>
+                <MapPin size={18} color={PROFILE_THEME_COLORS.surfaceTint} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 15, color: PROFILE_THEME_COLORS.onSurface }} numberOfLines={1}>
+                  {selectedCourt.name}
+                </Text>
+                <Text style={{ fontFamily: 'PlusJakartaSans-Regular', fontSize: 12, lineHeight: 18, color: PROFILE_THEME_COLORS.onSurfaceVariant, marginTop: 2 }} numberOfLines={2}>
+                  {selectedCourt.address}
+                  {selectedCourt.city ? ` · ${selectedCourt.city}` : ''}
+                </Text>
+              </View>
             </View>
-          </View>
-        </View>
-      ) : (
-        <View style={sectionCard}>
+          </>
+        ) : (
           <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 15, color: PROFILE_THEME_COLORS.onSurface, marginBottom: 12 }}>Gợi ý sân</Text>
-          <View style={{ gap: 10 }}>
+        )}
+
+        {showCourtPicker ? (
+          <View style={{ gap: 10, marginTop: selectedCourt ? 14 : 0 }}>
             {loadingCourts ? (
               <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 32 }}>
                 <ActivityIndicator color={PROFILE_THEME_COLORS.primary} />
@@ -363,7 +373,17 @@ export function CreateSessionStep1({
                 <ActivityIndicator color={PROFILE_THEME_COLORS.primary} />
               </View>
             ) : courts.length > 0 ? (
-              courts.map((court) => <CourtRow key={court.id} court={court} onPress={onCourtSelect} />)
+              courts.map((court) => (
+                <CourtRow
+                  key={court.id}
+                  court={court}
+                  onPress={(nextCourt) => {
+                    onCourtSelect(nextCourt)
+                    setKeyword('')
+                    setIsChoosingCourt(false)
+                  }}
+                />
+              ))
             ) : (
               <View
                 style={{
@@ -384,8 +404,8 @@ export function CreateSessionStep1({
               </View>
             )}
           </View>
-        </View>
-      )}
+        ) : null}
+      </View>
 
       <View style={[sectionCard, { opacity: selectedCourt ? 1 : 0.5 }]}>
         <Pressable
@@ -409,17 +429,81 @@ export function CreateSessionStep1({
               Ngày chơi
             </Text>
           </View>
-          <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 33, color: PROFILE_THEME_COLORS.surfaceTint, marginTop: 12, lineHeight: 37 }}>
+          {selectedCourt ? (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={{ marginTop: 12 }}
+              contentContainerStyle={{ flexGrow: 1, flexDirection: 'row', justifyContent: 'space-between', gap: 8, paddingHorizontal: 4 }}
+            >
+              {dateStrip.map((day) => {
+                const active = isSameDay(selectedDate, day)
+                const weekend = isWeekend(day)
+                return (
+                  <Pressable
+                    key={day.toISOString()}
+                    onPress={() => onDateSelect(day)}
+                    style={({ pressed }) => ({
+                      width: 46,
+                      alignItems: 'center',
+                      borderRadius: 14,
+                      borderWidth: 1,
+                      borderColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
+                      backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
+                      paddingVertical: 9,
+                      paddingHorizontal: 8,
+                      opacity: pressed ? 0.85 : 1,
+                    })}
+                  >
+                    <Text
+                      style={{
+                        fontFamily: 'PlusJakartaSans-ExtraBold',
+                        fontSize: 11,
+                        textTransform: 'uppercase',
+                        color: active ? PROFILE_THEME_COLORS.primary : weekend ? PROFILE_THEME_COLORS.error : PROFILE_THEME_COLORS.outline,
+                      }}
+                    >
+                      {WEEKDAY_LABELS[day.getDay()]}
+                    </Text>
+                    <View
+                      style={{
+                        marginTop: 4,
+                        width: 30,
+                        height: 30,
+                        borderRadius: 999,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: active ? PROFILE_THEME_COLORS.primary : 'transparent',
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontFamily: 'PlusJakartaSans-ExtraBold',
+                          fontSize: 18,
+                          lineHeight: 20,
+                          color: active ? PROFILE_THEME_COLORS.onPrimary : weekend ? PROFILE_THEME_COLORS.error : PROFILE_THEME_COLORS.onSurface,
+                        }}
+                      >
+                        {day.getDate().toString().padStart(2, '0')}
+                      </Text>
+                    </View>
+                  </Pressable>
+                )
+              })}
+            </ScrollView>
+          ) : null}
+          <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 32, color: PROFILE_THEME_COLORS.surfaceTint, marginTop: 12, lineHeight: 36 }}>
             {formatHeroDateLabel(selectedDate)}
           </Text>
         </Pressable>
 
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
           <Pressable
             disabled={!selectedCourt}
             onPress={onToggleStartPicker}
             style={({ pressed }) => ({
               flex: 1,
+              minWidth: 0,
               borderRadius: 20,
               borderWidth: 1,
               borderColor: PROFILE_THEME_COLORS.outlineVariant,
@@ -433,10 +517,10 @@ export function CreateSessionStep1({
                 <Clock3 size={14} color={PROFILE_THEME_COLORS.surfaceTint} strokeWidth={2.6} />
               </View>
               <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 11, textTransform: 'uppercase', letterSpacing: 1.2, color: PROFILE_THEME_COLORS.outline }}>
-                Giờ chơi
+                Bắt đầu
               </Text>
             </View>
-            <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 37, color: PROFILE_THEME_COLORS.surfaceTint, marginTop: 12, lineHeight: 40 }}>
+            <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 32, color: PROFILE_THEME_COLORS.surfaceTint, marginTop: 12, lineHeight: 36 }}>
               {formatTime(startTime)}
             </Text>
           </Pressable>
@@ -445,70 +529,24 @@ export function CreateSessionStep1({
             disabled={!selectedDate || !startTime}
             onPress={onToggleEndPicker}
             style={({ pressed }) => ({
-              width: 122,
+              flex: 1,
+              minWidth: 0,
               borderRadius: 20,
               borderWidth: 1,
               borderColor: PROFILE_THEME_COLORS.outlineVariant,
               backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
-              padding: 14,
+              padding: 16,
               opacity: !selectedDate || !startTime ? 0.45 : pressed ? 0.86 : 1,
             })}
           >
-            <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 10, textTransform: 'uppercase', letterSpacing: 1.2, color: PROFILE_THEME_COLORS.outline }}>
+            <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 11, textTransform: 'uppercase', letterSpacing: 1.2, color: PROFILE_THEME_COLORS.outline }}>
               Kết thúc
             </Text>
-            <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 24, color: PROFILE_THEME_COLORS.onSurface, marginTop: 10 }}>
+            <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 32, color: PROFILE_THEME_COLORS.surfaceTint, marginTop: 12, lineHeight: 36 }}>
               {formatTime(endTime)}
             </Text>
           </Pressable>
         </View>
-
-        {selectedCourt ? (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 12 }} contentContainerStyle={{ flexDirection: 'row', gap: 8 }}>
-            {dateStrip.map((day) => {
-              const active = isSameDay(selectedDate, day)
-              const weekend = isWeekend(day)
-              return (
-                <Pressable
-                  key={day.toISOString()}
-                  onPress={() => onDateSelect(day)}
-                  style={({ pressed }) => ({
-                    minWidth: 58,
-                    alignItems: 'center',
-                    borderRadius: 14,
-                    borderWidth: 1,
-                    borderColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
-                    backgroundColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surfaceContainerLow,
-                    paddingVertical: 9,
-                    paddingHorizontal: 8,
-                    opacity: pressed ? 0.85 : 1,
-                  })}
-                >
-                  <Text
-                    style={{
-                      fontFamily: 'PlusJakartaSans-ExtraBold',
-                      fontSize: 10,
-                      textTransform: 'uppercase',
-                      color: active ? PROFILE_THEME_COLORS.primaryFixed : weekend ? PROFILE_THEME_COLORS.error : PROFILE_THEME_COLORS.outline,
-                    }}
-                  >
-                    {WEEKDAY_LABELS[day.getDay()]}
-                  </Text>
-                  <Text
-                    style={{
-                      fontFamily: 'PlusJakartaSans-ExtraBold',
-                      fontSize: 18,
-                      marginTop: 3,
-                      color: active ? PROFILE_THEME_COLORS.onPrimary : weekend ? PROFILE_THEME_COLORS.error : PROFILE_THEME_COLORS.onSurface,
-                    }}
-                  >
-                    {day.getDate()}
-                  </Text>
-                </Pressable>
-              )
-            })}
-          </ScrollView>
-        ) : null}
 
         {duration && !timeError ? (
           <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13, color: PROFILE_THEME_COLORS.surfaceTint, marginTop: 10 }}>
@@ -523,7 +561,7 @@ export function CreateSessionStep1({
       </View>
 
       {showDatePicker ? (
-        <View style={{ marginBottom: 14, borderRadius: 18, overflow: 'hidden', borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow }}>
+        <View style={{ marginBottom: 14, borderRadius: 18, overflow: 'hidden', borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, alignItems: 'center' }}>
           <View style={pickerHeader}>
             <Pressable onPress={() => setShowDatePicker(false)} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
               <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13, color: PROFILE_THEME_COLORS.onSurfaceVariant }}>Hủy</Text>
@@ -542,7 +580,7 @@ export function CreateSessionStep1({
             value={draftDate}
             minimumDate={new Date()}
             locale="vi-VN"
-            style={{ width: '100%', height: 216, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow }}
+            style={{ width: '100%', maxWidth: 360, height: 216, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow }}
             onChange={(_e, d) => {
               if (d) setDraftDate(d)
             }}
@@ -551,7 +589,7 @@ export function CreateSessionStep1({
       ) : null}
 
       {showStartPicker ? (
-        <View style={{ marginBottom: 14, borderRadius: 18, overflow: 'hidden', borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest }}>
+        <View style={{ marginBottom: 14, borderRadius: 18, overflow: 'hidden', borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest, alignItems: 'center' }}>
           <View style={pickerHeader}>
             <Pressable onPress={onCloseStartPicker} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
               <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13, color: PROFILE_THEME_COLORS.onSurfaceVariant }}>Hủy</Text>
@@ -568,7 +606,7 @@ export function CreateSessionStep1({
             value={draftStartTime}
             is24Hour
             locale="vi-VN"
-            style={{ width: '100%', height: 216, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest }}
+            style={{ width: '100%', maxWidth: 360, height: 216, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest }}
             onChange={(_e, d) => {
               if (d) setDraftStartTime(d)
             }}
@@ -577,7 +615,7 @@ export function CreateSessionStep1({
       ) : null}
 
       {showEndPicker ? (
-        <View style={{ marginBottom: 14, borderRadius: 18, overflow: 'hidden', borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest }}>
+        <View style={{ marginBottom: 14, borderRadius: 18, overflow: 'hidden', borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest, alignItems: 'center' }}>
           <View style={pickerHeader}>
             <Pressable onPress={onCloseEndPicker} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
               <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13, color: PROFILE_THEME_COLORS.onSurfaceVariant }}>Hủy</Text>
@@ -594,7 +632,7 @@ export function CreateSessionStep1({
             value={draftEndTime}
             is24Hour
             locale="vi-VN"
-            style={{ width: '100%', height: 216, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest }}
+            style={{ width: '100%', maxWidth: 360, height: 216, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest }}
             onChange={(_e, d) => {
               if (d) setDraftEndTime(d)
             }}

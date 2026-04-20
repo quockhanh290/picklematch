@@ -199,7 +199,12 @@ export function AdvancedSessionFilterModal({
 
             {/* Date chips */}
             <Text style={sectionLabel}>Ngày</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={{ marginBottom: 12 }}
+              contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingRight: 8 }}
+            >
               {dateChips.map((chip) => (
                 <Pressable
                   key={chip.value}
@@ -221,14 +226,14 @@ export function AdvancedSessionFilterModal({
 
             {/* Date picker */}
             {showDatePicker && (
-              <View style={{ marginBottom: 12 }}>
+              <View style={{ marginBottom: 12, alignItems: 'center' }}>
                 <DateTimePicker
                   value={pickerDate}
                   mode="date"
                   display={Platform.OS === 'ios' ? 'inline' : 'default'}
                   minimumDate={new Date()}
                   onChange={handleDateChange}
-                  style={{ alignSelf: 'center' }}
+                  style={{ width: '100%', maxWidth: 360 }}
                   accentColor={PROFILE_THEME_COLORS.primary}
                 />
               </View>
@@ -236,7 +241,7 @@ export function AdvancedSessionFilterModal({
 
             {/* Time slot */}
             <Text style={sectionLabel}>Khung giờ</Text>
-            <View style={{ flexDirection: 'row', marginBottom: 16 }}>
+            <View style={{ flexDirection: 'row', marginBottom: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
               {['Sáng', 'Chiều', 'Tối'].map((slot) => (
                 <Pressable
                   key={slot}
