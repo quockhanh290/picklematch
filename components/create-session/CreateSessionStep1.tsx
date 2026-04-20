@@ -1,9 +1,9 @@
-import DateTimePicker from '@react-native-community/datetimepicker'
-import { ScreenHeader, AppButton } from '@/components/design'
+import { AppButton, ScreenHeader } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import DateTimePicker from '@react-native-community/datetimepicker'
 import { Calendar, Clock3, Info, MapPin, Search, SlidersHorizontal } from 'lucide-react-native'
 import { useEffect, useMemo, useState } from 'react'
-import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View, Keyboard } from 'react-native'
+import { ActivityIndicator, Keyboard, Pressable, ScrollView, Text, TextInput, View } from 'react-native'
 
 import type { NearByCourt } from '@/lib/useNearbyCourts'
 

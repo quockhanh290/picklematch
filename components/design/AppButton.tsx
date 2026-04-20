@@ -1,7 +1,7 @@
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native'
 
-import { useAppTheme } from '@/lib/theme-context'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { useAppTheme } from '@/lib/theme-context'
 
 type Props = {
   label: string
