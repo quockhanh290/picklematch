@@ -1,7 +1,8 @@
 import { AppButton, ScreenHeader } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import DateTimePicker from '@react-native-community/datetimepicker'
-import { Calendar, Clock3, Info, MapPin, Search, SlidersHorizontal } from 'lucide-react-native'
+import { LinearGradient } from 'expo-linear-gradient'
+import { Calendar, Clock3, Info, MapPin, Search, ShieldAlert, ShieldCheck, SlidersHorizontal } from 'lucide-react-native'
 import { useEffect, useMemo, useState } from 'react'
 import { ActivityIndicator, Keyboard, Pressable, ScrollView, Text, TextInput, View } from 'react-native'
 
@@ -74,6 +75,13 @@ function formatHeroDateLabel(date: Date | null) {
 function formatDistance(distance?: number) {
   if (distance == null) return null
   return distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)}km`
+}
+
+function withAlpha(hex: string, alpha: number) {
+  const clean = hex.replace('#', '')
+  const fullHex = clean.length === 3 ? clean.split('').map((char) => char + char).join('') : clean
+  const value = Number.parseInt(fullHex, 16)
+  return `rgba(${(value >> 16) & 255}, ${(value >> 8) & 255}, ${value & 255}, ${alpha})`
 }
 
 function CourtRow({ court, onPress }: { court: NearByCourt; onPress: (court: NearByCourt) => void }) {
@@ -214,6 +222,11 @@ export function CreateSessionStep1({
 
   const canContinue = !!selectedCourt && !!selectedDate && !!startTime && !!endTime && !timeError
   const showCourtPicker = !selectedCourt || isChoosingCourt
+  const selectedCourtDistanceLabel = selectedCourt ? formatDistance(selectedCourt.distance) : null
+  const selectedCourtAddress = selectedCourt
+    ? `${selectedCourt.address}${selectedCourt.city ? ` · ${selectedCourt.city}` : ''}`
+    : ''
+  const selectedCourtOpen = selectedCourt ? !!selectedCourt.hasSlots : false
 
   useEffect(() => {
     if (showStartPicker) {
@@ -340,18 +353,123 @@ export function CreateSessionStep1({
                 </Text>
               </Pressable>
             </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-              <View style={{ width: 40, height: 40, borderRadius: 999, backgroundColor: PROFILE_THEME_COLORS.secondaryContainer, alignItems: 'center', justifyContent: 'center' }}>
-                <MapPin size={18} color={PROFILE_THEME_COLORS.surfaceTint} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 15, color: PROFILE_THEME_COLORS.onSurface }} numberOfLines={1}>
-                  {selectedCourt.name}
-                </Text>
-                <Text style={{ fontFamily: 'PlusJakartaSans-Regular', fontSize: 12, lineHeight: 18, color: PROFILE_THEME_COLORS.onSurfaceVariant, marginTop: 2 }} numberOfLines={2}>
-                  {selectedCourt.address}
-                  {selectedCourt.city ? ` · ${selectedCourt.city}` : ''}
-                </Text>
+            <View
+              style={{
+                borderRadius: 30,
+                overflow: 'hidden',
+                shadowColor: '#0f172a',
+                shadowOpacity: 0.08,
+                shadowRadius: 16,
+                shadowOffset: { width: 0, height: 7 },
+                elevation: 3,
+              }}
+            >
+              <LinearGradient
+                colors={[PROFILE_THEME_COLORS.primary, PROFILE_THEME_COLORS.surfaceTint]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}
+              />
+
+              <MapPin
+                size={120}
+                color="rgba(255,255,255,0.12)"
+                style={{ position: 'absolute', right: -18, bottom: -16 }}
+              />
+
+              <View style={{ paddingHorizontal: 18, paddingTop: 16, paddingBottom: 14 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
+                  <Text
+                    numberOfLines={2}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.7}
+                    style={{
+                      flex: 1,
+                      color: PROFILE_THEME_COLORS.onPrimary,
+                      fontFamily: 'PlusJakartaSans-ExtraBold',
+                      fontSize: 30,
+                      lineHeight: 35,
+                      letterSpacing: 0.6,
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    {selectedCourt.name}
+                  </Text>
+
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      borderRadius: 999,
+                      paddingHorizontal: 10,
+                      paddingVertical: 6,
+                      backgroundColor: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.14),
+                    }}
+                  >
+                    {selectedCourtOpen
+                      ? <ShieldCheck size={12} color={withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.84)} strokeWidth={2.5} />
+                      : <ShieldAlert size={12} color={withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.84)} strokeWidth={2.5} />}
+                    <Text
+                      style={{
+                        marginLeft: 6,
+                        color: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.9),
+                        fontFamily: 'PlusJakartaSans-SemiBold',
+                        fontSize: 12,
+                      }}
+                    >
+                      {selectedCourtOpen ? 'Đang mở' : 'Tạm đóng'}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      borderRadius: 999,
+                      paddingHorizontal: 10,
+                      paddingVertical: 6,
+                      backgroundColor: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.14),
+                      maxWidth: '100%',
+                    }}
+                  >
+                    <MapPin size={12} color={withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.84)} strokeWidth={2.5} />
+                    <Text
+                      numberOfLines={1}
+                      style={{
+                        marginLeft: 6,
+                        color: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.9),
+                        fontFamily: 'PlusJakartaSans-SemiBold',
+                        fontSize: 13,
+                        flexShrink: 1,
+                      }}
+                    >
+                      {selectedCourtAddress}
+                    </Text>
+                  </View>
+
+                  {selectedCourtDistanceLabel ? (
+                    <View
+                      style={{
+                        borderRadius: 999,
+                        paddingHorizontal: 10,
+                        paddingVertical: 6,
+                        backgroundColor: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.14),
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.9),
+                          fontFamily: 'PlusJakartaSans-SemiBold',
+                          fontSize: 13,
+                        }}
+                      >
+                        {selectedCourtDistanceLabel}
+                      </Text>
+                    </View>
+                  ) : null}
+                </View>
               </View>
             </View>
           </>
