@@ -2,8 +2,8 @@ import { AppButton, ScreenHeader } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { LinearGradient } from 'expo-linear-gradient'
-import { Calendar, Clock3, Info, MapPin, Search, ShieldAlert, ShieldCheck, SlidersHorizontal } from 'lucide-react-native'
-import { useEffect, useMemo, useState } from 'react'
+import { Calendar, Clock3, CreditCard, Info, Link2, MapPin, Search, ShieldAlert, ShieldCheck, SlidersHorizontal } from 'lucide-react-native'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { ActivityIndicator, Keyboard, Pressable, ScrollView, Text, TextInput, View } from 'react-native'
 
 import type { NearByCourt } from '@/lib/useNearbyCourts'
@@ -75,6 +75,12 @@ function formatHeroDateLabel(date: Date | null) {
 function formatDistance(distance?: number) {
   if (distance == null) return null
   return distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)}km`
+}
+
+function formatCourtPricePerHour(price: number | null) {
+  if (price == null) return null
+  if (price >= 1000) return `${Math.round(price / 1000)}K/giờ`
+  return `${price.toLocaleString('vi-VN')} VNĐ/giờ`
 }
 
 function withAlpha(hex: string, alpha: number) {
@@ -177,6 +183,25 @@ const pickerHeader = {
   paddingVertical: 12,
 }
 
+function SectionDivider({ index, title }: { index: string; title: string }) {
+  return (
+    <View style={{ marginBottom: 12, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+      <Text
+        style={{
+          fontFamily: 'PlusJakartaSans-Bold',
+          fontSize: 11,
+          textTransform: 'uppercase',
+          letterSpacing: 2.8,
+          color: PROFILE_THEME_COLORS.outline,
+        }}
+      >
+        {index} / {title}
+      </Text>
+      <View style={{ height: 1, flex: 1, backgroundColor: PROFILE_THEME_COLORS.outlineVariant }} />
+    </View>
+  )
+}
+
 export function CreateSessionStep1({
   onBack,
   courts,
@@ -205,8 +230,10 @@ export function CreateSessionStep1({
   defaultPickerValue,
   onContinue,
 }: Props) {
+  const scrollRef = useRef<ScrollView | null>(null)
   const [showDatePicker, setShowDatePicker] = useState(false)
   const [isChoosingCourt, setIsChoosingCourt] = useState(false)
+  const [pickerAnchorY, setPickerAnchorY] = useState(0)
   const [draftDate, setDraftDate] = useState(selectedDate ?? new Date())
   const [draftStartTime, setDraftStartTime] = useState(startTime ?? defaultPickerValue('start'))
   const [draftEndTime, setDraftEndTime] = useState(endTime ?? defaultPickerValue('end'))
@@ -227,6 +254,32 @@ export function CreateSessionStep1({
     ? `${selectedCourt.address}${selectedCourt.city ? ` · ${selectedCourt.city}` : ''}`
     : ''
   const selectedCourtOpen = selectedCourt ? !!selectedCourt.hasSlots : false
+  const selectedCourtPriceLabel = selectedCourt ? formatCourtPricePerHour(selectedCourt.price_per_hour) : null
+  const selectedCourtOpenHoursLabel = selectedCourt && (selectedCourt.hours_open || selectedCourt.hours_close)
+    ? `${selectedCourt.hours_open ?? '06:00'} - ${selectedCourt.hours_close ?? '22:00'}`
+    : null
+  const selectedCourtAmenities = selectedCourt
+    ? [
+      selectedCourt.booking_url ? 'Đặt sân online' : null,
+      selectedCourt.google_maps_url ? 'Google Maps' : null,
+    ].filter((item): item is string => item !== null)
+    : []
+  const selectedCourtDetailRowsRaw = [
+    selectedCourtPriceLabel ? { icon: CreditCard, label: 'Giá sân', value: selectedCourtPriceLabel } : null,
+    selectedCourtOpenHoursLabel ? { icon: Clock3, label: 'Giờ mở cửa', value: selectedCourtOpenHoursLabel } : null,
+    selectedCourtAmenities.length > 0 ? { icon: Link2, label: 'Tiện ích', value: selectedCourtAmenities.join(' · ') } : null,
+  ].filter((item): item is { icon: any; label: string; value: string } => item !== null)
+  const mockCourtDetailRows = selectedCourt
+    ? [
+      { icon: CreditCard, label: 'Giá sân', value: '120K/giờ' },
+      { icon: Clock3, label: 'Giờ mở cửa', value: '05:30 - 23:00' },
+      { icon: Link2, label: 'Tiện ích', value: 'Đặt sân online · Đỗ xe · Nhà tắm · Nước uống' },
+    ]
+    : []
+  const selectedCourtDetailRows =
+    selectedCourtDetailRowsRaw.length > 0
+      ? selectedCourtDetailRowsRaw
+      : (__DEV__ ? mockCourtDetailRows : [])
 
   useEffect(() => {
     if (showStartPicker) {
@@ -241,6 +294,14 @@ export function CreateSessionStep1({
       setDraftEndTime((cur) => (cur.getTime() === nextValue.getTime() ? cur : nextValue))
     }
   }, [defaultPickerValue, endTime, showEndPicker])
+
+  useEffect(() => {
+    if (!(showDatePicker || showStartPicker || showEndPicker)) return
+    const timer = setTimeout(() => {
+      scrollRef.current?.scrollTo({ y: Math.max(0, pickerAnchorY - 12), animated: true })
+    }, 60)
+    return () => clearTimeout(timer)
+  }, [pickerAnchorY, showDatePicker, showEndPicker, showStartPicker])
 
   function openDatePicker() {
     if (!selectedCourt) return
@@ -265,6 +326,7 @@ export function CreateSessionStep1({
 
   return (
     <ScrollView
+      ref={scrollRef}
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{ paddingBottom: 32 }}
       keyboardShouldPersistTaps="handled"
@@ -310,6 +372,8 @@ export function CreateSessionStep1({
           </View>
         </View>
 
+        <SectionDivider index="01" title="Chọn sân" />
+
         <View
           style={{
             flexDirection: 'row',
@@ -342,7 +406,7 @@ export function CreateSessionStep1({
         </View>
       </View>
 
-      <View style={sectionCard}>
+      <View style={{ marginBottom: 24 }}>
         {selectedCourt ? (
           <>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
@@ -362,6 +426,7 @@ export function CreateSessionStep1({
                 shadowRadius: 16,
                 shadowOffset: { width: 0, height: 7 },
                 elevation: 3,
+                backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
               }}
             >
               <LinearGradient
@@ -386,10 +451,10 @@ export function CreateSessionStep1({
                     style={{
                       flex: 1,
                       color: PROFILE_THEME_COLORS.onPrimary,
-                      fontFamily: 'PlusJakartaSans-ExtraBold',
-                      fontSize: 30,
-                      lineHeight: 35,
-                      letterSpacing: 0.6,
+                      fontFamily: 'PlusJakartaSans-ExtraBoldItalic',
+                      fontSize: 36,
+                      lineHeight: 41,
+                      letterSpacing: 0.8,
                       textTransform: 'uppercase',
                     }}
                   >
@@ -440,8 +505,10 @@ export function CreateSessionStep1({
                       style={{
                         marginLeft: 6,
                         color: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.9),
-                        fontFamily: 'PlusJakartaSans-SemiBold',
-                        fontSize: 13,
+                        fontFamily: 'PlusJakartaSans-Regular',
+                        fontSize: 15,
+                        lineHeight: 20,
+                        letterSpacing: 0.2,
                         flexShrink: 1,
                       }}
                     >
@@ -471,6 +538,71 @@ export function CreateSessionStep1({
                   ) : null}
                 </View>
               </View>
+
+              {selectedCourtDetailRows.length > 0 ? (
+                <View
+                  style={{
+                    borderTopWidth: 1,
+                    borderTopColor: PROFILE_THEME_COLORS.outlineVariant,
+                    backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+                    paddingHorizontal: 14,
+                    paddingVertical: 12,
+                  }}
+                >
+                  {selectedCourtDetailRows.map((row, index) => (
+                    <View key={row.label}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <View
+                          style={{
+                            width: 36,
+                            height: 36,
+                            borderRadius: 999,
+                            backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <row.icon size={16} color={PROFILE_THEME_COLORS.primary} strokeWidth={2.4} />
+                        </View>
+                        <View style={{ marginLeft: 12, flex: 1 }}>
+                          <Text
+                            style={{
+                              fontSize: 10,
+                              fontFamily: 'PlusJakartaSans-ExtraBold',
+                              textTransform: 'uppercase',
+                              letterSpacing: 1.6,
+                              color: PROFILE_THEME_COLORS.outline,
+                            }}
+                          >
+                            {row.label}
+                          </Text>
+                          <Text
+                            style={{
+                              marginTop: 2,
+                              fontSize: 13,
+                              fontFamily: 'PlusJakartaSans-SemiBold',
+                              color: PROFILE_THEME_COLORS.onSurface,
+                              lineHeight: 19,
+                            }}
+                          >
+                            {row.value}
+                          </Text>
+                        </View>
+                      </View>
+
+                      {index < selectedCourtDetailRows.length - 1 ? (
+                        <View
+                          style={{
+                            height: 1,
+                            backgroundColor: PROFILE_THEME_COLORS.outlineVariant,
+                            marginVertical: 10,
+                          }}
+                        />
+                      ) : null}
+                    </View>
+                  ))}
+                </View>
+              ) : null}
             </View>
           </>
         ) : (
@@ -525,6 +657,8 @@ export function CreateSessionStep1({
           </View>
         ) : null}
       </View>
+
+      <SectionDivider index="02" title="Chọn ngày giờ chơi" />
 
       <View style={[sectionCard, { opacity: selectedCourt ? 1 : 0.5 }]}>
         <Pressable
@@ -678,6 +812,12 @@ export function CreateSessionStep1({
           </Text>
         ) : null}
       </View>
+
+      <View
+        onLayout={(event) => {
+          setPickerAnchorY(event.nativeEvent.layout.y)
+        }}
+      />
 
       {showDatePicker ? (
         <View style={{ marginBottom: 14, borderRadius: 18, overflow: 'hidden', borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, alignItems: 'center' }}>
