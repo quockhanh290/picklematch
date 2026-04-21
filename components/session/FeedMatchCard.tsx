@@ -201,7 +201,7 @@ export function FeedMatchCard({
               lineHeight: 18,
             }}
           >
-            {isConfirmed ? 'Sân đã chốt' : 'Chờ xác nhận'}
+            {isConfirmed ? 'Đã đặt sân' : 'Chưa đặt sân'}
           </Text>
         </View>
 
@@ -407,3 +407,4 @@ export function FeedMatchCard({
     </Pressable>
   )
 }
+

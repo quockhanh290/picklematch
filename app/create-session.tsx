@@ -15,9 +15,9 @@ function fmtDuration(start: Date, end: Date): string {
   const mins = Math.round((end.getTime() - start.getTime()) / 60_000)
   const h = Math.floor(mins / 60)
   const m = mins % 60
-  if (h === 0) return `${m} phút`
-  if (m === 0) return `${h} giờ`
-  return `${h} giờ ${m} phút`
+  if (h === 0) return `${m} phÃºt`
+  if (m === 0) return `${h} giá»`
+  return `${h} giá» ${m} phÃºt`
 }
 
 function toMins(hhmm: string): number {
@@ -56,7 +56,7 @@ export default function CreateSession() {
   const [requireApproval, setRequireApproval] = useState(false)
   const [isRanked, setIsRanked] = useState(true)
   const [canToggleRanked, setCanToggleRanked] = useState(false)
-  const [rankedHelperText, setRankedHelperText] = useState<string | null>('Đang kiểm tra quyền dùng kèo tính Elo...')
+  const [rankedHelperText, setRankedHelperText] = useState<string | null>('Äang kiá»ƒm tra quyá»n dÃ¹ng kÃ¨o tÃ­nh Elo...')
   const [totalCostStr, setTotalCostStr] = useState('')
   const [minSkill, setMinSkill] = useState(1)
   const [maxSkill, setMaxSkill] = useState(5)
@@ -78,9 +78,9 @@ export default function CreateSession() {
     const closeMins = toMins(selectedCourt?.hours_close ?? '22:00')
     const timeMins = time.getHours() * 60 + time.getMinutes()
 
-    if (isToday && time <= now) return 'Giờ bắt đầu phải sau thời gian hiện tại'
-    if (timeMins < openMins) return `Sân mở cửa lúc ${selectedCourt?.hours_open ?? '06:00'}`
-    if (timeMins >= closeMins) return `Sân đóng cửa lúc ${selectedCourt?.hours_close ?? '22:00'}`
+    if (isToday && time <= now) return 'Giá» báº¯t Ä‘áº§u pháº£i sau thá»i gian hiá»‡n táº¡i'
+    if (timeMins < openMins) return `SÃ¢n má»Ÿ cá»­a lÃºc ${selectedCourt?.hours_open ?? '06:00'}`
+    if (timeMins >= closeMins) return `SÃ¢n Ä‘Ã³ng cá»­a lÃºc ${selectedCourt?.hours_close ?? '22:00'}`
     return null
   }, [selectedCourt?.hours_close, selectedCourt?.hours_open, selectedDate])
 
@@ -89,9 +89,9 @@ export default function CreateSession() {
     const endMins = end.getHours() * 60 + end.getMinutes()
     const diffMins = (end.getTime() - start.getTime()) / 60_000
 
-    if (end <= start) return 'Giờ kết thúc phải sau giờ bắt đầu'
-    if (diffMins > 180) return 'Tối đa 3 giờ mỗi kèo'
-    if (endMins > closeMins) return `Sân đóng cửa lúc ${selectedCourt?.hours_close ?? '22:00'}`
+    if (end <= start) return 'Giá» káº¿t thÃºc pháº£i sau giá» báº¯t Ä‘áº§u'
+    if (diffMins > 180) return 'Tá»‘i Ä‘a 3 giá» má»—i kÃ¨o'
+    if (endMins > closeMins) return `SÃ¢n Ä‘Ã³ng cá»­a lÃºc ${selectedCourt?.hours_close ?? '22:00'}`
     return null
   }, [selectedCourt?.hours_close])
 
@@ -126,7 +126,7 @@ export default function CreateSession() {
         if (!mounted) return
         setIsRanked(false)
         setCanToggleRanked(false)
-        setRankedHelperText('Đăng nhập để chọn kèo có tính Elo.')
+        setRankedHelperText('ÄÄƒng nháº­p Ä‘á»ƒ chá»n kÃ¨o cÃ³ tÃ­nh Elo.')
         return
       }
 
@@ -143,12 +143,12 @@ export default function CreateSession() {
       setCanToggleRanked(onboardingCompleted)
       if (!onboardingCompleted) {
         setIsRanked(false)
-        setRankedHelperText('Hoàn tất onboarding để dùng kèo tính Elo.')
+        setRankedHelperText('HoÃ n táº¥t onboarding Ä‘á»ƒ dÃ¹ng kÃ¨o tÃ­nh Elo.')
         return
       }
 
       setIsRanked(true)
-      setRankedHelperText('Bạn có thể bật hoặc tắt Elo cho kèo này trước khi đăng.')
+      setRankedHelperText('Báº¡n cÃ³ thá»ƒ báº­t hoáº·c táº¯t Elo cho kÃ¨o nÃ y trÆ°á»›c khi Ä‘Äƒng.')
     }
 
     void loadRankedEligibility()
@@ -185,8 +185,8 @@ export default function CreateSession() {
     const url = selectedCourt?.booking_url ?? selectedCourt?.google_maps_url
     if (!url) {
       Alert.alert(
-        'Chưa có link đặt sân',
-        'Sân này chưa có link booking. Bạn vẫn có thể tự đặt rồi nhập thông tin bên dưới.',
+        'ChÆ°a cÃ³ link Ä‘áº·t sÃ¢n',
+        'SÃ¢n nÃ y chÆ°a cÃ³ link booking. Báº¡n váº«n cÃ³ thá»ƒ tá»± Ä‘áº·t rá»“i nháº­p thÃ´ng tin bÃªn dÆ°á»›i.',
       )
       return
     }
@@ -195,8 +195,8 @@ export default function CreateSession() {
       await Linking.openURL(url)
     } catch {
       Alert.alert(
-        'Không mở được link',
-        'Vui lòng thử lại hoặc mở link booking của sân theo cách khác.',
+        'KhÃ´ng má»Ÿ Ä‘Æ°á»£c link',
+        'Vui lÃ²ng thá»­ láº¡i hoáº·c má»Ÿ link booking cá»§a sÃ¢n theo cÃ¡ch khÃ¡c.',
       )
     }
   }
@@ -218,7 +218,7 @@ export default function CreateSession() {
     const maxElo = CREATE_SESSION_ELO_LEVELS[maxSkill - 1].elo
 
     if (minElo > maxElo) {
-      Alert.alert('Lỗi', 'Trình độ tối thiểu không thể cao hơn trình độ tối đa.')
+      Alert.alert('Lá»—i', 'TrÃ¬nh Ä‘á»™ tá»‘i thiá»ƒu khÃ´ng thá»ƒ cao hÆ¡n trÃ¬nh Ä‘á»™ tá»‘i Ä‘a.')
       return
     }
 
@@ -226,61 +226,83 @@ export default function CreateSession() {
     setEloMax(maxElo)
     setStep(3)
   }
-
   async function submit() {
     if (!selectedCourt || !startTime || !endTime) return
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      Alert.alert('Cần đăng nhập', 'Bạn cần đăng nhập để tạo kèo.', [
-        { text: 'Đăng nhập', onPress: () => router.push('/login') },
-        { text: 'Hủy', style: 'cancel' },
-      ])
-      return
-    }
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        Alert.alert('\u0043\u1ea7\u006e\u0020\u0111\u0103\u006e\u0067\u0020\u006e\u0068\u1ead\u0070', '\u0042\u1ea1\u006e\u0020\u0063\u1ea7\u006e\u0020\u0111\u0103\u006e\u0067\u0020\u006e\u0068\u1ead\u0070\u0020\u0111\u1ec3\u0020\u0074\u1ea1\u006f\u0020\u006b\u00e8\u006f\u002e', [
+          { text: '\u0110\u0103\u006e\u0067\u0020\u006e\u0068\u1ead\u0070', onPress: () => router.push('/login') },
+          { text: '\u0048\u1ee7\u0079', style: 'cancel' },
+        ])
+        return
+      }
 
-    setSubmitting(true)
+      setSubmitting(true)
 
-    const sendBookingDetails = bookingStatus === 'confirmed' || wantsBookingNow === true
-    const fillDeadline = new Date(startTime.getTime() - deadlineMinutes * 60_000)
-    if (fillDeadline.getTime() <= Date.now()) {
+      const sendBookingDetails = bookingStatus === 'confirmed' || wantsBookingNow === true
+      const fillDeadline = new Date(startTime.getTime() - deadlineMinutes * 60_000)
+      if (fillDeadline.getTime() <= Date.now()) {
+        Alert.alert(
+          '\u0048\u1ea1\u006e\u0020\u0063\u0068\u00f3\u0074\u0020\u0063\u0068\u01b0\u0061\u0020\u0068\u1ee3\u0070\u0020\u006c\u1ec7',
+          '\u0048\u1ea1\u006e\u0020\u0063\u0068\u00f3\u0074\u0020\u0076\u00e0\u006f\u0020\u006b\u00e8\u006f\u0020\u0070\u0068\u1ea3\u0069\u0020\u006e\u1eb1\u006d\u0020\u0074\u0072\u006f\u006e\u0067\u0020\u0074\u01b0\u01a1\u006e\u0067\u0020\u006c\u0061\u0069\u002e\u0020\u0048\u00e3\u0079\u0020\u0063\u0068\u1ecd\u006e\u0020\u0067\u0069\u1edd\u0020\u0063\u0068\u01a1\u0069\u0020\u006d\u0075\u1ed9\u006e\u0020\u0068\u01a1\u006e\u0020\u0068\u006f\u1eb7\u0063\u0020\u0067\u0069\u1ea3\u006d\u0020\u006d\u1ed1\u0063\u0020\u0068\u1ea1\u006e\u0020\u0063\u0068\u00f3\u0074\u002e',
+        )
+        return
+      }
+
+      const basePayload = {
+        p_court_id: selectedCourt.id,
+        p_start_time: startTime.toISOString(),
+        p_end_time: endTime.toISOString(),
+        p_elo_min: eloMin,
+        p_elo_max: eloMax,
+        p_is_ranked: isRanked,
+        p_max_players: maxPlayers,
+        p_fill_deadline: fillDeadline.toISOString(),
+        p_total_cost: totalCost || null,
+        p_require_approval: requireApproval,
+        p_court_booking_status: bookingStatus,
+      }
+
+      const fullPayload = {
+        ...basePayload,
+        p_booking_reference: sendBookingDetails ? bookingReference.trim() || null : null,
+        p_booking_name: sendBookingDetails ? bookingName.trim() || null : null,
+        p_booking_phone: sendBookingDetails ? bookingPhone.trim() || null : null,
+        p_booking_notes: sendBookingDetails ? bookingNotes.trim() || null : null,
+        p_booking_confirmed_at: bookingStatus === 'confirmed' ? new Date().toISOString() : null,
+      }
+
+      let { data: newSessionId, error: createError } = await supabase.rpc('create_session_with_host', fullPayload)
+
+      const missingFunction =
+        Boolean(createError?.message?.includes('Could not find the function public.create_session_with_host')) ||
+        createError?.code === '42883'
+
+      // Backward compatibility: some environments still expose the older RPC signature
+      // without booking detail fields. Fallback to the old payload so session creation still works.
+      if (missingFunction) {
+        const fallbackResult = await supabase.rpc('create_session_with_host', basePayload)
+        newSessionId = fallbackResult.data
+        createError = fallbackResult.error
+      }
+
+      if (createError || !newSessionId) {
+        Alert.alert('\u004c\u1ed7\u0069', createError?.message ?? '\u004b\u0068\u00f4\u006e\u0067\u0020\u0074\u0068\u1ec3\u0020\u0074\u1ea1\u006f\u0020\u006b\u00e8\u006f\u002e')
+        return
+      }
+
+      router.replace({
+        pathname: '/session/[id]',
+        params: { id: newSessionId, created: '1' },
+      } as never)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '\u004b\u0068\u00f4\u006e\u0067\u0020\u0074\u0068\u1ec3\u0020\u0074\u1ea1\u006f\u0020\u006b\u00e8\u006f\u0020\u006c\u00fac\u0020\u006e\u00e0\u0079\u002e'
+      Alert.alert('\u004c\u1ed7\u0069', message)
+    } finally {
       setSubmitting(false)
-      Alert.alert(
-        'Hạn chót chưa hợp lệ',
-        'Hạn chót vào kèo phải nằm trong tương lai. Hãy chọn giờ chơi muộn hơn hoặc giảm mốc hạn chót.',
-      )
-      return
     }
-    const { data: newSessionId, error: createError } = await supabase.rpc('create_session_with_host', {
-      p_court_id: selectedCourt.id,
-      p_start_time: startTime.toISOString(),
-      p_end_time: endTime.toISOString(),
-      p_elo_min: eloMin,
-      p_elo_max: eloMax,
-      p_is_ranked: isRanked,
-      p_max_players: maxPlayers,
-      p_fill_deadline: fillDeadline.toISOString(),
-      p_total_cost: totalCost || null,
-      p_require_approval: requireApproval,
-      p_court_booking_status: bookingStatus,
-      p_booking_reference: sendBookingDetails ? bookingReference.trim() || null : null,
-      p_booking_name: sendBookingDetails ? bookingName.trim() || null : null,
-      p_booking_phone: sendBookingDetails ? bookingPhone.trim() || null : null,
-      p_booking_notes: sendBookingDetails ? bookingNotes.trim() || null : null,
-      p_booking_confirmed_at: bookingStatus === 'confirmed' ? new Date().toISOString() : null,
-    })
-
-    if (createError || !newSessionId) {
-      setSubmitting(false)
-      Alert.alert('Lỗi', createError?.message ?? 'Không thể tạo kèo.')
-      return
-    }
-
-    setSubmitting(false)
-    router.replace({
-      pathname: '/session/[id]',
-      params: { id: newSessionId, created: '1' },
-    } as never)
   }
 
   if (step === 1) {
@@ -404,4 +426,3 @@ export default function CreateSession() {
     </SafeAreaView>
   )
 }
-

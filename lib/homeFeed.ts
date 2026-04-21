@@ -252,7 +252,7 @@ export function getStatusLabel(
   sessionStatus: HomeSessionRecord['status'],
 ) {
   if (sessionStatus === 'closed_recruitment') return 'Đã ngưng nhận người'
-  return bookingStatus === 'confirmed' ? 'Sân đã chốt' : 'Chưa chốt sân'
+  return bookingStatus === 'confirmed' ? 'Đã đặt sân' : 'Chưa đặt sân'
 }
 
 export function isWithinNext24Hours(startTime: string) {
@@ -492,7 +492,7 @@ export function buildSkillLevelPreviewSessions(): MatchSession[] {
       timeLabel: '18:00 - 20:00',
       priceLabel: '70K',
       levelId: 'level_1',
-      statusLabel: 'Chưa chốt sân',
+      statusLabel: 'Chưa đặt sân',
       isRanked: false,
       urgent: false,
       activePlayers: 2,
@@ -505,7 +505,7 @@ export function buildSkillLevelPreviewSessions(): MatchSession[] {
       timeLabel: '07:00 - 09:00',
       priceLabel: '85K',
       levelId: 'level_2',
-      statusLabel: 'Sân đã chốt',
+      statusLabel: 'Đã đặt sân',
       isRanked: true,
       urgent: false,
       activePlayers: 4,
@@ -518,7 +518,7 @@ export function buildSkillLevelPreviewSessions(): MatchSession[] {
       timeLabel: '20:30 - 22:00',
       priceLabel: '95K',
       levelId: 'level_3',
-      statusLabel: 'Sân đã chốt',
+      statusLabel: 'Đã đặt sân',
       isRanked: false,
       urgent: true,
       activePlayers: 5,
@@ -531,7 +531,7 @@ export function buildSkillLevelPreviewSessions(): MatchSession[] {
       timeLabel: '06:00 - 08:00',
       priceLabel: '115K',
       levelId: 'level_4',
-      statusLabel: 'Sân đã chốt',
+      statusLabel: 'Đã đặt sân',
       isRanked: true,
       urgent: false,
       activePlayers: 6,
@@ -544,7 +544,7 @@ export function buildSkillLevelPreviewSessions(): MatchSession[] {
       timeLabel: '19:00 - 21:00',
       priceLabel: '140K',
       levelId: 'level_5',
-      statusLabel: 'Sân đã chốt',
+      statusLabel: 'Đã đặt sân',
       isRanked: true,
       urgent: true,
       activePlayers: 5,
@@ -596,7 +596,7 @@ export function buildUpcomingMatchPreviewSession(): MatchSession {
     timeLabel: 'Hôm nay • 19:30 - 21:00',
     priceLabel: '95K',
     openSlotsLabel: '2 chỗ trống',
-    statusLabel: 'Sân đã chốt',
+    statusLabel: 'Đã đặt sân',
     countdownLabel: 'Bắt đầu sau 2 giờ 15 phút',
     isRanked: true,
     activePlayers: 4,
@@ -608,3 +608,4 @@ export function buildUpcomingMatchPreviewSession(): MatchSession {
     joined: true,
   }
 }
+

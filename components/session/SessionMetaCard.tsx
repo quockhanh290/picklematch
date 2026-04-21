@@ -51,6 +51,11 @@ export function SessionMetaCard({
   const isClosedRecruitment = sessionStatus === 'closed_recruitment'
   const isRankedMatch = isRanked ?? true
   const onAccent = PROFILE_THEME_COLORS.onPrimary
+  const bookingStatusLabel = isClosedRecruitment
+    ? '\u0110\u00e3\u0020\u006e\u0067\u01b0\u006e\u0067\u0020\u006e\u0068\u1ead\u006e\u0020\u006e\u0067\u01b0\u1eddi'
+    : isConfirmed
+      ? '\u0110\u00e3\u0020\u0111\u1eb7\u0074\u0020\u0073\u00e2\u006e'
+      : '\u0043\u0068\u01b0\u0061\u0020\u0111\u1eb7\u0074\u0020\u0073\u00e2\u006e'
 
   return (
     <View
@@ -97,31 +102,6 @@ export function SessionMetaCard({
             >
               {courtName}
             </Text>
-
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                borderRadius: 999,
-                paddingHorizontal: 12,
-                paddingVertical: 7,
-                backgroundColor: withAlpha(onAccent, 0.13),
-              }}
-            >
-              {isConfirmed
-                ? <ShieldCheck size={12} color={withAlpha(onAccent, 0.8)} strokeWidth={2.5} />
-                : <ShieldAlert size={12} color={withAlpha(onAccent, 0.8)} strokeWidth={2.5} />}
-              <Text
-                style={{
-                  marginLeft: 6,
-                  color: withAlpha(onAccent, 0.9),
-                  fontFamily: 'PlusJakartaSans-SemiBold',
-                  fontSize: 13,
-                }}
-              >
-                {isClosedRecruitment ? 'Đã ngưng nhận người' : isConfirmed ? 'Sân đã chốt' : 'Chờ xác nhận'}
-              </Text>
-            </View>
           </View>
 
           <Text
@@ -151,7 +131,7 @@ export function SessionMetaCard({
             </Text>
           ) : null}
 
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 14 }}>
+          <View style={{ marginTop: 14, gap: 8 }}>
             <View
               style={{
                 flexDirection: 'row',
@@ -161,6 +141,7 @@ export function SessionMetaCard({
                 paddingVertical: 7,
                 backgroundColor: withAlpha(onAccent, 0.13),
                 maxWidth: '100%',
+                alignSelf: 'flex-start',
               }}
             >
               <MapPin size={12} color={withAlpha(onAccent, 0.8)} strokeWidth={2.5} />
@@ -177,27 +158,58 @@ export function SessionMetaCard({
               </Text>
             </View>
 
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                borderRadius: 999,
-                paddingHorizontal: 12,
-                paddingVertical: 7,
-                backgroundColor: withAlpha(onAccent, 0.13),
-              }}
-            >
-              <LevelIcon size={12} color={withAlpha(onAccent, 0.8)} strokeWidth={2.5} />
-              <Text
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+              <View
                 style={{
-                  marginLeft: 6,
-                  color: withAlpha(onAccent, 0.9),
-                  fontFamily: 'PlusJakartaSans-SemiBold',
-                  fontSize: 14,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  borderRadius: 999,
+                  paddingHorizontal: 12,
+                  paddingVertical: 7,
+                  backgroundColor: withAlpha(onAccent, 0.13),
+                  alignSelf: 'flex-start',
                 }}
               >
-                {sessionSkillLabel}
-              </Text>
+                {isClosedRecruitment
+                  ? <ShieldAlert size={12} color={withAlpha(onAccent, 0.8)} strokeWidth={2.5} />
+                  : isConfirmed
+                    ? <ShieldCheck size={12} color={withAlpha(onAccent, 0.8)} strokeWidth={2.5} />
+                    : <ShieldAlert size={12} color={withAlpha(onAccent, 0.8)} strokeWidth={2.5} />}
+                <Text
+                  style={{
+                    marginLeft: 6,
+                    color: withAlpha(onAccent, 0.9),
+                    fontFamily: 'PlusJakartaSans-SemiBold',
+                    fontSize: 13,
+                  }}
+                >
+                  {bookingStatusLabel}
+                </Text>
+              </View>
+
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  borderRadius: 999,
+                  paddingHorizontal: 12,
+                  paddingVertical: 7,
+                  backgroundColor: withAlpha(onAccent, 0.13),
+                  alignSelf: 'flex-start',
+                }}
+              >
+                <LevelIcon size={12} color={withAlpha(onAccent, 0.8)} strokeWidth={2.5} />
+                <Text
+                  style={{
+                    marginLeft: 6,
+                    color: withAlpha(onAccent, 0.9),
+                    fontFamily: 'PlusJakartaSans-SemiBold',
+                    fontSize: 14,
+                  }}
+                >
+                  {sessionSkillLabel}
+                </Text>
+              </View>
             </View>
           </View>
         </View>

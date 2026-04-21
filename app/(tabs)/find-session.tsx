@@ -254,7 +254,7 @@ function SearchResultCard({ session, rescueMode }: { session: Session; rescueMod
             className="ml-1.5"
             style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13, lineHeight: 18 }}
           >
-            {isBooked ? 'Sân đã chốt' : 'Chờ xác nhận'}
+            {isBooked ? 'Đã đặt sân' : 'Chưa đặt sân'}
           </Text>
         </View>
 
@@ -928,3 +928,4 @@ export default function FindSession() {
     </SafeAreaView>
   )
 }
+

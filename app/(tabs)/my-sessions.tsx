@@ -362,7 +362,7 @@ function MySessionCard({
               lineHeight: 18,
             }}
           >
-            {isClosedRecruitment ? 'Đã ngưng nhận người' : isBooked ? 'Sân đã chốt' : 'Chờ xác nhận'}
+            {isClosedRecruitment ? 'Đã ngưng nhận người' : isBooked ? 'Đã đặt sân' : 'Chưa đặt sân'}
           </Text>
         </View>
       </View>
@@ -1043,3 +1043,4 @@ export default function MySessions() {
     </SafeAreaView>
   )
 }
+

@@ -1,7 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
 import type { LucideIcon } from 'lucide-react-native'
-import { CalendarDays, CheckCheck, DollarSign, MapPin, Star, Trophy } from 'lucide-react-native'
+import { AlertCircle, CalendarDays, DollarSign, MapPin, ShieldCheck, Star, Trophy } from 'lucide-react-native'
 import { Pressable, Text, View } from 'react-native'
 
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
@@ -25,6 +25,14 @@ function hexToRgb(hex: string) {
 function withAlpha(hex: string, alpha: number) {
   const { r, g, b } = hexToRgb(hex)
   return `rgba(${r}, ${g}, ${b}, ${alpha})`
+}
+
+function getBookingStatusVisual(statusLabel: string) {
+  const normalized = statusLabel.toLowerCase()
+  const isBooked = normalized.includes('đã đặt sân')
+  return {
+    Icon: isBooked ? ShieldCheck : AlertCircle,
+  }
 }
 
 function MiniBadgeLight({
@@ -109,6 +117,8 @@ function HeroMatchSessionCard({ item, actionLabel }: { item: MatchSession; actio
   const heroNameLength = item.courtName.length
   const heroTitleFontSize = heroNameLength > 52 ? 24 : heroNameLength > 40 ? 27 : heroNameLength > 30 ? 31 : 36
   const heroTitleLineHeight = heroTitleFontSize + 9
+  const bookingStatusVisual = getBookingStatusVisual(item.statusLabel)
+  const BookingStatusIcon = bookingStatusVisual.Icon
 
   return (
     <Pressable
@@ -200,7 +210,7 @@ function HeroMatchSessionCard({ item, actionLabel }: { item: MatchSession; actio
               borderColor: PROFILE_THEME_COLORS.outlineVariant,
             }}
           >
-            <CheckCheck size={14} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />
+            <BookingStatusIcon size={14} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />
             <Text
               className="ml-1.5"
               style={{
@@ -498,6 +508,8 @@ function SessionListCard({
   const accentColor = isRescueAccent ? PROFILE_THEME_COLORS.error : PROFILE_THEME_COLORS.primary
   const onAccentColor = isRescueAccent ? PROFILE_THEME_COLORS.onError : PROFILE_THEME_COLORS.onPrimary
   const accentSurfaceColor = isRescueAccent ? PROFILE_THEME_COLORS.onErrorContainer : PROFILE_THEME_COLORS.surfaceTint
+  const bookingStatusVisual = getBookingStatusVisual(item.statusLabel)
+  const BookingStatusIcon = bookingStatusVisual.Icon
 
   return (
     <Pressable
@@ -623,7 +635,7 @@ function SessionListCard({
 
       <View className="mt-3 flex-row items-center gap-2">
         {item.isRanked ? <MiniBadgeLight icon={Trophy} label="Kèo tính điểm" tone="neutral" size="lg" /> : null}
-        <MiniBadgeLight icon={CheckCheck} label={item.statusLabel} tone="neutral" size="lg" />
+        <MiniBadgeLight icon={BookingStatusIcon} label={item.statusLabel} tone="neutral" size="lg" />
         <View
           className="flex-row items-center rounded-full px-3 py-2"
           style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant }}

@@ -161,7 +161,7 @@ export function BookingDetailsCard({
               color: isConfirmed ? PROFILE_THEME_COLORS.surfaceTint : PROFILE_THEME_COLORS.outline,
             }}
           >
-            {isConfirmed ? 'Đã chốt sân' : 'Chờ xác nhận'}
+            {isConfirmed ? 'Đã đặt sân' : 'Chưa đặt sân'}
           </Text>
         </View>
       </View>
@@ -181,3 +181,4 @@ export function BookingDetailsCard({
     </View>
   )
 }
+

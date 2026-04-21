@@ -67,8 +67,8 @@ const sectionLabel = {
 } as const
 
 const BOOKING_OPTIONS: { value: 'confirmed' | 'unconfirmed'; label: string }[] = [
-  { value: 'confirmed', label: 'Sân đã chốt' },
-  { value: 'unconfirmed', label: 'Chờ xác nhận' },
+  { value: 'confirmed', label: 'Đã đặt sân' },
+  { value: 'unconfirmed', label: 'Chưa đặt sân' },
 ]
 
 function fmtDate(d: Date): string {
@@ -396,3 +396,4 @@ export function AdvancedSessionFilterModal({
     </Modal>
   )
 }
+
