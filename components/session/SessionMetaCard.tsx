@@ -15,6 +15,7 @@ type Props = {
   priceLabel: string
   isRanked?: boolean | null
   hostNote?: string | null
+  sessionStatus?: string | null
 }
 
 function withAlpha(hex: string, alpha: number) {
@@ -34,6 +35,7 @@ export function SessionMetaCard({
   priceLabel,
   isRanked,
   hostNote,
+  sessionStatus,
 }: Props) {
   const levelUi = getSkillLevelUi(skillLevelId as any)
   const LevelIcon = levelUi.icon
@@ -46,6 +48,7 @@ export function SessionMetaCard({
     .slice(0, 3)
     .join(',')
   const isConfirmed = courtBookingStatus === 'confirmed'
+  const isClosedRecruitment = sessionStatus === 'closed_recruitment'
   const isRankedMatch = isRanked ?? true
   const onAccent = PROFILE_THEME_COLORS.onPrimary
 
@@ -116,7 +119,7 @@ export function SessionMetaCard({
                   fontSize: 13,
                 }}
               >
-                {isConfirmed ? 'Sân đã chốt' : 'Chờ xác nhận'}
+                {isClosedRecruitment ? 'Đã ngưng nhận người' : isConfirmed ? 'Sân đã chốt' : 'Chờ xác nhận'}
               </Text>
             </View>
           </View>

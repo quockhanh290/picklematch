@@ -30,6 +30,7 @@ export type SessionDetailRecord = {
   elo_min: number
   elo_max: number
   status: string
+  fill_deadline?: string | null
   results_status?: string | null
   results_submitted_at?: string | null
   results_confirmation_deadline?: string | null

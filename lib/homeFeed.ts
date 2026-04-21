@@ -23,7 +23,7 @@ export type HomeSessionRecord = {
   elo_min: number
   elo_max: number
   max_players: number
-  status: 'open' | 'done' | 'cancelled' | 'pending_completion'
+  status: 'open' | 'closed_recruitment' | 'done' | 'cancelled' | 'pending_completion'
   court_booking_status: 'confirmed' | 'unconfirmed'
   created_at?: string | null
   host: {
@@ -102,7 +102,7 @@ export type MySessionOverviewRow = {
 
 export type PendingMatchRaw = {
   id: string
-  status: 'pending_completion' | 'done' | 'open' | 'cancelled'
+  status: 'pending_completion' | 'done' | 'open' | 'closed_recruitment' | 'cancelled'
   results_status?: 'not_submitted' | 'pending_confirmation' | 'disputed' | 'finalized' | 'void' | null
   slot: HomeSessionRelation<{
     start_time: string
@@ -247,7 +247,11 @@ export function getInitials(name: string) {
     .join('')
 }
 
-export function getStatusLabel(bookingStatus: HomeSessionRecord['court_booking_status']) {
+export function getStatusLabel(
+  bookingStatus: HomeSessionRecord['court_booking_status'],
+  sessionStatus: HomeSessionRecord['status'],
+) {
+  if (sessionStatus === 'closed_recruitment') return 'Đã ngưng nhận người'
   return bookingStatus === 'confirmed' ? 'Sân đã chốt' : 'Chưa chốt sân'
 }
 
@@ -353,7 +357,7 @@ export function mapLiveSessionToMatchSession(
     timeLabel: formatTimeLabel(session.slot?.start_time ?? new Date().toISOString(), session.slot?.end_time ?? new Date().toISOString()),
     priceLabel: formatPriceLabel(session.slot?.price ?? 0, session.max_players),
     openSlotsLabel: urgent ? `Thiếu ${Math.max(slotsLeft, 1)} người` : `${slotsLeft} chỗ trống`,
-    statusLabel: getStatusLabel(session.court_booking_status),
+    statusLabel: getStatusLabel(session.court_booking_status, session.status),
     countdownLabel: isWithinNext24Hours(session.slot?.start_time ?? '') ? formatCountdownLabelFromStartTime(session.slot?.start_time ?? '') : undefined,
     isRanked: session.is_ranked ?? true,
     activePlayers,

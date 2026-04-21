@@ -1,8 +1,6 @@
 import { AppButton, ScreenHeader } from '@/components/design'
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
-import { ChevronLeft, Info, UserRound, Users } from 'lucide-react-native'
+import { Info, UserRound, Users } from 'lucide-react-native'
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { CREATE_SESSION_SKILL_OPTIONS } from './skillLevelOptions'
 
@@ -28,8 +26,8 @@ type Props = {
   setBookingNotes: (value: string) => void
   canOpenBookingLink: boolean
   onOpenBookingLink: () => void
-  deadlineHours: number
-  setDeadlineHours: (hours: number) => void
+  deadlineMinutes: number
+  setDeadlineMinutes: (minutes: number) => void
   requireApproval: boolean
   setRequireApproval: (value: boolean) => void
   isRanked: boolean
@@ -145,8 +143,8 @@ export function CreateSessionStep2({
   setBookingNotes,
   canOpenBookingLink,
   onOpenBookingLink,
-  deadlineHours,
-  setDeadlineHours,
+  deadlineMinutes,
+  setDeadlineMinutes,
   requireApproval,
   setRequireApproval,
   isRanked,
@@ -166,7 +164,7 @@ export function CreateSessionStep2({
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 110 }}
+        contentContainerStyle={{ paddingBottom: 28 }}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
         style={{ flex: 1 }}
@@ -388,11 +386,19 @@ export function CreateSessionStep2({
           <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 12, letterSpacing: 1.2, color: '#154D3E', marginBottom: 10 }}>
             HẠN CHỐT VÀO KÈO
           </Text>
+          <Text style={{ fontFamily: 'PlusJakartaSans-Regular', fontSize: 12, color: '#678C82', marginBottom: 8 }}>
+            Chọn mốc trước giờ bắt đầu
+          </Text>
           <View style={{ flexDirection: 'row', gap: 8 }}>
-            {[2, 4, 8, 12].map((hours) => {
-              const active = deadlineHours === hours
+            {[
+              { value: 30, label: '30 \u0070\u0068\u00fa\u0074' },
+              { value: 45, label: '45 \u0070\u0068\u00fa\u0074' },
+              { value: 60, label: '1 \u0067\u0069\u1edd' },
+              { value: 120, label: '2 \u0067\u0069\u1edd' },
+            ].map((option) => {
+              const active = deadlineMinutes === option.value
               return (
-                <Pressable key={hours} onPress={() => setDeadlineHours(hours)} style={({ pressed }) => ({ flex: 1, opacity: pressed ? 0.82 : 1 })}>
+                <Pressable key={option.value} onPress={() => setDeadlineMinutes(option.value)} style={({ pressed }) => ({ flex: 1, opacity: pressed ? 0.82 : 1 })}>
                   <View
                     style={{
                       borderRadius: 12,
@@ -404,7 +410,7 @@ export function CreateSessionStep2({
                     }}
                   >
                     <Text style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 12, color: active ? '#FFFFFF' : '#1B5A49' }}>
-                      {hours}h
+                      {option.label}
                     </Text>
                   </View>
                 </Pressable>
@@ -567,45 +573,24 @@ export function CreateSessionStep2({
             </View>
           ) : null}
         </View>
-      </ScrollView>
 
-      <SafeAreaView
-        edges={['bottom']}
-        style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          borderTopWidth: 1,
-          borderTopColor: PROFILE_THEME_COLORS.outlineVariant,
-          backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
-          paddingHorizontal: 20,
-          paddingTop: 12,
-          paddingBottom: 12,
-        }}
-      >
-        <View style={{ flexDirection: 'row', gap: 10 }}>
-          <Pressable
-            onPress={onBack}
-            style={({ pressed }) => ({
-              height: 48,
-              width: 48,
-              borderRadius: 14,
-              borderWidth: 1,
-              borderColor: '#DCE6E1',
-              backgroundColor: '#F2F5F3',
-              alignItems: 'center',
-              justifyContent: 'center',
-              opacity: pressed ? 0.7 : 1,
-            })}
-          >
-            <ChevronLeft size={22} color="#0A4A38" />
-          </Pressable>
+        <View style={{ flexDirection: 'row', gap: 10, marginBottom: 8 }}>
           <View style={{ flex: 1 }}>
-            <AppButton label={'\u0054\u0069\u1ebf\u0070\u0020\u0074\u1ee5\u0063'} onPress={onContinue} />
+            <AppButton
+              label={'\u0051\u0075\u0061\u0079\u0020\u006c\u1ea1\u0069'}
+              onPress={onBack}
+              variant="secondary"
+            />
+          </View>
+          <View style={{ flex: 1 }}>
+            <AppButton
+              label={'\u0054\u0069\u1ebf\u0070\u0020\u0074\u1ee5\u0063'}
+              onPress={onContinue}
+              variant="primary"
+            />
           </View>
         </View>
-      </SafeAreaView>
+      </ScrollView>
     </KeyboardAvoidingView>
   )
 }

@@ -81,7 +81,7 @@ export default function CreateSession() {
   const [maxPlayers, setMaxPlayers] = useState(4)
   const [eloMin, setEloMin] = useState(CREATE_SESSION_ELO_LEVELS[0].elo)
   const [eloMax, setEloMax] = useState(CREATE_SESSION_ELO_LEVELS[4].elo)
-  const [deadlineHours, setDeadlineHours] = useState(4)
+  const [deadlineMinutes, setDeadlineMinutes] = useState(60)
   const [requireApproval, setRequireApproval] = useState(false)
   const [isRanked, setIsRanked] = useState(true)
   const [canToggleRanked, setCanToggleRanked] = useState(false)
@@ -271,7 +271,15 @@ export default function CreateSession() {
     setSubmitting(true)
 
     const sendBookingDetails = bookingStatus === 'confirmed' || wantsBookingNow === true
-    const fillDeadline = new Date(Date.now() + deadlineHours * 3_600_000)
+    const fillDeadline = new Date(startTime.getTime() - deadlineMinutes * 60_000)
+    if (fillDeadline.getTime() <= Date.now()) {
+      setSubmitting(false)
+      Alert.alert(
+        'Hạn chót chưa hợp lệ',
+        'Hạn chót vào kèo phải nằm trong tương lai. Hãy chọn giờ chơi muộn hơn hoặc giảm mốc hạn chót.',
+      )
+      return
+    }
     const { data: newSessionId, error: createError } = await supabase.rpc('create_session_with_host', {
       p_court_id: selectedCourt.id,
       p_start_time: startTime.toISOString(),
@@ -383,8 +391,8 @@ export default function CreateSession() {
           setBookingNotes={setBookingNotes}
           canOpenBookingLink={Boolean(selectedCourt?.booking_url ?? selectedCourt?.google_maps_url)}
           onOpenBookingLink={openCourtBookingLink}
-          deadlineHours={deadlineHours}
-          setDeadlineHours={setDeadlineHours}
+          deadlineMinutes={deadlineMinutes}
+          setDeadlineMinutes={setDeadlineMinutes}
           requireApproval={requireApproval}
           setRequireApproval={setRequireApproval}
           isRanked={isRanked}
@@ -420,7 +428,7 @@ export default function CreateSession() {
         minSkill={minSkill}
         maxSkill={maxSkill}
         bookingStatus={bookingStatus}
-        deadlineHours={deadlineHours}
+        deadlineMinutes={deadlineMinutes}
         requireApproval={requireApproval}
         pricePerPerson={costPerPerson}
         onCreate={submit}

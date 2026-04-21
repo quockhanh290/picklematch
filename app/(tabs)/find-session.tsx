@@ -427,6 +427,7 @@ export default function FindSession() {
 
   const fetchSessions = useCallback(async () => {
     setLoading(true)
+    await supabase.rpc('process_fill_deadline_session_closures')
     const { data, error } = await supabase
       .from('sessions')
       .select(

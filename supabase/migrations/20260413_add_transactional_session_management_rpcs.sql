@@ -112,6 +112,7 @@ declare
   v_match_id uuid;
   v_player_id uuid;
   v_max_players integer;
+  v_fill_deadline timestamptz;
   v_confirmed_count integer;
 begin
   v_uid := auth.uid();
@@ -123,20 +124,27 @@ begin
   select
     jr.match_id,
     jr.player_id,
-    s.max_players
+    s.max_players,
+    s.fill_deadline
   into
     v_match_id,
     v_player_id,
-    v_max_players
+    v_max_players,
+    v_fill_deadline
   from public.join_requests jr
   join public.sessions s on s.id = jr.match_id
   where jr.id = p_request_id
     and jr.status = 'pending'
+    and s.status = 'open'
     and s.host_id = v_uid
   for update of jr, s;
 
   if v_match_id is null then
     raise exception 'Join request not found or not allowed';
+  end if;
+
+  if v_fill_deadline is not null and v_fill_deadline <= now() then
+    raise exception 'Session has stopped accepting new players';
   end if;
 
   if exists (

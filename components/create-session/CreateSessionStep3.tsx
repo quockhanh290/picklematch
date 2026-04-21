@@ -17,7 +17,7 @@ type Props = {
   minSkill: number
   maxSkill: number
   bookingStatus: 'confirmed' | 'unconfirmed'
-  deadlineHours: number
+  deadlineMinutes: number
   requireApproval: boolean
   pricePerPerson: number
   onCreate: () => void
@@ -54,7 +54,7 @@ function SummaryRow({ label, value, valueColor }: { label: string; value: string
 
 export function CreateSessionStep3({
   selectedCourt, selectedDate, startTime, endTime,
-  maxPlayers, minSkill, maxSkill, bookingStatus, deadlineHours,
+  maxPlayers, minSkill, maxSkill, bookingStatus, deadlineMinutes,
   requireApproval, pricePerPerson, onCreate, submitting = false,
 }: Props) {
   const minSkillOption = getCreateSessionSkillOption(minSkill)
@@ -111,7 +111,7 @@ export function CreateSessionStep3({
           <View style={{ height: 1, backgroundColor: PROFILE_THEME_COLORS.outlineVariant }} />
           <SummaryRow
             label="Hạn chốt"
-            value={`${deadlineHours} giờ`}
+            value={deadlineMinutes < 60 ? `${deadlineMinutes} phút trước giờ bắt đầu` : `${deadlineMinutes / 60} giờ trước giờ bắt đầu`}
             valueColor={PROFILE_THEME_COLORS.surfaceTint}
           />
         </View>

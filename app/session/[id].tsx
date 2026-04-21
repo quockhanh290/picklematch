@@ -300,6 +300,7 @@ export default function SessionDetailScreen() {
         <SessionMetaCard
           skillLevelId={sessionSkillBand.levelId}
           sessionSkillLabel={sessionSkillLabel}
+          sessionStatus={session.status}
           courtBookingStatus={session.court_booking_status}
           courtName={session.slot.court.name}
           courtAddress={session.slot.court.address}

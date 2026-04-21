@@ -48,7 +48,15 @@ export function useSessionJoinActions({
   )
 
   const hostRequiresApproval = Boolean(session?.require_approval || session?.host.auto_accept === false)
-  const canShowJoinActions = !isHost && !hasJoined && session?.status === 'open'
+  const isJoinWindowOpen = useMemo(() => {
+    if (session?.status !== 'open') return false
+    if (!session?.fill_deadline) return true
+    const deadlineMs = Date.parse(session.fill_deadline)
+    if (Number.isNaN(deadlineMs)) return true
+    return deadlineMs > Date.now()
+  }, [session?.fill_deadline, session?.status])
+
+  const canShowJoinActions = !isHost && !hasJoined && isJoinWindowOpen
 
   const directJoinSession = useCallback(async () => {
     if (!userId) {
@@ -60,6 +68,10 @@ export function useSessionJoinActions({
     }
 
     if (!session) return
+    if (!isJoinWindowOpen) {
+      Alert.alert('Kèo đã ngưng nhận người', 'Kèo này đã qua hạn chốt nhận người chơi mới.')
+      return
+    }
 
     setJoining(true)
     const { error } = await supabase.from('session_players').insert({
@@ -87,7 +99,7 @@ export function useSessionJoinActions({
     onJoinModalClose()
     Alert.alert('Tham gia thành công', 'Bạn đã vào kèo này rồi nhé.')
     await refreshSession()
-  }, [onJoinModalClose, refreshSession, session, setRequestStatus, userId])
+  }, [isJoinWindowOpen, onJoinModalClose, refreshSession, session, setRequestStatus, userId])
 
   const sendJoinRequest = useCallback(async () => {
     if (!userId) {
@@ -99,6 +111,10 @@ export function useSessionJoinActions({
     }
 
     if (!session) return
+    if (!isJoinWindowOpen) {
+      Alert.alert('Kèo đã ngưng nhận người', 'Kèo này đã qua hạn chốt nhận người chơi mới.')
+      return
+    }
 
     setRequesting(true)
     const { error } = await supabase.from('join_requests').upsert(
@@ -127,7 +143,7 @@ export function useSessionJoinActions({
         : 'Chờ host duyệt nhé.'
     )
     await refreshSession()
-  }, [introNote, matchStatus, onJoinModalClose, refreshSession, session, setHostResponseTemplate, setRequestStatus, userId])
+  }, [introNote, isJoinWindowOpen, matchStatus, onJoinModalClose, refreshSession, session, setHostResponseTemplate, setRequestStatus, userId])
 
   const leaveSession = useCallback(async () => {
     if (!session || !userId) return

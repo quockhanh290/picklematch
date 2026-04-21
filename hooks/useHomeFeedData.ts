@@ -38,6 +38,12 @@ export function useHomeFeedData(userId?: string | null, isAuthLoading?: boolean)
     setLoading(true)
 
     try {
+      await Promise.all([
+        supabase.rpc('process_fill_deadline_session_closures'),
+        supabase.rpc('process_pending_session_completions'),
+        supabase.rpc('process_overdue_session_closures'),
+      ])
+
       const openSessionsPromise = supabase
         .from('sessions')
         .select(

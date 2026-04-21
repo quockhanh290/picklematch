@@ -219,6 +219,7 @@ function MySessionCard({
   const SkillIcon = skillUi.icon
   const isHost = item.role === 'host'
   const isBooked = item.court_booking_status === 'confirmed'
+  const isClosedRecruitment = item.status === 'closed_recruitment'
   const progress = item.max_players > 0 ? Math.min(item.player_count / item.max_players, 1) : 0
   const progressPercent = Math.max(progress * 100, 0)
   const visiblePlayerCount = Math.min(item.player_count, 4)
@@ -349,9 +350,9 @@ function MySessionCard({
         </View>
 
         <View className="flex-row items-center rounded-full px-3 py-1.5" style={BADGE}>
-          {isBooked
-            ? <ShieldCheck size={13} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />
-            : <AlertCircle size={13} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />}
+          {isClosedRecruitment || !isBooked
+            ? <AlertCircle size={13} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />
+            : <ShieldCheck size={13} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />}
           <Text
             className="ml-1.5"
             style={{
@@ -361,7 +362,7 @@ function MySessionCard({
               lineHeight: 18,
             }}
           >
-            {isBooked ? 'Sân đã chốt' : 'Chờ xác nhận'}
+            {isClosedRecruitment ? 'Đã ngưng nhận người' : isBooked ? 'Sân đã chốt' : 'Chờ xác nhận'}
           </Text>
         </View>
       </View>
@@ -731,6 +732,7 @@ export default function MySessions() {
 
         if (runMaintenance) {
           await Promise.all([
+            supabase.rpc('process_fill_deadline_session_closures'),
             supabase.rpc('process_pending_session_completions'),
             supabase.rpc('process_overdue_session_closures'),
           ])
