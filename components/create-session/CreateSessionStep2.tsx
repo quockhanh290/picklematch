@@ -158,7 +158,10 @@ export function CreateSessionStep2({
 }: Props) {
   const minSkillOption = CREATE_SESSION_SKILL_OPTIONS.find((o) => o.id === minSkill)
   const maxSkillOption = CREATE_SESSION_SKILL_OPTIONS.find((o) => o.id === maxSkill)
-  const shouldShowBookingDetails = bookingStatus === 'confirmed' || wantsBookingNow === true
+  const showBookingLinkCta = bookingStatus === 'unconfirmed' && wantsBookingNow === true && canOpenBookingLink
+  const shouldShowBookingDetails =
+    bookingStatus === 'confirmed' ||
+    (bookingStatus === 'unconfirmed' && wantsBookingNow === true && !canOpenBookingLink)
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}>
@@ -474,7 +477,7 @@ export function CreateSessionStep2({
               <Text style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 12, color: '#678C82', marginBottom: 8 }}>
                 Bạn có muốn đặt ngay bây giờ không?
               </Text>
-              <View style={{ flexDirection: 'row', gap: 10 }}>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                 {[
                   { value: true, label: 'Có' },
                   { value: false, label: 'Không' },
@@ -484,14 +487,15 @@ export function CreateSessionStep2({
                     <Pressable
                       key={item.label}
                       onPress={() => setWantsBookingNow(item.value)}
-                      style={({ pressed }) => ({ flex: 1, opacity: pressed ? 0.82 : 1 })}
+                      style={({ pressed }) => ({ opacity: pressed ? 0.82 : 1 })}
                     >
                       <View
                         style={{
-                          borderRadius: 12,
+                          borderRadius: 999,
                           borderWidth: 1,
                           borderColor: active ? '#0A5A45' : '#DCE6E1',
                           backgroundColor: active ? '#0A5A45' : '#FFFFFF',
+                          paddingHorizontal: 14,
                           paddingVertical: 9,
                           alignItems: 'center',
                         }}
@@ -507,7 +511,7 @@ export function CreateSessionStep2({
             </View>
           ) : null}
 
-          {bookingStatus === 'unconfirmed' && wantsBookingNow === true && canOpenBookingLink ? (
+          {showBookingLinkCta ? (
             <Pressable onPress={onOpenBookingLink} style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1, marginBottom: 12 })}>
               <View
                 style={{
