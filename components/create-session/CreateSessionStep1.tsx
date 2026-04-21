@@ -411,7 +411,17 @@ export function CreateSessionStep1({
           <>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
               <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 15, color: PROFILE_THEME_COLORS.onSurface }}>Sân đã chọn</Text>
-              <Pressable onPress={() => setIsChoosingCourt((v) => !v)} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
+              <Pressable
+                onPress={() => {
+                  if (showCourtPicker) {
+                    setIsChoosingCourt(false)
+                    return
+                  }
+                  onChangeCourt()
+                  setIsChoosingCourt(true)
+                }}
+                style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+              >
                 <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13, color: PROFILE_THEME_COLORS.primary }}>
                   {showCourtPicker ? 'Đóng chọn sân' : 'Đổi sân'}
                 </Text>

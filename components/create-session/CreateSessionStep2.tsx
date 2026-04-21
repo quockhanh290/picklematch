@@ -1,7 +1,7 @@
 import { AppButton, ScreenHeader } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { ChevronLeft, Info, UserRound, Users } from 'lucide-react-native'
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Switch, Text, View } from 'react-native'
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { CREATE_SESSION_SKILL_OPTIONS } from './skillLevelOptions'
@@ -40,6 +40,16 @@ type Props = {
   setTotalCostStr: (value: string) => void
   costPerPerson: number
   onContinue: () => void
+}
+
+function formatCurrencyInput(nextValue: string) {
+  const digits = nextValue.replace(/\D/g, '')
+  if (!digits) return ''
+  return Number(digits).toLocaleString('vi-VN')
+}
+
+function formatCurrencyLabel(value: number) {
+  return `${value.toLocaleString('vi-VN')} đ`
 }
 
 
@@ -121,16 +131,36 @@ export function CreateSessionStep2({
   setMinSkill,
   maxSkill,
   setMaxSkill,
+  bookingStatus,
+  setBookingStatus,
+  wantsBookingNow,
+  setWantsBookingNow,
+  bookingReference,
+  setBookingReference,
+  bookingName,
+  setBookingName,
+  bookingPhone,
+  setBookingPhone,
+  bookingNotes,
+  setBookingNotes,
+  canOpenBookingLink,
+  onOpenBookingLink,
+  deadlineHours,
+  setDeadlineHours,
   requireApproval,
   setRequireApproval,
   isRanked,
   setIsRanked,
   canToggleRanked,
   rankedHelperText,
+  totalCostStr,
+  setTotalCostStr,
+  costPerPerson,
   onContinue,
 }: Props) {
   const minSkillOption = CREATE_SESSION_SKILL_OPTIONS.find((o) => o.id === minSkill)
   const maxSkillOption = CREATE_SESSION_SKILL_OPTIONS.find((o) => o.id === maxSkill)
+  const shouldShowBookingDetails = bookingStatus === 'confirmed' || wantsBookingNow === true
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}>
@@ -290,6 +320,253 @@ export function CreateSessionStep2({
             </Text>
           </View>
         </View>
+
+        <View
+          style={{
+            borderRadius: 22,
+            borderWidth: 1,
+            borderColor: '#E5ECE8',
+            backgroundColor: '#F2F5F3',
+            padding: 18,
+            marginBottom: 16,
+          }}
+        >
+          <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 12, letterSpacing: 1.2, color: '#154D3E', marginBottom: 10 }}>
+            CHI PHÍ TRẬN ĐẤU
+          </Text>
+
+          <Text style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 12, color: '#678C82', marginBottom: 6 }}>
+            Tổng chi phí sân
+          </Text>
+          <View
+            style={{
+              borderRadius: 14,
+              borderWidth: 1,
+              borderColor: '#DCE6E1',
+              backgroundColor: '#FFFFFF',
+              paddingHorizontal: 14,
+              paddingVertical: 10,
+              marginBottom: 10,
+            }}
+          >
+            <TextInput
+              value={totalCostStr}
+              onChangeText={(value) => setTotalCostStr(formatCurrencyInput(value))}
+              placeholder="Nhập tổng chi phí (ví dụ: 240000)"
+              placeholderTextColor="#92AAA2"
+              keyboardType="number-pad"
+              style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 16, color: '#0A4A38', padding: 0 }}
+            />
+          </View>
+
+          <View
+            style={{
+              borderRadius: 14,
+              borderWidth: 1,
+              borderColor: '#DCE6E1',
+              backgroundColor: '#EAF0ED',
+              paddingHorizontal: 12,
+              paddingVertical: 10,
+            }}
+          >
+            <Text style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 12, color: '#4A6860' }}>
+              Chi phí / người: {costPerPerson > 0 ? formatCurrencyLabel(costPerPerson) : 'Chưa có'}
+            </Text>
+          </View>
+        </View>
+
+        <View
+          style={{
+            borderRadius: 22,
+            borderWidth: 1,
+            borderColor: '#E5ECE8',
+            backgroundColor: '#F2F5F3',
+            padding: 18,
+            marginBottom: 16,
+          }}
+        >
+          <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 12, letterSpacing: 1.2, color: '#154D3E', marginBottom: 10 }}>
+            HẠN CHỐT VÀO KÈO
+          </Text>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            {[2, 4, 8, 12].map((hours) => {
+              const active = deadlineHours === hours
+              return (
+                <Pressable key={hours} onPress={() => setDeadlineHours(hours)} style={({ pressed }) => ({ flex: 1, opacity: pressed ? 0.82 : 1 })}>
+                  <View
+                    style={{
+                      borderRadius: 12,
+                      borderWidth: 1,
+                      borderColor: active ? '#064E3B' : '#DCE6E1',
+                      backgroundColor: active ? '#064E3B' : '#FFFFFF',
+                      paddingVertical: 10,
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Text style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 12, color: active ? '#FFFFFF' : '#1B5A49' }}>
+                      {hours}h
+                    </Text>
+                  </View>
+                </Pressable>
+              )
+            })}
+          </View>
+        </View>
+
+        <View
+          style={{
+            borderRadius: 22,
+            borderWidth: 1,
+            borderColor: '#E5ECE8',
+            backgroundColor: '#F2F5F3',
+            padding: 18,
+            marginBottom: 14,
+          }}
+        >
+          <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 12, letterSpacing: 1.2, color: '#154D3E', marginBottom: 10 }}>
+            TÌNH TRẠNG SÂN
+          </Text>
+
+          <Text style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 12, color: '#678C82', marginBottom: 8 }}>
+            Trạng thái đặt sân
+          </Text>
+          <View style={{ flexDirection: 'row', gap: 10, marginBottom: 12 }}>
+            {[
+              { value: 'confirmed' as const, label: 'Đã đặt sân' },
+              { value: 'unconfirmed' as const, label: 'Chưa đặt sân' },
+            ].map((item) => {
+              const active = bookingStatus === item.value
+              return (
+                <Pressable
+                  key={item.value}
+                  onPress={() => setBookingStatus(item.value)}
+                  style={({ pressed }) => ({ flex: 1, opacity: pressed ? 0.82 : 1 })}
+                >
+                  <View
+                    style={{
+                      borderRadius: 14,
+                      borderWidth: 1,
+                      borderColor: active ? '#064E3B' : '#DCE6E1',
+                      backgroundColor: active ? '#064E3B' : '#FFFFFF',
+                      paddingVertical: 11,
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Text style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 13, color: active ? '#FFFFFF' : '#1B5A49' }}>
+                      {item.label}
+                    </Text>
+                  </View>
+                </Pressable>
+              )
+            })}
+          </View>
+
+          {bookingStatus === 'unconfirmed' ? (
+            <View style={{ marginBottom: 12 }}>
+              <Text style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 12, color: '#678C82', marginBottom: 8 }}>
+                Bạn có muốn đặt ngay bây giờ không?
+              </Text>
+              <View style={{ flexDirection: 'row', gap: 10 }}>
+                {[
+                  { value: true, label: 'Có' },
+                  { value: false, label: 'Không' },
+                ].map((item) => {
+                  const active = wantsBookingNow === item.value
+                  return (
+                    <Pressable
+                      key={item.label}
+                      onPress={() => setWantsBookingNow(item.value)}
+                      style={({ pressed }) => ({ flex: 1, opacity: pressed ? 0.82 : 1 })}
+                    >
+                      <View
+                        style={{
+                          borderRadius: 12,
+                          borderWidth: 1,
+                          borderColor: active ? '#0A5A45' : '#DCE6E1',
+                          backgroundColor: active ? '#0A5A45' : '#FFFFFF',
+                          paddingVertical: 9,
+                          alignItems: 'center',
+                        }}
+                      >
+                        <Text style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 13, color: active ? '#FFFFFF' : '#1B5A49' }}>
+                          {item.label}
+                        </Text>
+                      </View>
+                    </Pressable>
+                  )
+                })}
+              </View>
+            </View>
+          ) : null}
+
+          {bookingStatus === 'unconfirmed' && wantsBookingNow === true && canOpenBookingLink ? (
+            <Pressable onPress={onOpenBookingLink} style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1, marginBottom: 12 })}>
+              <View
+                style={{
+                  borderRadius: 12,
+                  borderWidth: 1,
+                  borderColor: '#C7DCD4',
+                  backgroundColor: '#EAF5F1',
+                  paddingVertical: 10,
+                  alignItems: 'center',
+                }}
+              >
+                <Text style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 13, color: '#0A5A45' }}>Mở link đặt sân</Text>
+              </View>
+            </Pressable>
+          ) : null}
+
+          {shouldShowBookingDetails ? (
+            <View style={{ gap: 10 }}>
+              <Text style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 12, color: '#678C82' }}>
+                Thông tin booking
+              </Text>
+
+              <View style={{ borderRadius: 12, borderWidth: 1, borderColor: '#DCE6E1', backgroundColor: '#FFFFFF', paddingHorizontal: 12, paddingVertical: 9 }}>
+                <TextInput
+                  value={bookingReference}
+                  onChangeText={setBookingReference}
+                  placeholder="Mã đặt sân"
+                  placeholderTextColor="#92AAA2"
+                  style={{ fontFamily: 'PlusJakartaSans-Regular', fontSize: 14, color: '#0A4A38', padding: 0 }}
+                />
+              </View>
+
+              <View style={{ borderRadius: 12, borderWidth: 1, borderColor: '#DCE6E1', backgroundColor: '#FFFFFF', paddingHorizontal: 12, paddingVertical: 9 }}>
+                <TextInput
+                  value={bookingName}
+                  onChangeText={setBookingName}
+                  placeholder="Tên người đặt sân"
+                  placeholderTextColor="#92AAA2"
+                  style={{ fontFamily: 'PlusJakartaSans-Regular', fontSize: 14, color: '#0A4A38', padding: 0 }}
+                />
+              </View>
+
+              <View style={{ borderRadius: 12, borderWidth: 1, borderColor: '#DCE6E1', backgroundColor: '#FFFFFF', paddingHorizontal: 12, paddingVertical: 9 }}>
+                <TextInput
+                  value={bookingPhone}
+                  onChangeText={setBookingPhone}
+                  placeholder="Số điện thoại"
+                  placeholderTextColor="#92AAA2"
+                  keyboardType="phone-pad"
+                  style={{ fontFamily: 'PlusJakartaSans-Regular', fontSize: 14, color: '#0A4A38', padding: 0 }}
+                />
+              </View>
+
+              <View style={{ borderRadius: 12, borderWidth: 1, borderColor: '#DCE6E1', backgroundColor: '#FFFFFF', paddingHorizontal: 12, paddingVertical: 10 }}>
+                <TextInput
+                  value={bookingNotes}
+                  onChangeText={setBookingNotes}
+                  placeholder="Ghi chú booking (tuỳ chọn)"
+                  placeholderTextColor="#92AAA2"
+                  multiline
+                  textAlignVertical="top"
+                  style={{ minHeight: 68, fontFamily: 'PlusJakartaSans-Regular', fontSize: 14, color: '#0A4A38', padding: 0 }}
+                />
+              </View>
+            </View>
+          ) : null}
+        </View>
       </ScrollView>
 
       <SafeAreaView
@@ -332,4 +609,3 @@ export function CreateSessionStep2({
     </KeyboardAvoidingView>
   )
 }
-
