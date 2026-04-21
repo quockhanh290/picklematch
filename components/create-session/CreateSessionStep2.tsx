@@ -389,7 +389,7 @@ export function CreateSessionStep2({
           <Text style={{ fontFamily: 'PlusJakartaSans-Regular', fontSize: 12, color: '#678C82', marginBottom: 8 }}>
             Chọn mốc trước giờ bắt đầu
           </Text>
-          <View style={{ flexDirection: 'row', gap: 8 }}>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
             {[
               { value: 30, label: '30 \u0070\u0068\u00fa\u0074' },
               { value: 45, label: '45 \u0070\u0068\u00fa\u0074' },
@@ -398,13 +398,14 @@ export function CreateSessionStep2({
             ].map((option) => {
               const active = deadlineMinutes === option.value
               return (
-                <Pressable key={option.value} onPress={() => setDeadlineMinutes(option.value)} style={({ pressed }) => ({ flex: 1, opacity: pressed ? 0.82 : 1 })}>
+                <Pressable key={option.value} onPress={() => setDeadlineMinutes(option.value)} style={({ pressed }) => ({ opacity: pressed ? 0.82 : 1 })}>
                   <View
                     style={{
-                      borderRadius: 12,
+                      borderRadius: 999,
                       borderWidth: 1,
                       borderColor: active ? '#064E3B' : '#DCE6E1',
                       backgroundColor: active ? '#064E3B' : '#FFFFFF',
+                      paddingHorizontal: 14,
                       paddingVertical: 10,
                       alignItems: 'center',
                     }}
@@ -436,7 +437,7 @@ export function CreateSessionStep2({
           <Text style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 12, color: '#678C82', marginBottom: 8 }}>
             Trạng thái đặt sân
           </Text>
-          <View style={{ flexDirection: 'row', gap: 10, marginBottom: 12 }}>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
             {[
               { value: 'confirmed' as const, label: 'Đã đặt sân' },
               { value: 'unconfirmed' as const, label: 'Chưa đặt sân' },
@@ -446,14 +447,15 @@ export function CreateSessionStep2({
                 <Pressable
                   key={item.value}
                   onPress={() => setBookingStatus(item.value)}
-                  style={({ pressed }) => ({ flex: 1, opacity: pressed ? 0.82 : 1 })}
+                  style={({ pressed }) => ({ opacity: pressed ? 0.82 : 1 })}
                 >
                   <View
                     style={{
-                      borderRadius: 14,
+                      borderRadius: 999,
                       borderWidth: 1,
                       borderColor: active ? '#064E3B' : '#DCE6E1',
                       backgroundColor: active ? '#064E3B' : '#FFFFFF',
+                      paddingHorizontal: 14,
                       paddingVertical: 11,
                       alignItems: 'center',
                     }}
