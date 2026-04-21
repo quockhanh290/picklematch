@@ -361,12 +361,8 @@ export default function CreateSession() {
   if (step === 2) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: PROFILE_THEME_COLORS.background, paddingHorizontal: 20 }} edges={['top']}>
-        <BackLink label="Đổi sân / giờ" onPress={() => setStep(1)} />
-        <WizardHeader
-          title="Cấu hình kèo"
-          subtitle="Bước 2/3 · Chọn số người, dải trình độ, booking và các thiết lập trước khi lên feed."
-        />
         <CreateSessionStep2
+          onBack={() => setStep(1)}
           maxPlayers={maxPlayers}
           setMaxPlayers={setMaxPlayers}
           minSkill={minSkill}
@@ -433,3 +429,4 @@ export default function CreateSession() {
     </SafeAreaView>
   )
 }
+
