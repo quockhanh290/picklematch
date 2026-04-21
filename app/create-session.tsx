@@ -7,9 +7,8 @@ import { supabase } from '@/lib/supabase'
 import { type NearByCourt, useNearbyCourts } from '@/lib/useNearbyCourts'
 import * as Linking from 'expo-linking'
 import { useRouter } from 'expo-router'
-import { ArrowLeft } from 'lucide-react-native'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Alert, Pressable, Text, View } from 'react-native'
+import { Alert } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 function fmtDuration(start: Date, end: Date): string {
@@ -34,34 +33,6 @@ function withTime(base: Date, time: Date): Date {
   const next = new Date(base)
   next.setHours(time.getHours(), time.getMinutes(), 0, 0)
   return next
-}
-
-function WizardHeader({ title, subtitle }: { title: string; subtitle: string }) {
-  return (
-    <View style={{ marginBottom: 20 }}>
-      <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', color: PROFILE_THEME_COLORS.outline, marginBottom: 6 }}>
-        Tạo kèo
-      </Text>
-      <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 28, color: PROFILE_THEME_COLORS.onBackground, marginBottom: 6, lineHeight: 34 }}>
-        {title}
-      </Text>
-      <Text style={{ fontFamily: 'PlusJakartaSans-Regular', fontSize: 14, lineHeight: 21, color: PROFILE_THEME_COLORS.onSurfaceVariant }}>
-        {subtitle}
-      </Text>
-    </View>
-  )
-}
-
-function BackLink({ label, onPress }: { label: string; onPress: () => void }) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 14, opacity: pressed ? 0.7 : 1 })}
-    >
-      <ArrowLeft size={16} color={PROFILE_THEME_COLORS.primary} />
-      <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 14, color: PROFILE_THEME_COLORS.primary }}>{label}</Text>
-    </Pressable>
-  )
 }
 
 export default function CreateSession() {
@@ -414,11 +385,6 @@ export default function CreateSession() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: PROFILE_THEME_COLORS.background, paddingHorizontal: 20 }} edges={['top']}>
-      <BackLink label="Chỉnh lại" onPress={() => setStep(2)} />
-      <WizardHeader
-        title="Xác nhận và đăng kèo"
-        subtitle="Bước 3/3 · Xem đúng preview trên feed trước khi tạo kèo."
-      />
       <CreateSessionStep3
         selectedCourt={selectedCourt}
         selectedDate={selectedDate}
@@ -431,6 +397,7 @@ export default function CreateSession() {
         deadlineMinutes={deadlineMinutes}
         requireApproval={requireApproval}
         pricePerPerson={costPerPerson}
+        onBack={() => setStep(2)}
         onCreate={submit}
         submitting={submitting}
       />
