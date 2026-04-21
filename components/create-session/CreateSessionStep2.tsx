@@ -1,6 +1,6 @@
 import { AppButton, ScreenHeader } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
-import { Info, Sparkles, Users, UserRound } from 'lucide-react-native'
+import { ChevronLeft, Info, UserRound, Users } from 'lucide-react-native'
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Switch, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
@@ -83,10 +83,12 @@ function SkillRangeSelector({
               <View
                 style={{
                   borderRadius: 14,
-                  paddingVertical: 10,
+                  height: 56,
+                  paddingHorizontal: 4,
                   alignItems: 'center',
-                  gap: 5,
-                  backgroundColor: isEdge ? '#064E3B' : inRange ? '#FFFFFF' : '#FFFFFF',
+                  justifyContent: 'center',
+                  overflow: 'hidden',
+                  backgroundColor: isEdge ? '#064E3B' : '#FFFFFF',
                   borderWidth: 1,
                   borderColor: isEdge ? '#064E3B' : inRange ? '#A5C4BA' : '#DCE6E1',
                   shadowColor: '#003D2F',
@@ -96,11 +98,10 @@ function SkillRangeSelector({
                   elevation: isEdge ? 3 : 1,
                 }}
               >
-                <Icon size={15} color={isEdge ? '#FFFFFF' : inRange ? '#0A5A45' : '#9BBAB2'} />
-                <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 11, color: isEdge ? '#FFFFFF' : inRange ? '#0A5A45' : '#9BBAB2' }}>
-                  {option.id}
-                </Text>
-                <Text style={{ fontFamily: 'PlusJakartaSans-Regular', fontSize: 9, color: isEdge ? '#AEECD8' : inRange ? '#1B5A49' : '#A8C0BA', textAlign: 'center' }} numberOfLines={1}>
+                <View style={{ position: 'absolute', right: -8, bottom: -4, opacity: isEdge ? 0.2 : inRange ? 0.12 : 0.06 }}>
+                  <Icon size={36} color={isEdge ? '#FFFFFF' : '#064E3B'} />
+                </View>
+                <Text style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 13, lineHeight: 17, color: isEdge ? '#FFFFFF' : inRange ? '#064E3B' : '#9BBAB2', textAlign: 'center' }} numberOfLines={2}>
                   {option.label}
                 </Text>
               </View>
@@ -285,26 +286,9 @@ export function CreateSessionStep2({
           <View style={{ marginTop: 14, borderRadius: 18, borderWidth: 1, borderColor: '#DCE6E1', backgroundColor: '#EAF0ED', padding: 12, flexDirection: 'row', gap: 10 }}>
             <Info size={16} color="#678C82" />
             <Text style={{ flex: 1, fontFamily: 'PlusJakartaSans-Regular', fontSize: 12, lineHeight: 18, color: '#4A6860' }}>
-              {'\u0047\u0069\u1edb\u0069\u0020\u0068\u1ea1\u006e\u0020\u0045\u004c\u004f\u0020\u0067\u0069\u00fa\u0070\u0020\u0074\u0072\u1ead\u006e\u0020\u0111\u1ea5\u0075\u0020\u0063\u00e2\u006e\u0020\u0062\u1eb1\u006e\u0067\u0020\u0076\u00e0\u0020\u006b\u1ecb\u0063\u0068\u0020\u0074\u00ed\u006e\u0068\u0020\u0068\u01a1\u006e\u002e\u0020\u0042\u1ea1\u006e\u0020\u0063\u00f3\u0020\u0074\u0068\u1ec3\u0020\u006e\u1edb\u0069\u0020\u006c\u1ecf\u006e\u0067\u0020\u0067\u0069\u1edb\u0069\u0020\u0068\u1ea1\u006e\u0020\u006e\u1ebf\u0075\u0020\u006b\u0068\u00f3\u0020\u0074\u00ec\u006d\u0020\u0111\u1ed1\u0069\u0020\u0074\u0068\u1ee7\u002e'}
+              Chỉ người chơi trong phạm vi trình độ này mới có thể tham gia buổi. Bạn có thể nới lỏng giới hạn nếu không tìm được đủ người.
             </Text>
           </View>
-        </View>
-
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 14, gap: 10 }}>
-          <View style={{ flexDirection: 'row' }}>
-            <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: '#BCD6CD', borderWidth: 2, borderColor: '#EFF8F4', alignItems: 'center', justifyContent: 'center' }}>
-              <Users size={14} color="#0F5C48" />
-            </View>
-            <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: '#8FD6BF', borderWidth: 2, borderColor: '#EFF8F4', alignItems: 'center', justifyContent: 'center', marginLeft: -8 }}>
-              <Sparkles size={14} color="#0F5C48" />
-            </View>
-            <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: '#B0EAD8', borderWidth: 2, borderColor: '#EFF8F4', alignItems: 'center', justifyContent: 'center', marginLeft: -8 }}>
-              <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 11, color: '#0F5C48' }}>+2</Text>
-            </View>
-          </View>
-          <Text style={{ flex: 1, fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13, lineHeight: 18, color: '#4A6860' }}>
-            {'\u0047\u1ee3\u0069\u0020\u00fd\u0020\u006d\u1eddi\u0020\u0062\u1ea1\u006e\u0020\u0063\u0068\u01a1\u0069\u0020\u0070\u0068\u00f9\u0020\u0068\u1ee3\u0070\u0020\u0045\u004c\u004f'}
-          </Text>
         </View>
       </ScrollView>
 
@@ -323,7 +307,27 @@ export function CreateSessionStep2({
           paddingBottom: 12,
         }}
       >
-        <AppButton label={'\u0054\u0069\u1ebf\u0070\u0020\u0074\u1ee5\u0063'} onPress={onContinue} />
+        <View style={{ flexDirection: 'row', gap: 10 }}>
+          <Pressable
+            onPress={onBack}
+            style={({ pressed }) => ({
+              height: 48,
+              width: 48,
+              borderRadius: 14,
+              borderWidth: 1,
+              borderColor: '#DCE6E1',
+              backgroundColor: '#F2F5F3',
+              alignItems: 'center',
+              justifyContent: 'center',
+              opacity: pressed ? 0.7 : 1,
+            })}
+          >
+            <ChevronLeft size={22} color="#0A4A38" />
+          </Pressable>
+          <View style={{ flex: 1 }}>
+            <AppButton label={'\u0054\u0069\u1ebf\u0070\u0020\u0074\u1ee5\u0063'} onPress={onContinue} />
+          </View>
+        </View>
       </SafeAreaView>
     </KeyboardAvoidingView>
   )
