@@ -1,4 +1,5 @@
 import { AppButton, ScreenHeader } from '@/components/design'
+import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { Info, UserRound, Users } from 'lucide-react-native'
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native'
 
@@ -50,6 +51,24 @@ function formatCurrencyLabel(value: number) {
   return `${value.toLocaleString('vi-VN')} đ`
 }
 
+function SectionDivider({ index, title }: { index: string; title: string }) {
+  return (
+    <View style={{ marginBottom: 12, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+      <Text
+        style={{
+          fontFamily: 'PlusJakartaSans-Bold',
+          fontSize: 11,
+          textTransform: 'uppercase',
+          letterSpacing: 2.8,
+          color: PROFILE_THEME_COLORS.outline,
+        }}
+      >
+        {index} / {title}
+      </Text>
+      <View style={{ height: 1, flex: 1, backgroundColor: PROFILE_THEME_COLORS.outlineVariant }} />
+    </View>
+  )
+}
 
 function SkillRangeSelector({
   minSkill,
@@ -189,6 +208,8 @@ export function CreateSessionStep2({
           </View>
         </View>
 
+        <SectionDivider index="01" title="Cấu hình trận đấu" />
+
         <View
           style={{
             borderRadius: 22,
@@ -321,6 +342,8 @@ export function CreateSessionStep2({
             </Text>
           </View>
         </View>
+
+        <SectionDivider index="02" title="Booking và chi phí" />
 
         <View
           style={{
@@ -600,3 +623,4 @@ export function CreateSessionStep2({
     </KeyboardAvoidingView>
   )
 }
+
