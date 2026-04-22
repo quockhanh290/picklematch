@@ -81,61 +81,96 @@ function SkillRangeSelector({
   setMinSkill: (n: number) => void
   setMaxSkill: (n: number) => void
 }) {
-  function handlePress(level: number) {
-    if (level <= minSkill) {
-      setMinSkill(level)
-    } else if (level >= maxSkill) {
+  function onSelectMin(level: number) {
+    if (level > maxSkill) {
       setMaxSkill(level)
-    } else {
-      const distToMin = level - minSkill
-      const distToMax = maxSkill - level
-      if (distToMin <= distToMax) setMinSkill(level)
-      else setMaxSkill(level)
     }
+    setMinSkill(level)
+  }
+
+  function onSelectMax(level: number) {
+    if (level < minSkill) {
+      setMinSkill(level)
+    }
+    setMaxSkill(level)
+  }
+
+  function SkillChoiceRow({
+    title,
+    selected,
+    onSelect,
+  }: {
+    title: string
+    selected: number
+    onSelect: (level: number) => void
+  }) {
+    return (
+      <View style={{ marginBottom: 10 }}>
+        <Text style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 11, color: '#678C82', marginBottom: 8 }}>
+          {title}
+        </Text>
+        <View style={{ flexDirection: 'row', gap: 6 }}>
+          {CREATE_SESSION_SKILL_OPTIONS.map((option) => {
+            const Icon = option.icon
+            const isSelected = option.id === selected
+
+            return (
+              <View key={`${title}-${option.id}`} style={{ flex: 1 }}>
+                <Pressable
+                  onPress={() => onSelect(option.id)}
+                  style={({ pressed }) => ({ opacity: pressed ? 0.78 : 1 })}
+                >
+                  <View
+                    style={{
+                      borderRadius: 14,
+                      height: 56,
+                      paddingHorizontal: 4,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      overflow: 'hidden',
+                      backgroundColor: isSelected ? '#064E3B' : '#FFFFFF',
+                      borderWidth: 1,
+                      borderColor: isSelected ? '#064E3B' : '#DCE6E1',
+                      shadowColor: '#003D2F',
+                      shadowOpacity: isSelected ? 0.15 : 0.05,
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowRadius: isSelected ? 6 : 2,
+                      elevation: isSelected ? 3 : 1,
+                    }}
+                  >
+                    <View style={{ position: 'absolute', right: -8, bottom: -4, opacity: isSelected ? 0.2 : 0.08 }}>
+                      <Icon size={36} color={isSelected ? '#FFFFFF' : '#064E3B'} />
+                    </View>
+                    <Text
+                      style={{
+                        fontFamily: 'PlusJakartaSans-Bold',
+                        fontSize: 12,
+                        lineHeight: 16,
+                        color: isSelected ? '#FFFFFF' : '#1B5A49',
+                        textAlign: 'center',
+                      }}
+                      numberOfLines={2}
+                    >
+                      {option.label}
+                    </Text>
+                  </View>
+                </Pressable>
+              </View>
+            )
+          })}
+        </View>
+      </View>
+    )
   }
 
   return (
-    <View style={{ flexDirection: 'row', gap: 6 }}>
-      {CREATE_SESSION_SKILL_OPTIONS.map((option) => {
-        const Icon = option.icon
-        const isEdge = option.id === minSkill || option.id === maxSkill
-        const inRange = option.id >= minSkill && option.id <= maxSkill
+    <View>
+      <SkillChoiceRow title="Mức tối thiểu" selected={minSkill} onSelect={onSelectMin} />
+      <SkillChoiceRow title="Mức tối đa" selected={maxSkill} onSelect={onSelectMax} />
 
-        return (
-          <View key={option.id} style={{ flex: 1 }}>
-            <Pressable
-              onPress={() => handlePress(option.id)}
-              style={({ pressed }) => ({ opacity: pressed ? 0.75 : 1 })}
-            >
-              <View
-                style={{
-                  borderRadius: 14,
-                  height: 56,
-                  paddingHorizontal: 4,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  overflow: 'hidden',
-                  backgroundColor: isEdge ? '#064E3B' : '#FFFFFF',
-                  borderWidth: 1,
-                  borderColor: isEdge ? '#064E3B' : inRange ? '#A5C4BA' : '#DCE6E1',
-                  shadowColor: '#003D2F',
-                  shadowOpacity: isEdge ? 0.15 : 0.05,
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowRadius: isEdge ? 6 : 2,
-                  elevation: isEdge ? 3 : 1,
-                }}
-              >
-                <View style={{ position: 'absolute', right: -8, bottom: -4, opacity: isEdge ? 0.2 : inRange ? 0.12 : 0.06 }}>
-                  <Icon size={36} color={isEdge ? '#FFFFFF' : '#064E3B'} />
-                </View>
-                <Text style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 13, lineHeight: 17, color: isEdge ? '#FFFFFF' : inRange ? '#064E3B' : '#9BBAB2', textAlign: 'center' }} numberOfLines={2}>
-                  {option.label}
-                </Text>
-              </View>
-            </Pressable>
-          </View>
-        )
-      })}
+      <Text style={{ marginTop: 10, fontFamily: 'PlusJakartaSans-Regular', fontSize: 11, color: '#678C82' }}>
+        Bạn có thể chọn cùng một mức ở cả hai dòng để chỉ nhận đúng một trình độ.
+      </Text>
     </View>
   )
 }
