@@ -1,4 +1,4 @@
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+﻿import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { getSkillLevelUi } from '@/lib/skillLevelUi'
 import { LinearGradient } from 'expo-linear-gradient'
 import { CreditCard, MapPin, MessageSquareText, ShieldAlert, ShieldCheck, Trophy } from 'lucide-react-native'
@@ -239,7 +239,7 @@ export function SessionMetaCard({
                 color: PROFILE_THEME_COLORS.outline,
               }}
             >
-              Chi phí
+              {'\u0043\u0068\u0069\u0020\u0070\u0068\u00ED'}
             </Text>
             <Text
               style={{
@@ -279,7 +279,7 @@ export function SessionMetaCard({
                 color: PROFILE_THEME_COLORS.outline,
               }}
             >
-              Loại kèo
+              {'\u004C\u006F\u1EA1\u0069\u0020\u006B\u00E8\u006F'}
             </Text>
             <Text
               style={{
@@ -289,7 +289,7 @@ export function SessionMetaCard({
                 color: PROFILE_THEME_COLORS.onSurface,
               }}
             >
-              {isRankedMatch ? 'Kèo tính điểm' : 'Kèo casual'}
+              {isRankedMatch ? '\u004B\u00E8\u006F\u0020\u0074\u00ED\u006E\u0068\u0020\u0111\u0069\u1EC3\u006D' : '\u004B\u00E8\u006F\u0020\u0063\u0061\u0073\u0075\u0061\u006C'}
             </Text>
             <Text
               style={{
@@ -300,7 +300,7 @@ export function SessionMetaCard({
               }}
             >
               {isRankedMatch
-                ? 'Kết quả trận sẽ ảnh hưởng điểm ELO của người chơi.'
+                ? '\u004B\u1EBF\u0074\u0020\u0071\u0075\u1EA3\u0020\u0074\u0072\u1EAD\u006E\u0020\u0073\u1EBD\u0020\u1EA3\u006E\u0068\u0020\u0068\u01B0\u1EDF\u006E\u0067\u0020\u0111\u0069\u1EC3\u006D\u0020\u0045\u004C\u004F\u0020\u0063\u1EE7\u0061\u0020\u006E\u0067\u01B0\u1EDD\u0069\u0020\u0063\u0068\u01A1\u0069\u002E'
                 : 'Trận giao lưu, kết quả không làm thay đổi điểm ELO.'}
             </Text>
           </View>
@@ -331,7 +331,7 @@ export function SessionMetaCard({
                 color: PROFILE_THEME_COLORS.outline,
               }}
             >
-              Lời nhắn của host
+              {'\u004C\u1EDD\u0069\u0020\u006E\u0068\u1EAF\u006E\u0020\u0063\u1EE7\u0061\u0020\u0068\u006F\u0073\u0074'}
             </Text>
             <Text
               style={{
@@ -341,7 +341,7 @@ export function SessionMetaCard({
                 color: PROFILE_THEME_COLORS.onSurface,
               }}
             >
-              {hostNote && hostNote.trim().length > 0 ? hostNote.trim() : 'Chưa có lời nhắn thêm'}
+              {hostNote && hostNote.trim().length > 0 ? hostNote.trim() : '\u0043\u0068\u01B0\u0061\u0020\u0063\u00F3\u0020\u006C\u1EDD\u0069\u0020\u006E\u0068\u1EAF\u006E\u0020\u0074\u0068\u00EA\u006D'}
             </Text>
           </View>
         </View>

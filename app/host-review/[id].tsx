@@ -680,9 +680,9 @@ export default function HostReviewCenterScreen() {
 
             <Pressable
               onPress={() =>
-                router.replace({
-                  pathname: '/session/[id]' as any,
-                  params: { id: session.id, edit: '1' },
+                router.push({
+                  pathname: '/create-session' as any,
+                  params: { editSessionId: session.id },
                 })
               }
               className="active:scale-95 h-14 flex-[1.2] flex-row items-center justify-center rounded-2xl bg-slate-900"

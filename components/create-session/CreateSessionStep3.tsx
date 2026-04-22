@@ -23,6 +23,7 @@ type Props = {
   onBack: () => void
   onCreate: () => void
   submitting?: boolean
+  submitLabel?: string
 }
 
 const WEEKDAY_LABELS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
@@ -147,7 +148,7 @@ function SectionTitle({ text }: { text: string }) {
 export function CreateSessionStep3({
   selectedCourt, selectedDate, startTime, endTime,
   maxPlayers, minSkill, maxSkill, bookingStatus, deadlineMinutes,
-  requireApproval, pricePerPerson, onBack, onCreate, submitting = false,
+  requireApproval, pricePerPerson, onBack, onCreate, submitting = false, submitLabel = '\u0054\u1ea1\u006f\u0020\u006b\u00e8\u006f',
 }: Props) {
   const minSkillOption = getCreateSessionSkillOption(minSkill)
   const maxSkillOption = getCreateSessionSkillOption(maxSkill)
@@ -299,7 +300,7 @@ export function CreateSessionStep3({
           </View>
           <View style={{ flex: 1 }}>
             <AppButton
-              label={'\u0054\u1ea1\u006f\u0020\u006b\u00e8\u006f'}
+              label={submitLabel}
               onPress={onCreate}
               variant="primary"
               loading={submitting}

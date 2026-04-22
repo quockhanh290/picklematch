@@ -567,7 +567,13 @@ function MySessionCard({
 
             <View className="flex-row gap-3">
               <Pressable
-                onPress={() => onOpenSessionDetail(item.id)}
+                onPress={() => {
+                  if (isHost) {
+                    router.push({ pathname: '/session/[id]/review' as any, params: { id: item.id } })
+                    return
+                  }
+                  onOpenSessionDetail(item.id)
+                }}
                 className="flex-1 flex-row items-center justify-center rounded-[20px] px-4 py-3.5"
                 style={{
                   backgroundColor: isHost ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surfaceContainerLowest,
@@ -743,7 +749,7 @@ export default function MySessions() {
           console.warn('[MySessions] get_my_sessions_overview failed:', error.message)
         }
 
-        const nextSessions: MySession[] = (data ?? []).map((session: any) => ({
+        const rpcSessions: MySession[] = (data ?? []).map((session: any) => ({
           id: session.id,
           status: session.status,
           court_booking_status: session.court_booking_status,
@@ -761,6 +767,112 @@ export default function MySessions() {
           elo_max: session.elo_max ?? null,
           has_rated: session.has_rated ?? false,
         }))
+
+        // Fallback for environments where `get_my_sessions_overview` may not yet
+        // include host/player pending join-requests correctly.
+        const { data: hostPendingRows } = await supabase
+          .from('join_requests')
+          .select('match_id, sessions!inner(host_id)')
+          .eq('status', 'pending')
+          .eq('sessions.host_id', nextUserId)
+
+        const { data: playerPendingRows } = await supabase
+          .from('join_requests')
+          .select('match_id')
+          .eq('status', 'pending')
+          .eq('player_id', nextUserId)
+
+        const hostPendingIds = new Set<string>((hostPendingRows ?? []).map((row: any) => row.match_id).filter(Boolean))
+        const playerPendingIds = new Set<string>((playerPendingRows ?? []).map((row: any) => row.match_id).filter(Boolean))
+
+        const byKey = new Map<string, MySession>()
+        for (const session of rpcSessions) {
+          const normalizedRequestStatus =
+            session.role === 'host' && hostPendingIds.has(session.id)
+              ? 'pending'
+              : session.role === 'player' && playerPendingIds.has(session.id)
+                ? 'pending'
+                : session.request_status
+
+          const normalized: MySession = {
+            ...session,
+            request_status: normalizedRequestStatus,
+          }
+
+          const key = `${normalized.role}:${normalized.id}`
+          const current = byKey.get(key)
+          if (!current) {
+            byKey.set(key, normalized)
+            continue
+          }
+
+          // Prefer pending request status when duplicate rows exist in older RPC versions.
+          const shouldReplace = current.request_status !== 'pending' && normalized.request_status === 'pending'
+          if (shouldReplace) {
+            byKey.set(key, normalized)
+          }
+        }
+
+        const existingPlayerPendingIds = new Set(
+          Array.from(byKey.values())
+            .filter((session) => session.role === 'player' && session.request_status === 'pending')
+            .map((session) => session.id),
+        )
+
+        const missingPlayerPendingIds = Array.from(playerPendingIds).filter((id) => !existingPlayerPendingIds.has(id))
+
+        if (missingPlayerPendingIds.length > 0) {
+          const { data: missingPendingSessions } = await supabase
+            .from('sessions')
+            .select(`
+              id,
+              status,
+              court_booking_status,
+              max_players,
+              elo_min,
+              elo_max,
+              host:host_id(name),
+              slot:slot_id(
+                start_time,
+                end_time,
+                court:court_id(name, city, address)
+              ),
+              session_players(status)
+            `)
+            .in('id', missingPlayerPendingIds)
+
+          for (const rawSession of missingPendingSessions ?? []) {
+            const session: any = rawSession
+            const slot = session?.slot
+            const court = slot?.court
+            const host = session?.host
+            const players = Array.isArray(session?.session_players) ? session.session_players : []
+            const playerCount = players.filter((p: any) => (p?.status ?? 'confirmed') !== 'rejected').length
+
+            const normalized: MySession = {
+              id: session.id,
+              status: session.status ?? 'open',
+              court_booking_status: session.court_booking_status ?? 'unconfirmed',
+              role: 'player',
+              request_status: 'pending',
+              start_time: slot?.start_time ?? new Date().toISOString(),
+              end_time: slot?.end_time ?? slot?.start_time ?? new Date().toISOString(),
+              court_name: court?.name ?? 'Kèo Pickleball',
+              court_city: court?.city ?? '',
+              court_address: court?.address ?? '',
+              host_name: host?.name ?? 'Ẩn danh',
+              player_count: playerCount,
+              max_players: session.max_players ?? 0,
+              elo_min: session.elo_min ?? null,
+              elo_max: session.elo_max ?? null,
+              has_rated: false,
+            }
+
+            byKey.set(`player:${normalized.id}`, normalized)
+          }
+        }
+
+        const nextSessions: MySession[] = Array.from(byKey.values())
 
         nextSessions.sort((a, b) => {
           const aTime = new Date(a.start_time).getTime()

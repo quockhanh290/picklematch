@@ -136,9 +136,7 @@ function computeMatchScore(session: Session, rescueMode: boolean, level3Mode: bo
 }
 
 const BADGE = {
-  backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
-  borderWidth: 1,
-  borderColor: PROFILE_THEME_COLORS.outlineVariant,
+  backgroundColor: withAlpha(PROFILE_THEME_COLORS.primary, 0.1),
 } as const
 
 function SearchResultCard({ session, rescueMode }: { session: Session; rescueMode: boolean }) {
@@ -204,9 +202,9 @@ function SearchResultCard({ session, rescueMode }: { session: Session; rescueMod
         <View className="mt-1">
           <View
             className="self-start flex-row items-center rounded-full px-3 py-1.5"
-            style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, maxWidth: '100%' }}
+            style={{ ...BADGE, maxWidth: '100%' }}
           >
-            <MapPin size={13} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />
+            <MapPin size={13} color={PROFILE_THEME_COLORS.primary} strokeWidth={2.4} />
             <Text
               className="ml-1.5"
               numberOfLines={1}
@@ -226,21 +224,21 @@ function SearchResultCard({ session, rescueMode }: { session: Session; rescueMod
 
       <View className="mt-2 flex-row flex-wrap gap-2">
         <View className="flex-row items-center rounded-full px-3 py-1.5" style={BADGE}>
-          <CalendarDays size={13} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />
+          <CalendarDays size={13} color={PROFILE_THEME_COLORS.primary} strokeWidth={2.4} />
           <Text
             className="ml-1.5"
             numberOfLines={1}
-            style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13, lineHeight: 18 }}
+            style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13, lineHeight: 18 }}
           >
             {dayLabel} • {timeLabel}
           </Text>
         </View>
 
         <View className="flex-row items-center rounded-full px-3 py-1.5" style={BADGE}>
-          <SkillIcon size={13} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />
+          <SkillIcon size={13} color={PROFILE_THEME_COLORS.primary} strokeWidth={2.4} />
           <Text
             className="ml-1.5"
-            style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13, lineHeight: 18 }}
+            style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13, lineHeight: 18 }}
           >
             {skillUi.shortLabel}
           </Text>
@@ -248,11 +246,11 @@ function SearchResultCard({ session, rescueMode }: { session: Session; rescueMod
 
         <View className="flex-row items-center rounded-full px-3 py-1.5" style={BADGE}>
           {isBooked
-            ? <ShieldCheck size={13} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />
-            : <AlertCircle size={13} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />}
+            ? <ShieldCheck size={13} color={PROFILE_THEME_COLORS.primary} strokeWidth={2.4} />
+            : <AlertCircle size={13} color={PROFILE_THEME_COLORS.primary} strokeWidth={2.4} />}
           <Text
             className="ml-1.5"
-            style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13, lineHeight: 18 }}
+            style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13, lineHeight: 18 }}
           >
             {isBooked ? 'Đã đặt sân' : 'Chưa đặt sân'}
           </Text>
@@ -928,4 +926,3 @@ export default function FindSession() {
     </SafeAreaView>
   )
 }
-

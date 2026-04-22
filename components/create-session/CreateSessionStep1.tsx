@@ -23,7 +23,6 @@ type Props = {
   showStartPicker: boolean
   showEndPicker: boolean
   timeError: string | null
-  duration: string | null
   onCourtSelect: (court: NearByCourt) => void
   onChangeCourt: () => void
   onDateSelect: (date: Date) => void
@@ -35,6 +34,7 @@ type Props = {
   onCloseEndPicker: () => void
   defaultPickerValue: (type: 'start' | 'end') => Date
   onContinue: () => void
+  lockCourtSchedule?: boolean
 }
 
 const WEEKDAY_LABELS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
@@ -217,7 +217,6 @@ export function CreateSessionStep1({
   showStartPicker,
   showEndPicker,
   timeError,
-  duration,
   onCourtSelect,
   onChangeCourt,
   onDateSelect,
@@ -229,6 +228,7 @@ export function CreateSessionStep1({
   onCloseEndPicker,
   defaultPickerValue,
   onContinue,
+  lockCourtSchedule = false,
 }: Props) {
   const scrollRef = useRef<ScrollView | null>(null)
   const [showDatePicker, setShowDatePicker] = useState(false)
@@ -247,8 +247,9 @@ export function CreateSessionStep1({
     return Array.from({ length: 7 }, (_, index) => addDays(stripStart, index))
   }, [selectedDate])
 
+  const isCourtScheduleLocked = Boolean(lockCourtSchedule && selectedCourt)
   const canContinue = !!selectedCourt && !!selectedDate && !!startTime && !!endTime && !timeError
-  const showCourtPicker = !selectedCourt || isChoosingCourt
+  const showCourtPicker = (!selectedCourt || isChoosingCourt) && !isCourtScheduleLocked
   const selectedCourtDistanceLabel = selectedCourt ? formatDistance(selectedCourt.distance) : null
   const selectedCourtAddress = selectedCourt
     ? `${selectedCourt.address}${selectedCourt.city ? ` · ${selectedCourt.city}` : ''}`
@@ -304,7 +305,7 @@ export function CreateSessionStep1({
   }, [pickerAnchorY, showDatePicker, showEndPicker, showStartPicker])
 
   function openDatePicker() {
-    if (!selectedCourt) return
+    if (!selectedCourt || isCourtScheduleLocked) return
     setDraftDate(selectedDate ?? new Date())
     setShowDatePicker((v) => !v)
   }
@@ -390,8 +391,13 @@ export function CreateSessionStep1({
           <Search size={16} color={PROFILE_THEME_COLORS.outline} />
           <TextInput
             value={keyword}
-            onFocus={() => setIsChoosingCourt(true)}
+            editable={!isCourtScheduleLocked}
+            onFocus={() => {
+              if (isCourtScheduleLocked) return
+              setIsChoosingCourt(true)
+            }}
             onChangeText={(value) => {
+              if (isCourtScheduleLocked) return
               setKeyword(value)
               setIsChoosingCourt(true)
             }}
@@ -400,7 +406,7 @@ export function CreateSessionStep1({
             style={{ flex: 1, fontFamily: 'PlusJakartaSans-Regular', fontSize: 14, color: PROFILE_THEME_COLORS.onSurface, padding: 0 }}
             returnKeyType="search"
           />
-          <View style={{ width: 34, height: 34, borderRadius: 999, backgroundColor: PROFILE_THEME_COLORS.primary, alignItems: 'center', justifyContent: 'center' }}>
+          <View style={{ width: 34, height: 34, borderRadius: 999, backgroundColor: PROFILE_THEME_COLORS.primary, alignItems: 'center', justifyContent: 'center', opacity: isCourtScheduleLocked ? 0.45 : 1 }}>
             <SlidersHorizontal size={14} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.6} />
           </View>
         </View>
@@ -411,21 +417,27 @@ export function CreateSessionStep1({
           <>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
               <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 15, color: PROFILE_THEME_COLORS.onSurface }}>Sân đã chọn</Text>
-              <Pressable
-                onPress={() => {
-                  if (showCourtPicker) {
-                    setIsChoosingCourt(false)
-                    return
-                  }
-                  onChangeCourt()
-                  setIsChoosingCourt(true)
-                }}
-                style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
-              >
-                <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13, color: PROFILE_THEME_COLORS.primary }}>
-                  {showCourtPicker ? 'Đóng chọn sân' : 'Đổi sân'}
+              {isCourtScheduleLocked ? (
+                <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 12, color: PROFILE_THEME_COLORS.outline }}>
+                  Đã khóa vì đã đặt sân
                 </Text>
-              </Pressable>
+              ) : (
+                <Pressable
+                  onPress={() => {
+                    if (showCourtPicker) {
+                      setIsChoosingCourt(false)
+                      return
+                    }
+                    onChangeCourt()
+                    setIsChoosingCourt(true)
+                  }}
+                  style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+                >
+                  <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13, color: PROFILE_THEME_COLORS.primary }}>
+                    {showCourtPicker ? 'Đóng chọn sân' : 'Đổi sân'}
+                  </Text>
+                </Pressable>
+              )}
             </View>
             <View
               style={{
@@ -672,7 +684,7 @@ export function CreateSessionStep1({
 
       <View style={[sectionCard, { opacity: selectedCourt ? 1 : 0.5 }]}>
         <Pressable
-          disabled={!selectedCourt}
+          disabled={!selectedCourt || isCourtScheduleLocked}
           onPress={openDatePicker}
           style={({ pressed }) => ({
             borderRadius: 20,
@@ -680,7 +692,7 @@ export function CreateSessionStep1({
             borderColor: PROFILE_THEME_COLORS.outlineVariant,
             backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
             padding: 16,
-            opacity: pressed ? 0.86 : 1,
+            opacity: !selectedCourt || isCourtScheduleLocked ? 0.55 : pressed ? 0.86 : 1,
             marginBottom: 12,
           })}
         >
@@ -705,6 +717,7 @@ export function CreateSessionStep1({
                 return (
                   <Pressable
                     key={day.toISOString()}
+                    disabled={isCourtScheduleLocked}
                     onPress={() => onDateSelect(day)}
                     style={({ pressed }) => ({
                       width: 46,
@@ -715,7 +728,7 @@ export function CreateSessionStep1({
                       backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
                       paddingVertical: 9,
                       paddingHorizontal: 8,
-                      opacity: pressed ? 0.85 : 1,
+                      opacity: isCourtScheduleLocked ? 0.55 : pressed ? 0.85 : 1,
                     })}
                   >
                     <Text
@@ -762,7 +775,7 @@ export function CreateSessionStep1({
 
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
           <Pressable
-            disabled={!selectedCourt}
+            disabled={!selectedCourt || isCourtScheduleLocked}
             onPress={onToggleStartPicker}
             style={({ pressed }) => ({
               flex: 1,
@@ -772,7 +785,7 @@ export function CreateSessionStep1({
               borderColor: PROFILE_THEME_COLORS.outlineVariant,
               backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
               padding: 16,
-              opacity: pressed ? 0.86 : 1,
+              opacity: !selectedCourt || isCourtScheduleLocked ? 0.55 : pressed ? 0.86 : 1,
             })}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
@@ -789,7 +802,7 @@ export function CreateSessionStep1({
           </Pressable>
 
           <Pressable
-            disabled={!selectedDate || !startTime}
+            disabled={!selectedDate || !startTime || isCourtScheduleLocked}
             onPress={onToggleEndPicker}
             style={({ pressed }) => ({
               flex: 1,
@@ -799,26 +812,31 @@ export function CreateSessionStep1({
               borderColor: PROFILE_THEME_COLORS.outlineVariant,
               backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
               padding: 16,
-              opacity: !selectedDate || !startTime ? 0.45 : pressed ? 0.86 : 1,
+              opacity: !selectedDate || !startTime || isCourtScheduleLocked ? 0.45 : pressed ? 0.86 : 1,
             })}
           >
-            <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 11, textTransform: 'uppercase', letterSpacing: 1.2, color: PROFILE_THEME_COLORS.outline }}>
-              Kết thúc
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <View style={{ width: 28, height: 28, borderRadius: 999, backgroundColor: PROFILE_THEME_COLORS.secondaryContainer, alignItems: 'center', justifyContent: 'center' }}>
+                <Clock3 size={14} color={PROFILE_THEME_COLORS.surfaceTint} strokeWidth={2.6} />
+              </View>
+              <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 11, textTransform: 'uppercase', letterSpacing: 1.2, color: PROFILE_THEME_COLORS.outline }}>
+                Kết thúc
+              </Text>
+            </View>
             <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 32, color: PROFILE_THEME_COLORS.surfaceTint, marginTop: 12, lineHeight: 36 }}>
               {formatTime(endTime)}
             </Text>
           </Pressable>
         </View>
 
-        {duration && !timeError ? (
-          <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13, color: PROFILE_THEME_COLORS.surfaceTint, marginTop: 10 }}>
-            {duration}
-          </Text>
-        ) : null}
         {timeError ? (
           <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13, color: PROFILE_THEME_COLORS.error, marginTop: 10 }}>
             {timeError}
+          </Text>
+        ) : null}
+        {isCourtScheduleLocked ? (
+          <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 12, color: PROFILE_THEME_COLORS.outline, marginTop: 8 }}>
+            Kèo đã đặt sân nên không thể đổi sân và ngày giờ.
           </Text>
         ) : null}
       </View>

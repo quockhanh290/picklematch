@@ -1,11 +1,16 @@
 import { router } from 'expo-router'
 import { useCallback, useMemo, useState } from 'react'
-import { Alert } from 'react-native'
 
 import type { RequestStatus, SessionDetailRecord, ViewerPlayer } from '@/hooks/useSessionDetail'
 import { getMatchStatus, type MatchStatus } from '@/lib/matchmaking'
 import { getComparableElo } from '@/lib/sessionDetail'
 import { supabase } from '@/lib/supabase'
+
+type DialogAction = {
+  label: string
+  tone?: 'primary' | 'secondary' | 'danger'
+  onPress?: () => void | Promise<void>
+}
 
 type Params = {
   session: SessionDetailRecord | null
@@ -18,6 +23,7 @@ type Params = {
   introNote: string
   onJoinModalClose: () => void
   refreshSession: () => Promise<void>
+  presentDialog: (payload: { title: string; message: string; actions: DialogAction[] }) => void
 }
 
 export function useSessionJoinActions({
@@ -31,6 +37,7 @@ export function useSessionJoinActions({
   introNote,
   onJoinModalClose,
   refreshSession,
+  presentDialog,
 }: Params) {
   const [joining, setJoining] = useState(false)
   const [requesting, setRequesting] = useState(false)
@@ -60,16 +67,24 @@ export function useSessionJoinActions({
 
   const directJoinSession = useCallback(async () => {
     if (!userId) {
-      Alert.alert('Cần đăng nhập', 'Bạn cần đăng nhập để tham gia kèo.', [
-        { text: 'Để sau', style: 'cancel' },
-        { text: 'Đăng nhập', onPress: () => router.push('/login') },
-      ])
+      presentDialog({
+        title: 'Cần đăng nhập',
+        message: 'Bạn cần đăng nhập để tham gia kèo.',
+        actions: [
+          { label: 'Để sau', tone: 'secondary' },
+          { label: 'Đăng nhập', onPress: () => router.push('/login') },
+        ],
+      })
       return
     }
 
     if (!session) return
     if (!isJoinWindowOpen) {
-      Alert.alert('Kèo đã ngưng nhận người', 'Kèo này đã qua hạn chốt nhận người chơi mới.')
+      presentDialog({
+        title: 'Kèo đã ngưng nhận người',
+        message: 'Kèo này đã qua hạn chốt nhận người chơi mới.',
+        actions: [{ label: 'Đã hiểu' }],
+      })
       return
     }
 
@@ -91,28 +106,44 @@ export function useSessionJoinActions({
     setJoining(false)
 
     if (error) {
-      Alert.alert('Không thể tham gia kèo', error.message)
+      presentDialog({
+        title: 'Không thể tham gia kèo',
+        message: error.message,
+        actions: [{ label: 'Đóng', tone: 'secondary' }],
+      })
       return
     }
 
     setRequestStatus('accepted')
     onJoinModalClose()
-    Alert.alert('Tham gia thành công', 'Bạn đã vào kèo này rồi nhé.')
+    presentDialog({
+      title: 'Tham gia thành công',
+      message: 'Bạn đã vào kèo này rồi nhé.',
+      actions: [{ label: 'Tuyệt vời' }],
+    })
     await refreshSession()
-  }, [isJoinWindowOpen, onJoinModalClose, refreshSession, session, setRequestStatus, userId])
+  }, [isJoinWindowOpen, onJoinModalClose, presentDialog, refreshSession, session, setRequestStatus, userId])
 
   const sendJoinRequest = useCallback(async () => {
     if (!userId) {
-      Alert.alert('Cần đăng nhập', 'Bạn cần đăng nhập để gửi yêu cầu.', [
-        { text: 'Để sau', style: 'cancel' },
-        { text: 'Đăng nhập', onPress: () => router.push('/login') },
-      ])
+      presentDialog({
+        title: 'Cần đăng nhập',
+        message: 'Bạn cần đăng nhập để gửi yêu cầu.',
+        actions: [
+          { label: 'Để sau', tone: 'secondary' },
+          { label: 'Đăng nhập', onPress: () => router.push('/login') },
+        ],
+      })
       return
     }
 
     if (!session) return
     if (!isJoinWindowOpen) {
-      Alert.alert('Kèo đã ngưng nhận người', 'Kèo này đã qua hạn chốt nhận người chơi mới.')
+      presentDialog({
+        title: 'Kèo đã ngưng nhận người',
+        message: 'Kèo này đã qua hạn chốt nhận người chơi mới.',
+        actions: [{ label: 'Đã hiểu' }],
+      })
       return
     }
 
@@ -124,26 +155,32 @@ export function useSessionJoinActions({
         status: 'pending',
         intro_note: introNote.trim() || null,
       },
-      { onConflict: 'match_id,player_id' }
+      { onConflict: 'match_id,player_id' },
     )
     setRequesting(false)
 
     if (error) {
-      Alert.alert('Không thể gửi yêu cầu', error.message)
+      presentDialog({
+        title: 'Không thể gửi yêu cầu',
+        message: error.message,
+        actions: [{ label: 'Đóng', tone: 'secondary' }],
+      })
       return
     }
 
     setRequestStatus('pending')
     setHostResponseTemplate(null)
     onJoinModalClose()
-    Alert.alert(
-      matchStatus === 'WAITLIST' ? 'Đã đăng ký dự bị' : 'Đã gửi yêu cầu',
-      matchStatus === 'WAITLIST'
-        ? 'Host sẽ thấy bạn trong danh sách dự bị nếu có chỗ trống.'
-        : 'Chờ host duyệt nhé.'
-    )
+    presentDialog({
+      title: matchStatus === 'WAITLIST' ? 'Đã đăng ký dự bị' : 'Đã gửi yêu cầu',
+      message:
+        matchStatus === 'WAITLIST'
+          ? 'Host sẽ thấy bạn trong danh sách dự bị nếu có chỗ trống.'
+          : 'Chờ host duyệt nhé.',
+      actions: [{ label: 'Đã rõ' }],
+    })
     await refreshSession()
-  }, [introNote, isJoinWindowOpen, matchStatus, onJoinModalClose, refreshSession, session, setHostResponseTemplate, setRequestStatus, userId])
+  }, [introNote, isJoinWindowOpen, matchStatus, onJoinModalClose, presentDialog, refreshSession, session, setHostResponseTemplate, setRequestStatus, userId])
 
   const leaveSession = useCallback(async () => {
     if (!session || !userId) return
@@ -155,33 +192,41 @@ export function useSessionJoinActions({
       : 'Bạn chắc chắn muốn rời kèo này?'
     const destructiveText = hostFlow ? 'Hủy kèo' : 'Rời kèo'
 
-    Alert.alert(title, message, [
-      { text: 'Ở lại', style: 'cancel' },
-      {
-        text: destructiveText,
-        style: 'destructive',
-        onPress: async () => {
-          setLeaving(true)
-          const { error } = hostFlow
-            ? await supabase.rpc('cancel_host_session', { p_session_id: session.id })
-            : await supabase
-                .from('session_players')
-                .delete()
-                .eq('session_id', session.id)
-                .eq('player_id', userId)
+    presentDialog({
+      title,
+      message,
+      actions: [
+        { label: 'Ở lại', tone: 'secondary' },
+        {
+          label: destructiveText,
+          tone: 'danger',
+          onPress: async () => {
+            setLeaving(true)
+            const { error } = hostFlow
+              ? await supabase.rpc('cancel_host_session', { p_session_id: session.id })
+              : await supabase
+                  .from('session_players')
+                  .delete()
+                  .eq('session_id', session.id)
+                  .eq('player_id', userId)
 
-          setLeaving(false)
+            setLeaving(false)
 
-          if (error) {
-            Alert.alert(hostFlow ? 'Không thể hủy kèo' : 'Không thể rời kèo', error.message)
-            return
-          }
+            if (error) {
+              presentDialog({
+                title: hostFlow ? 'Không thể hủy kèo' : 'Không thể rời kèo',
+                message: error.message,
+                actions: [{ label: 'Đóng', tone: 'secondary' }],
+              })
+              return
+            }
 
-          await refreshSession()
+            await refreshSession()
+          },
         },
-      },
-    ])
-  }, [isHost, refreshSession, session, userId])
+      ],
+    })
+  }, [isHost, presentDialog, refreshSession, session, userId])
 
   function handleSmartJoinPress(onOpenJoinModal: () => void) {
     if (matchStatus === 'MATCHED' && !hostRequiresApproval) {

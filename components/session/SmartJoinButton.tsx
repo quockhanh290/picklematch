@@ -1,6 +1,7 @@
-import { ActivityIndicator, Pressable, Text, View } from 'react-native'
-import { AlertCircle, Clock3, Send, UserPlus, Users } from 'lucide-react-native'
+import { Text, View } from 'react-native'
+import { AlertCircle, Clock3 } from 'lucide-react-native'
 
+import { AppButton } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import type { MatchStatus } from '@/lib/matchmaking'
 
@@ -155,69 +156,18 @@ export function SmartJoinButton({
   const palette =
     matchStatus === 'MATCHED'
       ? {
-          bg: PROFILE_THEME_COLORS.primary,
-          textColor: PROFILE_THEME_COLORS.onPrimary,
+          variant: 'primary' as const,
           label: 'Tham gia ngay',
-          Icon: UserPlus,
         }
       : matchStatus === 'LOWER_SKILL'
         ? {
-            bg: PROFILE_THEME_COLORS.secondaryContainer,
-            textColor: PROFILE_THEME_COLORS.onSecondaryContainer,
+            variant: 'primary' as const,
             label: 'Xin vào kèo',
-            Icon: Send,
           }
         : {
-            bg: PROFILE_THEME_COLORS.surfaceContainerHighest,
-            textColor: PROFILE_THEME_COLORS.primary,
+            variant: 'secondary' as const,
             label: 'Đăng ký dự bị',
-            Icon: Users,
           }
 
-  const ActionIcon = palette.Icon
-
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={loading}
-      style={({ pressed }) => ({
-        height: 56,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: 16,
-        backgroundColor: palette.bg,
-        opacity: loading ? 0.7 : pressed ? 0.88 : 1,
-      })}
-    >
-      {loading ? (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-          <ActivityIndicator color={palette.textColor} />
-          <Text
-            style={{
-              fontSize: 16,
-              fontFamily: 'PlusJakartaSans-ExtraBold',
-              color: palette.textColor,
-            }}
-          >
-            Đang xử lý...
-          </Text>
-        </View>
-      ) : (
-        <>
-          <ActionIcon size={18} color={palette.textColor} />
-          <Text
-            style={{
-              marginLeft: 8,
-              fontSize: 16,
-              fontFamily: 'PlusJakartaSans-ExtraBold',
-              color: palette.textColor,
-            }}
-          >
-            {palette.label}
-          </Text>
-        </>
-      )}
-    </Pressable>
-  )
+  return <AppButton label={palette.label} onPress={onPress} loading={loading} variant={palette.variant} />
 }

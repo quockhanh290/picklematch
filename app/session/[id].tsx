@@ -1,17 +1,17 @@
-import * as Linking from 'expo-linking'
+﻿import * as Linking from 'expo-linking'
 import { router, useLocalSearchParams } from 'expo-router'
 import {
   CheckCheck,
   LogOut,
+  PencilLine,
   Repeat2,
   Save,
   Share2,
   ShieldAlert,
 } from 'lucide-react-native'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   ActivityIndicator,
-  Alert,
   RefreshControl,
   ScrollView,
   Share,
@@ -21,7 +21,7 @@ import {
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
-import { ScreenHeader } from '@/components/design'
+import { AppDialog, type AppDialogConfig, ScreenHeader } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { JoinRequestModal } from '@/components/session/JoinRequestModal'
 import { PlayerRosterSection } from '@/components/session/PlayerRosterSection'
@@ -41,11 +41,13 @@ import { getSkillLevelUi } from '@/lib/skillLevelUi'
 import { useAuth } from '@/lib/useAuth'
 
 export default function SessionDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>()
+  const { id, updated } = useLocalSearchParams<{ id: string; updated?: string }>()
   const { userId } = useAuth()
   const insets = useSafeAreaInsets()
 
   const [joinModalVisible, setJoinModalVisible] = useState(false)
+  const [dialogConfig, setDialogConfig] = useState<AppDialogConfig | null>(null)
+  const [showUpdatedToast, setShowUpdatedToast] = useState(false)
 
   const {
     loading,
@@ -103,7 +105,24 @@ export default function SessionDetailScreen() {
     introNote,
     onJoinModalClose: () => setJoinModalVisible(false),
     refreshSession: fetchSession,
+    presentDialog: (payload) => setDialogConfig(payload),
   })
+
+  useEffect(() => {
+    if (updated !== '1' || !id) return
+
+    setShowUpdatedToast(true)
+    const hideTimer = setTimeout(() => {
+      setShowUpdatedToast(false)
+    }, 2400)
+
+    router.replace({
+      pathname: '/session/[id]',
+      params: { id },
+    } as never)
+
+    return () => clearTimeout(hideTimer)
+  }, [id, updated])
 
 
   if (loading) {
@@ -117,7 +136,7 @@ export default function SessionDetailScreen() {
   if (!session) {
     return (
       <SafeAreaView className="flex-1 items-center justify-center bg-slate-50 px-6">
-        <Text className="text-center text-base font-semibold text-slate-500">Không tìm thấy kèo này.</Text>
+        <Text className="text-center text-base font-semibold text-slate-500">KhÃ´ng tÃ¬m tháº¥y kÃ¨o nÃ y.</Text>
       </SafeAreaView>
     )
   }
@@ -128,6 +147,9 @@ export default function SessionDetailScreen() {
   const viewerSessionPlayer = session.session_players.find((item) => item.player_id === userId) ?? null
   const showBottomActions = isHost || hasJoined || canShowJoinActions
   const hostActionBusy = savingArrangement || leaving
+  const hostPrimaryMode: 'edit' | 'arranging' | 'save' =
+    !isArranging ? 'edit' : arrangementDirty ? 'save' : 'arranging'
+  const hostPrimaryDisabled = hostActionBusy || hostPrimaryMode === 'arranging'
   const canRespondToResult =
     !isHost &&
     hasJoined &&
@@ -232,7 +254,7 @@ export default function SessionDetailScreen() {
               player.reliability !== null &&
               player.reliability !== undefined ? (
                 <Text style={{ fontSize: 12, fontFamily: 'PlusJakartaSans-SemiBold', color: PROFILE_THEME_COLORS.primary }}>
-                  {`${player.reliability}% uy tín`}
+                  {`${player.reliability}% uy tÃ­n`}
                 </Text>
               ) : null}
             </View>
@@ -263,6 +285,40 @@ export default function SessionDetailScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-slate-50" edges={['top']}>
+      {showUpdatedToast ? (
+        <View
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            top: 10 + insets.top,
+            left: 20,
+            right: 20,
+            zIndex: 20,
+            borderRadius: 16,
+            borderWidth: 1,
+            borderColor: '#B7E6D3',
+            backgroundColor: '#ECFDF5',
+            paddingHorizontal: 14,
+            paddingVertical: 12,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 8,
+          }}
+        >
+          <CheckCheck size={16} color="#065F46" strokeWidth={2.6} />
+          <Text
+            style={{
+              flex: 1,
+              fontSize: 13,
+              fontFamily: 'PlusJakartaSans-ExtraBold',
+              color: '#065F46',
+            }}
+          >
+            Đã cập nhật kèo
+          </Text>
+        </View>
+      ) : null}
+
       <ScrollView
         className="flex-1"
         stickyHeaderIndices={[0]}
@@ -283,10 +339,10 @@ export default function SessionDetailScreen() {
                 void (async () => {
                   try {
                     const url = Linking.createURL(`/session/${id}`)
-                    await Share.share({ message: `Tham gia kèo pickleball này nhé! ${url}` })
+                    await Share.share({ message: `Tham gia kÃ¨o pickleball nÃ y nhÃ©! ${url}` })
                   } catch (error) {
                     console.warn('[SessionDetail] Failed to share session:', error)
-                    Alert.alert('Không thể chia sẻ', 'Vui lòng thử lại sau ít phút.')
+                    setDialogConfig({ title: '\u004b\u0068\u00f4\u006e\u0067\u0020\u0074\u0068\u1ec3\u0020\u0063\u0068\u0069\u0061\u0020\u0073\u1ebb', message: '\u0056\u0075\u0069\u0020\u006c\u00f2\u006e\u0067\u0020\u0074\u0068\u1eed\u0020\u006c\u1ea1\u0069\u0020\u0073\u0061\u0075\u0020\u00ed\u0074\u0020\u0070\u0068\u00fa\u0074\u002e', actions: [{ label: '\u0110\u00f3\u006e\u0067', tone: 'secondary' }] })
                   }
                 })()
               }}
@@ -329,10 +385,10 @@ export default function SessionDetailScreen() {
                 }`}
               >
                 {session.results_status === 'disputed'
-                  ? 'Kết quả đang bị tranh chấp'
+                  ? 'Káº¿t quáº£ Ä‘ang bá»‹ tranh cháº¥p'
                   : session.results_status === 'pending_confirmation'
-                    ? 'Chủ kèo đã gửi kết quả trận'
-                    : 'Chủ kèo chưa gửi kết quả'}
+                    ? 'Chá»§ kÃ¨o Ä‘Ã£ gá»­i káº¿t quáº£ tráº­n'
+                    : 'Chá»§ kÃ¨o chÆ°a gá»­i káº¿t quáº£'}
               </Text>
             </View>
 
@@ -342,10 +398,10 @@ export default function SessionDetailScreen() {
               }`}
               >
               {session.results_status === 'disputed'
-                ? 'Vào màn xác nhận để xem lại kết quả chủ kèo đã gửi và cập nhật phản hồi của bạn.'
+                ? 'VÃ o mÃ n xÃ¡c nháº­n Ä‘á»ƒ xem láº¡i káº¿t quáº£ chá»§ kÃ¨o Ä‘Ã£ gá»­i vÃ  cáº­p nháº­t pháº£n há»“i cá»§a báº¡n.'
                 : session.results_status === 'pending_confirmation'
-                  ? 'Bạn cần xác nhận hoặc tranh chấp kết quả trước khi hệ thống chốt trận.'
-                  : 'Nếu chủ kèo chưa gửi kết quả đúng hạn, bạn có thể báo kết quả của mình để hệ thống xử lý tiếp.'}
+                  ? 'Báº¡n cáº§n xÃ¡c nháº­n hoáº·c tranh cháº¥p káº¿t quáº£ trÆ°á»›c khi há»‡ thá»‘ng chá»‘t tráº­n.'
+                  : 'Náº¿u chá»§ kÃ¨o chÆ°a gá»­i káº¿t quáº£ Ä‘Ãºng háº¡n, báº¡n cÃ³ thá»ƒ bÃ¡o káº¿t quáº£ cá»§a mÃ¬nh Ä‘á»ƒ há»‡ thá»‘ng xá»­ lÃ½ tiáº¿p.'}
             </Text>
 
             <TouchableOpacity
@@ -357,8 +413,8 @@ export default function SessionDetailScreen() {
             >
               <Text className="text-[14px] font-black uppercase tracking-[0.08em] text-white">
                 {session.results_status === 'pending_confirmation' || session.results_status === 'disputed'
-                  ? 'Xác nhận kết quả'
-                  : 'Báo kết quả'}
+                  ? 'XÃ¡c nháº­n káº¿t quáº£'
+                  : 'BÃ¡o káº¿t quáº£'}
               </Text>
             </TouchableOpacity>
           </View>
@@ -385,8 +441,19 @@ export default function SessionDetailScreen() {
             {isHost ? (
               <View style={{ width: '100%', flexDirection: 'row', alignSelf: 'center' }}>
                 <TouchableOpacity
-                  onPress={() => void onSaveArrangement()}
-                  disabled={!arrangementDirty || hostActionBusy}
+                  onPress={() => {
+                    if (hostPrimaryMode === 'edit') {
+                      router.push({
+                        pathname: '/create-session',
+                        params: { editSessionId: session.id },
+                      } as never)
+                      return
+                    }
+                    if (hostPrimaryMode === 'save') {
+                      void onSaveArrangement()
+                    }
+                  }}
+                  disabled={hostPrimaryDisabled}
                   activeOpacity={0.84}
                 style={{
                   flex: 1,
@@ -397,7 +464,7 @@ export default function SessionDetailScreen() {
                   borderWidth: 1.5,
                   borderColor: PROFILE_THEME_COLORS.primary,
                   backgroundColor: PROFILE_THEME_COLORS.primary,
-                  opacity: !arrangementDirty || (hostActionBusy && !savingArrangement) ? 0.55 : 1,
+                  opacity: hostPrimaryDisabled && !savingArrangement ? 0.55 : 1,
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
@@ -408,8 +475,20 @@ export default function SessionDetailScreen() {
                       size="small"
                       color={PROFILE_THEME_COLORS.onPrimary}
                     />
-                  ) : (
+                  ) : hostPrimaryMode === 'edit' ? (
+                    <PencilLine
+                      size={16}
+                      strokeWidth={2.5}
+                      color={PROFILE_THEME_COLORS.onPrimary}
+                    />
+                  ) : hostPrimaryMode === 'save' ? (
                     <Save
+                      size={16}
+                      strokeWidth={2.5}
+                      color={PROFILE_THEME_COLORS.onPrimary}
+                    />
+                  ) : (
+                    <Repeat2
                       size={16}
                       strokeWidth={2.5}
                       color={PROFILE_THEME_COLORS.onPrimary}
@@ -422,7 +501,13 @@ export default function SessionDetailScreen() {
                       color: PROFILE_THEME_COLORS.onPrimary,
                     }}
                   >
-                    {savingArrangement ? 'Đang lưu...' : 'Lưu thay đổi'}
+                    {savingArrangement
+                      ? '\u0110ang l\u01B0u...'
+                      : hostPrimaryMode === 'edit'
+                        ? 'S\u1EEDa k\u00E8o'
+                        : hostPrimaryMode === 'save'
+                          ? 'L\u01B0u thay \u0111\u1ED5i'
+                          : '\u0110ang x\u1EBFp \u0111\u1ED9i'}
                     </Text>
                   </View>
                 </TouchableOpacity>
@@ -453,7 +538,7 @@ export default function SessionDetailScreen() {
                     <LogOut size={16} strokeWidth={2.5} color="#ffffff" />
                   )}
                   <Text style={{ fontSize: 15, fontFamily: 'PlusJakartaSans-ExtraBold', color: '#ffffff' }}>
-                    {leaving ? 'Đang hủy...' : 'Hủy kèo'}
+                    {leaving ? '\u0110ang h\u1EE7y...' : 'H\u1EE7y k\u00E8o'}
                   </Text>
                 </View>
                 </TouchableOpacity>
@@ -485,7 +570,7 @@ export default function SessionDetailScreen() {
                     <LogOut size={18} strokeWidth={2.5} color="#ffffff" />
                   )}
                   <Text style={{ fontSize: 15, fontFamily: 'PlusJakartaSans-ExtraBold', color: '#ffffff' }}>
-                    {leaving ? 'Đang rời...' : 'Rời kèo'}
+                    {leaving ? '\u0110ang r\u1EDDi...' : 'R\u1EDDi k\u00E8o'}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -511,6 +596,7 @@ export default function SessionDetailScreen() {
         onClose={() => setJoinModalVisible(false)}
         onSubmit={() => void sendJoinRequest()}
       />
+      <AppDialog visible={dialogConfig !== null} config={dialogConfig} onClose={() => setDialogConfig(null)} />
     </SafeAreaView>
   )
 }

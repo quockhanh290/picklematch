@@ -1,4 +1,5 @@
 export * from './AppButton'
+export * from './AppDialog'
 export * from './AppChip'
 export * from './AppInput'
 export * from './AppStatCard'
