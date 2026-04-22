@@ -1,4 +1,4 @@
-import { EmptyState } from '@/components/design'
+﻿import { AppButton, AppDialog, type AppDialogConfig, EmptyState, ScreenHeader } from '@/components/design'
 import { getShortSkillLabel, getSkillLevelFromPlayer } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
 import { router, useLocalSearchParams } from 'expo-router'
@@ -6,7 +6,6 @@ import type { LucideIcon } from 'lucide-react-native'
 import {
   AlertOctagon,
   ArrowDown,
-  ArrowRight,
   Check,
   CheckCheck,
   Clock,
@@ -16,21 +15,10 @@ import {
   ShieldAlert,
   ShieldCheck,
   Trophy,
-  X,
   Zap,
 } from 'lucide-react-native'
 import { useCallback, useEffect, useState } from 'react'
-import {
-  ActivityIndicator,
-  Alert,
-  LayoutAnimation,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  UIManager,
-  View,
-} from 'react-native'
+import { ActivityIndicator, LayoutAnimation, Platform, Pressable, ScrollView, Text, UIManager, View } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 type SkillValidation = 'weaker' | 'matched' | 'outclass'
@@ -40,9 +28,6 @@ type SessionRecord = {
   status: string
   results_status?: string | null
   host_id: string
-  slot?: {
-    end_time?: string | null
-  } | null
   session_players: {
     player_id: string
     player?: {
@@ -81,10 +66,25 @@ type TagOption = {
 }
 
 const ICON_STROKE_WIDTH = 2.5
+const C = {
+  pageBg: '#F2F5F3',
+  cardBg: '#EDF1EF',
+  cardBorder: '#E4EBE7',
+  white: '#FFFFFF',
+  primary: '#045840',
+  primarySoft: '#EAF5F1',
+  primaryBorder: '#C7DCD4',
+  neutralBorder: '#DCE6E1',
+  textStrong: '#123E32',
+  textMuted: '#6A847B',
+  dangerSoft: '#FFF1F2',
+  dangerBorder: '#FBCED8',
+  dangerText: '#B42342',
+}
 
 const SKILL_OPTIONS: SkillOption[] = [
   { value: 'weaker', label: 'Cần cố gắng', icon: ArrowDown },
-  { value: 'matched', label: 'Đúng Trình', icon: Check },
+  { value: 'matched', label: 'Đúng trình', icon: Check },
   { value: 'outclass', label: 'Out trình', icon: Trophy },
 ]
 
@@ -102,11 +102,7 @@ const WARNING_TAGS: TagOption[] = [
 ]
 
 function createDefaultEntry(): RatingEntry {
-  return {
-    tags: [],
-    no_show: false,
-    skill_validation: 'matched',
-  }
+  return { tags: [], no_show: false, skill_validation: 'matched' }
 }
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -117,36 +113,41 @@ function animateSelection() {
   LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut)
 }
 
-function getInitials(name: string) {
-  const parts = name
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-
-  if (!parts.length) return '?'
-  return parts.map((part) => part[0]?.toUpperCase() ?? '').join('')
+function getAvatarLetter(name: string) {
+  const first = name.trim().charAt(0)
+  return first ? first.toUpperCase() : 'U'
 }
 
-function chipIconColor(active: boolean, tone: TagOption['tone']) {
-  if (!active) return '#64748b'
-  return tone === 'positive' ? '#047857' : '#e11d48'
-}
-
-function chipClassName(active: boolean, tone: TagOption['tone']) {
-  if (!active) {
-    return 'border border-slate-200 bg-white'
+function chipColors(active: boolean, tone: TagOption['tone']) {
+  if (tone === 'positive') {
+    if (!active) return { border: '#CFE0D9', bg: '#FFFFFF', text: '#1B5A49', icon: '#0A5A45', shadow: '#003D2F' }
+    return { border: '#064E3B', bg: '#064E3B', text: '#FFFFFF', icon: '#FFFFFF', shadow: '#003D2F' }
   }
-
-  return tone === 'positive' ? 'border border-emerald-500 bg-emerald-50' : 'border border-rose-300 bg-rose-50'
+  if (!active) return { border: '#F0C8D4', bg: '#FFFFFF', text: '#9F1239', icon: '#BE123C', shadow: '#4A0E1F' }
+  return { border: '#B42342', bg: '#B42342', text: '#FFFFFF', icon: '#FFFFFF', shadow: '#4A0E1F' }
 }
 
-function chipTextClassName(active: boolean, tone: TagOption['tone']) {
-  if (!active) {
-    return 'text-slate-500'
-  }
-
-  return tone === 'positive' ? 'text-emerald-700' : 'text-rose-600'
+function SectionHeader({ index, title, color }: { index: string; title: string; color: string }) {
+  return (
+    <View style={{ marginBottom: 10, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+      <View
+        style={{
+          borderRadius: 999,
+          borderWidth: 1,
+          borderColor: color,
+          backgroundColor: '#FFFFFFCC',
+          paddingHorizontal: 10,
+          paddingVertical: 5,
+        }}
+      >
+        <Text style={{ fontSize: 10, fontFamily: 'PlusJakartaSans-ExtraBold', color }}>{index}</Text>
+      </View>
+      <Text style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 1.6, fontFamily: 'PlusJakartaSans-ExtraBold', color }}>
+        {title}
+      </Text>
+      <View style={{ height: 1, flex: 1, backgroundColor: '#D7E2DD' }} />
+    </View>
+  )
 }
 
 export default function RateSessionScreen() {
@@ -160,6 +161,7 @@ export default function RateSessionScreen() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [completedCount, setCompletedCount] = useState(0)
   const [alreadyRated, setAlreadyRated] = useState(false)
+  const [dialogConfig, setDialogConfig] = useState<AppDialogConfig | null>(null)
 
   const currentPlayer = players[currentIndex] ?? null
   const currentEntry = currentPlayer ? (ratings[currentPlayer.player_id] ?? createDefaultEntry()) : createDefaultEntry()
@@ -173,7 +175,6 @@ export default function RateSessionScreen() {
       router.replace('/login' as any)
       return
     }
-
     setMyId(user.id)
 
     const { data: session, error: sessionError } = await supabase
@@ -181,9 +182,6 @@ export default function RateSessionScreen() {
       .select(
         `
         id, status, results_status, host_id,
-        slot:slot_id (
-          end_time
-        ),
         session_players (
           player_id,
           player:player_id ( name, self_assessed_level, skill_label )
@@ -195,22 +193,30 @@ export default function RateSessionScreen() {
 
     if (sessionError || !session) {
       setLoading(false)
-      Alert.alert('Không tải được kèo', sessionError?.message ?? 'Vui lòng thử lại sau ít phút.')
+      setDialogConfig({
+        title: 'Không tải được kèo',
+        message: sessionError?.message ?? 'Vui lòng thử lại sau ít phút.',
+        actions: [{ label: 'Đã hiểu' }],
+      })
       return
     }
 
     if (session.status !== 'done') {
-      Alert.alert('Kèo chưa kết thúc', 'Chỉ có thể đánh giá sau khi buổi chơi đã hoàn tất.', [
-        { text: 'Đã hiểu', onPress: () => router.back() },
-      ])
+      setDialogConfig({
+        title: 'Kèo chưa kết thúc',
+        message: 'Chỉ có thể đánh giá sau khi buổi chơi đã hoàn tất.',
+        actions: [{ label: 'Quay lại', onPress: () => router.back() }],
+      })
       return
     }
 
     if (session.results_status !== 'finalized') {
       setLoading(false)
-      Alert.alert('Kết quả trận chưa được chốt', 'Bạn chỉ có thể đánh giá sau khi kết quả trận đã được xác nhận xong.', [
-        { text: 'Đã hiểu', onPress: () => router.back() },
-      ])
+      setDialogConfig({
+        title: 'Kết quả trận chưa được chốt',
+        message: 'Bạn chỉ có thể đánh giá sau khi kết quả trận đã được xác nhận xong.',
+        actions: [{ label: 'Quay lại', onPress: () => router.back() }],
+      })
       return
     }
 
@@ -223,7 +229,6 @@ export default function RateSessionScreen() {
       .eq('rater_id', user.id)
 
     const ratedIds = new Set((existingRatings ?? []).map((item: any) => item.rated_id))
-
     const unratedPlayers = typedSession.session_players
       .filter((item) => item.player_id !== user.id)
       .filter((item) => !ratedIds.has(item.player_id))
@@ -242,7 +247,6 @@ export default function RateSessionScreen() {
     }
 
     setPlayers(unratedPlayers)
-
     const initialRatings: Record<string, RatingEntry> = {}
     unratedPlayers.forEach((player) => {
       initialRatings[player.player_id] = createDefaultEntry()
@@ -260,14 +264,7 @@ export default function RateSessionScreen() {
     setRatings((prev) => {
       const current = prev[playerId] ?? createDefaultEntry()
       const nextTags = current.tags.includes(tag) ? current.tags.filter((item) => item !== tag) : [...current.tags, tag]
-
-      return {
-        ...prev,
-        [playerId]: {
-          ...current,
-          tags: nextTags,
-        },
-      }
+      return { ...prev, [playerId]: { ...current, tags: nextTags } }
     })
   }
 
@@ -276,13 +273,13 @@ export default function RateSessionScreen() {
     setRatings((prev) => {
       const current = prev[playerId] ?? createDefaultEntry()
       const nextNoShow = !current.no_show
-
       return {
         ...prev,
         [playerId]: {
           ...current,
           no_show: nextNoShow,
           tags: nextNoShow ? [] : current.tags,
+          skill_validation: nextNoShow ? 'matched' : current.skill_validation,
         },
       }
     })
@@ -299,39 +296,43 @@ export default function RateSessionScreen() {
     }))
   }
 
-  async function submit() {
+  async function submit(entryOverride?: RatingEntry) {
     if (!myId || !id || !currentPlayer) return
 
     setSaving(true)
-    const entry = ratings[currentPlayer.player_id] ?? createDefaultEntry()
+    const entry = entryOverride ?? ratings[currentPlayer.player_id] ?? createDefaultEntry()
 
     const { error: ratingError } = await supabase.rpc('submit_rating', {
       p_session_id: id,
       p_rated_id: currentPlayer.player_id,
-      p_tags: entry.tags,
+      p_tags: entry.no_show ? [] : entry.tags,
       p_no_show: entry.no_show,
-      p_skill_validation: entry.skill_validation,
+      p_skill_validation: entry.no_show ? 'matched' : entry.skill_validation,
     })
 
     if (ratingError) {
       setSaving(false)
-      Alert.alert('Không gửi được đánh giá', ratingError.message)
+      setDialogConfig({
+        title: 'Không gửi được đánh giá',
+        message: ratingError.message,
+        actions: [{ label: 'Đã hiểu' }],
+      })
       return
     }
 
-    const { error: processError } = await supabase.rpc('process_final_ratings', {
-      p_session_id: id,
-    })
-
+    const { error: processError } = await supabase.rpc('process_final_ratings', { p_session_id: id })
     if (processError) {
       setSaving(false)
-      Alert.alert('Đánh giá đã lưu nhưng chưa xử lý xong', processError.message)
+      setDialogConfig({
+        title: 'Đánh giá đã lưu nhưng chưa xử lý xong',
+        message: processError.message,
+        actions: [{ label: 'Đã hiểu' }],
+      })
       return
     }
 
     const nextCompleted = completedCount + 1
     const hasNext = currentIndex < players.length - 1
-
     if (hasNext) {
       setCompletedCount(nextCompleted)
       setCurrentIndex((prev) => prev + 1)
@@ -340,168 +341,228 @@ export default function RateSessionScreen() {
     }
 
     setSaving(false)
-    Alert.alert(
-      'Đã gửi đánh giá',
-      'Đánh giá của bạn đang ở chế độ ẩn danh và sẽ chỉ hiển thị sau 24 giờ hoặc khi cả hai bên hoàn thành.',
-      [{ text: 'OK', onPress: () => router.replace('/(tabs)' as any) }],
-    )
+    setDialogConfig({
+      title: 'Đã gửi đánh giá',
+      message: 'Đánh giá của bạn đang ở chế độ ẩn danh và sẽ chỉ hiển thị sau 24 giờ hoặc khi cả hai bên hoàn thành.',
+      actions: [{ label: 'Về trang chủ', onPress: () => router.replace('/(tabs)' as any) }],
+    })
+  }
+
+  function handleSkip() {
+    if (saving) return
+    void submit(createDefaultEntry())
   }
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-stone-100" edges={['top']}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: C.pageBg, alignItems: 'center', justifyContent: 'center' }} edges={['top']}>
         <ActivityIndicator size="large" color="#059669" />
       </SafeAreaView>
     )
   }
 
-  if (alreadyRated) {
+  if (alreadyRated || !currentPlayer) {
     return (
-      <SafeAreaView className="flex-1 bg-stone-100" edges={['top']}>
-        <View className="flex-1 px-5 pt-8">
+      <SafeAreaView style={{ flex: 1, backgroundColor: C.pageBg }} edges={['top']}>
+        <View style={{ flex: 1, paddingHorizontal: 20, paddingTop: 24 }}>
           <EmptyState
             icon={<CheckCheck size={28} color="#059669" strokeWidth={ICON_STROKE_WIDTH} />}
-            title="Bạn đã đánh giá rồi"
-            description="Phản hồi của bạn đã được ghi nhận và sẽ mở khi đủ điều kiện double-blind."
+            title={alreadyRated ? 'Bạn đã đánh giá rồi' : 'Đã hoàn tất đánh giá'}
+            description={
+              alreadyRated
+                ? 'Phản hồi của bạn đã được ghi nhận và sẽ mở khi đủ điều kiện double-blind.'
+                : 'Bạn đã gửi xong tất cả đánh giá cho kèo này.'
+            }
           />
-          <View className="pt-6">
-            <Pressable
-              onPress={() => router.replace('/(tabs)' as any)}
-              className="items-center justify-center rounded-[22px] bg-emerald-600 px-5 py-4"
-            >
-              <Text className="text-[15px] font-black text-white">Về trang chủ</Text>
-            </Pressable>
+          <View style={{ paddingTop: 24 }}>
+            <AppButton label="Về trang chủ" onPress={() => router.replace('/(tabs)' as any)} variant="primary" />
           </View>
         </View>
+        <AppDialog visible={Boolean(dialogConfig)} config={dialogConfig} onClose={() => setDialogConfig(null)} />
       </SafeAreaView>
     )
   }
 
-  if (!currentPlayer) {
-    return (
-      <SafeAreaView className="flex-1 bg-stone-100" edges={['top']}>
-        <View className="flex-1 px-5 pt-8">
-          <EmptyState
-            icon={<CheckCheck size={28} color="#059669" strokeWidth={ICON_STROKE_WIDTH} />}
-            title="Đã hoàn tất đánh giá"
-            description="Bạn đã gửi xong tất cả đánh giá cho kèo này."
-          />
-          <View className="pt-6">
-            <Pressable
-              onPress={() => router.replace('/(tabs)' as any)}
-              className="items-center justify-center rounded-[22px] bg-emerald-600 px-5 py-4"
-            >
-              <Text className="text-[15px] font-black text-white">Về trang chủ</Text>
-            </Pressable>
-          </View>
-        </View>
-      </SafeAreaView>
-    )
-  }
-
-  const currentSkill = getSkillLevelFromPlayer(currentPlayer)
-  const skillLabel = getShortSkillLabel(currentSkill)
+  const skillLabel = getShortSkillLabel(getSkillLevelFromPlayer(currentPlayer))
 
   return (
-    <SafeAreaView className="flex-1 bg-stone-100" edges={['top']}>
-      <View className="flex-1">
-        <View
-          className="absolute left-0 right-0 z-20 flex-row items-center justify-between px-5"
-          style={{ top: insets.top + 4 }}
-        >
-          <Pressable
-            onPress={() => router.back()}
-            className="h-10 w-10 items-center justify-center rounded-full bg-white/90"
-          >
-            <X size={20} color="#0f172a" strokeWidth={ICON_STROKE_WIDTH} />
-          </Pressable>
-
-          <View className="rounded-full bg-white/80 px-3 py-1.5">
-            <Text className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">
-              {completedCount + 1}/{players.length}
-            </Text>
-          </View>
-        </View>
+    <SafeAreaView style={{ flex: 1, backgroundColor: C.pageBg }} edges={['top']}>
+      <View style={{ flex: 1 }}>
+        <ScreenHeader
+          variant="brand"
+          title="KINETIC"
+          onBackPress={() => router.back()}
+          rightSlot={
+            <View style={{ borderRadius: 999, backgroundColor: '#FFFFFFCC', paddingHorizontal: 12, paddingVertical: 6 }}>
+              <Text style={{ fontSize: 11, fontFamily: 'PlusJakartaSans-ExtraBold', textTransform: 'uppercase', letterSpacing: 1.6, color: '#6B7280' }}>
+                {completedCount + 1}/{players.length}
+              </Text>
+            </View>
+          }
+        />
 
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{
-            paddingTop: insets.top + 34,
-            paddingBottom: 128 + insets.bottom,
-            paddingHorizontal: 20,
-          }}
+          contentContainerStyle={{ paddingTop: 12, paddingBottom: 148 + insets.bottom, paddingHorizontal: 20 }}
         >
-          <View className="items-center pb-6">
-            <View className="relative">
-              <View className="h-24 w-24 items-center justify-center rounded-[32px] bg-slate-900 shadow-sm">
-                <Text className="text-[30px] font-black text-white">{getInitials(currentPlayer.name)}</Text>
+          <View
+            style={{
+              borderRadius: 30,
+              borderWidth: 1,
+              borderColor: C.primaryBorder,
+              backgroundColor: '#EAF5F1',
+              paddingHorizontal: 18,
+              paddingVertical: 18,
+              marginBottom: 14,
+            }}
+          >
+            <SectionHeader index="01" title="Người được đánh giá" color="#0A5A45" />
+            <View style={{ alignItems: 'center', paddingTop: 4 }}>
+              <View style={{ position: 'relative' }}>
+                <View
+                  style={{
+                    width: 118,
+                    height: 118,
+                    borderRadius: 999,
+                    overflow: 'hidden',
+                    borderWidth: 4,
+                    borderColor: '#B0F0D6',
+                  }}
+                >
+                  <View style={{ flex: 1, backgroundColor: '#CFE8DC', alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ color: '#003527', fontSize: 44, fontFamily: 'PlusJakartaSans-Bold' }}>{getAvatarLetter(currentPlayer.name)}</Text>
+                  </View>
+                </View>
+                <View
+                  style={{
+                    position: 'absolute',
+                    right: -4,
+                    bottom: -4,
+                    width: 32,
+                    height: 32,
+                    borderRadius: 999,
+                    borderWidth: 2,
+                    borderColor: C.pageBg,
+                    backgroundColor: '#A3E635',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Check size={16} color="#14532D" strokeWidth={ICON_STROKE_WIDTH} />
+                </View>
               </View>
-              <View className="absolute -bottom-1 -right-1 h-8 w-8 items-center justify-center rounded-full border-2 border-stone-100 bg-lime-400">
-                <Check size={16} color="#14532d" strokeWidth={ICON_STROKE_WIDTH} />
+
+              <Text style={{ marginTop: 14, textAlign: 'center', fontSize: 26, fontFamily: 'PlusJakartaSans-ExtraBold', color: C.textStrong }}>
+                {currentPlayer.name}
+              </Text>
+
+              <View
+                style={{
+                  marginTop: 10,
+                  borderRadius: 999,
+                  borderWidth: 1,
+                  borderColor: C.primaryBorder,
+                  backgroundColor: C.primarySoft,
+                  paddingHorizontal: 14,
+                  paddingVertical: 8,
+                }}
+              >
+                <Text style={{ fontSize: 13, fontFamily: 'PlusJakartaSans-Bold', color: '#0A5A45' }}>{skillLabel}</Text>
               </View>
-            </View>
-
-            <Text className="mt-4 text-center text-[28px] font-black text-slate-950">{currentPlayer.name}</Text>
-
-            <View className="mt-3 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2">
-              <Text className="text-[13px] font-bold text-emerald-700">{skillLabel}</Text>
             </View>
           </View>
 
-          <View className="rounded-[30px] bg-white px-5 py-5 shadow-sm">
-            <View>
-              <Text className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">Trình độ</Text>
-              <Text className="mt-2 text-[22px] font-black text-slate-950">Bạn thấy bạn ấy thế nào?</Text>
-              <View className="mt-4 flex-row gap-2">
-                {SKILL_OPTIONS.map((option) => {
-                  const active = currentEntry.skill_validation === option.value
-                  const Icon = option.icon
+          <View style={{ borderRadius: 30, borderWidth: 1, borderColor: C.cardBorder, backgroundColor: C.cardBg, paddingHorizontal: 20, paddingVertical: 20, marginBottom: 14 }}>
+            <SectionHeader index="02" title="Trình độ thi đấu" color={C.textStrong} />
+            <Text style={{ marginTop: 2, marginBottom: 10, fontSize: 20, fontFamily: 'PlusJakartaSans-ExtraBold', color: C.textStrong }}>
+              Bạn thấy bạn ấy thế nào?
+            </Text>
 
-                  return (
-                    <Pressable
-                      key={option.value}
-                      onPress={() => setSkillValidation(currentPlayer.player_id, option.value)}
-                      className={`flex-1 rounded-[20px] border px-3 py-3 ${active ? 'border-emerald-600 bg-emerald-600' : 'border-slate-200 bg-white'}`}
-                    >
-                      <View className="items-center">
-                        <Icon
-                          size={17}
-                          color={active ? '#ffffff' : '#22c55e'}
-                          strokeWidth={ICON_STROKE_WIDTH}
-                        />
-                        <Text
-                          className={`mt-2 text-center text-[12px] font-bold leading-4 ${active ? 'text-white' : 'text-slate-500'}`}
-                        >
-                          {option.label}
-                        </Text>
-                      </View>
-                    </Pressable>
-                  )
-                })}
-              </View>
+            <View style={{ marginTop: 12, flexDirection: 'row', gap: 8 }}>
+              {SKILL_OPTIONS.map((option) => {
+                const active = currentEntry.skill_validation === option.value
+                const Icon = option.icon
+                return (
+                  <Pressable
+                    key={option.value}
+                    disabled={currentEntry.no_show}
+                    onPress={() => setSkillValidation(currentPlayer.player_id, option.value)}
+                    style={({ pressed }) => ({
+                      flex: 1,
+                      borderRadius: 20,
+                      borderWidth: 1,
+                      borderColor: active ? C.primary : C.neutralBorder,
+                      backgroundColor: active ? C.primary : C.white,
+                      paddingHorizontal: 10,
+                      paddingVertical: 12,
+                      opacity: currentEntry.no_show ? 0.42 : pressed ? 0.86 : 1,
+                    })}
+                  >
+                    <View style={{ alignItems: 'center' }}>
+                      <Icon size={17} color={active ? '#FFFFFF' : '#22C55E'} strokeWidth={ICON_STROKE_WIDTH} />
+                      <Text
+                        style={{
+                          marginTop: 8,
+                          textAlign: 'center',
+                          fontSize: 12,
+                          lineHeight: 16,
+                          fontFamily: 'PlusJakartaSans-Bold',
+                          color: active ? '#FFFFFF' : '#64748B',
+                        }}
+                      >
+                        {option.label}
+                      </Text>
+                    </View>
+                  </Pressable>
+                )
+              })}
             </View>
+          </View>
 
-            <View className="mt-7">
-              <View className="flex-row items-center">
+          <View style={{ borderRadius: 30, borderWidth: 1, borderColor: C.cardBorder, backgroundColor: C.cardBg, paddingHorizontal: 20, paddingVertical: 20, marginBottom: 14 }}>
+            <SectionHeader index="03" title="Đánh giá chi tiết" color={C.textStrong} />
+
+            <View style={{ marginTop: 4, borderRadius: 22, paddingHorizontal: 14, paddingVertical: 14 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <Heart size={16} color="#059669" strokeWidth={ICON_STROKE_WIDTH} />
-                <Text className="ml-2 text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">
+                <Text style={{ marginLeft: 8, fontSize: 10, fontFamily: 'PlusJakartaSans-ExtraBold', textTransform: 'uppercase', letterSpacing: 1.6, color: C.textMuted }}>
                   Lời khen dành cho người chơi
                 </Text>
               </View>
-
-              <View className="mt-4 flex-row flex-wrap gap-3">
+              <View style={{ marginTop: 12, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
                 {POSITIVE_TAGS.map((tag) => {
                   const active = currentEntry.tags.includes(tag.value)
                   const Icon = tag.icon
-
+                  const colors = chipColors(active, tag.tone)
                   return (
                     <Pressable
                       key={tag.value}
+                      disabled={currentEntry.no_show}
                       onPress={() => toggleTag(currentPlayer.player_id, tag.value)}
-                      className={`flex-row items-center rounded-[18px] px-3.5 py-2.5 ${chipClassName(active, tag.tone)}`}
+                      style={({ pressed }) => ({
+                        width: '48.5%',
+                        minHeight: 92,
+                        borderRadius: 18,
+                        borderWidth: active ? 2 : 1.5,
+                        borderColor: colors.border,
+                        backgroundColor: active ? '#064E3B' : '#FFFFFF',
+                        paddingVertical: 14,
+                        paddingHorizontal: 10,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 6,
+                        overflow: 'hidden',
+                        marginBottom: 10,
+                        shadowColor: colors.shadow,
+                        shadowOpacity: active ? 0.18 : 0.06,
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowRadius: active ? 8 : 4,
+                        elevation: active ? 4 : 2,
+                        opacity: currentEntry.no_show ? 0.42 : pressed ? 0.86 : 1,
+                      })}
                     >
-                      <Icon size={15} color={chipIconColor(active, tag.tone)} strokeWidth={ICON_STROKE_WIDTH} />
-                      <Text className={`ml-2 text-[13px] font-bold ${chipTextClassName(active, tag.tone)}`}>
+                      <Icon size={22} color={colors.icon} strokeWidth={ICON_STROKE_WIDTH} />
+                      <Text style={{ textAlign: 'center', fontSize: 13, lineHeight: 18, fontFamily: 'PlusJakartaSans-Bold', color: colors.text }}>
                         {tag.label}
                       </Text>
                     </Pressable>
@@ -510,27 +571,47 @@ export default function RateSessionScreen() {
               </View>
             </View>
 
-            <View className="mt-8">
-              <View className="flex-row items-center">
-                <ShieldAlert size={16} color="#f43f5e" strokeWidth={ICON_STROKE_WIDTH} />
-                <Text className="ml-2 text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">
-                  Cảnh báo (Chỉ chọn nếu thực sự gặp)
+            <View style={{ marginTop: 12, borderRadius: 22, borderWidth: 1, borderColor: '#F2CDD7', paddingHorizontal: 14, paddingVertical: 14 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <ShieldAlert size={16} color="#F43F5E" strokeWidth={ICON_STROKE_WIDTH} />
+                <Text style={{ marginLeft: 8, fontSize: 10, fontFamily: 'PlusJakartaSans-ExtraBold', textTransform: 'uppercase', letterSpacing: 1.6, color: C.textMuted }}>
+                  Cảnh báo (chỉ chọn nếu thực sự gặp)
                 </Text>
               </View>
-
-              <View className="mt-4 flex-row flex-wrap gap-3">
+              <View style={{ marginTop: 12, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
                 {WARNING_TAGS.map((tag) => {
                   const active = currentEntry.tags.includes(tag.value)
                   const Icon = tag.icon
-
+                  const colors = chipColors(active, tag.tone)
                   return (
                     <Pressable
                       key={tag.value}
+                      disabled={currentEntry.no_show}
                       onPress={() => toggleTag(currentPlayer.player_id, tag.value)}
-                      className={`flex-row items-center rounded-[18px] px-3.5 py-2.5 ${chipClassName(active, tag.tone)}`}
+                      style={({ pressed }) => ({
+                        width: '48.5%',
+                        minHeight: 92,
+                        borderRadius: 18,
+                        borderWidth: active ? 2 : 1.5,
+                        borderColor: colors.border,
+                        backgroundColor: active ? '#B42342' : '#FFFFFF',
+                        paddingVertical: 14,
+                        paddingHorizontal: 10,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 6,
+                        overflow: 'hidden',
+                        marginBottom: 10,
+                        shadowColor: colors.shadow,
+                        shadowOpacity: active ? 0.18 : 0.08,
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowRadius: active ? 8 : 4,
+                        elevation: active ? 4 : 2,
+                        opacity: currentEntry.no_show ? 0.42 : pressed ? 0.86 : 1,
+                      })}
                     >
-                      <Icon size={15} color={chipIconColor(active, tag.tone)} strokeWidth={ICON_STROKE_WIDTH} />
-                      <Text className={`ml-2 text-[13px] font-bold ${chipTextClassName(active, tag.tone)}`}>
+                      <Icon size={22} color={colors.icon} strokeWidth={ICON_STROKE_WIDTH} />
+                      <Text style={{ textAlign: 'center', fontSize: 13, lineHeight: 18, fontFamily: 'PlusJakartaSans-Bold', color: colors.text }}>
                         {tag.label}
                       </Text>
                     </Pressable>
@@ -538,39 +619,47 @@ export default function RateSessionScreen() {
                 })}
               </View>
             </View>
+          </View>
 
+          <View style={{ borderRadius: 30, borderWidth: 1, borderColor: C.cardBorder, backgroundColor: C.cardBg, paddingHorizontal: 20, paddingVertical: 20 }}>
+            <SectionHeader index="04" title="Báo cáo no-show" color={C.dangerText} />
             <Pressable
               onPress={() => toggleNoShow(currentPlayer.player_id)}
-              className={`mt-8 flex-row items-center justify-center rounded-[22px] px-4 py-4 ${
-                currentEntry.no_show ? 'bg-rose-600' : 'bg-rose-50'
-              }`}
+              style={{
+                marginTop: 4,
+                borderRadius: 22,
+                borderWidth: 1,
+                borderColor: currentEntry.no_show ? C.dangerText : C.dangerBorder,
+                backgroundColor: currentEntry.no_show ? C.dangerText : C.dangerSoft,
+                paddingHorizontal: 16,
+                paddingVertical: 14,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
             >
-              <ShieldAlert
-                size={17}
-                color={currentEntry.no_show ? '#ffffff' : '#e11d48'}
-                strokeWidth={ICON_STROKE_WIDTH}
-              />
-              <Text className={`ml-2 text-[14px] font-black ${currentEntry.no_show ? 'text-white' : 'text-rose-600'}`}>
-                {currentEntry.no_show ? 'Đã báo no-show' : 'Báo No-show'}
+              <ShieldAlert size={17} color={currentEntry.no_show ? '#FFFFFF' : '#E11D48'} strokeWidth={ICON_STROKE_WIDTH} />
+              <Text style={{ marginLeft: 8, fontSize: 14, fontFamily: 'PlusJakartaSans-ExtraBold', color: currentEntry.no_show ? '#FFFFFF' : '#E11D48' }}>
+                {currentEntry.no_show ? 'Đã báo no-show' : 'Báo no-show'}
               </Text>
             </Pressable>
 
             {currentEntry.no_show ? (
-              <View className="mt-4 rounded-[22px] border border-rose-200 bg-rose-50 px-4 py-4">
-                <Text className="text-[14px] leading-6 text-rose-700">
-                  Người chơi này sẽ bị ghi nhận no-show. Hệ thống sẽ áp dụng mức trừ độ tin cậy mạnh hơn và bỏ qua các tag khác.
+              <View style={{ marginTop: 12, borderRadius: 22, borderWidth: 1, borderColor: C.dangerBorder, backgroundColor: C.dangerSoft, paddingHorizontal: 14, paddingVertical: 12 }}>
+                <Text style={{ fontSize: 14, lineHeight: 22, fontFamily: 'PlusJakartaSans-Regular', color: '#BE123C' }}>
+                  Người chơi này sẽ bị ghi nhận no-show. Các đánh giá trình độ và tag khác đã được khóa.
                 </Text>
               </View>
             ) : null}
 
-            <View className="mt-5 rounded-[24px] border border-indigo-100 bg-indigo-50 px-4 py-4">
-              <View className="flex-row items-start">
-                <View className="mt-0.5">
-                  <ShieldCheck size={18} color="#4f46e5" strokeWidth={ICON_STROKE_WIDTH} />
+            <View style={{ marginTop: 12, borderRadius: 24, borderWidth: 1, borderColor: C.primaryBorder, backgroundColor: C.primarySoft, paddingHorizontal: 14, paddingVertical: 12 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+                <View style={{ marginTop: 2 }}>
+                  <ShieldCheck size={18} color={C.primary} strokeWidth={ICON_STROKE_WIDTH} />
                 </View>
-                <View className="ml-3 flex-1">
-                  <Text className="text-[14px] font-black text-slate-900">Đánh giá ẩn danh</Text>
-                  <Text className="mt-1 text-[13px] leading-5 text-slate-600">
+                <View style={{ marginLeft: 10, flex: 1 }}>
+                  <Text style={{ fontSize: 14, fontFamily: 'PlusJakartaSans-ExtraBold', color: '#0F172A' }}>Đánh giá ẩn danh</Text>
+                  <Text style={{ marginTop: 4, fontSize: 13, lineHeight: 20, fontFamily: 'PlusJakartaSans-Regular', color: '#475569' }}>
                     Phản hồi của bạn sẽ chỉ hiển thị sau 24 giờ hoặc khi cả hai bên hoàn thành đánh giá.
                   </Text>
                 </View>
@@ -579,33 +668,19 @@ export default function RateSessionScreen() {
           </View>
         </ScrollView>
 
-        <View
-          className="border-t border-slate-200 bg-white px-5"
-          style={{ paddingTop: 10, paddingBottom: Math.max(insets.bottom, 10) }}
-        >
-          <View className="flex-row items-center justify-between">
-            <View className="mr-4 flex-1">
-              <Text className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">
-                Bạn đang đánh giá
-              </Text>
-              <Text className="mt-1.5 text-[28px] font-black leading-[30px] text-slate-950">{currentPlayer.name}</Text>
+        <View style={{ borderTopWidth: 1, borderTopColor: '#E2E8F0', backgroundColor: '#FFFFFF', paddingHorizontal: 20, paddingTop: 10, paddingBottom: Math.max(insets.bottom, 10) }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <View style={{ flex: 1 }}>
+              <AppButton label="Bỏ qua" onPress={handleSkip} disabled={saving} variant="secondary" />
             </View>
-
-            <Pressable
-              onPress={submit}
-              disabled={saving}
-              className={`min-w-[160px] flex-row items-center justify-center rounded-[22px] px-5 py-4 ${
-                saving ? 'bg-emerald-500/70' : 'bg-emerald-600'
-              }`}
-            >
-              <Text className="text-[14px] font-black uppercase tracking-[0.03em] text-white">
-                {saving ? 'Đang gửi' : 'Gửi đánh giá'}
-              </Text>
-              <ArrowRight size={18} color="#ffffff" strokeWidth={ICON_STROKE_WIDTH} style={{ marginLeft: 8 }} />
-            </Pressable>
+            <View style={{ flex: 1 }}>
+              <AppButton label={saving ? 'Đang gửi' : 'Gửi đánh giá'} onPress={() => void submit()} loading={saving} variant="primary" />
+            </View>
           </View>
         </View>
       </View>
+
+      <AppDialog visible={Boolean(dialogConfig)} config={dialogConfig} onClose={() => setDialogConfig(null)} />
     </SafeAreaView>
   )
 }

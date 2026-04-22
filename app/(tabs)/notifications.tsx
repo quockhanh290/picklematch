@@ -93,6 +93,14 @@ function typeMeta(type: string): {
       indicator: PROFILE_THEME_COLORS.primary,
     }
   }
+  if (type === 'result_confirmation_request') {
+    return {
+      icon: CheckCircle2,
+      iconColor: PROFILE_THEME_COLORS.primary,
+      iconBackground: PROFILE_THEME_COLORS.secondaryContainer,
+      indicator: PROFILE_THEME_COLORS.primary,
+    }
+  }
 
   return {
     icon: Info,
