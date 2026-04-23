@@ -1,33 +1,22 @@
-import { EmptyState, ScreenHeader, StatusBadge } from '@/components/design'
+import { AppButton, EmptyState, ScreenHeader } from '@/components/design'
 import type { FeedbackTrait } from '@/components/profile/CommunityFeedbackSection'
 import CommunityFeedbackPanel from '@/components/profile/CommunityFeedbackSection'
-import {
-    PROFILE_SKILL_HERO_TONE,
-    ProfileHistoryList,
-    ProfileIdentityCard,
-    ProfileSkillHero,
-    ProfileStatsGrid,
-} from '@/components/profile/ProfileSections'
-import { calculateReliabilityScore, FEEDBACK_META } from '@/lib/profileData'
+import { ProfileHistoryList, ProfileSkillHero, ProfileWinStreak } from '@/components/profile/ProfileSections'
+import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { FEEDBACK_META, calculateReliabilityScore } from '@/lib/profileData'
 import { getSkillLevelFromElo, getSkillLevelFromPlayer } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
-import { router, useLocalSearchParams } from 'expo-router'
-import {
-    CalendarDays,
-    CircleAlert,
-    ClipboardList,
-    MapPin
-} from 'lucide-react-native'
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native'
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
+import { CalendarDays, CircleAlert, MapPin, Swords } from 'lucide-react-native'
+import { useCallback, useMemo, useState } from 'react'
+import { ActivityIndicator, ScrollView, Text, View, useWindowDimensions } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-
 
 type Player = {
   id: string
   name: string
-  city: string
-  skill_label: string
+  city: string | null
+  skill_label: string | null
   elo: number
   current_elo?: number | null
   self_assessed_level?: string | null
@@ -36,7 +25,12 @@ type Player = {
   sessions_joined: number
   no_show_count: number
   created_at: string
-  favorite_court_ids: string[]
+  favorite_court_ids: string[] | null
+}
+
+type PlayerStats = {
+  current_win_streak?: number | null
+  streak_fire_active?: boolean | null
 }
 
 type SessionHistory = {
@@ -51,15 +45,34 @@ type SessionHistory = {
 
 type Court = { id: string; name: string; city: string }
 
+function ProfileSectionDivider({ index, title }: { index: string; title: string }) {
+  return (
+    <View className="mb-6 flex-row items-center gap-4">
+      <Text
+        className="text-[11px] uppercase tracking-[4px]"
+        style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-Bold' }}
+      >
+        {index} / {title}
+      </Text>
+      <View className="h-px flex-1" style={{ backgroundColor: PROFILE_THEME_COLORS.outlineVariant }} />
+    </View>
+  )
+}
+
 export default function PlayerProfile() {
   const { id } = useLocalSearchParams<{ id: string }>()
+  const { width } = useWindowDimensions()
+
   const [player, setPlayer] = useState<Player | null>(null)
+  const [playerStats, setPlayerStats] = useState<PlayerStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [ratingTags, setRatingTags] = useState<Record<string, number>>({})
   const [history, setHistory] = useState<SessionHistory[]>([])
   const [hostedSessionsCount, setHostedSessionsCount] = useState(0)
   const [favCourts, setFavCourts] = useState<Court[]>([])
   const [isMe, setIsMe] = useState(false)
+  const [nameFitsOneLine, setNameFitsOneLine] = useState<boolean | null>(null)
+  const [nameMeasureWidth, setNameMeasureWidth] = useState(0)
 
   const fetchRatingTags = useCallback(async (playerId: string) => {
     const nowIso = new Date().toISOString()
@@ -69,15 +82,15 @@ export default function PlayerProfile() {
       .eq('rated_id', playerId)
       .or(`is_hidden.eq.false,reveal_at.lte.${nowIso}`)
 
-    if (data) {
-      const counts: Record<string, number> = {}
-      data.forEach((rating: any) => {
-        rating.tags?.forEach((tag: string) => {
-          counts[tag] = (counts[tag] ?? 0) + 1
-        })
+    if (!data) return
+
+    const counts: Record<string, number> = {}
+    data.forEach((rating: any) => {
+      rating.tags?.forEach((tag: string) => {
+        counts[tag] = (counts[tag] ?? 0) + 1
       })
-      setRatingTags(counts)
-    }
+    })
+    setRatingTags(counts)
   }, [])
 
   const fetchHistory = useCallback(async (playerId: string) => {
@@ -95,24 +108,34 @@ export default function PlayerProfile() {
       `,
       )
       .eq('player_id', playerId)
-      .limit(8)
+      .limit(5)
 
-    if (data) {
-      setHistory(
-        data
-          .map((item: any) => ({
-            id: item.session.id,
-            status: item.session.status,
-            is_host: item.session.host_id === playerId,
-            slot: item.session.slot,
-          }))
-          .sort((a: SessionHistory, b: SessionHistory) => new Date(b.slot.start_time).getTime() - new Date(a.slot.start_time).getTime()),
-      )
+    if (!data) {
+      setHistory([])
+      return
     }
+
+    setHistory(
+      data
+        .map((item: any) => ({
+          id: item.session.id,
+          status: item.session.status,
+          is_host: item.session.host_id === playerId,
+          slot: item.session.slot,
+        }))
+        .sort(
+          (a: SessionHistory, b: SessionHistory) =>
+            new Date(b.slot.start_time).getTime() - new Date(a.slot.start_time).getTime(),
+        )
+        .slice(0, 5),
+    )
   }, [])
 
   const fetchFavCourts = useCallback(async (ids: string[]) => {
-    if (!ids.length) return
+    if (!ids.length) {
+      setFavCourts([])
+      return
+    }
     const { data } = await supabase.from('courts').select('id, name, city').in('id', ids)
     setFavCourts(data ?? [])
   }, [])
@@ -132,58 +155,63 @@ export default function PlayerProfile() {
   }, [])
 
   const fetchAll = useCallback(async () => {
+    if (!id) {
+      setLoading(false)
+      return
+    }
+
     setLoading(true)
     const {
       data: { user },
     } = await supabase.auth.getUser()
     setIsMe(user?.id === id)
 
-    const { data } = await supabase
-      .from('players')
-      .select(
-        'id, name, city, skill_label, self_assessed_level, elo, current_elo, is_provisional, placement_matches_played, sessions_joined, no_show_count, created_at, favorite_court_ids',
-      )
-      .eq('id', id)
-      .single()
+    const [{ data: playerData }, { data: statsData }] = await Promise.all([
+      supabase
+        .from('players')
+        .select(
+          'id, name, city, skill_label, self_assessed_level, elo, current_elo, is_provisional, placement_matches_played, sessions_joined, no_show_count, created_at, favorite_court_ids',
+        )
+        .eq('id', id)
+        .single(),
+      supabase.from('player_stats').select('current_win_streak, streak_fire_active').eq('player_id', id).maybeSingle(),
+    ])
 
-    if (data) {
-      setPlayer(data)
-      await Promise.all([
-        fetchRatingTags(data.id),
-        fetchHistory(data.id),
-        fetchHostedSessionsCount(data.id),
-        fetchFavCourts(data.favorite_court_ids ?? []),
-      ])
+    if (!playerData) {
+      setPlayer(null)
+      setPlayerStats(null)
+      setHistory([])
+      setFavCourts([])
+      setRatingTags({})
+      setHostedSessionsCount(0)
+      setLoading(false)
+      return
     }
+
+    setPlayer(playerData)
+    setPlayerStats(statsData ?? null)
+
+    await Promise.all([
+      fetchRatingTags(playerData.id),
+      fetchHistory(playerData.id),
+      fetchHostedSessionsCount(playerData.id),
+      fetchFavCourts(playerData.favorite_court_ids ?? []),
+    ])
+
     setLoading(false)
   }, [fetchFavCourts, fetchHistory, fetchHostedSessionsCount, fetchRatingTags, id])
 
-  useEffect(() => {
-    fetchAll()
-  }, [fetchAll])
-
-  function reliabilityValueClass(score: number | null) {
-    if (score === null) return 'text-slate-700'
-    if (score >= 90) return 'text-emerald-700'
-    if (score >= 70) return 'text-amber-600'
-    return 'text-rose-600'
-  }
-
-  function formatTime(start: string) {
-    const date = new Date(start)
-    const weekday = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][date.getDay()]
-    const day = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}`
-    const hh = date.getHours().toString().padStart(2, '0')
-    const mm = date.getMinutes().toString().padStart(2, '0')
-    return `${weekday} ${day} · ${hh}:${mm}`
-  }
+  useFocusEffect(
+    useCallback(() => {
+      void fetchAll()
+    }, [fetchAll]),
+  )
 
   const communityTraits = useMemo<FeedbackTrait[]>(() => {
     return Object.entries(ratingTags)
       .map(([key, count]) => {
         const meta = FEEDBACK_META[key]
         if (!meta) return null
-
         return {
           key,
           icon: meta.icon,
@@ -204,15 +232,15 @@ export default function PlayerProfile() {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-stone-100" edges={['top']}>
-        <ActivityIndicator size="large" color="#16a34a" />
+      <SafeAreaView className="flex-1 items-center justify-center" style={{ backgroundColor: PROFILE_THEME_COLORS.background }} edges={['top']}>
+        <ActivityIndicator size="large" color={PROFILE_THEME_COLORS.primary} />
       </SafeAreaView>
     )
   }
 
   if (!player) {
     return (
-      <SafeAreaView className="flex-1 bg-stone-100" edges={['top']}>
+      <SafeAreaView className="flex-1" style={{ backgroundColor: PROFILE_THEME_COLORS.background }} edges={['top']}>
         <EmptyState
           icon={<CircleAlert size={28} color="#64748b" />}
           title="Không tìm thấy người chơi"
@@ -223,95 +251,310 @@ export default function PlayerProfile() {
   }
 
   const reliability = calculateReliabilityScore(player.sessions_joined, player.no_show_count)
-  const hostedCount = hostedSessionsCount
   const effectiveElo = player.current_elo ?? player.elo
   const calibratedSkill = getSkillLevelFromElo(effectiveElo)
   const fallbackSkill = getSkillLevelFromPlayer(player)
   const skill = calibratedSkill ?? fallbackSkill
+  const placementPlayed = player.placement_matches_played ?? 0
+  const currentWinStreak = playerStats?.current_win_streak ?? 0
+  const streakActive = playerStats?.streak_fire_active ?? currentWinStreak > 0
+  const nameParts = (player.name || '').trim().split(/\s+/).filter(Boolean)
+  const headlineMainName = nameParts.length > 1 ? nameParts.slice(0, -1).join(' ') : player.name
+  const headlineSubName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : ''
+  const joinedYear = player.created_at ? new Date(player.created_at).getFullYear() : null
+  const editorialNameSize = width < 360 ? 42 : width < 420 ? 50 : 58
+  const editorialNameLineHeight = width < 360 ? 52 : width < 420 ? 62 : 72
+  const shouldUseSplitEditorialName = Boolean(headlineSubName) && nameFitsOneLine === false
+
+  function formatTime(start: string) {
+    const date = new Date(start)
+    const weekday = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][date.getDay()]
+    const day = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}`
+    const hh = date.getHours().toString().padStart(2, '0')
+    const mm = date.getMinutes().toString().padStart(2, '0')
+    return `${weekday} ${day} · ${hh}:${mm}`
+  }
 
   return (
-    <SafeAreaView className="flex-1 bg-stone-100" edges={['top']}>
-      <ScrollView stickyHeaderIndices={[0]} contentContainerStyle={{ paddingBottom: 48 }}>
+    <SafeAreaView className="flex-1" style={{ backgroundColor: PROFILE_THEME_COLORS.background }} edges={['top']}>
+      <ScrollView stickyHeaderIndices={[0]} contentContainerStyle={{ paddingBottom: 72 }}>
         <ScreenHeader
-          eyebrow="Hồ sơ công khai"
-          title={player.name}
-          subtitle="Phong cách chơi, độ tin cậy và nhịp tham gia kèo của người chơi này."
-          rightSlot={isMe ? <StatusBadge label="Đây là bạn" tone="info" /> : null}
+          variant="brand"
+          title="KINETIC"
+          subtitle="Hồ sơ công khai"
+          rightSlot={
+            <View
+              className="h-10 w-10 items-center justify-center rounded-full border-2"
+              style={{ borderColor: PROFILE_THEME_COLORS.primaryFixed, backgroundColor: PROFILE_THEME_COLORS.primary }}
+            >
+              <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-Bold' }}>
+                {player.name?.charAt(0).toUpperCase() ?? 'U'}
+              </Text>
+            </View>
+          }
+          style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow }}
         />
 
-        <View className="px-5">
-          <ProfileIdentityCard
-            name={player.name}
-            city={player.city}
-            joinedAt={player.created_at}
-            isProvisional={Boolean(player.is_provisional)}
-            placementMatchesPlayed={player.placement_matches_played}
-            actions={isMe ? [{ label: 'Sửa hồ sơ', icon: 'edit', onPress: () => router.push('/edit-profile' as any) }] : []}
-          />
+        <View className="px-6 pt-6">
+          <View>
+            <View
+              style={{ paddingTop: 6, paddingBottom: 4 }}
+              onLayout={(event) => {
+                const measuredWidth = event.nativeEvent.layout.width
+                if (Math.abs(measuredWidth - nameMeasureWidth) > 1) {
+                  setNameMeasureWidth(measuredWidth)
+                }
+              }}
+            >
+              {nameMeasureWidth > 0 ? (
+                <Text
+                  onTextLayout={(event) => {
+                    const nextFits = event.nativeEvent.lines.length <= 1
+                    if (nextFits !== nameFitsOneLine) setNameFitsOneLine(nextFits)
+                  }}
+                  style={{
+                    position: 'absolute',
+                    opacity: 0,
+                    left: 0,
+                    right: 0,
+                    color: PROFILE_THEME_COLORS.primary,
+                    fontFamily: 'PlusJakartaSans-ExtraBold',
+                    fontSize: editorialNameSize,
+                    lineHeight: editorialNameLineHeight,
+                    letterSpacing: -2,
+                  }}
+                >
+                  {player.name}
+                </Text>
+              ) : null}
 
-          <ProfileSkillHero
-            elo={effectiveElo}
-            title={skill.title}
-            subtitle={skill.subtitle}
-            description={skill.description}
-            levelId={skill.id}
-            colors={PROFILE_SKILL_HERO_TONE}
-          />
+              {shouldUseSplitEditorialName ? (
+                <>
+                  <Text
+                    style={{
+                      color: PROFILE_THEME_COLORS.primary,
+                      fontFamily: 'PlusJakartaSans-ExtraBold',
+                      fontSize: editorialNameSize,
+                      lineHeight: editorialNameLineHeight,
+                      letterSpacing: -2,
+                    }}
+                  >
+                    {headlineMainName}
+                  </Text>
+                  <Text
+                    style={{
+                      color: PROFILE_THEME_COLORS.outlineVariant,
+                      opacity: 0.55,
+                      fontFamily: 'PlusJakartaSans-ExtraBoldItalic',
+                      fontSize: editorialNameSize,
+                      lineHeight: editorialNameLineHeight,
+                      letterSpacing: -2,
+                      marginTop: -4,
+                    }}
+                  >
+                    {headlineSubName}
+                  </Text>
+                </>
+              ) : (
+                <Text
+                  style={{
+                    color: PROFILE_THEME_COLORS.primary,
+                    fontFamily: 'PlusJakartaSans-ExtraBold',
+                    fontSize: editorialNameSize,
+                    lineHeight: editorialNameLineHeight,
+                    letterSpacing: -2,
+                  }}
+                >
+                  {player.name}
+                </Text>
+              )}
+            </View>
 
-          <ProfileStatsGrid
-            reliability={reliability === null ? 'Mới' : `${reliability}%`}
-            reliabilityToneClass={reliabilityValueClass(reliability)}
-            reliabilityDescription="Dựa trên số trận đã chơi, tỷ lệ no-show và cách người này hoàn tất các kèo đã tham gia."
-            played={player.sessions_joined ?? 0}
-            hosted={hostedCount}
-          />
+            <View className="mt-3 flex-row flex-wrap items-center gap-3">
+              <Text
+                className="rounded-full px-4 py-1 text-[10px] uppercase tracking-[2px]"
+                style={{
+                  color: PROFILE_THEME_COLORS.onPrimaryFixed,
+                  backgroundColor: PROFILE_THEME_COLORS.primaryFixed,
+                  fontFamily: 'PlusJakartaSans-Bold',
+                }}
+              >
+                {player.is_provisional ? `${placementPlayed}/5 placement` : 'Verified Player'}
+              </Text>
+              {player.city ? (
+                <Text className="text-sm" style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: 'PlusJakartaSans-Bold' }}>
+                  {player.city}
+                </Text>
+              ) : null}
+              <Text className="text-sm" style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: 'PlusJakartaSans-Bold' }}>
+                Thành viên từ {joinedYear ?? 'N/A'}
+              </Text>
+            </View>
 
-          {favCourts.length > 0 ? (
-            <View className="mt-6 rounded-[24px] border border-slate-200 bg-white p-5">
-              <Text className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Sân ưa thích</Text>
-              <Text className="mt-2 text-2xl font-black text-slate-900">Sân hay chơi</Text>
-              <View className="mt-4 gap-3">
-                {favCourts.map((court) => (
-                  <View key={court.id} className="rounded-[20px] bg-slate-50 p-4">
-                    <Text className="text-sm font-extrabold text-slate-900">{court.name}</Text>
-                    <View className="mt-2 flex-row items-center">
-                      <MapPin size={12} color="#94a3b8" />
-                      <Text className="ml-1 text-xs font-semibold text-slate-500">{court.city}</Text>
-                    </View>
-                  </View>
-                ))}
+            <View className="mt-3">
+              <Text
+                className="self-start rounded-full px-4 py-1 text-[10px] uppercase tracking-[2px]"
+                style={{
+                  color: PROFILE_THEME_COLORS.onPrimaryContainer,
+                  backgroundColor: PROFILE_THEME_COLORS.primaryContainer,
+                  fontFamily: 'PlusJakartaSans-Bold',
+                }}
+              >
+                Độ tin cậy · {reliability === null ? '--' : `${reliability}%`}
+              </Text>
+            </View>
+
+            <Text
+              className="mt-4 text-base leading-7"
+              style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Regular' }}
+            >
+              Hồ sơ công khai hiển thị phong cách thi đấu, độ ổn định và nhịp tham gia kèo của người chơi này.
+            </Text>
+
+            <View className="mt-4">
+              <ProfileSkillHero
+                elo={effectiveElo}
+                title={skill?.title ?? 'Đang hiệu chỉnh'}
+                subtitle={
+                  skill?.subtitle ??
+                  'Mức khởi điểm hiện tại. Hệ thống sẽ tiếp tục tinh chỉnh sau vài trận.'
+                }
+                description={
+                  skill?.description ??
+                  'Hệ thống đang dùng Elo và tín hiệu sau trận để tinh chỉnh nhịp ghép kèo phù hợp hơn.'
+                }
+                levelId={skill?.id}
+                colors={{
+                  gradientStart: PROFILE_THEME_COLORS.primary,
+                  gradientEnd: PROFILE_THEME_COLORS.surfaceTint,
+                  bubble: 'rgba(255,255,255,0.14)',
+                  watermark: 'rgba(255,255,255,0.14)',
+                  eloChipBg: PROFILE_THEME_COLORS.primaryFixed,
+                  eloChipText: PROFILE_THEME_COLORS.onPrimaryFixed,
+                  title: PROFILE_THEME_COLORS.onPrimary,
+                  description: PROFILE_THEME_COLORS.inverseOnSurface,
+                }}
+                contentRightInset={16}
+              />
+            </View>
+          </View>
+
+          <View className="mb-10 gap-4">
+            <ProfileSectionDivider index="01" title="TỔNG QUAN" />
+            <View className="flex-row justify-between gap-4">
+              <View className="flex-1 rounded-[24px] p-4" style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow }}>
+                <Swords size={22} color={PROFILE_THEME_COLORS.primary} />
+                <Text className="mt-4 text-[28px]" style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: 'PlusJakartaSans-Bold' }}>
+                  {player.sessions_joined ?? 0}
+                </Text>
+                <Text
+                  className="mt-1 text-[12px] uppercase tracking-[2px]"
+                  style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-Bold' }}
+                >
+                  Trận đấu
+                </Text>
+              </View>
+
+              <View className="flex-1 rounded-[24px] p-4" style={{ backgroundColor: PROFILE_THEME_COLORS.secondaryContainer }}>
+                <CalendarDays size={22} color={PROFILE_THEME_COLORS.surfaceTint} />
+                <Text className="mt-4 text-[28px]" style={{ color: PROFILE_THEME_COLORS.surfaceTint, fontFamily: 'PlusJakartaSans-Bold' }}>
+                  {hostedSessionsCount}
+                </Text>
+                <Text
+                  className="mt-1 text-[12px] uppercase tracking-[2px]"
+                  style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Bold' }}
+                >
+                  Đã host
+                </Text>
               </View>
             </View>
-          ) : null}
+          </View>
 
-          <View className="mt-6">
+          <ProfileWinStreak current={currentWinStreak} active={streakActive} />
+
+          <View className="mt-0 mb-6">
+            <ProfileSectionDivider index="02" title="CỘNG ĐỒNG" />
             {communityTraits.length > 0 ? (
-              <CommunityFeedbackPanel eyebrow="Điểm nổi bật" title="Đánh giá từ cộng đồng" traits={communityTraits} />
+              <CommunityFeedbackPanel title="" traits={communityTraits} flushBottom />
             ) : (
               <EmptyState
-                icon={<ClipboardList size={28} color="#64748b" />}
+                icon={<CircleAlert size={28} color="#64748b" />}
                 title="Chưa có đánh giá nào"
                 description="Sau khi chơi thêm vài kèo, phản hồi từ cộng đồng sẽ xuất hiện ở đây."
               />
             )}
           </View>
 
-          {history.length === 0 ? (
-            <View className="mt-4">
+          <View className="mb-6">
+            <ProfileSectionDivider index="03" title="SÂN QUEN" />
+            {favCourts.length > 0 ? (
+              <View className="gap-3">
+                {favCourts.map((court) => (
+                  <View
+                    key={court.id}
+                    className="rounded-[20px] p-4"
+                    style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest }}
+                  >
+                    <Text style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: 'PlusJakartaSans-Bold', fontSize: 16 }}>
+                      {court.name}
+                    </Text>
+                    <View className="mt-2 flex-row items-center">
+                      <MapPin size={12} color={PROFILE_THEME_COLORS.outline} />
+                      <Text className="ml-1" style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-Regular', fontSize: 12 }}>
+                        {court.city}
+                      </Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            ) : (
+              <EmptyState
+                icon={<MapPin size={28} color="#64748b" />}
+                title="Chưa có sân thường chơi"
+                description="Thông tin sân quen sẽ xuất hiện ở đây khi người chơi lưu sân yêu thích."
+              />
+            )}
+          </View>
+
+          <View>
+            <ProfileSectionDivider index="04" title="LỊCH SỬ" />
+            {history.length > 0 ? (
+              <ProfileHistoryList
+                title="Lịch sử trận đấu"
+                subtitle="Nhịp trận gần nhất của người chơi này"
+                items={history}
+                formatTime={formatTime}
+                hideHeader
+                flushBottom
+              />
+            ) : (
               <EmptyState
                 icon={<CalendarDays size={28} color="#64748b" />}
                 title="Chưa tham gia kèo nào"
                 description="Khi người chơi tham gia hoặc host kèo, lịch sử sẽ hiện ở đây."
               />
+            )}
+          </View>
+
+          {isMe ? (
+            <View className="mt-8">
+              <View
+                style={{ backgroundColor: PROFILE_THEME_COLORS.secondaryFixed }}
+                className="rounded-full px-5 py-3 items-center"
+              >
+                <Text style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: 'PlusJakartaSans-Bold' }}>
+                  Bạn đang xem hồ sơ công khai của chính mình
+                </Text>
+              </View>
+              <View className="mt-3">
+                <AppButton
+                  label="Về hồ sơ cá nhân"
+                  onPress={() => router.replace('/(tabs)/profile' as any)}
+                  variant="secondary"
+                />
+              </View>
             </View>
-          ) : (
-            <ProfileHistoryList
-              title="Lịch sử kèo"
-              subtitle="Danh sách kèo gần nhất để bạn hình dung nhịp chơi và tần suất xuất hiện của người này."
-              items={history}
-              formatTime={formatTime}
-            />
-          )}
+          ) : null}
         </View>
       </ScrollView>
     </SafeAreaView>

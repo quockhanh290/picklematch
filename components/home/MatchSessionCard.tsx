@@ -2,6 +2,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
 import type { LucideIcon } from 'lucide-react-native'
 import { AlertCircle, CalendarDays, DollarSign, MapPin, ShieldCheck, Star, Trophy } from 'lucide-react-native'
+import type { GestureResponderEvent } from 'react-native'
 import { Pressable, Text, View } from 'react-native'
 
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
@@ -9,6 +10,12 @@ import type { MatchSession } from '@/lib/homeFeed'
 import { getSkillLevelUi } from '@/lib/skillLevelUi'
 
 export const SMART_MATCH_CARD_HEIGHT = 380
+
+function openPlayerProfile(playerId?: string, event?: GestureResponderEvent) {
+  event?.stopPropagation()
+  if (!playerId) return
+  router.push({ pathname: '/player/[id]' as never, params: { id: playerId } })
+}
 
 function hexToRgb(hex: string) {
   const clean = hex.replace('#', '')
@@ -272,7 +279,8 @@ function HeroMatchSessionCard({ item, actionLabel }: { item: MatchSession; actio
         <View className="mt-4 rounded-[24px] p-3.5" style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow }}>
           <View className="flex-row items-center justify-between">
             <View className="mr-3 flex-1 flex-row items-center">
-              <View
+              <Pressable
+                onPress={(event) => openPlayerProfile(item.host.id, event)}
                 className="mr-3 h-11 w-11 items-center justify-center rounded-full"
                 style={{
                   backgroundColor: PROFILE_THEME_COLORS.primary,
@@ -289,7 +297,7 @@ function HeroMatchSessionCard({ item, actionLabel }: { item: MatchSession; actio
                 >
                   {item.host.initials}
                 </Text>
-              </View>
+              </Pressable>
 
               <View className="flex-1">
                 <View className="flex-row items-center gap-2">
@@ -367,8 +375,9 @@ function HeroMatchSessionCard({ item, actionLabel }: { item: MatchSession; actio
           <View className="mt-3 flex-row items-center justify-between gap-3">
             <View className="flex-1 flex-row items-center">
               {heroVisiblePlayers.map((player, index) => (
-                <View
+                <Pressable
                   key={player.id}
+                  onPress={(event) => openPlayerProfile(player.id, event)}
                   className={`h-8 w-8 items-center justify-center rounded-full ${index === 0 ? '' : '-ml-2.5'}`}
                   style={{
                     position: 'relative',
@@ -387,7 +396,7 @@ function HeroMatchSessionCard({ item, actionLabel }: { item: MatchSession; actio
                   >
                     {player.initials}
                   </Text>
-                </View>
+                </Pressable>
               ))}
 
               {Array.from({ length: heroEmptySlots }).map((_, index) => (
@@ -663,7 +672,8 @@ function SessionListCard({
       >
 <View className="flex-row items-center justify-between">
           <View className="mr-3 flex-1 flex-row items-center">
-            <View
+            <Pressable
+              onPress={(event) => openPlayerProfile(item.host.id, event)}
               className="mr-3 h-11 w-11 items-center justify-center rounded-full"
               style={{
                 backgroundColor: accentColor,
@@ -680,7 +690,7 @@ function SessionListCard({
               >
                 {item.host.initials}
               </Text>
-            </View>
+            </Pressable>
 
             <View className="flex-1">
               <View className="flex-row items-center gap-2">
@@ -758,8 +768,9 @@ function SessionListCard({
         <View className="mt-3 flex-row items-center justify-between gap-3">
           <View className="flex-1 flex-row items-center">
             {visiblePlayers.map((player, index) => (
-              <View
+              <Pressable
                 key={player.id}
+                onPress={(event) => openPlayerProfile(player.id, event)}
                 className={`h-8 w-8 items-center justify-center rounded-full ${index === 0 ? '' : '-ml-2.5'}`}
                 style={{
                   position: 'relative',
@@ -778,7 +789,7 @@ function SessionListCard({
                 >
                   {player.initials}
                 </Text>
-              </View>
+              </Pressable>
             ))}
 
             {Array.from({ length: emptySlots }).map((_, index) => (

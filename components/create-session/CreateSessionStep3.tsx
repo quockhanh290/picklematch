@@ -169,6 +169,7 @@ export function CreateSessionStep3({
     maxPlayers,
     levelId: toLevelId(maxSkill),
     host: {
+      id: 'preview-host',
       name: '\u0042\u1ea1\u006e',
       initials: 'B',
       rating: 5,

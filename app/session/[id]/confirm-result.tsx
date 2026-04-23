@@ -106,7 +106,13 @@ function getHeroScore(result?: string | null) {
   return { a: '--', b: '--' }
 }
 
-function TeamPlayerRow({ player }: { player: SessionPlayerRecord }) {
+function TeamPlayerRow({
+  player,
+  onOpenPlayer,
+}: {
+  player: SessionPlayerRecord
+  onOpenPlayer: (playerId: string) => void
+}) {
   return (
     <View
       style={{
@@ -120,7 +126,8 @@ function TeamPlayerRow({ player }: { player: SessionPlayerRecord }) {
         alignItems: 'center',
       }}
     >
-      <View
+      <Pressable
+        onPress={() => onOpenPlayer(player.player_id)}
         style={{
           width: 44,
           height: 44,
@@ -135,7 +142,7 @@ function TeamPlayerRow({ player }: { player: SessionPlayerRecord }) {
         <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 14, color: '#E3FFF4' }}>
           {getInitials(player.player?.name)}
         </Text>
-      </View>
+      </Pressable>
       <View style={{ marginLeft: 12, flex: 1 }}>
         <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 16, color: '#123D31' }}>
           {player.player?.name ?? 'Người chơi'}
@@ -152,10 +159,12 @@ function TeamBlock({
   title,
   badge,
   players,
+  onOpenPlayer,
 }: {
   title: string
   badge: string
   players: SessionPlayerRecord[]
+  onOpenPlayer: (playerId: string) => void
 }) {
   return (
     <View style={{ marginTop: 12 }}>
@@ -176,7 +185,7 @@ function TeamBlock({
       </View>
       <View style={{ gap: 8 }}>
         {players.map((player) => (
-          <TeamPlayerRow key={player.player_id} player={player} />
+          <TeamPlayerRow key={player.player_id} player={player} onOpenPlayer={onOpenPlayer} />
         ))}
         {players.length === 0 ? (
           <View
@@ -560,8 +569,18 @@ export default function ConfirmSessionResultScreen() {
             • ĐỘI HÌNH THI ĐẤU
           </Text>
 
-          <TeamBlock title="Đội A" badge="A" players={teamA} />
-          <TeamBlock title="Đội B" badge="B" players={teamB} />
+          <TeamBlock
+            title="Đội A"
+            badge="A"
+            players={teamA}
+            onOpenPlayer={(playerId) => router.push({ pathname: '/player/[id]' as never, params: { id: playerId } })}
+          />
+          <TeamBlock
+            title="Đội B"
+            badge="B"
+            players={teamB}
+            onOpenPlayer={(playerId) => router.push({ pathname: '/player/[id]' as never, params: { id: playerId } })}
+          />
         </View>
 
         <View
@@ -630,7 +649,7 @@ export default function ConfirmSessionResultScreen() {
               }}
             >
               {submitting === 'disputed' ? (
-                <ActivityIndicator color="#0D5C45" />
+                <ActivityIndicator color={PROFILE_THEME_COLORS.primary} />
               ) : (
                 <>
                   <ShieldAlert size={16} color="#0D5C45" />

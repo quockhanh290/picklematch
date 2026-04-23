@@ -2,6 +2,7 @@
 import { router, useLocalSearchParams } from 'expo-router'
 import {
   CheckCheck,
+  KeyRound,
   LogOut,
   PencilLine,
   Repeat2,
@@ -128,7 +129,7 @@ export default function SessionDetailScreen() {
   if (loading) {
     return (
       <SafeAreaView className="flex-1 items-center justify-center bg-slate-50">
-        <ActivityIndicator size="large" color="#4f46e5" />
+        <ActivityIndicator size="large" color={PROFILE_THEME_COLORS.primary} />
       </SafeAreaView>
     )
   }
@@ -136,13 +137,14 @@ export default function SessionDetailScreen() {
   if (!session) {
     return (
       <SafeAreaView className="flex-1 items-center justify-center bg-slate-50 px-6">
-        <Text className="text-center text-base font-semibold text-slate-500">KhÃ´ng tÃ¬m tháº¥y kÃ¨o nÃ y.</Text>
+        <Text className="text-center text-base font-semibold text-slate-500">Không tìm thấy kèo này.</Text>
       </SafeAreaView>
     )
   }
 
   const sessionSkillBand = getEloBandForSessionRange(session.elo_min, session.elo_max)
   const sessionSkillLabel = sessionSkillBand.shortLabel
+  const hostId = session.host.id
   const spotsLeft = Math.max(0, session.max_players - arrangedPlayers.length)
   const viewerSessionPlayer = session.session_players.find((item) => item.player_id === userId) ?? null
   const showBottomActions = isHost || hasJoined || canShowJoinActions
@@ -166,6 +168,7 @@ export default function SessionDetailScreen() {
   function renderPlayerRow(player: ArrangementPlayer, mode: 'normal' | 'arranging') {
     const levelUi = getSkillLevelUi(player.levelId)
     const LevelIcon = levelUi.icon
+    const isHostPlayer = player.id === hostId
 
     return (
       <View
@@ -199,7 +202,9 @@ export default function SessionDetailScreen() {
         </View>
 
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-          <View
+          <TouchableOpacity
+            onPress={() => router.push({ pathname: '/player/[id]' as never, params: { id: player.id } })}
+            activeOpacity={0.86}
             style={{
               position: 'relative',
               width: 62,
@@ -238,12 +243,17 @@ export default function SessionDetailScreen() {
             >
               <LevelIcon size={12} color={levelUi.iconColor} strokeWidth={2.5} />
             </View>
-          </View>
+          </TouchableOpacity>
 
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 18, fontFamily: 'PlusJakartaSans-ExtraBold', color: PROFILE_THEME_COLORS.onSurface }}>
-              {player.name}
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Text style={{ fontSize: 18, fontFamily: 'PlusJakartaSans-ExtraBold', color: PROFILE_THEME_COLORS.onSurface }}>
+                {player.name}
+              </Text>
+              {isHostPlayer ? (
+                <KeyRound size={14} color={PROFILE_THEME_COLORS.primary} strokeWidth={2.6} />
+              ) : null}
+            </View>
 
             <View style={{ marginTop: 6, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}>
               <Text style={{ fontSize: 13, fontFamily: 'PlusJakartaSans-ExtraBold', color: PROFILE_THEME_COLORS.surfaceTint }}>
@@ -254,7 +264,7 @@ export default function SessionDetailScreen() {
               player.reliability !== null &&
               player.reliability !== undefined ? (
                 <Text style={{ fontSize: 12, fontFamily: 'PlusJakartaSans-SemiBold', color: PROFILE_THEME_COLORS.primary }}>
-                  {`${player.reliability}% uy tÃ­n`}
+                  {`${player.reliability}% uy tín`}
                 </Text>
               ) : null}
             </View>
@@ -339,7 +349,7 @@ export default function SessionDetailScreen() {
                 void (async () => {
                   try {
                     const url = Linking.createURL(`/session/${id}`)
-                    await Share.share({ message: `Tham gia kÃ¨o pickleball nÃ y nhÃ©! ${url}` })
+                    await Share.share({ message: `Tham gia kèo pickleball này nhé! ${url}` })
                   } catch (error) {
                     console.warn('[SessionDetail] Failed to share session:', error)
                     setDialogConfig({ title: '\u004b\u0068\u00f4\u006e\u0067\u0020\u0074\u0068\u1ec3\u0020\u0063\u0068\u0069\u0061\u0020\u0073\u1ebb', message: '\u0056\u0075\u0069\u0020\u006c\u00f2\u006e\u0067\u0020\u0074\u0068\u1eed\u0020\u006c\u1ea1\u0069\u0020\u0073\u0061\u0075\u0020\u00ed\u0074\u0020\u0070\u0068\u00fa\u0074\u002e', actions: [{ label: '\u0110\u00f3\u006e\u0067', tone: 'secondary' }] })
@@ -385,10 +395,10 @@ export default function SessionDetailScreen() {
                 }`}
               >
                 {session.results_status === 'disputed'
-                  ? 'Káº¿t quáº£ Ä‘ang bá»‹ tranh cháº¥p'
+                  ? 'Kết quả đang bị tranh chấp'
                   : session.results_status === 'pending_confirmation'
-                    ? 'Chá»§ kÃ¨o Ä‘Ã£ gá»­i káº¿t quáº£ tráº­n'
-                    : 'Chá»§ kÃ¨o chÆ°a gá»­i káº¿t quáº£'}
+                    ? 'Chủ kèo đã gửi kết quả trận'
+                    : 'Chủ kèo chưa gửi kết quả'}
               </Text>
             </View>
 
@@ -398,10 +408,10 @@ export default function SessionDetailScreen() {
               }`}
               >
               {session.results_status === 'disputed'
-                ? 'VÃ o mÃ n xÃ¡c nháº­n Ä‘á»ƒ xem láº¡i káº¿t quáº£ chá»§ kÃ¨o Ä‘Ã£ gá»­i vÃ  cáº­p nháº­t pháº£n há»“i cá»§a báº¡n.'
+                ? 'Vào màn xác nhận để xem lại kết quả chủ kèo đã gửi và cập nhật phản hồi của bạn.'
                 : session.results_status === 'pending_confirmation'
-                  ? 'Báº¡n cáº§n xÃ¡c nháº­n hoáº·c tranh cháº¥p káº¿t quáº£ trÆ°á»›c khi há»‡ thá»‘ng chá»‘t tráº­n.'
-                  : 'Náº¿u chá»§ kÃ¨o chÆ°a gá»­i káº¿t quáº£ Ä‘Ãºng háº¡n, báº¡n cÃ³ thá»ƒ bÃ¡o káº¿t quáº£ cá»§a mÃ¬nh Ä‘á»ƒ há»‡ thá»‘ng xá»­ lÃ½ tiáº¿p.'}
+                  ? 'Bạn cần xác nhận hoặc tranh chấp kết quả trước khi hệ thống chốt trận.'
+                  : 'Nếu chủ kèo chưa gửi kết quả đúng hạn, bạn có thể báo kết quả của mình để hệ thống xử lý tiếp.'}
             </Text>
 
             <TouchableOpacity
@@ -413,8 +423,8 @@ export default function SessionDetailScreen() {
             >
               <Text className="text-[14px] font-black uppercase tracking-[0.08em] text-white">
                 {session.results_status === 'pending_confirmation' || session.results_status === 'disputed'
-                  ? 'XÃ¡c nháº­n káº¿t quáº£'
-                  : 'BÃ¡o káº¿t quáº£'}
+                  ? 'Xác nhận kết quả'
+                  : 'Báo kết quả'}
               </Text>
             </TouchableOpacity>
           </View>

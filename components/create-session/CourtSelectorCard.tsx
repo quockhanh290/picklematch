@@ -1,6 +1,7 @@
 import { MapPin, Search } from 'lucide-react-native'
 import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from 'react-native'
 
+import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import type { NearByCourt } from '@/lib/useNearbyCourts'
 
 type Props = {
@@ -127,14 +128,14 @@ export function CourtSelectorCard({
           <View className="mt-3 gap-3">
             {loadingCourts ? (
               <View className="items-center justify-center rounded-[18px] border border-slate-200 bg-slate-50 px-4 py-8">
-                <ActivityIndicator color="#059669" />
+                <ActivityIndicator color={PROFILE_THEME_COLORS.primary} />
                 <Text className="mt-3 text-[13px] font-medium text-slate-500">
                   {'Đang tìm sân gần bạn...'}
                 </Text>
               </View>
             ) : searching ? (
               <View className="items-center justify-center rounded-[18px] border border-slate-200 bg-slate-50 px-4 py-8">
-                <ActivityIndicator color="#059669" />
+                <ActivityIndicator color={PROFILE_THEME_COLORS.primary} />
               </View>
             ) : courts.length > 0 ? (
               courts.map((court) => (

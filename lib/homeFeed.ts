@@ -8,8 +8,8 @@ export type Player = {
   initials: string
   badge: 'trusted' | 'streak'
 }
-
 export type Host = {
+  id: string
   name: string
   initials: string
   rating: number
@@ -364,6 +364,7 @@ export function mapLiveSessionToMatchSession(
     maxPlayers: session.max_players,
     levelId,
     host: {
+      id: session.host?.id ?? session.host_id,
       name: session.host?.name ?? 'Ẩn danh',
       initials: getInitials(session.host?.name ?? 'Ẩn danh'),
       rating: getLiveHostRating(session, options?.hostAverageRating),
@@ -478,6 +479,7 @@ type SkillLevelPreviewCase = {
 
 export function buildSkillLevelPreviewSessions(): MatchSession[] {
   const mockHost: Host = {
+    id: 'mock-host-minh-quan',
     name: 'Host Minh Quan',
     initials: 'MQ',
     rating: 4.8,
@@ -577,6 +579,7 @@ export function buildSkillLevelPreviewSessions(): MatchSession[] {
 
 export function buildUpcomingMatchPreviewSession(): MatchSession {
   const host: Host = {
+    id: 'mock-host-gia-huy',
     name: 'Host Gia Huy',
     initials: 'GH',
     rating: 4.9,
@@ -608,4 +611,5 @@ export function buildUpcomingMatchPreviewSession(): MatchSession {
     joined: true,
   }
 }
+
 

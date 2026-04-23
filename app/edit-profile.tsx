@@ -291,7 +291,7 @@ export default function EditProfile() {
   if (loading) {
     return (
       <SafeAreaView className="flex-1 items-center justify-center" style={{ backgroundColor: EDIT_PROFILE_COLORS.surfaceContainerLow }} edges={['top']}>
-        <ActivityIndicator size="large" color={EDIT_PROFILE_COLORS.surfaceTint} />
+        <ActivityIndicator size="large" color={EDIT_PROFILE_COLORS.primary} />
       </SafeAreaView>
     )
   }
@@ -567,7 +567,7 @@ export default function EditProfile() {
                     placeholder="Nhập tên sân bạn muốn tìm"
                   />
 
-                  {searching ? <ActivityIndicator color={EDIT_PROFILE_COLORS.surfaceTint} style={{ marginTop: 12 }} /> : null}
+                  {searching ? <ActivityIndicator color={EDIT_PROFILE_COLORS.primary} style={{ marginTop: 12 }} /> : null}
 
                   {!searching && keyword.length > 0 && courts.length === 0 ? (
                     <Text className="mt-3 text-sm" style={{ color: EDIT_PROFILE_COLORS.outline, fontFamily: 'PlusJakartaSans-Regular' }}>Không tìm thấy sân nào</Text>

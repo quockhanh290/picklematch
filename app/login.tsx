@@ -424,7 +424,7 @@ export default function LoginScreen() {
 
             <View className="mt-7">
               <View className="mb-3 flex-row items-center justify-between">
-                <Text style={{ color: '#64748B', fontSize: 12, fontFamily: 'PlusJakartaSans-Bold', letterSpacing: 0.8 }}>MÃ OTP (6 CHỮ SỐ)</Text>
+                <Text style={{ color: '#64748B', fontSize: 12, fontFamily: 'PlusJakartaSans-Bold', letterSpacing: 0.8 }}>Mã OTP (6 CHỮ SỐ)</Text>
                 {step === 'otp' ? (
                   <Pressable onPress={sendOTP} disabled={loading}>
                     <Text style={{ color: ELECTRIC.emerald, fontSize: 13, fontFamily: 'PlusJakartaSans-Bold' }}>Gửi lại mã</Text>

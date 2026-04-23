@@ -1,4 +1,5 @@
 import { ScreenHeader } from '@/components/design'
+import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { insertNotification } from '@/lib/notifications'
 import { calculateReliabilityScore } from '@/lib/profileData'
 import {
@@ -540,7 +541,7 @@ export default function HostReviewCenterScreen() {
   if (loading) {
     return (
       <SafeAreaView className="flex-1 items-center justify-center bg-stone-50" edges={['top']}>
-        <ActivityIndicator size="large" color="#059669" />
+        <ActivityIndicator size="large" color={PROFILE_THEME_COLORS.primary} />
       </SafeAreaView>
     )
   }

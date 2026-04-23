@@ -38,12 +38,14 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 
 type Session = {
   id: string
+  host_id: string
   elo_min: number
   elo_max: number
   max_players: number
   status: string
   court_booking_status: 'confirmed' | 'unconfirmed'
   host: {
+    id: string
     name: string
     is_provisional?: boolean | null
     current_elo?: number | null
@@ -274,7 +276,12 @@ function SearchResultCard({ session, rescueMode }: { session: Session; rescueMod
       >
         <View className="flex-row items-center justify-between">
           <View className="mr-3 flex-1 flex-row items-center">
-            <View
+            <Pressable
+              onPress={(event) => {
+                event.stopPropagation()
+                if (!session.host?.id) return
+                router.push({ pathname: '/player/[id]' as never, params: { id: session.host.id } })
+              }}
               className="mr-3 h-11 w-11 items-center justify-center rounded-full"
               style={{
                 backgroundColor: PROFILE_THEME_COLORS.primary,
@@ -285,7 +292,7 @@ function SearchResultCard({ session, rescueMode }: { session: Session; rescueMod
               <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 15 }}>
                 {hostInitials}
               </Text>
-            </View>
+            </Pressable>
             <View className="flex-1">
               <Text
                 numberOfLines={1}
@@ -425,12 +432,17 @@ export default function FindSession() {
 
   const fetchSessions = useCallback(async () => {
     setLoading(true)
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    const currentUserId = user?.id ?? null
+
     await supabase.rpc('process_fill_deadline_session_closures')
     const { data, error } = await supabase
       .from('sessions')
       .select(
-        `id, elo_min, elo_max, max_players, status, court_booking_status,
-        host:host_id ( name, is_provisional, current_elo, elo, self_assessed_level, skill_label ),
+        `id, host_id, elo_min, elo_max, max_players, status, court_booking_status,
+        host:host_id ( id, name, is_provisional, current_elo, elo, self_assessed_level, skill_label ),
         slot:slot_id (
           start_time, end_time, price,
           court:court_id ( id, name, address, city )
@@ -442,7 +454,15 @@ export default function FindSession() {
       .limit(50)
 
     if (!error && data) {
-      setSessions(data.map((s: any) => ({ ...s, player_count: (s.session_players ?? []).length })) as Session[])
+      const normalized = data.map((s: any) => ({ ...s, player_count: (s.session_players ?? []).length })) as Session[]
+      const visibleSessions = currentUserId
+        ? normalized.filter((session) => {
+            const joined = (session.session_players ?? []).some((player) => player.player_id === currentUserId)
+            const hosted = session.host_id === currentUserId
+            return !joined && !hosted
+          })
+        : normalized
+      setSessions(visibleSessions)
     } else {
       setSessions([])
     }

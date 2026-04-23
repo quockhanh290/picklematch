@@ -570,7 +570,7 @@ export default function HostReviewCenterScreen() {
   if (loading) {
     return (
       <SafeAreaView className="flex-1 items-center justify-center bg-stone-50">
-        <ActivityIndicator size="large" color="#059669" />
+        <ActivityIndicator size="large" color={PROFILE_THEME_COLORS.primary} />
       </SafeAreaView>
     )
   }
