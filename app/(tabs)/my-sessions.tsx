@@ -1,4 +1,4 @@
-﻿import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { getEloBandForSessionRange } from '@/lib/eloSystem'
 import { resolveTab, type SessionRequestStatus, type SessionRole } from '@/lib/mySessionsLogic'
 import { getSessionSkillLabel } from '@/lib/sessionDetail'
@@ -177,6 +177,16 @@ function formatTimeRange(start: string, end: string) {
   const endHour = endDate.getHours().toString().padStart(2, '0')
   const endMinute = endDate.getMinutes().toString().padStart(2, '0')
   return `${startHour}:${startMinute} - ${endHour}:${endMinute}`
+}
+
+function isSessionInPast(session: Pick<MySession, 'start_time' | 'end_time'>, nowMs = Date.now()) {
+  const endAt = new Date(session.end_time).getTime()
+  if (!Number.isNaN(endAt)) return endAt < nowMs
+
+  const startAt = new Date(session.start_time).getTime()
+  if (!Number.isNaN(startAt)) return startAt < nowMs
+
+  return false
 }
 
 function getMonthKey(value: string) {
@@ -1132,8 +1142,16 @@ export default function MySessions() {
     () =>
       TAB_OPTIONS.reduce<Record<SessionTab, MySession[]>>(
         (acc, tab) => {
+          const nowMs = Date.now()
           acc[tab.key] = sessions
-            .filter((session) => resolveTab(session) === tab.key)
+            .filter((session) => {
+              const mappedTab = resolveTab(session)
+              const inPast = isSessionInPast(session, nowMs)
+
+              if (tab.key === 'upcoming') return mappedTab === 'upcoming' && !inPast
+              if (tab.key === 'history') return mappedTab === 'history' || (mappedTab === 'upcoming' && inPast)
+              return mappedTab === 'pending'
+            })
             .sort((a, b) => {
               const aTime = new Date(a.start_time).getTime()
               const bTime = new Date(b.start_time).getTime()

@@ -65,50 +65,44 @@ function itemPresentation(kind: InboxItem['kind']) {
 }
 
 function kindUrgencyPalette(kind: InboxItem['kind']) {
+  const sharedChip = {
+    chipBg: PROFILE_THEME_COLORS.secondaryContainer,
+    chipText: PROFILE_THEME_COLORS.primary,
+    actionBg: PROFILE_THEME_COLORS.primary,
+    actionText: PROFILE_THEME_COLORS.onPrimary,
+    cardBg: PROFILE_THEME_COLORS.surfaceContainerLow,
+    borderColor: PROFILE_THEME_COLORS.outlineVariant,
+  } as const
+
   if (kind === 'report') {
     return {
-      cardBg: PROFILE_THEME_COLORS.errorContainer,
-      borderColor: PROFILE_THEME_SEMANTIC.dangerBorder,
       accent: PROFILE_THEME_COLORS.error,
-      iconBg: PROFILE_THEME_COLORS.errorContainer,
+      iconBg: PROFILE_THEME_COLORS.surfaceContainerHighest,
       iconColor: PROFILE_THEME_COLORS.error,
-      courtNameColor: PROFILE_THEME_COLORS.onErrorContainer,
-      metaColor: PROFILE_THEME_COLORS.onErrorContainer,
-      chipBg: PROFILE_THEME_COLORS.errorContainer,
-      chipText: PROFILE_THEME_COLORS.onErrorContainer,
-      actionBg: PROFILE_THEME_COLORS.error,
-      actionText: PROFILE_THEME_COLORS.onError,
+      courtNameColor: PROFILE_THEME_COLORS.onSurface,
+      metaColor: PROFILE_THEME_COLORS.onSurfaceVariant,
+      ...sharedChip,
     }
   }
 
   if (kind === 'submit') {
     return {
-      cardBg: PROFILE_THEME_SEMANTIC.warningBg,
-      borderColor: PROFILE_THEME_COLORS.secondaryFixedDim,
       accent: PROFILE_THEME_SEMANTIC.warningStrong,
-      iconBg: PROFILE_THEME_COLORS.primaryFixed,
+      iconBg: PROFILE_THEME_COLORS.surfaceContainerHighest,
       iconColor: PROFILE_THEME_SEMANTIC.warningStrong,
-      courtNameColor: PROFILE_THEME_COLORS.onPrimaryFixedVariant,
-      metaColor: PROFILE_THEME_SEMANTIC.warningText,
-      chipBg: PROFILE_THEME_COLORS.primaryFixed,
-      chipText: PROFILE_THEME_COLORS.onPrimaryFixedVariant,
-      actionBg: PROFILE_THEME_SEMANTIC.warningStrong,
-      actionText: PROFILE_THEME_COLORS.onPrimary,
+      courtNameColor: PROFILE_THEME_COLORS.onSurface,
+      metaColor: PROFILE_THEME_COLORS.onSurfaceVariant,
+      ...sharedChip,
     }
   }
 
   return {
-    cardBg: PROFILE_THEME_COLORS.surfaceContainerLow,
-    borderColor: PROFILE_THEME_COLORS.outlineVariant,
     accent: PROFILE_THEME_COLORS.primary,
     iconBg: PROFILE_THEME_COLORS.secondaryContainer,
     iconColor: PROFILE_THEME_COLORS.primary,
-    courtNameColor: PROFILE_THEME_COLORS.primary,
+    courtNameColor: PROFILE_THEME_COLORS.onSurface,
     metaColor: PROFILE_THEME_COLORS.onSurfaceVariant,
-    chipBg: PROFILE_THEME_COLORS.secondaryContainer,
-    chipText: PROFILE_THEME_COLORS.primary,
-    actionBg: PROFILE_THEME_COLORS.primary,
-    actionText: PROFILE_THEME_COLORS.onPrimary,
+    ...sharedChip,
   }
 }
 
@@ -119,10 +113,9 @@ function chipLabelForKind(kind: InboxItem['kind']) {
 }
 
 const screenWidth = Dimensions.get('window').width
-// section width = screenWidth minus parent paddingHorizontal (20 each side)
 const SECTION_WIDTH = screenWidth - 40
 
-export function PostMatchInboxSection({ pendingMatches, postMatchActions, marginTopClassName = 'mt-8' }: { pendingMatches: PendingMatch[]; postMatchActions: PostMatchAction[], marginTopClassName?: string }) {
+export function PostMatchInboxSection({ pendingMatches, postMatchActions, marginTopClassName = 'mt-8' }: { pendingMatches: PendingMatch[]; postMatchActions: PostMatchAction[]; marginTopClassName?: string }) {
   const [activeIndex, setActiveIndex] = useState(0)
   const scrollRef = useRef<ScrollView>(null)
 
@@ -132,7 +125,6 @@ export function PostMatchInboxSection({ pendingMatches, postMatchActions, margin
 
   return (
     <View className={marginTopClassName}>
-      {/* Header — outside card, matching carousel section style */}
       <View className="mb-5 flex-row items-start justify-between gap-3">
         <View className="flex-1">
           <Text className="mb-3 text-[11px] uppercase tracking-[0.16em]" style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-Bold' }}>
@@ -152,7 +144,6 @@ export function PostMatchInboxSection({ pendingMatches, postMatchActions, margin
         </View>
       </View>
 
-      {/* Carousel */}
       <ScrollView
         ref={scrollRef}
         horizontal
@@ -174,7 +165,6 @@ export function PostMatchInboxSection({ pendingMatches, postMatchActions, margin
           const urgency = kindUrgencyPalette(item.kind)
 
           return (
-            // page wrapper = section width so pagingEnabled snaps correctly
             <View key={item.key} style={{ width: SECTION_WIDTH }}>
               <View
                 className="relative overflow-hidden rounded-[24px] border px-4 py-3.5"
@@ -186,54 +176,51 @@ export function PostMatchInboxSection({ pendingMatches, postMatchActions, margin
                   borderTopLeftRadius: 26,
                   borderBottomLeftRadius: 26,
                 }}
-            >
-              <View className="mb-2 flex-row flex-wrap items-center justify-between gap-x-3 gap-y-2">
-                <View className="min-w-0 flex-1 flex-row items-center pr-2">
-                  <View className="h-8 w-8 items-center justify-center rounded-full" style={{ backgroundColor: urgency.iconBg }}>
-                    <Icon size={15} color={urgency.iconColor} strokeWidth={2.4} />
+              >
+                <View className="mb-2 flex-row flex-wrap items-center justify-between gap-x-3 gap-y-2">
+                  <View className="min-w-0 flex-1 flex-row items-center pr-2">
+                    <View className="h-8 w-8 items-center justify-center rounded-full" style={{ backgroundColor: urgency.iconBg }}>
+                      <Icon size={15} color={urgency.iconColor} strokeWidth={2.4} />
+                    </View>
+                    <View className="ml-2.5 rounded-full px-2.5 py-1" style={{ backgroundColor: urgency.chipBg }}>
+                      <Text className="text-[10px] uppercase tracking-[0.1em]" numberOfLines={1} style={{ color: urgency.chipText, fontFamily: 'PlusJakartaSans-Bold' }}>
+                        {chipLabelForKind(item.kind)}
+                      </Text>
+                    </View>
                   </View>
-                  <View className="ml-2.5 rounded-full px-2.5 py-1" style={{ backgroundColor: urgency.chipBg }}>
-                    <Text className="text-[10px] uppercase tracking-[0.1em]" numberOfLines={1} style={{ color: urgency.chipText, fontFamily: 'PlusJakartaSans-Bold' }}>
-                      {chipLabelForKind(item.kind)}
+
+                  <Pressable onPress={() => onPress(item.id)} className="shrink-0 self-start rounded-full px-3 py-1.5" style={{ backgroundColor: urgency.actionBg }}>
+                    <Text className="text-[10px] uppercase tracking-[0.08em]" style={{ color: urgency.actionText, fontFamily: 'PlusJakartaSans-ExtraBold' }}>
+                      {cta}
+                    </Text>
+                  </Pressable>
+                </View>
+
+                <View className="mt-1.5 flex-row flex-wrap items-center justify-between gap-x-3 gap-y-2">
+                  <Text
+                    className="flex-1 text-[15px]"
+                    numberOfLines={1}
+                    style={{ color: urgency.courtNameColor, fontFamily: 'PlusJakartaSans-Bold' }}
+                  >
+                    {item.courtName}
+                  </Text>
+                  <View className="min-w-0 flex-row items-center">
+                    {item.timeLabel.startsWith('Kết thúc') ? (
+                      <BookmarkCheck size={13} color={urgency.metaColor} strokeWidth={2.4} />
+                    ) : (
+                      <Clock3 size={13} color={urgency.metaColor} strokeWidth={2.4} />
+                    )}
+                    <Text className="ml-1 text-[11px]" numberOfLines={1} style={{ color: urgency.metaColor, fontFamily: 'PlusJakartaSans-SemiBold' }}>
+                      {item.timeLabel.startsWith('Kết thúc') ? item.timeLabel.replace('Kết thúc ', '') : item.timeLabel}
                     </Text>
                   </View>
                 </View>
-
-                <Pressable onPress={() => onPress(item.id)} className="shrink-0 self-start rounded-full px-3 py-1.5" style={{ backgroundColor: urgency.actionBg }}>
-                  <Text className="text-[10px] uppercase tracking-[0.08em]" style={{ color: urgency.actionText, fontFamily: 'PlusJakartaSans-ExtraBold' }}>
-                    {cta}
-                  </Text>
-                </Pressable>
               </View>
-
-              <View className="mt-1.5 flex-row flex-wrap items-center justify-between gap-x-3 gap-y-2">
-                <Text
-                  className="flex-1 text-[15px]"
-                  numberOfLines={1}
-                  style={{ color: urgency.courtNameColor, fontFamily: 'PlusJakartaSans-Bold' }}
-                >
-                  {item.courtName}
-                </Text>
-                <View className="min-w-0 flex-row items-center">
-                  {item.timeLabel.startsWith('Kết thúc') ? (
-                    <BookmarkCheck size={13} color={urgency.metaColor} strokeWidth={2.4} />
-                  ) : (
-                    <Clock3 size={13} color={urgency.metaColor} strokeWidth={2.4} />
-                  )}
-                  <Text className="ml-1 text-[11px]" numberOfLines={1} style={{ color: urgency.metaColor, fontFamily: 'PlusJakartaSans-SemiBold' }}>
-                    {item.timeLabel.startsWith('Kết thúc')
-                      ? item.timeLabel.replace('Kết thúc ', '')
-                      : item.timeLabel}
-                  </Text>
-                </View>
-              </View>
-            </View>
             </View>
           )
         })}
       </ScrollView>
 
-      {/* Dots */}
       {inboxItems.length > 1 ? (
         <View className="mt-4 flex-row items-center justify-center gap-2 px-5">
           {inboxItems.map((_, index) => (

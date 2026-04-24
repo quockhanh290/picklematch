@@ -1,4 +1,4 @@
-﻿import { AppButton, AppDialog, type AppDialogConfig, EmptyState, ScreenHeader } from '@/components/design'
+import { AppButton, AppDialog, type AppDialogConfig, EmptyState, ScreenHeader } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { getShortSkillLabel, getSkillLevelFromPlayer } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
@@ -7,7 +7,6 @@ import type { LucideIcon } from 'lucide-react-native'
 import {
   AlertOctagon,
   ArrowDown,
-  ArrowRight,
   Check,
   CheckCheck,
   Clock,
@@ -15,6 +14,7 @@ import {
   Hourglass,
   MessageCircle,
   ShieldAlert,
+  ShieldCheck,
   Trophy,
   UserX,
   Zap,
@@ -57,6 +57,7 @@ type RatingEntry = {
 type SkillOption = {
   value: SkillValidation
   label: string
+  subtitle: string
   icon: LucideIcon
 }
 
@@ -68,23 +69,11 @@ type TagOption = {
 }
 
 const SW = 2.5
-const RATE_THEME = {
-  pageBg: PROFILE_THEME_COLORS.surfaceContainerLow,
-  cardBg: PROFILE_THEME_COLORS.surfaceContainerLowest,
-  cardBorder: PROFILE_THEME_COLORS.outlineVariant,
-  textPrimary: PROFILE_THEME_COLORS.onSurface,
-  textSecondary: PROFILE_THEME_COLORS.onSurfaceVariant,
-  brand: PROFILE_THEME_COLORS.primaryContainer,
-  brandStrong: PROFILE_THEME_COLORS.surfaceTint,
-  brandOn: PROFILE_THEME_COLORS.onPrimary,
-  successTint: PROFILE_THEME_COLORS.secondaryContainer,
-  dangerTint: PROFILE_THEME_COLORS.errorContainer,
-} as const
 
 const SKILL_OPTIONS: SkillOption[] = [
-  { value: 'weaker', label: 'Cần cố gắng', icon: ArrowDown },
-  { value: 'matched', label: 'Đúng trình', icon: Check },
-  { value: 'outclass', label: 'Out trình', icon: Trophy },
+  { value: 'weaker', label: 'Cần cố gắng', subtitle: 'Dưới trình', icon: ArrowDown },
+  { value: 'matched', label: 'Đúng trình', subtitle: 'Như kỳ vọng', icon: Check },
+  { value: 'outclass', label: 'Out trình', subtitle: 'Trên hẳn', icon: Trophy },
 ]
 
 const POSITIVE_TAGS: TagOption[] = [
@@ -117,6 +106,63 @@ function getAvatarLetter(name: string) {
   return first ? first.toUpperCase() : 'U'
 }
 
+function StepProgress({ total, current }: { total: number; current: number }) {
+  if (total <= 0) return null
+  return (
+    <View
+      style={{
+        borderRadius: 999,
+        backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHighest,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+      }}
+    >
+      <Text
+        style={{
+          fontSize: 11,
+          fontFamily: 'PlusJakartaSans-ExtraBold',
+          letterSpacing: 1.2,
+          color: PROFILE_THEME_COLORS.outline,
+          textTransform: 'uppercase',
+        }}
+      >
+        {Math.min(current + 1, total)}/{total}
+      </Text>
+    </View>
+  )
+}
+
+function SectionLabel({ title, subtitle }: { title: string; subtitle?: string }) {
+  return (
+    <View style={{ marginBottom: 14 }}>
+      <Text
+        style={{
+          fontSize: 10,
+          fontFamily: 'PlusJakartaSans-ExtraBold',
+          letterSpacing: 1.8,
+          textTransform: 'uppercase',
+          color: PROFILE_THEME_COLORS.outline,
+        }}
+      >
+        {title}
+      </Text>
+      {subtitle ? (
+        <Text
+          style={{
+            marginTop: 6,
+            fontSize: 18,
+            lineHeight: 24,
+            fontFamily: 'PlusJakartaSans-ExtraBold',
+            color: PROFILE_THEME_COLORS.onSurface,
+          }}
+        >
+          {subtitle}
+        </Text>
+      ) : null}
+    </View>
+  )
+}
+
 function SkillChip({
   option,
   active,
@@ -134,47 +180,83 @@ function SkillChip({
     <Pressable
       onPress={onPress}
       disabled={disabled}
-      style={{
+      style={({ pressed }) => ({
         flex: 1,
         minHeight: 118,
-        borderRadius: 18,
-        borderWidth: active ? 2 : 1.2,
-        borderColor: active ? PROFILE_THEME_COLORS.primaryFixedDim : RATE_THEME.cardBorder,
-        backgroundColor: active ? RATE_THEME.brand : RATE_THEME.cardBg,
+        borderRadius: 20,
+        borderWidth: active ? 2 : 1.5,
+        borderColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
+        backgroundColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surfaceContainerHigh,
+        paddingHorizontal: 10,
+        paddingVertical: 12,
         alignItems: 'center',
         justifyContent: 'center',
         gap: 8,
-        opacity: disabled ? 0.45 : 1,
-      }}
+        opacity: disabled ? 0.36 : active ? 1 : pressed ? 0.86 : 1,
+        shadowColor: active ? PROFILE_THEME_COLORS.primary : 'transparent',
+        shadowOpacity: active ? 0.24 : 0,
+        shadowOffset: { width: 0, height: 4 },
+        shadowRadius: 10,
+        elevation: active ? 4 : 0,
+      })}
     >
+      {active ? (
+        <View
+          style={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            width: 18,
+            height: 18,
+            borderRadius: 999,
+            backgroundColor: PROFILE_THEME_COLORS.onPrimary,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Check size={11} color={PROFILE_THEME_COLORS.primary} strokeWidth={SW} />
+        </View>
+      ) : null}
       <View
         style={{
-          width: 42,
-          height: 42,
-          borderRadius: 21,
+          width: 38,
+          height: 38,
+          borderRadius: 19,
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: active ? RATE_THEME.brandStrong : PROFILE_THEME_COLORS.surfaceContainerLow,
+          backgroundColor: active ? 'rgba(255,255,255,0.2)' : PROFILE_THEME_COLORS.surfaceContainerHighest,
         }}
       >
-        <Icon size={18} color={active ? RATE_THEME.brandOn : PROFILE_THEME_COLORS.outline} strokeWidth={SW} />
+        <Icon size={18} color={active ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={SW} />
       </View>
+
       <Text
         style={{
           textAlign: 'center',
           fontSize: 13,
-          lineHeight: 19,
+          lineHeight: 18,
           fontFamily: 'PlusJakartaSans-ExtraBold',
-          color: active ? RATE_THEME.brandOn : RATE_THEME.textSecondary,
+          color: active ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurface,
         }}
       >
         {option.label}
+      </Text>
+      <Text
+        style={{
+          textAlign: 'center',
+          fontSize: 11,
+          lineHeight: 15,
+          fontFamily: 'PlusJakartaSans-Regular',
+          color: active ? 'rgba(255,255,255,0.75)' : PROFILE_THEME_COLORS.onSurfaceVariant,
+        }}
+      >
+        {option.subtitle}
       </Text>
     </Pressable>
   )
 }
 
-function TagPill({
+function TagChip({
   tag,
   active,
   disabled,
@@ -185,43 +267,80 @@ function TagPill({
   disabled: boolean
   onPress: () => void
 }) {
-  let backgroundColor = RATE_THEME.successTint
-  let textColor = RATE_THEME.brandStrong
-
-  if (tag.tone === 'warning') {
-    backgroundColor = RATE_THEME.dangerTint
-    textColor = PROFILE_THEME_COLORS.error
-  }
-
-  if (active && tag.tone === 'positive') {
-    backgroundColor = PROFILE_THEME_COLORS.primaryFixed
-    textColor = RATE_THEME.brandStrong
-  }
-
-  if (active && tag.tone === 'warning') {
-    backgroundColor = PROFILE_THEME_COLORS.errorContainer
-    textColor = PROFILE_THEME_COLORS.onErrorContainer
-  }
+  const Icon = tag.icon
+  const isPositive = tag.tone === 'positive'
+  const bg = active
+    ? isPositive
+      ? PROFILE_THEME_COLORS.primary
+      : PROFILE_THEME_COLORS.error
+    : isPositive
+      ? PROFILE_THEME_COLORS.surfaceContainerLow
+      : PROFILE_THEME_COLORS.surfaceContainerHigh
+  const border = active
+    ? isPositive
+      ? PROFILE_THEME_COLORS.primary
+      : PROFILE_THEME_COLORS.error
+    : PROFILE_THEME_COLORS.outlineVariant
+  const iconColor = active
+    ? isPositive
+      ? PROFILE_THEME_COLORS.onPrimary
+      : PROFILE_THEME_COLORS.onError
+    : PROFILE_THEME_COLORS.onSurfaceVariant
+  const textColor = iconColor
 
   return (
     <Pressable
       onPress={onPress}
       disabled={disabled}
-      style={{
-        flexDirection: 'row',
+      style={({ pressed }) => ({
+        flex: 1,
+        minHeight: 92,
+        borderRadius: 20,
+        borderWidth: active ? 2 : 1.5,
+        borderColor: border,
+        backgroundColor: bg,
+        paddingHorizontal: 10,
+        paddingVertical: 12,
         alignItems: 'center',
-        alignSelf: 'flex-start',
-        borderRadius: 999,
-        borderWidth: active ? 1 : 0,
-        borderColor: active ? (tag.tone === 'positive' ? PROFILE_THEME_COLORS.primaryFixedDim : PROFILE_THEME_COLORS.error) : 'transparent',
-        paddingHorizontal: 14,
-        paddingVertical: 7,
-        backgroundColor,
-        opacity: disabled ? 0.45 : 1,
-      }}
+        justifyContent: 'center',
+        gap: 7,
+        opacity: disabled ? 0.36 : active ? 1 : pressed ? 0.86 : 1,
+        shadowColor: active ? border : 'transparent',
+        shadowOpacity: active ? 0.22 : 0,
+        shadowOffset: { width: 0, height: 4 },
+        shadowRadius: 10,
+        elevation: active ? 3 : 0,
+      })}
     >
-      <Text style={{ fontSize: 14, fontFamily: 'PlusJakartaSans-Bold', color: textColor }}>{tag.label}</Text>
-      {active ? <Text style={{ marginLeft: 6, fontSize: 14, color: textColor, fontFamily: 'PlusJakartaSans-Bold' }}>×</Text> : null}
+      {active ? (
+        <View
+          style={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            width: 18,
+            height: 18,
+            borderRadius: 999,
+            backgroundColor: isPositive ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onError,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Check size={11} color={isPositive ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.error} strokeWidth={SW} />
+        </View>
+      ) : null}
+      <Icon size={20} color={iconColor} strokeWidth={SW} />
+      <Text
+        style={{
+          textAlign: 'center',
+          fontSize: 12,
+          lineHeight: 16,
+          fontFamily: 'PlusJakartaSans-Bold',
+          color: textColor,
+        }}
+      >
+        {tag.label}
+      </Text>
     </Pressable>
   )
 }
@@ -431,8 +550,8 @@ export default function RateSessionScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: RATE_THEME.pageBg, alignItems: 'center', justifyContent: 'center' }} edges={['top']}>
-        <ActivityIndicator size="large" color={RATE_THEME.brandStrong} />
+      <SafeAreaView style={{ flex: 1, backgroundColor: PROFILE_THEME_COLORS.background, alignItems: 'center', justifyContent: 'center' }} edges={['top']}>
+        <ActivityIndicator size="large" color={PROFILE_THEME_COLORS.primary} />
       </SafeAreaView>
     )
   }
@@ -460,258 +579,303 @@ export default function RateSessionScreen() {
   }
 
   const skillLabel = getShortSkillLabel(getSkillLevelFromPlayer(currentPlayer))
-  const progressCurrent = Math.min(currentIndex + 1, players.length)
-  const progressPercent = players.length ? Math.round((progressCurrent / players.length) * 100) : 0
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: RATE_THEME.pageBg }} edges={['top']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: PROFILE_THEME_COLORS.background }} edges={['top']}>
       <View style={{ flex: 1 }}>
+        <ScreenHeader compact title="Đánh giá trận" onBackPress={() => router.back()} rightSlot={<StepProgress total={players.length} current={currentIndex} />} />
+
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 114 + insets.bottom }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: 144 + insets.bottom }}
         >
-          <View style={{ marginBottom: 10 }}>
-            <ScreenHeader
-              compact
-              title="Đánh giá trận"
-              onBackPress={() => router.back()}
-              rightSlot={
+          <View
+            style={{
+              borderRadius: 30,
+              borderWidth: 1,
+              borderColor: PROFILE_THEME_COLORS.primaryFixedDim,
+              backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+              paddingHorizontal: 20,
+              paddingVertical: 22,
+              marginBottom: 14,
+            }}
+          >
+            <View style={{ alignItems: 'center' }}>
+              <View
+                style={{
+                  width: 104,
+                  height: 104,
+                  borderRadius: 999,
+                  borderWidth: 3,
+                  borderColor: PROFILE_THEME_COLORS.primaryFixed,
+                  backgroundColor: PROFILE_THEME_COLORS.secondaryContainer,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Text style={{ fontSize: 38, fontFamily: 'PlusJakartaSans-ExtraBold', color: PROFILE_THEME_COLORS.primary }}>
+                  {getAvatarLetter(currentPlayer.name)}
+                </Text>
+              </View>
+              <Text
+                style={{
+                  marginTop: 14,
+                  fontSize: 26,
+                  lineHeight: 30,
+                  fontFamily: 'PlusJakartaSans-ExtraBold',
+                  color: PROFILE_THEME_COLORS.onSurface,
+                  textAlign: 'center',
+                }}
+              >
+                {currentPlayer.name}
+              </Text>
+              {currentPlayer.is_host ? (
                 <View
                   style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 18,
-                    backgroundColor: PROFILE_THEME_COLORS.primaryFixed,
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    marginTop: 8,
+                    borderRadius: 999,
+                    paddingHorizontal: 10,
+                    paddingVertical: 4,
+                    backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHigh,
                   }}
                 >
-                  <Text style={{ fontSize: 15, fontFamily: 'PlusJakartaSans-ExtraBold', color: RATE_THEME.brandStrong }}>{getAvatarLetter(currentPlayer.name)}</Text>
+                  <Text
+                    style={{
+                      fontSize: 10,
+                      fontFamily: 'PlusJakartaSans-Bold',
+                      letterSpacing: 1.4,
+                      color: PROFILE_THEME_COLORS.outline,
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    Host
+                  </Text>
                 </View>
-              }
-            />
-          </View>
-
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text style={{ flex: 1, fontSize: 14, fontFamily: 'PlusJakartaSans-Bold', color: RATE_THEME.textSecondary }}>
-              Đánh giá người chơi {progressCurrent}/{players.length}
-            </Text>
-            <Text style={{ fontSize: 16, fontFamily: 'PlusJakartaSans-ExtraBold', color: RATE_THEME.brandStrong }}>{progressPercent}%</Text>
-          </View>
-          <View style={{ height: 5, borderRadius: 999, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHigh, marginTop: 8, overflow: 'hidden', marginBottom: 18 }}>
-            <View style={{ height: '100%', width: `${progressPercent}%`, backgroundColor: RATE_THEME.brandStrong, borderRadius: 999 }} />
+              ) : null}
+              <View
+                style={{
+                  marginTop: 10,
+                  borderRadius: 999,
+                  borderWidth: 1,
+                  borderColor: PROFILE_THEME_COLORS.primaryFixedDim,
+                  backgroundColor: PROFILE_THEME_COLORS.secondaryContainer,
+                  paddingHorizontal: 14,
+                  paddingVertical: 8,
+                }}
+              >
+                <Text style={{ fontSize: 12, fontFamily: 'PlusJakartaSans-Bold', color: PROFILE_THEME_COLORS.primary }}>{skillLabel}</Text>
+              </View>
+            </View>
           </View>
 
           <View
             style={{
-              borderRadius: 22,
+              borderRadius: 28,
               borderWidth: 1,
-              borderColor: RATE_THEME.cardBorder,
-              backgroundColor: RATE_THEME.cardBg,
-              paddingHorizontal: 16,
-              paddingVertical: 15,
-              flexDirection: 'row',
-              alignItems: 'center',
-              marginBottom: 16,
+              borderColor: PROFILE_THEME_COLORS.outlineVariant,
+              backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+              paddingHorizontal: 20,
+              paddingVertical: 20,
+              marginBottom: 14,
+            }}
+          >
+            <SectionLabel title="Trình độ thi đấu" subtitle="Bạn thấy họ chơi thế nào?" />
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+              {SKILL_OPTIONS.map((option) => (
+                <SkillChip
+                  key={option.value}
+                  option={option}
+                  active={currentEntry.skill_validation === option.value}
+                  disabled={currentEntry.no_show}
+                  onPress={() => setSkillValidation(currentPlayer.player_id, option.value)}
+                />
+              ))}
+            </View>
+          </View>
+
+          <View
+            style={{
+              borderRadius: 28,
+              borderWidth: 1,
+              borderColor: PROFILE_THEME_COLORS.outlineVariant,
+              backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+              paddingHorizontal: 20,
+              paddingVertical: 20,
+              marginBottom: 14,
+            }}
+          >
+            <SectionLabel title="Đánh giá chi tiết" subtitle="Chọn những điều bạn muốn nói" />
+
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+              <Heart size={14} color={PROFILE_THEME_COLORS.primary} strokeWidth={SW} />
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontFamily: 'PlusJakartaSans-Bold',
+                  letterSpacing: 1.2,
+                  textTransform: 'uppercase',
+                  color: PROFILE_THEME_COLORS.onSurfaceVariant,
+                }}
+              >
+                Lời khen
+              </Text>
+            </View>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 18 }}>
+              {POSITIVE_TAGS.map((tag) => (
+                <View key={tag.value} style={{ width: '47.5%' }}>
+                  <TagChip
+                    tag={tag}
+                    active={currentEntry.tags.includes(tag.value)}
+                    disabled={currentEntry.no_show}
+                    onPress={() => toggleTag(currentPlayer.player_id, tag.value)}
+                  />
+                </View>
+              ))}
+            </View>
+
+            <View style={{ height: 1, backgroundColor: PROFILE_THEME_COLORS.outlineVariant, marginBottom: 16 }} />
+
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+              <ShieldAlert size={14} color={PROFILE_THEME_COLORS.error} strokeWidth={SW} />
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontFamily: 'PlusJakartaSans-Bold',
+                  letterSpacing: 1.2,
+                  textTransform: 'uppercase',
+                  color: PROFILE_THEME_COLORS.onSurfaceVariant,
+                }}
+              >
+                Cảnh báo
+              </Text>
+            </View>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+              {WARNING_TAGS.map((tag) => (
+                <View key={tag.value} style={{ width: '47.5%' }}>
+                  <TagChip
+                    tag={tag}
+                    active={currentEntry.tags.includes(tag.value)}
+                    disabled={currentEntry.no_show}
+                    onPress={() => toggleTag(currentPlayer.player_id, tag.value)}
+                  />
+                </View>
+              ))}
+            </View>
+          </View>
+
+          <View
+            style={{
+              borderRadius: 28,
+              borderWidth: 1.5,
+              borderColor: currentEntry.no_show ? PROFILE_THEME_COLORS.error : PROFILE_THEME_COLORS.outlineVariant,
+              backgroundColor: currentEntry.no_show ? PROFILE_THEME_COLORS.errorContainer : PROFILE_THEME_COLORS.surfaceContainerLowest,
               overflow: 'hidden',
             }}
           >
-            <View
-              style={{
-                position: 'absolute',
-                right: -14,
-                top: -12,
-                width: 70,
-                height: 70,
-                borderRadius: 35,
-                backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHigh,
-              }}
-            />
-            <View
-              style={{
-                width: 78,
-                height: 78,
-                borderRadius: 39,
-                backgroundColor: PROFILE_THEME_COLORS.surfaceTint,
-                borderWidth: 2,
-                borderColor: PROFILE_THEME_COLORS.surfaceContainerHigh,
+            <Pressable
+              onPress={() => toggleNoShow(currentPlayer.player_id)}
+              style={({ pressed }) => ({
+                flexDirection: 'row',
                 alignItems: 'center',
-                justifyContent: 'center',
-              }}
+                gap: 12,
+                paddingHorizontal: 20,
+                paddingVertical: 16,
+                opacity: pressed ? 0.86 : 1,
+              })}
             >
-              <Text style={{ fontSize: 30, fontFamily: 'PlusJakartaSans-ExtraBold', color: PROFILE_THEME_COLORS.onPrimary }}>{getAvatarLetter(currentPlayer.name)}</Text>
               <View
                 style={{
-                  position: 'absolute',
-                  right: -2,
-                  bottom: -2,
-                  width: 24,
-                  height: 24,
-                  borderRadius: 12,
-                  backgroundColor: RATE_THEME.brandStrong,
+                  width: 42,
+                  height: 42,
+                  borderRadius: 21,
                   alignItems: 'center',
                   justifyContent: 'center',
-                  borderWidth: 2,
-                  borderColor: RATE_THEME.cardBg,
+                  borderWidth: 1,
+                  borderColor: currentEntry.no_show ? PROFILE_THEME_COLORS.error : PROFILE_THEME_COLORS.outlineVariant,
+                  backgroundColor: currentEntry.no_show ? PROFILE_THEME_COLORS.error : PROFILE_THEME_COLORS.surfaceContainerLow,
                 }}
               >
-                <Check size={12} color={RATE_THEME.brandOn} strokeWidth={SW} />
+                <UserX size={20} color={currentEntry.no_show ? PROFILE_THEME_COLORS.onError : PROFILE_THEME_COLORS.error} strokeWidth={SW} />
               </View>
-            </View>
-            <View style={{ marginLeft: 14, flex: 1 }}>
-              <Text style={{ fontSize: 20, lineHeight: 25, fontFamily: 'PlusJakartaSans-ExtraBold', color: RATE_THEME.brandStrong }}>{currentPlayer.name}</Text>
-              <Text style={{ fontSize: 15, lineHeight: 21, fontFamily: 'PlusJakartaSans-Bold', color: RATE_THEME.textSecondary, marginTop: 2 }}>Mức chơi: {skillLabel}</Text>
-            </View>
-          </View>
 
-          <Pressable
-            onPress={() => toggleNoShow(currentPlayer.player_id)}
-            style={{
-              borderRadius: 22,
-              borderWidth: 1,
-              borderColor: RATE_THEME.cardBorder,
-              backgroundColor: RATE_THEME.cardBg,
-              paddingHorizontal: 16,
-              paddingVertical: 14,
-              flexDirection: 'row',
-              alignItems: 'center',
-              marginBottom: 22,
-            }}
-          >
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={{
+                    fontSize: 15,
+                    lineHeight: 20,
+                    fontFamily: 'PlusJakartaSans-ExtraBold',
+                    color: currentEntry.no_show ? PROFILE_THEME_COLORS.onErrorContainer : PROFILE_THEME_COLORS.onSurface,
+                  }}
+                >
+                  {currentEntry.no_show ? 'Đã báo no-show' : 'Báo no-show'}
+                </Text>
+                <Text
+                  style={{
+                    marginTop: 3,
+                    fontSize: 12,
+                    lineHeight: 18,
+                    fontFamily: 'PlusJakartaSans-Regular',
+                    color: currentEntry.no_show ? PROFILE_THEME_COLORS.onErrorContainer : PROFILE_THEME_COLORS.onSurfaceVariant,
+                  }}
+                >
+                  {currentEntry.no_show
+                    ? 'Đánh giá trình độ và tag khác đã khóa cho người chơi này.'
+                    : 'Bật khi người chơi không xuất hiện trong buổi chơi.'}
+                </Text>
+              </View>
+            </Pressable>
+
             <View
               style={{
-                width: 42,
-                height: 42,
-                borderRadius: 21,
-                backgroundColor: RATE_THEME.dangerTint,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <UserX size={20} color={PROFILE_THEME_COLORS.error} strokeWidth={SW} />
-            </View>
-              <Text style={{ flex: 1, marginLeft: 12, fontSize: 16, lineHeight: 22, fontFamily: 'PlusJakartaSans-ExtraBold', color: RATE_THEME.textPrimary }}>
-                Người này không đến{`\n`}(No-show)
-              </Text>
-            <View
-              style={{
-                width: 52,
-                height: 30,
+                marginHorizontal: 16,
+                marginBottom: 16,
                 borderRadius: 16,
-                paddingHorizontal: 4,
-                justifyContent: 'center',
-                backgroundColor: currentEntry.no_show ? RATE_THEME.brandStrong : PROFILE_THEME_COLORS.surfaceDim,
+                backgroundColor: currentEntry.no_show ? 'rgba(0,0,0,0.04)' : PROFILE_THEME_COLORS.surfaceContainerLow,
+                paddingHorizontal: 12,
+                paddingVertical: 10,
+                flexDirection: 'row',
+                alignItems: 'flex-start',
+                gap: 9,
               }}
             >
-              <View
+              <ShieldCheck size={16} color={PROFILE_THEME_COLORS.primary} strokeWidth={SW} style={{ marginTop: 1 }} />
+              <Text
                 style={{
-                  width: 22,
-                  height: 22,
-                  borderRadius: 11,
-                  backgroundColor: RATE_THEME.cardBg,
-                  alignSelf: currentEntry.no_show ? 'flex-end' : 'flex-start',
+                  flex: 1,
+                  fontSize: 12,
+                  lineHeight: 18,
+                  fontFamily: 'PlusJakartaSans-Regular',
+                  color: PROFILE_THEME_COLORS.onSurfaceVariant,
                 }}
-              />
+              >
+                Đánh giá ẩn danh: chỉ hiển thị sau 24 giờ hoặc khi cả hai bên hoàn thành đánh giá.
+              </Text>
             </View>
-          </Pressable>
-
-          <Text style={{ fontSize: 20, lineHeight: 26, fontFamily: 'PlusJakartaSans-ExtraBold', color: RATE_THEME.textPrimary, marginBottom: 12 }}>
-            Đánh giá trình độ
-          </Text>
-          <View style={{ flexDirection: 'row', gap: 10, marginBottom: 24 }}>
-            {SKILL_OPTIONS.map((option) => (
-              <SkillChip
-                key={option.value}
-                option={option}
-                active={currentEntry.skill_validation === option.value}
-                disabled={currentEntry.no_show}
-                onPress={() => setSkillValidation(currentPlayer.player_id, option.value)}
-              />
-            ))}
-          </View>
-
-          <Text style={{ fontSize: 20, lineHeight: 26, fontFamily: 'PlusJakartaSans-ExtraBold', color: RATE_THEME.textPrimary, marginBottom: 10 }}>
-            Nhận xét tích cực
-          </Text>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
-            {POSITIVE_TAGS.map((tag) => (
-              <TagPill
-                key={tag.value}
-                tag={tag}
-                active={currentEntry.tags.includes(tag.value)}
-                disabled={currentEntry.no_show}
-                onPress={() => toggleTag(currentPlayer.player_id, tag.value)}
-              />
-            ))}
-          </View>
-
-          <Text style={{ fontSize: 20, lineHeight: 26, fontFamily: 'PlusJakartaSans-ExtraBold', color: RATE_THEME.textPrimary, marginBottom: 10 }}>
-            Lưu ý
-          </Text>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-            {WARNING_TAGS.map((tag) => (
-              <TagPill
-                key={tag.value}
-                tag={tag}
-                active={currentEntry.tags.includes(tag.value)}
-                disabled={currentEntry.no_show}
-                onPress={() => toggleTag(currentPlayer.player_id, tag.value)}
-              />
-            ))}
           </View>
         </ScrollView>
 
         <View
           style={{
-            position: 'absolute',
-            left: 0,
-            right: 0,
-            bottom: 0,
-            paddingHorizontal: 16,
-            paddingTop: 10,
-            paddingBottom: Math.max(insets.bottom, 12),
-            backgroundColor: RATE_THEME.pageBg,
             borderTopWidth: 1,
-            borderTopColor: RATE_THEME.cardBorder,
+            borderTopColor: PROFILE_THEME_COLORS.outlineVariant,
+            backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+            paddingHorizontal: 20,
+            paddingTop: 10,
+            paddingBottom: Math.max(insets.bottom, 10),
           }}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <Pressable
-              onPress={handleSkip}
-              disabled={saving}
-              style={{
-                flex: 1,
-                borderRadius: 999,
-                backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHigh,
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: 52,
-                opacity: saving ? 0.6 : 1,
-              }}
-            >
-              <Text style={{ fontSize: 15, fontFamily: 'PlusJakartaSans-ExtraBold', color: RATE_THEME.textPrimary }}>Bỏ qua</Text>
-            </Pressable>
-
-            <Pressable
-              onPress={() => void submit()}
-              disabled={saving}
-              style={{
-                flex: 1.6,
-                borderRadius: 999,
-                backgroundColor: RATE_THEME.brand,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-                height: 52,
-                opacity: saving ? 0.75 : 1,
-              }}
-            >
-              <Text style={{ fontSize: 15, fontFamily: 'PlusJakartaSans-ExtraBold', color: RATE_THEME.brandOn }}>
-                {saving ? 'Đang gửi...' : players.length > 1 && currentIndex < players.length - 1 ? 'Tiếp theo' : 'Gửi đánh giá'}
-              </Text>
-              {!saving ? <ArrowRight size={18} color={RATE_THEME.brandOn} strokeWidth={SW} /> : null}
-            </Pressable>
+            <View style={{ flex: 1 }}>
+              <AppButton label="Bỏ qua" onPress={handleSkip} disabled={saving} variant="secondary" />
+            </View>
+            <View style={{ flex: 2 }}>
+              <AppButton
+                label={players.length > 1 && currentIndex < players.length - 1 ? 'Tiếp theo' : 'Gửi đánh giá'}
+                onPress={() => void submit()}
+                loading={saving}
+                variant="primary"
+              />
+            </View>
           </View>
         </View>
       </View>
@@ -720,5 +884,3 @@ export default function RateSessionScreen() {
     </SafeAreaView>
   )
 }
-
-
