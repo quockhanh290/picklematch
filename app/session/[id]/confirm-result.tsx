@@ -1,4 +1,4 @@
-﻿import { router, useLocalSearchParams } from 'expo-router'
+import { router, useLocalSearchParams } from 'expo-router'
 import { ArrowLeft, CheckCheck, ShieldAlert } from 'lucide-react-native'
 import { useEffect, useMemo, useState } from 'react'
 import {
@@ -14,6 +14,14 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { AppDialog, type AppDialogConfig } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { supabase } from '@/lib/supabase'
+
+function withAlpha(hex: string, alpha: number) {
+  const clean = hex.replace('#', '')
+  const normalized = clean.length === 3 ? clean.split('').map((char) => char + char).join('') : clean
+  const n = Number.parseInt(normalized, 16)
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`
+}
 
 const CONFIRM_THEME = {
   pageBg: PROFILE_THEME_COLORS.surfaceContainerLow,
@@ -44,7 +52,6 @@ const CONFIRM_THEME = {
   secondaryCtaBg: PROFILE_THEME_COLORS.secondaryFixed,
   secondaryCtaText: PROFILE_THEME_COLORS.onSecondaryFixedVariant,
 } as const
-import { supabase } from '@/lib/supabase'
 
 type SessionPlayerRecord = {
   player_id: string
@@ -79,19 +86,6 @@ type ConfirmableSession = {
     }
   }
   session_players: SessionPlayerRecord[]
-}
-
-function formatDateTime(value?: string | null) {
-  if (!value) return 'Chưa có hạn xác nhận'
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return 'Chưa có hạn xác nhận'
-  return date.toLocaleString('vi-VN', {
-    weekday: 'short',
-    day: '2-digit',
-    month: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
 }
 
 function formatHeroDate(value?: string | null) {
@@ -549,8 +543,28 @@ export default function ConfirmSessionResultScreen() {
             paddingBottom: 18,
           }}
         >
-          <View style={{ position: 'absolute', width: 220, height: 220, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.06)', top: -110, right: -50 }} />
-          <View style={{ position: 'absolute', width: 180, height: 180, borderRadius: 999, backgroundColor: 'rgba(0,0,0,0.08)', bottom: -60, right: -40 }} />
+          <View
+            style={{
+              position: 'absolute',
+              width: 220,
+              height: 220,
+              borderRadius: 999,
+              backgroundColor: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.06),
+              top: -110,
+              right: -50,
+            }}
+          />
+          <View
+            style={{
+              position: 'absolute',
+              width: 180,
+              height: 180,
+              borderRadius: 999,
+              backgroundColor: withAlpha(PROFILE_THEME_COLORS.onBackground, 0.08),
+              bottom: -60,
+              right: -40,
+            }}
+          />
 
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <View style={{ borderRadius: 999, backgroundColor: CONFIRM_THEME.heroBadgeBg, paddingHorizontal: 12, paddingVertical: 6 }}>

@@ -1,4 +1,4 @@
-﻿import { Home, MapPin, Zap } from 'lucide-react-native'
+import { Home, MapPin, Zap } from 'lucide-react-native'
 import { ImageBackground, Pressable, Text, View } from 'react-native'
 
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
@@ -6,6 +6,13 @@ import type { FamiliarCourt } from '@/lib/homeFeed'
 
 const iconStroke = 2.7
 export const COURT_CARD_HEIGHT = 256
+
+function withAlpha(hex: string, alpha: number) {
+  const clean = hex.replace('#', '')
+  const normalized = clean.length === 3 ? clean.split('').map((char) => char + char).join('') : clean
+  const n = Number.parseInt(normalized, 16)
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`
+}
 
 export function FamiliarCourtCard({ item, onPress }: { item: FamiliarCourt; onPress?: () => void }) {
   return (
@@ -21,7 +28,13 @@ export function FamiliarCourtCard({ item, onPress }: { item: FamiliarCourt; onPr
       >
         <View className="flex-1 justify-between bg-black/15 p-5">
         <View className="flex-row items-start justify-between">
-          <View className="rounded-full border px-4 py-2" style={{ borderColor: 'rgba(255,255,255,0.32)', backgroundColor: 'rgba(255,255,255,0.16)' }}>
+          <View
+            className="rounded-full border px-4 py-2"
+            style={{
+              borderColor: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.32),
+              backgroundColor: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.16),
+            }}
+          >
             <View className="flex-row items-center">
               <Home size={14} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={iconStroke} />
               <Text
@@ -49,8 +62,8 @@ export function FamiliarCourtCard({ item, onPress }: { item: FamiliarCourt; onPr
         <View
           className="rounded-[24px] border p-4"
           style={{
-            borderColor: 'rgba(255,255,255,0.7)',
-            backgroundColor: 'rgba(255,255,255,0.9)',
+            borderColor: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.7),
+            backgroundColor: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.9),
             shadowColor: PROFILE_THEME_COLORS.onBackground,
             shadowOpacity: 0.12,
             shadowRadius: 18,

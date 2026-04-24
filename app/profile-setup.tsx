@@ -1,4 +1,5 @@
 import { AppButton, AppInput, ScreenHeader, SectionCard } from '@/components/design'
+import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { getEloBandByLegacySkillLabel } from '@/lib/eloSystem'
 import { supabase } from '@/lib/supabase'
 import { router } from 'expo-router'
@@ -53,7 +54,7 @@ export default function ProfileSetup() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-stone-100" edges={['top']}>
+    <SafeAreaView className="flex-1" style={{ backgroundColor: PROFILE_THEME_COLORS.background }} edges={['top']}>
       <ScrollView stickyHeaderIndices={[0]} contentContainerStyle={{ paddingBottom: 40 }}>
         <ScreenHeader
           eyebrow="Bắt đầu"
@@ -80,7 +81,7 @@ export default function ProfileSetup() {
           </SectionCard>
 
           <SectionCard title="Bước tiếp theo" className="mb-6">
-            <Text className="text-sm leading-6 text-slate-500">
+            <Text className="text-sm leading-6" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant }}>
               Sau bước này, bạn sẽ trả lời vài câu hỏi ngắn về thói quen chơi. Hệ thống sẽ tự đề xuất mức khởi điểm và đánh dấu tài khoản provisional để tiếp tục hiệu chỉnh sau vài trận đầu.
             </Text>
           </SectionCard>
@@ -88,7 +89,7 @@ export default function ProfileSetup() {
           <AppButton label="Tiếp tục" onPress={saveProfile} loading={loading} />
 
           <TouchableOpacity activeOpacity={0.88} className="mt-4 items-center" onPress={() => router.back()}>
-            <Text className="text-sm font-semibold text-emerald-700">Quay lại</Text>
+            <Text className="text-sm font-semibold" style={{ color: PROFILE_THEME_COLORS.primary }}>Quay lại</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

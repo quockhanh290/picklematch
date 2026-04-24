@@ -1,6 +1,7 @@
 import type { LucideIcon } from 'lucide-react-native'
 import { Check, Lock } from 'lucide-react-native'
 import { Text, View } from 'react-native'
+
 import { PROFILE_THEME_COLORS, getTrophyBadgePalette } from '@/components/profile/profileTheme'
 
 type BadgeTone = 'emerald' | 'amber' | 'rose' | 'sky' | 'violet'
@@ -30,53 +31,66 @@ function categoryLabel(category: TrophyBadge['category']) {
   }
 }
 
-function toneClasses(tone: BadgeTone) {
+function withAlpha(hex: string, alpha: number) {
+  const clean = hex.replace('#', '')
+  const normalized = clean.length === 3 ? clean.split('').map((char) => char + char).join('') : clean
+  const n = Number.parseInt(normalized, 16)
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`
+}
+
+function tonePalette(tone: BadgeTone) {
   const badge = getTrophyBadgePalette(tone)
+
   switch (tone) {
     case 'emerald':
       return {
-        card: 'bg-emerald-50 border-emerald-100',
-        text: 'text-emerald-700',
-        subtext: 'text-emerald-700/80',
-        divider: 'border-emerald-700/10',
+        card: PROFILE_THEME_COLORS.primaryFixed,
+        border: PROFILE_THEME_COLORS.secondaryFixedDim,
+        text: PROFILE_THEME_COLORS.onPrimaryFixedVariant,
+        subtext: withAlpha(PROFILE_THEME_COLORS.onPrimaryFixedVariant, 0.8),
+        divider: withAlpha(PROFILE_THEME_COLORS.onPrimaryFixedVariant, 0.1),
         icon: badge.icon,
-        watermark: `rgba(4, 120, 87, 0.1)`,
+        watermark: withAlpha(PROFILE_THEME_COLORS.surfaceTint, 0.1),
       }
     case 'amber':
       return {
-        card: 'bg-amber-50 border-amber-100',
-        text: 'text-amber-700',
-        subtext: 'text-amber-700/80',
-        divider: 'border-amber-700/10',
+        card: PROFILE_THEME_COLORS.secondaryFixed,
+        border: PROFILE_THEME_COLORS.secondaryFixedDim,
+        text: PROFILE_THEME_COLORS.onSecondaryFixedVariant,
+        subtext: withAlpha(PROFILE_THEME_COLORS.onSecondaryFixedVariant, 0.8),
+        divider: withAlpha(PROFILE_THEME_COLORS.onSecondaryFixedVariant, 0.1),
         icon: badge.icon,
-        watermark: `rgba(180, 83, 9, 0.1)`,
+        watermark: withAlpha(PROFILE_THEME_COLORS.onPrimaryFixedVariant, 0.1),
       }
     case 'rose':
       return {
-        card: 'bg-rose-50 border-rose-100',
-        text: 'text-rose-700',
-        subtext: 'text-rose-700/80',
-        divider: 'border-rose-700/10',
+        card: PROFILE_THEME_COLORS.errorContainer,
+        border: PROFILE_THEME_COLORS.outlineVariant,
+        text: PROFILE_THEME_COLORS.onErrorContainer,
+        subtext: withAlpha(PROFILE_THEME_COLORS.onErrorContainer, 0.8),
+        divider: withAlpha(PROFILE_THEME_COLORS.onErrorContainer, 0.1),
         icon: badge.icon,
-        watermark: `rgba(190, 18, 60, 0.1)`,
+        watermark: withAlpha(PROFILE_THEME_COLORS.error, 0.1),
       }
     case 'sky':
       return {
-        card: 'bg-sky-50 border-sky-100',
-        text: 'text-sky-700',
-        subtext: 'text-sky-700/80',
-        divider: 'border-sky-700/10',
+        card: PROFILE_THEME_COLORS.tertiaryFixed,
+        border: PROFILE_THEME_COLORS.secondaryFixedDim,
+        text: PROFILE_THEME_COLORS.onTertiaryFixedVariant,
+        subtext: withAlpha(PROFILE_THEME_COLORS.onTertiaryFixedVariant, 0.8),
+        divider: withAlpha(PROFILE_THEME_COLORS.onTertiaryFixedVariant, 0.1),
         icon: badge.icon,
-        watermark: `rgba(3, 105, 161, 0.1)`,
+        watermark: withAlpha(PROFILE_THEME_COLORS.onTertiaryFixedVariant, 0.1),
       }
     case 'violet':
       return {
-        card: 'bg-violet-50 border-violet-100',
-        text: 'text-violet-700',
-        subtext: 'text-violet-700/80',
-        divider: 'border-violet-700/10',
+        card: PROFILE_THEME_COLORS.secondaryContainer,
+        border: PROFILE_THEME_COLORS.outlineVariant,
+        text: PROFILE_THEME_COLORS.onSecondaryContainer,
+        subtext: withAlpha(PROFILE_THEME_COLORS.onSecondaryContainer, 0.8),
+        divider: withAlpha(PROFILE_THEME_COLORS.onSecondaryContainer, 0.1),
         icon: badge.icon,
-        watermark: `rgba(109, 40, 217, 0.1)`,
+        watermark: withAlpha(PROFILE_THEME_COLORS.onSecondaryContainer, 0.1),
       }
   }
 }
@@ -91,47 +105,73 @@ export function TrophyRoom({ badges = [] }: Props) {
   return (
     <View className="gap-4">
       <View className="px-1">
-        <Text className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Badges</Text>
-        <Text className="mt-2 text-2xl font-black text-slate-900">Trophy Room</Text>
-        <Text className="mt-2 text-sm leading-6 text-slate-500">
+        <Text className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: PROFILE_THEME_COLORS.outline }}>
+          Badges
+        </Text>
+        <Text className="mt-2 text-2xl font-black" style={{ color: PROFILE_THEME_COLORS.onSurface }}>
+          Trophy Room
+        </Text>
+        <Text className="mt-2 text-sm leading-6" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant }}>
           {earnedCount}/{badges.length} danh hiệu đã mở khóa dựa trên phong độ, độ uy tín và chất lượng host.
         </Text>
       </View>
 
       <View className="flex-row flex-wrap justify-between gap-y-3">
         {badges.map((badge) => {
-          const palette = toneClasses(badge.tone)
+          const palette = tonePalette(badge.tone)
           const Icon = badge.icon
+          const isEarned = badge.earned
 
           return (
             <View
               key={badge.key}
-              className={`relative w-[48%] overflow-hidden rounded-[20px] border p-4 flex flex-col ${badge.earned ? palette.card : 'border-slate-200 bg-slate-100 text-slate-500 opacity-75'
-                }`}
+              className="relative w-[48%] overflow-hidden rounded-[20px] border p-4 flex flex-col"
+              style={{
+                borderColor: isEarned ? palette.border : PROFILE_THEME_COLORS.outlineVariant,
+                backgroundColor: isEarned ? palette.card : PROFILE_THEME_COLORS.surfaceContainer,
+                opacity: isEarned ? 1 : 0.75,
+              }}
             >
               <Icon
                 size={80}
-                color={badge.earned ? palette.watermark : 'rgba(100, 116, 139, 0.1)'}
+                color={isEarned ? palette.watermark : withAlpha(PROFILE_THEME_COLORS.outline, 0.18)}
                 strokeWidth={1.8}
                 style={{ position: 'absolute', right: -16, bottom: -16 }}
               />
 
               <View className="relative z-10 flex-row items-start justify-between">
-                <Icon size={24} color={badge.earned ? palette.icon : PROFILE_THEME_COLORS.outline} strokeWidth={2.1} />
-                {badge.earned ? <Check size={16} color={palette.icon} /> : <Lock size={16} color={PROFILE_THEME_COLORS.outline} />}
+                <Icon size={24} color={isEarned ? palette.icon : PROFILE_THEME_COLORS.outline} strokeWidth={2.1} />
+                {isEarned ? <Check size={16} color={palette.icon} /> : <Lock size={16} color={PROFILE_THEME_COLORS.outline} />}
               </View>
 
-              <Text className={`relative z-10 mt-4 text-[9px] font-extrabold uppercase tracking-widest opacity-60 ${badge.earned ? palette.text : 'text-slate-500'}`}>
+              <Text
+                className="relative z-10 mt-4 text-[9px] font-extrabold uppercase tracking-widest opacity-60"
+                style={{ color: isEarned ? palette.text : PROFILE_THEME_COLORS.onSurfaceVariant }}
+              >
                 {categoryLabel(badge.category)}
               </Text>
-              <Text className={`relative z-10 mt-2 text-sm font-extrabold ${badge.earned ? palette.text : 'text-slate-500'}`}>{badge.title}</Text>
-              <Text className={`relative z-10 mt-2 text-[11px] leading-5 opacity-80 ${badge.earned ? palette.subtext : 'text-slate-500'}`}>
+              <Text
+                className="relative z-10 mt-2 text-sm font-extrabold"
+                style={{ color: isEarned ? palette.text : PROFILE_THEME_COLORS.onSurfaceVariant }}
+              >
+                {badge.title}
+              </Text>
+              <Text
+                className="relative z-10 mt-2 text-[11px] leading-5 opacity-80"
+                style={{ color: isEarned ? palette.subtext : PROFILE_THEME_COLORS.onSurfaceVariant }}
+              >
                 {badge.description}
               </Text>
 
-              <View className={`relative z-10 mt-4 border-t pt-3 ${badge.earned ? palette.divider : 'border-slate-500/10'}`}>
-                <Text className={`relative z-10 text-[11px] font-bold opacity-80 ${badge.earned ? palette.text : 'text-slate-500'}`}>
-                  {badge.earned ? `Mở khóa: ${badge.earnedAt}` : `Yêu cầu: ${badge.requirement}`}
+              <View
+                className="relative z-10 mt-4 border-t pt-3"
+                style={{ borderColor: isEarned ? palette.divider : withAlpha(PROFILE_THEME_COLORS.onSurfaceVariant, 0.1) }}
+              >
+                <Text
+                  className="relative z-10 text-[11px] font-bold opacity-80"
+                  style={{ color: isEarned ? palette.text : PROFILE_THEME_COLORS.onSurfaceVariant }}
+                >
+                  {isEarned ? `Mở khóa: ${badge.earnedAt}` : `Yêu cầu: ${badge.requirement}`}
                 </Text>
               </View>
             </View>

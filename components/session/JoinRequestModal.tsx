@@ -4,6 +4,7 @@ import { AlertCircle, Clock3, Send, Users } from 'lucide-react-native'
 import { AppButton } from '@/components/design'
 import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
 import type { MatchStatus } from '@/lib/matchmaking'
+import { useAppTheme } from '@/lib/theme-context'
 
 type Props = {
   visible: boolean
@@ -31,6 +32,7 @@ export function JoinRequestModal({
   onClose,
   onSubmit,
 }: Props) {
+  const theme = useAppTheme()
   const isLowerSkill = mode === 'LOWER_SKILL'
   const isWaitlist = mode === 'WAITLIST'
 
@@ -46,7 +48,7 @@ export function JoinRequestModal({
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <KeyboardAvoidingView
-        style={{ flex: 1, backgroundColor: 'rgba(10, 20, 30, 0.45)' }}
+        style={{ flex: 1, backgroundColor: theme.overlay }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
       >

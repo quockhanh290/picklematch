@@ -53,7 +53,7 @@ function NotificationIcon({
             justifyContent: 'center',
           }}
         >
-          <Text style={{ color: '#fff', fontSize: 10, fontWeight: '700' }}>{unread > 99 ? '99+' : unread}</Text>
+          <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontSize: 10, fontWeight: '700' }}>{unread > 99 ? '99+' : unread}</Text>
         </View>
       ) : null}
     </View>
@@ -76,7 +76,7 @@ export default function TabLayout() {
           paddingTop: 12,
           paddingBottom: 12,
           backgroundColor: PROFILE_THEME_COLORS.background,
-          shadowColor: '#000',
+          shadowColor: PROFILE_THEME_COLORS.onBackground,
           shadowOffset: { width: 0, height: 8 },
           shadowOpacity: 0.10,
           shadowRadius: 18,

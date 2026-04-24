@@ -70,6 +70,13 @@ type TagOption = {
 
 const SW = 2.5
 
+function withAlpha(hex: string, alpha: number) {
+  const clean = hex.replace('#', '')
+  const normalized = clean.length === 3 ? clean.split('').map((char) => char + char).join('') : clean
+  const n = Number.parseInt(normalized, 16)
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`
+}
+
 const SKILL_OPTIONS: SkillOption[] = [
   { value: 'weaker', label: 'Cần cố gắng', subtitle: 'Dưới trình', icon: ArrowDown },
   { value: 'matched', label: 'Đúng trình', subtitle: 'Như kỳ vọng', icon: Check },
@@ -224,7 +231,7 @@ function SkillChip({
           borderRadius: 19,
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: active ? 'rgba(255,255,255,0.2)' : PROFILE_THEME_COLORS.surfaceContainerHighest,
+          backgroundColor: active ? withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.2) : PROFILE_THEME_COLORS.surfaceContainerHighest,
         }}
       >
         <Icon size={18} color={active ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={SW} />
@@ -247,7 +254,7 @@ function SkillChip({
           fontSize: 11,
           lineHeight: 15,
           fontFamily: 'PlusJakartaSans-Regular',
-          color: active ? 'rgba(255,255,255,0.75)' : PROFILE_THEME_COLORS.onSurfaceVariant,
+          color: active ? withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.75) : PROFILE_THEME_COLORS.onSurfaceVariant,
         }}
       >
         {option.subtitle}
@@ -830,7 +837,7 @@ export default function RateSessionScreen() {
                 marginHorizontal: 16,
                 marginBottom: 16,
                 borderRadius: 16,
-                backgroundColor: currentEntry.no_show ? 'rgba(0,0,0,0.04)' : PROFILE_THEME_COLORS.surfaceContainerLow,
+                backgroundColor: currentEntry.no_show ? withAlpha(PROFILE_THEME_COLORS.onBackground, 0.04) : PROFILE_THEME_COLORS.surfaceContainerLow,
                 paddingHorizontal: 12,
                 paddingVertical: 10,
                 flexDirection: 'row',

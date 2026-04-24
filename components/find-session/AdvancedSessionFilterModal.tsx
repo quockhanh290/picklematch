@@ -1,4 +1,4 @@
-﻿import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker'
 import Slider from '@react-native-community/slider'
 import React, { useState } from 'react'
@@ -40,6 +40,13 @@ type Props = {
 }
 
 const PRICE_SLIDER_MAX = 300
+
+function withAlpha(hex: string, alpha: number) {
+  const clean = hex.replace('#', '')
+  const normalized = clean.length === 3 ? clean.split('').map((char) => char + char).join('') : clean
+  const n = Number.parseInt(normalized, 16)
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`
+}
 
 function chipStyle(active: boolean) {
   return {
@@ -158,7 +165,7 @@ export function AdvancedSessionFilterModal({
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.18)', justifyContent: 'flex-end' }}>
+      <View style={{ flex: 1, backgroundColor: withAlpha(PROFILE_THEME_COLORS.onBackground, 0.18), justifyContent: 'flex-end' }}>
         <Pressable style={{ flex: 1 }} onPress={onClose} />
         <View
           style={{

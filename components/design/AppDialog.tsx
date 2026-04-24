@@ -34,7 +34,7 @@ export function AppDialog({ visible, config, onClose }: Props) {
 
   return (
     <Modal transparent animationType="fade" visible={visible} onRequestClose={onClose}>
-      <View style={{ flex: 1, backgroundColor: 'rgba(10, 20, 30, 0.45)', justifyContent: 'center', paddingHorizontal: 20 }}>
+      <View style={{ flex: 1, backgroundColor: theme.overlay, justifyContent: 'center', paddingHorizontal: 20 }}>
         <Pressable style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 }} onPress={onClose} />
 
         <View

@@ -1,4 +1,4 @@
-﻿import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC, getHistoryResultPalette } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC, getHistoryResultPalette } from '@/components/profile/profileTheme'
 import type { SkillAssessmentLevel } from '@/lib/skillAssessment'
 import { getSkillLevelUi } from '@/lib/skillLevelUi'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -80,7 +80,15 @@ export function ProfileIdentityCard({
   const placementPlayed = placementMatchesPlayed ?? 0
 
   return (
-    <View className="rounded-[32px] bg-white p-6 shadow-sm mb-4" style={{ shadowColor: PROFILE_THEME_COLORS.onBackground, shadowOpacity: 0.05, shadowRadius: 20 }}>
+    <View
+      className="rounded-[32px] p-6 shadow-sm mb-4"
+      style={{
+        backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+        shadowColor: PROFILE_THEME_COLORS.onBackground,
+        shadowOpacity: 0.05,
+        shadowRadius: 20,
+      }}
+    >
       <View className="flex-col items-center">
         <View className="h-28 w-28 items-center justify-center rounded-full border-[4px]" style={{ borderColor: PROFILE_THEME_COLORS.surfaceTint, backgroundColor: PROFILE_THEME_SEMANTIC.successBg }}>
           <Text className="text-4xl" style={{ color: PROFILE_THEME_COLORS.surfaceTint, fontFamily: 'PlusJakartaSans-Bold' }}>{name?.[0]?.toUpperCase() ?? '?'}</Text>
@@ -116,7 +124,7 @@ export function ProfileIdentityCard({
                 className="flex-1 rounded-full overflow-hidden flex-row items-center justify-center py-4" style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceTint }}
               >
                 {action.icon === 'logout' ? <LogOut size={16} color={PROFILE_THEME_COLORS.onPrimary} /> : <PencilLine size={16} color={PROFILE_THEME_COLORS.onPrimary} />}
-                <Text className="ml-2 text-[13px] text-white tracking-[0.5px] uppercase" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
+                <Text className="ml-2 text-[13px] tracking-[0.5px] uppercase" style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-Bold' }}>
                   {action.label}
                 </Text>
               </TouchableOpacity>

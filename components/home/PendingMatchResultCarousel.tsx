@@ -9,6 +9,13 @@ const screenWidth = Dimensions.get('window').width
 const pendingCardWidth = screenWidth - 88
 const pendingCardGap = 14
 
+function withAlpha(hex: string, alpha: number) {
+  const clean = hex.replace('#', '')
+  const normalized = clean.length === 3 ? clean.split('').map((char) => char + char).join('') : clean
+  const n = Number.parseInt(normalized, 16)
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`
+}
+
 function CarouselDots({ count, activeIndex }: { count: number; activeIndex: number }) {
   if (count <= 1) return null
 
@@ -17,7 +24,11 @@ function CarouselDots({ count, activeIndex }: { count: number; activeIndex: numb
       {Array.from({ length: count }).map((_, index) => (
         <View
           key={index}
-          className={`h-2 rounded-full ${index === activeIndex ? 'w-6 bg-slate-900' : 'w-2 bg-slate-300'}`}
+          className="h-2 rounded-full"
+          style={{
+            width: index === activeIndex ? 24 : 8,
+            backgroundColor: index === activeIndex ? PROFILE_THEME_COLORS.primaryContainer : PROFILE_THEME_COLORS.outlineVariant,
+          }}
         />
       ))}
     </View>
@@ -27,8 +38,10 @@ function CarouselDots({ count, activeIndex }: { count: number; activeIndex: numb
 function PendingMatchResultCard({ item }: { item: PendingMatch }) {
   return (
     <View
-      className="mb-8 flex-row items-center gap-4 overflow-hidden rounded-[32px] border border-amber-200 bg-amber-50 p-5"
+      className="mb-8 flex-row items-center gap-4 overflow-hidden rounded-[32px] border p-5"
       style={{
+        borderColor: PROFILE_THEME_COLORS.secondaryFixedDim,
+        backgroundColor: PROFILE_THEME_COLORS.primaryFixed,
         width: pendingCardWidth,
         shadowColor: PROFILE_THEME_SEMANTIC.warningStrong,
         shadowOpacity: 0.08,
@@ -37,11 +50,15 @@ function PendingMatchResultCard({ item }: { item: PendingMatch }) {
         elevation: 3,
       }}
     >
-      <View className="absolute -right-8 -top-10 h-28 w-28 rounded-full bg-amber-400/10" />
+      <View
+        className="absolute -right-8 -top-10 h-28 w-28 rounded-full"
+        style={{ backgroundColor: withAlpha(PROFILE_THEME_SEMANTIC.warningStrong, 0.1) }}
+      />
 
       <View
-        className="h-12 w-12 items-center justify-center rounded-full bg-amber-500"
+        className="h-12 w-12 items-center justify-center rounded-full"
         style={{
+          backgroundColor: PROFILE_THEME_SEMANTIC.warningStrong,
           shadowColor: PROFILE_THEME_SEMANTIC.warningStrong,
           shadowOpacity: 0.18,
           shadowRadius: 10,
@@ -53,18 +70,19 @@ function PendingMatchResultCard({ item }: { item: PendingMatch }) {
       </View>
 
       <View className="min-w-0 flex-1">
-        <Text className="text-[14px] font-black text-amber-900">Cần nhập kết quả</Text>
-        <Text className="mt-2 truncate text-[11px] font-bold uppercase tracking-tight text-amber-700/60">
+        <Text className="text-[14px] font-black" style={{ color: PROFILE_THEME_COLORS.onPrimaryFixedVariant }}>Cần nhập kết quả</Text>
+        <Text className="mt-2 truncate text-[11px] font-bold uppercase tracking-tight" style={{ color: withAlpha(PROFILE_THEME_COLORS.onPrimaryFixedVariant, 0.6) }}>
           {item.courtName}
         </Text>
-        <Text className="mt-1 text-[13px] font-semibold text-amber-900">{item.timeLabel}</Text>
+        <Text className="mt-1 text-[13px] font-semibold" style={{ color: PROFILE_THEME_COLORS.onPrimaryFixedVariant }}>{item.timeLabel}</Text>
       </View>
 
       <Pressable
         onPress={() => router.push({ pathname: '/match-result/[id]' as any, params: { id: item.id } })}
-        className="rounded-full bg-slate-900 px-4 py-2.5"
+        className="rounded-full px-4 py-2.5"
+        style={{ backgroundColor: PROFILE_THEME_COLORS.primaryContainer }}
       >
-        <Text className="text-[11px] font-black uppercase text-white">NHẬP NGAY</Text>
+        <Text className="text-[11px] font-black uppercase" style={{ color: PROFILE_THEME_COLORS.onPrimary }}>NHẬP NGAY</Text>
       </Pressable>
     </View>
   )
@@ -113,9 +131,9 @@ export function PendingMatchResultCarousel({ items, activeIndex, onIndexChange }
 
       <View className="-mt-3 flex-row items-center justify-between px-1">
         <CarouselDots count={items.length} activeIndex={activeIndex} />
-        <View className="flex-row items-center rounded-full bg-amber-100 px-3 py-1.5">
+        <View className="flex-row items-center rounded-full px-3 py-1.5" style={{ backgroundColor: PROFILE_THEME_COLORS.primaryFixed }}>
           <Hand size={14} color={PROFILE_THEME_COLORS.onPrimaryFixedVariant} strokeWidth={2.5} />
-          <Text className="ml-1.5 text-[10px] font-black uppercase tracking-[1.4px] text-amber-800">
+          <Text className="ml-1.5 text-[10px] font-black uppercase tracking-[1.4px]" style={{ color: PROFILE_THEME_COLORS.onPrimaryFixedVariant }}>
             Vuốt để xem thêm
           </Text>
         </View>

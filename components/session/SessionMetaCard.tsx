@@ -1,4 +1,4 @@
-﻿import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { getSkillLevelUi } from '@/lib/skillLevelUi'
 import { LinearGradient } from 'expo-linear-gradient'
 import { CreditCard, MapPin, MessageSquareText, ShieldAlert, ShieldCheck, Trophy } from 'lucide-react-native'
@@ -80,7 +80,7 @@ export function SessionMetaCard({
 
         <LevelIcon
           size={128}
-          color="rgba(255,255,255,0.14)"
+          color={withAlpha(onAccent, 0.14)}
           style={{ position: 'absolute', right: -18, bottom: -18 }}
         />
 

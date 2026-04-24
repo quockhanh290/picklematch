@@ -16,9 +16,15 @@ import { buildUpcomingMatchPreviewSession, type FamiliarCourt, type MatchSession
 import { useAppTheme } from '@/lib/theme-context'
 import { useAuth } from '@/lib/useAuth'
 
-const iconStroke = 2.7
 const CAROUSEL_SECTION_HEIGHT = 430
 const COURT_CAROUSEL_HEIGHT = 272
+
+function withAlpha(hex: string, alpha: number) {
+  const clean = hex.replace('#', '')
+  const normalized = clean.length === 3 ? clean.split('').map((char) => char + char).join('') : clean
+  const n = Number.parseInt(normalized, 16)
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`
+}
 
 const SmartMatchCard = memo(function SmartMatchCard({ item, accentMode = 'default' }: { item: MatchSession; accentMode?: 'default' | 'rescue' }) {
   return <MatchSessionCard item={item} variant="standard" actionLabel={item.joined ? 'Xem kèo' : 'Vào kèo'} accentMode={accentMode} />
@@ -43,7 +49,7 @@ const HomeStreakCard = memo(function HomeStreakCard({ current }: { current: numb
 
   return (
     <View className="relative mt-5 overflow-hidden rounded-[32px] px-6 py-5 shadow-sm">
-      <View style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, backgroundColor: 'rgba(255,255,255,0.7)' }} />
+      <View style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, backgroundColor: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.7) }} />
       <LinearGradient
         colors={[PROFILE_THEME_COLORS.primaryContainer, PROFILE_THEME_COLORS.tertiaryContainer]}
         start={{ x: 0, y: 0 }}
@@ -52,8 +58,7 @@ const HomeStreakCard = memo(function HomeStreakCard({ current }: { current: numb
       />
       <Flame
         size={132}
-        color="rgba(255,255,255,0.12)"
-        strokeWidth={1.8}
+        color={withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.12)}
         style={{ position: 'absolute', right: -18, bottom: -36 }}
       />
 
@@ -62,9 +67,9 @@ const HomeStreakCard = memo(function HomeStreakCard({ current }: { current: numb
           <View className="flex-1 flex-row items-center">
             <View
               className="mr-2 h-9 w-9 items-center justify-center rounded-full"
-              style={{ backgroundColor: 'rgba(255,255,255,0.14)' }}
+              style={{ backgroundColor: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.14) }}
             >
-              <Flame size={16} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.3} />
+              <Flame size={16} color={PROFILE_THEME_COLORS.onPrimary} />
             </View>
             <Text
               className="text-[20px] uppercase tracking-[1px]"
@@ -203,8 +208,6 @@ export default function HomeScreen() {
             renderCard={renderRescueCard}
           />
 
-
-
           <HomeCarouselSection
             visible={familiarCourts.length > 0}
             eyebrow="Sân quen"
@@ -232,7 +235,7 @@ export default function HomeScreen() {
             shadowOffset: { width: 0, height: 16 },
           }}
         >
-          <Plus size={20} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={iconStroke} />
+          <Plus size={20} color={PROFILE_THEME_COLORS.onPrimary} />
           <Text className="ml-3 text-sm uppercase tracking-[2.6px]" style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-ExtraBold' }}>
             Tạo kèo mới
           </Text>

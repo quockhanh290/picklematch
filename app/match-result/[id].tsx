@@ -15,9 +15,16 @@ import { AppDialog, type AppDialogConfig } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { supabase } from '@/lib/supabase'
 
+function withAlpha(hex: string, alpha: number) {
+  const clean = hex.replace('#', '')
+  const normalized = clean.length === 3 ? clean.split('').map((char) => char + char).join('') : clean
+  const n = Number.parseInt(normalized, 16)
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`
+}
+
 const RESULT_THEME = {
   pageBg: PROFILE_THEME_COLORS.surfaceContainerLow,
-  pageBlob: 'rgba(10,90,69,0.04)',
+  pageBlob: withAlpha(PROFILE_THEME_COLORS.primaryContainer, 0.08),
   headerChipBg: PROFILE_THEME_COLORS.surfaceContainerHigh,
   headerIcon: PROFILE_THEME_COLORS.onSecondaryContainer,
   title: PROFILE_THEME_COLORS.primary,
@@ -137,9 +144,9 @@ function PlayerTag({ name, dark }: { name: string; dark: boolean }) {
         borderRadius: 999,
         paddingHorizontal: 10,
         paddingVertical: 5,
-        backgroundColor: dark ? 'rgba(255,255,255,0.14)' : PROFILE_THEME_COLORS.surfaceContainerLowest,
+        backgroundColor: dark ? withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.14) : PROFILE_THEME_COLORS.surfaceContainerLowest,
         borderWidth: 1,
-        borderColor: dark ? 'rgba(255,255,255,0.22)' : PROFILE_THEME_COLORS.outlineVariant,
+        borderColor: dark ? withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.22) : PROFILE_THEME_COLORS.outlineVariant,
         marginLeft: 6,
       }}
     >

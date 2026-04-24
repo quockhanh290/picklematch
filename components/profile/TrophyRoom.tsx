@@ -38,6 +38,13 @@ type Props = {
   flushBottom?: boolean
 }
 
+function withAlpha(hex: string, alpha: number) {
+  const clean = hex.replace('#', '')
+  const normalized = clean.length === 3 ? clean.split('').map((char) => char + char).join('') : clean
+  const n = Number.parseInt(normalized, 16)
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`
+}
+
 export function TrophyRoom({ badges = [], hideHeader = false, flushBottom = false }: Props) {
   const earnedCount = badges.filter((badge) => badge.earned).length
 
@@ -115,7 +122,7 @@ export function TrophyRoom({ badges = [], hideHeader = false, flushBottom = fals
 
               <Icon
                 size={56}
-                color={badge.earned ? 'rgba(255,255,255,0.14)' : PROFILE_THEME_COLORS.outlineVariant}
+                color={badge.earned ? withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.14) : PROFILE_THEME_COLORS.outlineVariant}
                 strokeWidth={1.8}
                 style={{ position: 'absolute', right: 12, bottom: 12 }}
               />

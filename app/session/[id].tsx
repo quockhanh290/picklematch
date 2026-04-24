@@ -1,4 +1,4 @@
-﻿import * as Linking from 'expo-linking'
+import * as Linking from 'expo-linking'
 import { router, useLocalSearchParams } from 'expo-router'
 import {
   CheckCheck,
@@ -128,7 +128,7 @@ export default function SessionDetailScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-slate-50">
+      <SafeAreaView className="flex-1 items-center justify-center" style={{ backgroundColor: PROFILE_THEME_COLORS.background }}>
         <ActivityIndicator size="large" color={PROFILE_THEME_COLORS.primary} />
       </SafeAreaView>
     )
@@ -136,8 +136,8 @@ export default function SessionDetailScreen() {
 
   if (!session) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-slate-50 px-6">
-        <Text className="text-center text-base font-semibold text-slate-500">Không tìm thấy kèo này.</Text>
+      <SafeAreaView className="flex-1 items-center justify-center px-6" style={{ backgroundColor: PROFILE_THEME_COLORS.background }}>
+        <Text className="text-center text-base font-semibold" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant }}>Không tìm thấy kèo này.</Text>
       </SafeAreaView>
     )
   }
@@ -164,6 +164,20 @@ export default function SessionDetailScreen() {
         session.results_status === undefined) &&
         (session.status === 'pending_completion' || session.status === 'done'))
     )
+  const isResultDisputed = session.results_status === 'disputed'
+  const resultBannerTone = isResultDisputed
+    ? {
+        border: PROFILE_THEME_SEMANTIC.dangerBorderSoft,
+        background: PROFILE_THEME_SEMANTIC.dangerBg,
+        text: PROFILE_THEME_SEMANTIC.dangerText,
+        button: PROFILE_THEME_SEMANTIC.dangerStrong,
+      }
+    : {
+        border: PROFILE_THEME_COLORS.secondaryFixedDim,
+        background: PROFILE_THEME_COLORS.tertiaryFixed,
+        text: PROFILE_THEME_COLORS.onTertiaryFixedVariant,
+        button: PROFILE_THEME_COLORS.primaryContainer,
+      }
 
   function renderPlayerRow(player: ArrangementPlayer, mode: 'normal' | 'arranging') {
     const levelUi = getSkillLevelUi(player.levelId)
@@ -294,7 +308,7 @@ export default function SessionDetailScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-50" edges={['top']}>
+    <SafeAreaView className="flex-1" style={{ backgroundColor: PROFILE_THEME_COLORS.background }} edges={['top']}>
       {showUpdatedToast ? (
         <View
           pointerEvents="none"
@@ -344,7 +358,11 @@ export default function SessionDetailScreen() {
           onBackPress={() => router.back()}
           rightSlot={
             <TouchableOpacity
-              className="h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white"
+              className="h-11 w-11 items-center justify-center rounded-2xl border"
+              style={{
+                borderColor: PROFILE_THEME_COLORS.outlineVariant,
+                backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+              }}
               onPress={() => {
                 void (async () => {
                   try {
@@ -379,9 +397,8 @@ export default function SessionDetailScreen() {
 
         {canRespondToResult ? (
           <View
-            className={`mt-5 rounded-[32px] border px-5 py-5 ${
-              session.results_status === 'disputed' ? 'border-rose-200 bg-rose-50' : 'border-indigo-200 bg-indigo-50'
-            }`}
+            className="mt-5 rounded-[32px] border px-5 py-5"
+            style={{ borderColor: resultBannerTone.border, backgroundColor: resultBannerTone.background }}
           >
             <View className="flex-row items-center">
               {session.results_status === 'disputed' ? (
@@ -390,9 +407,8 @@ export default function SessionDetailScreen() {
                 <CheckCheck size={18} color={PROFILE_THEME_COLORS.onSecondaryFixedVariant} strokeWidth={2.5} />
               )}
               <Text
-                className={`ml-2 text-[15px] font-black ${
-                  session.results_status === 'disputed' ? 'text-rose-700' : 'text-indigo-700'
-                }`}
+                className="ml-2 text-[15px] font-black"
+                style={{ color: resultBannerTone.text }}
               >
                 {session.results_status === 'disputed'
                   ? 'Kết quả đang bị tranh chấp'
@@ -403,10 +419,9 @@ export default function SessionDetailScreen() {
             </View>
 
             <Text
-              className={`mt-3 text-sm leading-6 ${
-                session.results_status === 'disputed' ? 'text-rose-700' : 'text-indigo-700'
-              }`}
-              >
+              className="mt-3 text-sm leading-6"
+              style={{ color: resultBannerTone.text }}
+            >
               {session.results_status === 'disputed'
                 ? 'Vào màn xác nhận để xem lại kết quả chủ kèo đã gửi và cập nhật phản hồi của bạn.'
                 : session.results_status === 'pending_confirmation'
@@ -415,13 +430,12 @@ export default function SessionDetailScreen() {
             </Text>
 
             <TouchableOpacity
-              className={`mt-4 h-12 items-center justify-center rounded-2xl ${
-                session.results_status === 'disputed' ? 'bg-rose-600' : 'bg-indigo-600'
-              }`}
+              className="mt-4 h-12 items-center justify-center rounded-2xl"
+              style={{ backgroundColor: resultBannerTone.button }}
               onPress={() => router.push({ pathname: '/session/[id]/confirm-result' as never, params: { id } })}
               activeOpacity={0.9}
             >
-              <Text className="text-[14px] font-black uppercase tracking-[0.08em] text-white">
+              <Text className="text-[14px] font-black uppercase tracking-[0.08em]" style={{ color: PROFILE_THEME_COLORS.onPrimary }}>
                 {session.results_status === 'pending_confirmation' || session.results_status === 'disputed'
                   ? 'Xác nhận kết quả'
                   : 'Báo kết quả'}

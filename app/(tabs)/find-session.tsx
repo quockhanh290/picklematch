@@ -1,4 +1,4 @@
-﻿import {
+import {
     ADVANCED_FILTER_INITIAL,
     AdvancedFilter,
     AdvancedSessionFilterModal,
@@ -59,6 +59,7 @@ type Session = {
     price: number
     court: { id: string; name: string; address: string; city: string } | null
   } | null
+  session_players?: { player_id: string }[]
   player_count: number
 }
 

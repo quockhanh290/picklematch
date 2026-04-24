@@ -1,4 +1,4 @@
-﻿import { ScreenHeader } from '@/components/design'
+import { ScreenHeader } from '@/components/design'
 import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
 import { SessionMetaCard } from '@/components/session/SessionMetaCard'
 import { insertNotification } from '@/lib/notifications'
@@ -234,7 +234,12 @@ function RequestCard({
         ...premiumShadow(),
       }}
     >
-      {lowMatch ? <View className="absolute inset-x-0 top-0 h-1 bg-rose-500" /> : null}
+      {lowMatch ? (
+        <View
+          className="absolute inset-x-0 top-0 h-1"
+          style={{ backgroundColor: PROFILE_THEME_SEMANTIC.dangerStrong }}
+        />
+      ) : null}
 
       <Pressable onPress={() => onOpenPlayer(applicant.player_id)} className="active:scale-95">
         <View className="flex-row items-start">
@@ -246,8 +251,11 @@ function RequestCard({
               <Text style={{ fontSize: 18, fontFamily: 'PlusJakartaSans-ExtraBold', color: PROFILE_THEME_COLORS.onPrimary }}>{getInitials(applicant.player.name)}</Text>
             </View>
             <View
-              className="absolute -bottom-1 -right-1 h-6 w-6 items-center justify-center rounded-full border-2 border-white"
-              style={{ backgroundColor: reliabilityTone.badgeBg }}
+              className="absolute -bottom-1 -right-1 h-6 w-6 items-center justify-center rounded-full border-2"
+              style={{
+                backgroundColor: reliabilityTone.badgeBg,
+                borderColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+              }}
             >
               <ShieldCheck size={12} color={reliabilityTone.badgeIcon} strokeWidth={ICON_STROKE} />
             </View>
@@ -275,7 +283,13 @@ function RequestCard({
       </Pressable>
 
       {lowMatch ? (
-        <View className="mt-4 flex-row rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3">
+        <View
+          className="mt-4 flex-row rounded-2xl border px-4 py-3"
+          style={{
+            borderColor: PROFILE_THEME_SEMANTIC.dangerBorderSoft,
+            backgroundColor: PROFILE_THEME_SEMANTIC.dangerBg,
+          }}
+        >
           <View className="mt-0.5">
             <AlertTriangle size={16} color={PROFILE_THEME_SEMANTIC.dangerStrong} strokeWidth={ICON_STROKE} />
           </View>
@@ -331,7 +345,11 @@ function RequestCard({
             key={template}
             onPress={() => onQuickReply(applicant.id, applicant.player_id, template)}
             disabled={busy}
-            className="active:scale-95 rounded-full border border-slate-200 bg-white px-3 py-2"
+            className="active:scale-95 rounded-full border px-3 py-2"
+            style={{
+              borderColor: PROFILE_THEME_COLORS.outlineVariant,
+              backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+            }}
           >
             <Text className="text-[12px]" style={{ fontFamily: 'PlusJakartaSans-SemiBold', color: PROFILE_THEME_SEMANTIC.infoText }}>{template}</Text>
           </Pressable>
@@ -569,7 +587,7 @@ export default function HostReviewCenterScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-stone-50">
+      <SafeAreaView className="flex-1 items-center justify-center" style={{ backgroundColor: PROFILE_THEME_COLORS.background }}>
         <ActivityIndicator size="large" color={PROFILE_THEME_COLORS.primary} />
       </SafeAreaView>
     )
@@ -577,7 +595,7 @@ export default function HostReviewCenterScreen() {
 
   if (!session) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-stone-50 px-6">
+      <SafeAreaView className="flex-1 items-center justify-center px-6" style={{ backgroundColor: PROFILE_THEME_COLORS.background }}>
         <Text style={{ textAlign: 'center', fontSize: 15, fontFamily: 'PlusJakartaSans-SemiBold', color: PROFILE_THEME_SEMANTIC.infoIcon }}>{'\u004B\u0068\u00F4\u006E\u0067\u0020\u0074\u00EC\u006D\u0020\u0074\u0068\u1EA5\u0079\u0020\u0064\u1EEF\u0020\u006C\u0069\u1EC7\u0075\u0020\u0072\u0065\u0076\u0069\u0065\u0077\u0020\u0063\u0068\u006F\u0020\u006B\u00E8\u006F\u0020\u006E\u00E0\u0079\u002E'}</Text>
       </SafeAreaView>
     )
@@ -585,13 +603,17 @@ export default function HostReviewCenterScreen() {
 
   if (!userId || userId !== session.host.id) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-stone-50 px-6">
+      <SafeAreaView className="flex-1 items-center justify-center px-6" style={{ backgroundColor: PROFILE_THEME_COLORS.background }}>
         <CircleX size={28} color={PROFILE_THEME_SEMANTIC.dangerStrong} strokeWidth={ICON_STROKE} />
         <Text className="mt-4 text-center" style={{ fontSize: 18, fontFamily: 'PlusJakartaSans-ExtraBold', color: PROFILE_THEME_COLORS.onSurface }}>{'\u0042\u1EA1\u006E\u0020\u006B\u0068\u00F4\u006E\u0067\u0020\u0063\u00F3\u0020\u0071\u0075\u0079\u1EC1\u006E\u0020\u0074\u0072\u0075\u0079\u0020\u0063\u1EAD\u0070'}</Text>
-        <Text className="mt-2 text-center text-[14px] leading-6 text-slate-500">
+        <Text className="mt-2 text-center text-[14px] leading-6" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant }}>
           {'\u0043\u0068\u1EC9\u0020\u0068\u006F\u0073\u0074\u0020\u0063\u1EE7\u0061\u0020\u006B\u00E8\u006F\u0020\u006D\u1EDB\u0069\u0020\u0063\u00F3\u0020\u0074\u0068\u1EC3\u0020\u0078\u0065\u006D\u0020\u0076\u00E0\u0020\u0078\u1EED\u0020\u006C\u00FD\u0020\u0074\u0072\u0075\u006E\u0067\u0020\u0074\u00E2\u006D\u0020\u0064\u0075\u0079\u1EC7\u0074\u0020\u0079\u00EA\u0075\u0020\u0063\u1EA7\u0075\u0020\u006E\u00E0\u0079\u002E'}
         </Text>
-        <Pressable onPress={() => router.back()} className="mt-6 active:scale-95 rounded-2xl bg-slate-900 px-5 py-3.5">
+        <Pressable
+          onPress={() => router.back()}
+          className="mt-6 active:scale-95 rounded-2xl px-5 py-3.5"
+          style={{ backgroundColor: PROFILE_THEME_COLORS.primary }}
+        >
           <Text style={{ fontSize: 14, fontFamily: 'PlusJakartaSans-ExtraBold', color: PROFILE_THEME_COLORS.onPrimary }}>{'\u0051\u0075\u0061\u0079\u0020\u006C\u1EA1\u0069'}</Text>
         </Pressable>
       </SafeAreaView>
@@ -646,10 +668,14 @@ export default function HostReviewCenterScreen() {
               ))
             ) : (
               <View
-                className="items-center rounded-[28px] border border-slate-200 bg-white px-6 py-12"
-                style={premiumShadow(4)}
+                className="items-center rounded-[28px] border px-6 py-12"
+                style={{
+                  borderColor: PROFILE_THEME_COLORS.outlineVariant,
+                  backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+                  ...premiumShadow(4),
+                }}
               >
-                <View className="h-14 w-14 items-center justify-center rounded-full bg-emerald-50">
+                <View className="h-14 w-14 items-center justify-center rounded-full" style={{ backgroundColor: PROFILE_THEME_SEMANTIC.successBg }}>
                   <ShieldCheck size={24} color={PROFILE_THEME_COLORS.surfaceTint} strokeWidth={ICON_STROKE} />
                 </View>
                 <Text className="mt-4 text-center" style={{ fontSize: 22, fontFamily: 'PlusJakartaSans-ExtraBold', color: PROFILE_THEME_COLORS.onSurface }}>{'\u004B\u0068\u00F4\u006E\u0067\u0020\u0063\u00F2\u006E\u0020\u0079\u00EA\u0075\u0020\u0063\u1EA7\u0075\u0020\u0063\u0068\u1EDD\u0020\u0064\u0075\u0079\u1EC7\u0074'}</Text>
@@ -665,8 +691,12 @@ export default function HostReviewCenterScreen() {
         </ScrollView>
 
         <View
-          className="absolute bottom-0 left-0 right-0 border-t border-slate-100 bg-white/95 px-5 pt-4"
-          style={{ paddingBottom: Math.max(insets.bottom, 16) }}
+          className="absolute bottom-0 left-0 right-0 border-t px-5 pt-4"
+          style={{
+            borderColor: PROFILE_THEME_COLORS.outlineVariant,
+            backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+            paddingBottom: Math.max(insets.bottom, 16),
+          }}
         >
           <View className="flex-row gap-3">
             <Pressable

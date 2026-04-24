@@ -1,5 +1,6 @@
+/* eslint-disable import/no-unresolved */
 import { describe, it, expect } from 'vitest'
-import { resolveTab } from '../app/(tabs)/my-sessions'
+import { resolveTab } from '../lib/mySessionsLogic'
 
 describe('resolveTab', () => {
   it('should return pending for host with pending request', () => {

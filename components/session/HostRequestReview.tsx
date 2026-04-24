@@ -1,5 +1,6 @@
 import { Check, ChevronRight, MessageSquareText, ShieldAlert, X } from 'lucide-react-native'
 import { Text, TouchableOpacity, View } from 'react-native'
+
 import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
 
 type RequestItem = {
@@ -43,51 +44,93 @@ export function HostRequestReview({
 
   return (
     <View className="mt-8">
-      <Text className="mb-1 text-[11px] font-extrabold uppercase tracking-[1.2px] text-slate-400">Duyệt yêu cầu</Text>
-      <Text className="mb-4 text-2xl font-black text-slate-950">Yêu cầu tham gia</Text>
+      <Text className="mb-1 text-[11px] font-extrabold uppercase tracking-[1.2px]" style={{ color: PROFILE_THEME_COLORS.outline }}>
+        Duyệt yêu cầu
+      </Text>
+      <Text className="mb-4 text-2xl font-black" style={{ color: PROFILE_THEME_COLORS.onSurface }}>
+        Yêu cầu tham gia
+      </Text>
 
       {requests.map((request) => {
         const playerElo = request.player.current_elo ?? request.player.elo ?? 0
         const diff = playerElo - matchTargetElo
         const diffLabel = `${diff >= 0 ? '+' : ''}${diff} Elo`
+        const diffTone =
+          diff >= 0
+            ? {
+                bg: PROFILE_THEME_COLORS.primaryFixed,
+                text: PROFILE_THEME_COLORS.onPrimaryFixedVariant,
+              }
+            : {
+                bg: PROFILE_THEME_COLORS.errorContainer,
+                text: PROFILE_THEME_COLORS.onErrorContainer,
+              }
 
         return (
-          <View key={request.id} className="mb-4 rounded-[28px] border border-gray-100 bg-white p-4 shadow-sm">
+          <View
+            key={request.id}
+            className="mb-4 rounded-[28px] border p-4"
+            style={{
+              borderColor: PROFILE_THEME_COLORS.outlineVariant,
+              backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+              shadowColor: PROFILE_THEME_COLORS.onBackground,
+              shadowOpacity: 0.05,
+              shadowRadius: 12,
+              shadowOffset: { width: 0, height: 5 },
+              elevation: 2,
+            }}
+          >
             <TouchableOpacity activeOpacity={0.88} onPress={() => onOpenPlayer(request.player_id)}>
               <View className="flex-row items-start justify-between">
                 <View className="mr-4 flex-1">
-                  <Text className="text-[11px] font-extrabold uppercase tracking-[1px] text-slate-400">Người chơi</Text>
-                  <Text className="mt-2 text-lg font-black text-slate-950">{request.player.name}</Text>
-                  <Text className="mt-1 text-sm text-slate-500">
-                    Elo {playerElo} · {request.player.sessions_joined ?? 0} kèo · {request.player.no_show_count ?? 0} no-show
+                  <Text className="text-[11px] font-extrabold uppercase tracking-[1px]" style={{ color: PROFILE_THEME_COLORS.outline }}>
+                    Người chơi
+                  </Text>
+                  <Text className="mt-2 text-lg font-black" style={{ color: PROFILE_THEME_COLORS.onSurface }}>
+                    {request.player.name}
+                  </Text>
+                  <Text className="mt-1 text-sm" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant }}>
+                    Elo {playerElo} • {request.player.sessions_joined ?? 0} kèo • {request.player.no_show_count ?? 0} no-show
                   </Text>
                 </View>
 
-                <View className={`rounded-full px-3 py-2 ${diff >= 0 ? 'bg-emerald-50' : 'bg-orange-50'}`}>
-                  <Text className={`text-xs font-bold ${diff >= 0 ? 'text-emerald-700' : 'text-orange-700'}`}>
+                <View className="rounded-full px-3 py-2" style={{ backgroundColor: diffTone.bg }}>
+                  <Text className="text-xs font-bold" style={{ color: diffTone.text }}>
                     {diffLabel}
                   </Text>
                 </View>
               </View>
             </TouchableOpacity>
 
-            <View className="mt-4 rounded-2xl bg-slate-50 px-4 py-4">
+            <View className="mt-4 rounded-2xl px-4 py-4" style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow }}>
               <View className="flex-row items-center">
                 <MessageSquareText size={15} color={PROFILE_THEME_COLORS.outline} />
-                <Text className="ml-2 text-[11px] font-extrabold uppercase tracking-[1px] text-slate-400">Lời nhắn giới thiệu</Text>
+                <Text className="ml-2 text-[11px] font-extrabold uppercase tracking-[1px]" style={{ color: PROFILE_THEME_COLORS.outline }}>
+                  Lời nhắn giới thiệu
+                </Text>
               </View>
-              <Text className="mt-2 text-sm leading-6 text-slate-700">
+              <Text className="mt-2 text-sm leading-6" style={{ color: PROFILE_THEME_COLORS.onSurface }}>
                 {request.intro_note?.trim() ? request.intro_note : 'Người chơi chưa để lại lời nhắn.'}
               </Text>
             </View>
 
             {request.host_response_template ? (
-              <View className="mt-3 rounded-2xl border border-sky-200 bg-sky-50 px-4 py-4">
+              <View
+                className="mt-3 rounded-2xl border px-4 py-4"
+                style={{
+                  borderColor: PROFILE_THEME_COLORS.secondaryFixedDim,
+                  backgroundColor: PROFILE_THEME_COLORS.tertiaryFixed,
+                }}
+              >
                 <View className="flex-row items-center">
                   <ShieldAlert size={15} color={PROFILE_THEME_COLORS.onTertiaryFixedVariant} />
-                  <Text className="ml-2 text-[11px] font-extrabold uppercase tracking-[1px] text-sky-700">Phản hồi đã gửi</Text>
+                  <Text className="ml-2 text-[11px] font-extrabold uppercase tracking-[1px]" style={{ color: PROFILE_THEME_COLORS.onTertiaryFixedVariant }}>
+                    Phản hồi đã gửi
+                  </Text>
                 </View>
-                <Text className="mt-2 text-sm leading-6 text-sky-800">{request.host_response_template}</Text>
+                <Text className="mt-2 text-sm leading-6" style={{ color: PROFILE_THEME_COLORS.onTertiaryFixedVariant }}>
+                  {request.host_response_template}
+                </Text>
               </View>
             ) : null}
 
@@ -95,19 +138,25 @@ export function HostRequestReview({
               <TouchableOpacity
                 activeOpacity={0.92}
                 onPress={() => onAccept(request.id, request.player_id)}
-                className="flex-1 flex-row items-center justify-center rounded-2xl bg-emerald-600 py-3.5"
+                className="flex-1 flex-row items-center justify-center rounded-2xl py-3.5"
+                style={{ backgroundColor: PROFILE_THEME_COLORS.primary }}
               >
-                <Check size={16} color="#fff" />
-                <Text className="ml-2 text-sm font-bold text-white">Nhận vào</Text>
+                <Check size={16} color={PROFILE_THEME_COLORS.onPrimary} />
+                <Text className="ml-2 text-sm font-bold" style={{ color: PROFILE_THEME_COLORS.onPrimary }}>
+                  Nhận vào
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 activeOpacity={0.92}
                 onPress={() => onReject(request.id, request.player_id)}
-                className="flex-1 flex-row items-center justify-center rounded-2xl bg-rose-50 py-3.5"
+                className="flex-1 flex-row items-center justify-center rounded-2xl py-3.5"
+                style={{ backgroundColor: PROFILE_THEME_COLORS.errorContainer }}
               >
                 <X size={16} color={PROFILE_THEME_SEMANTIC.dangerText} />
-                <Text className="ml-2 text-sm font-bold text-rose-700">Từ chối</Text>
+                <Text className="ml-2 text-sm font-bold" style={{ color: PROFILE_THEME_SEMANTIC.dangerText }}>
+                  Từ chối
+                </Text>
               </TouchableOpacity>
             </View>
 
@@ -117,9 +166,15 @@ export function HostRequestReview({
                   key={template}
                   activeOpacity={0.9}
                   onPress={() => onReplyTemplate(request.id, request.player_id, template)}
-                  className="flex-row items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-2"
+                  className="flex-row items-center rounded-full border px-3 py-2"
+                  style={{
+                    borderColor: PROFILE_THEME_COLORS.outlineVariant,
+                    backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
+                  }}
                 >
-                  <Text className="text-xs font-semibold text-slate-700">{template}</Text>
+                  <Text className="text-xs font-semibold" style={{ color: PROFILE_THEME_COLORS.onSurface }}>
+                    {template}
+                  </Text>
                   <ChevronRight size={12} color={PROFILE_THEME_COLORS.onSurfaceVariant} style={{ marginLeft: 6 }} />
                 </TouchableOpacity>
               ))}

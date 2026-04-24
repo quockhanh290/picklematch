@@ -35,6 +35,7 @@ export type AppTheme = {
   info: string;
   infoSoft: string;
   shadow: string;
+  overlay: string;
   radiusSm: number;
   radiusMd: number;
   radiusLg: number;
@@ -67,6 +68,7 @@ function createAppThemeFromProfile(id: string, name: string, p: ProfileThemeColo
     info: s.infoText,
     infoSoft: s.infoBg,
     shadow: p.onBackground,
+    overlay: s.overlay,
     radiusSm: 18,
     radiusMd: 28,
     radiusLg: 32,
