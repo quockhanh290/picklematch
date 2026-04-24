@@ -1,6 +1,7 @@
-import { router } from 'expo-router'
+﻿import { router } from 'expo-router'
 import { AlertTriangle, CheckCheck, Clock3 } from 'lucide-react-native'
 import { Pressable, Text, View } from 'react-native'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
 
 import type { PostMatchAction } from '@/lib/homeFeed'
 
@@ -15,7 +16,7 @@ export function PostMatchActionsSection({ items }: { items: PostMatchAction[] })
       <View className="mt-4 gap-3">
         {items.map((item) => {
           const isConfirm = item.actionType === 'confirm'
-          const iconColor = isConfirm ? '#4338ca' : '#b45309'
+          const iconColor = isConfirm ? PROFILE_THEME_COLORS.onSecondaryFixedVariant : PROFILE_THEME_SEMANTIC.warningText
           const cardClasses = isConfirm ? 'border-indigo-200 bg-indigo-50' : 'border-amber-200 bg-amber-50'
           const buttonClasses = isConfirm ? 'bg-indigo-600' : 'bg-amber-500'
 
@@ -36,7 +37,7 @@ export function PostMatchActionsSection({ items }: { items: PostMatchAction[] })
                   </Text>
                   <Text className="mt-2 text-[15px] font-bold text-slate-950">{item.courtName}</Text>
                   <View className="mt-2 flex-row items-center">
-                    <Clock3 size={14} color="#64748b" strokeWidth={2.5} />
+                    <Clock3 size={14} color={PROFILE_THEME_COLORS.outline} strokeWidth={2.5} />
                     <Text className="ml-2 text-sm font-semibold text-slate-500">{item.timeLabel}</Text>
                   </View>
                 </View>
@@ -57,3 +58,6 @@ export function PostMatchActionsSection({ items }: { items: PostMatchAction[] })
     </View>
   )
 }
+
+
+

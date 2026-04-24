@@ -1,4 +1,4 @@
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+﻿import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { FileText, Hash, Phone, ShieldAlert, ShieldCheck, User } from 'lucide-react-native'
 import type { ComponentType } from 'react'
 import { Text, View } from 'react-native'
@@ -94,7 +94,7 @@ export function BookingDetailsCard({
         marginTop: 16,
         borderRadius: 28,
         backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
-        shadowColor: '#0f172a',
+        shadowColor: PROFILE_THEME_COLORS.onBackground,
         shadowOpacity: 0.06,
         shadowRadius: 14,
         shadowOffset: { width: 0, height: 6 },
@@ -181,4 +181,6 @@ export function BookingDetailsCard({
     </View>
   )
 }
+
+
 

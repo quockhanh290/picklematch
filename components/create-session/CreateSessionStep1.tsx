@@ -1,4 +1,4 @@
-import { AppButton, ScreenHeader } from '@/components/design'
+﻿import { AppButton, ScreenHeader } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -369,7 +369,7 @@ export function CreateSessionStep1({
             <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBoldItalic', fontSize: 40, color: PROFILE_THEME_COLORS.primary, lineHeight: 42 }}>
               & Ngày giờ
             </Text>
-            <View style={{ marginTop: 10, width: 64, height: 4, borderRadius: 999, backgroundColor: '#A6E6D2' }} />
+            <View style={{ marginTop: 10, width: 64, height: 4, borderRadius: 999, backgroundColor: PROFILE_THEME_COLORS.primaryFixed }} />
           </View>
         </View>
 
@@ -443,7 +443,7 @@ export function CreateSessionStep1({
               style={{
                 borderRadius: 30,
                 overflow: 'hidden',
-                shadowColor: '#0f172a',
+                shadowColor: PROFILE_THEME_COLORS.onBackground,
                 shadowOpacity: 0.08,
                 shadowRadius: 16,
                 shadowOffset: { width: 0, height: 7 },
@@ -959,3 +959,5 @@ export function CreateSessionStep1({
     </ScrollView>
   )
 }
+
+

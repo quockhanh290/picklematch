@@ -1,5 +1,6 @@
-import { AppInput, EmptyState, ScreenHeader, StatusBadge } from '@/components/design'
+﻿import { AppInput, EmptyState, ScreenHeader, StatusBadge } from '@/components/design'
 import { PROFILE_SKILL_HERO_TONE, ProfileSkillHero } from '@/components/profile/ProfileSections'
+import { PROFILE_THEME_COLORS as EDIT_PROFILE_COLORS } from '@/components/profile/profileTheme'
 import { getEloBandByLegacySkillLabel } from '@/lib/eloSystem'
 import { getSkillLevelById, type SkillAssessmentLevel } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
@@ -12,56 +13,6 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 
 const CITIES = ['Hồ Chí Minh', 'Hà Nội', 'Đà Nẵng', 'Cần Thơ', 'Hải Phòng']
 const HERO_IMAGE = require('../assets/images/login-electric-court-hero.png')
-const EDIT_PROFILE_COLORS = {
-  surfaceContainerHigh: '#e7e9e5',
-  surfaceContainerLow: '#f2f4f1',
-  inverseOnSurface: '#eff1ee',
-  secondaryFixed: '#cfe8dc',
-  onSecondaryFixedVariant: '#354b42',
-  surfaceBright: '#f8faf6',
-  tertiary: '#00352e',
-  secondary: '#4c6359',
-  onSecondaryFixed: '#091f18',
-  primaryContainer: '#064e3b',
-  onError: '#ffffff',
-  primaryFixed: '#b0f0d6',
-  onPrimaryFixed: '#002117',
-  tertiaryFixedDim: '#7ad7c6',
-  background: '#f8faf6',
-  primaryFixedDim: '#95d3ba',
-  onBackground: '#191c1b',
-  surfaceVariant: '#e1e3e0',
-  surfaceContainer: '#eceeeb',
-  onErrorContainer: '#93000a',
-  inverseSurface: '#2e312f',
-  surfaceDim: '#d8dbd7',
-  surface: '#f8faf6',
-  onTertiaryContainer: '#65c2b1',
-  onPrimary: '#ffffff',
-  outline: '#707974',
-  onTertiaryFixed: '#00201b',
-  inversePrimary: '#95d3ba',
-  tertiaryContainer: '#004e44',
-  onPrimaryFixedVariant: '#0b513d',
-  onTertiary: '#ffffff',
-  error: '#ba1a1a',
-  tertiaryFixed: '#96f3e1',
-  surfaceTint: '#2b6954',
-  primary: '#003527',
-  onSecondary: '#ffffff',
-  secondaryContainer: '#cce6d9',
-  onSurfaceVariant: '#404944',
-  onPrimaryContainer: '#80bea6',
-  outlineVariant: '#bfc9c3',
-  onSurface: '#191c1b',
-  secondaryFixedDim: '#b3ccc0',
-  surfaceContainerLowest: '#ffffff',
-  surfaceContainerHighest: '#e1e3e0',
-  onSecondaryContainer: '#50685d',
-  errorContainer: '#ffdad6',
-  onTertiaryFixedVariant: '#005046',
-} as const
-
 type Court = { id: string; name: string; address: string; city: string }
 type EditProfileInitialState = {
   name: string
@@ -684,3 +635,5 @@ export default function EditProfile() {
     </SafeAreaView>
   )
 }
+
+

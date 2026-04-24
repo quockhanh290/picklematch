@@ -1,4 +1,13 @@
 import { Platform } from 'react-native';
+import {
+  DEFAULT_PROFILE_THEME_ID,
+  getProfileThemeColors,
+  getProfileThemeSemantic,
+  PROFILE_THEMES,
+  type ProfileThemeColors,
+  type ProfileThemeId,
+  type ProfileThemeSemantic,
+} from '@/components/profile/profileTheme';
 
 export type AppTheme = {
   id: string;
@@ -31,40 +40,52 @@ export type AppTheme = {
   radiusLg: number;
 };
 
-export const AppThemes: Record<'neutralGreen', AppTheme> = {
-  neutralGreen: {
-    id: 'neutralGreen',
-    name: 'Editorial Neutral + Brand Green',
-    background: '#f8fafc',
-    backgroundMuted: '#f7f5ef',
-    surface: '#ffffff',
-    surfaceAlt: '#f1f5f9',
-    surfaceMuted: '#f8fafc',
-    border: '#e2e8f0',
-    borderStrong: '#cbd5e1',
-    text: '#0f172a',
-    textMuted: '#64748b',
-    textSoft: '#94a3b8',
-    primary: '#059669',
-    primaryStrong: '#047857',
-    primarySoft: '#ecfdf5',
-    primaryContrast: '#ffffff',
-    accent: '#bef264',
-    success: '#16a34a',
-    warning: '#f59e0b',
-    warningSoft: '#fffbeb',
-    danger: '#e11d48',
-    dangerSoft: '#fff1f2',
-    info: '#4f46e5',
-    infoSoft: '#eef2ff',
-    shadow: '#0f172a',
+function createAppThemeFromProfile(id: string, name: string, p: ProfileThemeColors, s: ProfileThemeSemantic): AppTheme {
+  return {
+    id,
+    name,
+    background: p.background,
+    backgroundMuted: p.surfaceContainerLow,
+    surface: p.surfaceContainerLowest,
+    surfaceAlt: p.surfaceContainer,
+    surfaceMuted: p.surfaceContainerHigh,
+    border: p.outlineVariant,
+    borderStrong: p.outline,
+    text: p.onSurface,
+    textMuted: p.onSurfaceVariant,
+    textSoft: p.outline,
+    primary: p.surfaceTint,
+    primaryStrong: p.primaryContainer,
+    primarySoft: p.secondaryContainer,
+    primaryContrast: p.onPrimary,
+    accent: p.tertiaryFixed,
+    success: s.successText,
+    warning: s.warningText,
+    warningSoft: s.warningBg,
+    danger: p.error,
+    dangerSoft: p.errorContainer,
+    info: s.infoText,
+    infoSoft: s.infoBg,
+    shadow: p.onBackground,
     radiusSm: 18,
     radiusMd: 28,
     radiusLg: 32,
-  },
-};
+  }
+}
 
-export const defaultAppTheme = AppThemes.neutralGreen;
+export type AppThemeId = ProfileThemeId
+
+export const AppThemes: Record<AppThemeId, AppTheme> = (Object.keys(PROFILE_THEMES) as AppThemeId[]).reduce(
+  (acc, themeId) => {
+    const profile = getProfileThemeColors(themeId)
+    const semantic = getProfileThemeSemantic(themeId)
+    acc[themeId] = createAppThemeFromProfile(themeId, `Profile Theme (${themeId})`, profile, semantic)
+    return acc
+  },
+  {} as Record<AppThemeId, AppTheme>,
+)
+
+export const defaultAppTheme = AppThemes[DEFAULT_PROFILE_THEME_ID];
 
 export const Fonts = Platform.select({
   ios: {

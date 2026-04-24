@@ -1,4 +1,4 @@
-import { PROFILE_THEME_COLORS, getHistoryResultPalette } from '@/components/profile/profileTheme'
+﻿import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC, getHistoryResultPalette } from '@/components/profile/profileTheme'
 import type { SkillAssessmentLevel } from '@/lib/skillAssessment'
 import { getSkillLevelUi } from '@/lib/skillLevelUi'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -80,18 +80,18 @@ export function ProfileIdentityCard({
   const placementPlayed = placementMatchesPlayed ?? 0
 
   return (
-    <View className="rounded-[32px] bg-white p-6 shadow-sm mb-4" style={{ shadowColor: '#191c1e', shadowOpacity: 0.05, shadowRadius: 20 }}>
+    <View className="rounded-[32px] bg-white p-6 shadow-sm mb-4" style={{ shadowColor: PROFILE_THEME_COLORS.onBackground, shadowOpacity: 0.05, shadowRadius: 20 }}>
       <View className="flex-col items-center">
-        <View className="h-28 w-28 items-center justify-center rounded-full border-[4px] border-[#059669] bg-[#ecfdf5]">
-          <Text className="text-4xl text-[#059669]" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>{name?.[0]?.toUpperCase() ?? '?'}</Text>
+        <View className="h-28 w-28 items-center justify-center rounded-full border-[4px]" style={{ borderColor: PROFILE_THEME_COLORS.surfaceTint, backgroundColor: PROFILE_THEME_SEMANTIC.successBg }}>
+          <Text className="text-4xl" style={{ color: PROFILE_THEME_COLORS.surfaceTint, fontFamily: 'PlusJakartaSans-Bold' }}>{name?.[0]?.toUpperCase() ?? '?'}</Text>
         </View>
 
         <View className="mt-4 items-center">
-          <Text className="text-[28px] text-[#191c1e] mb-1 text-center" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>{name}</Text>
+          <Text className="text-[28px] mb-1 text-center" style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: 'PlusJakartaSans-Bold' }}>{name}</Text>
           
-          <View className={`flex-row items-center rounded-full px-4 py-1.5 mt-2 ${isProvisional ? 'bg-[#ffdad6]' : 'bg-[#ADFF2F]'}`}>
-            {isProvisional ? <ShieldQuestion size={14} color="#ba1a1a" /> : <ShieldCheck size={14} color="#0f172a" />}
-            <Text className={`ml-1.5 text-[10px] uppercase tracking-widest ${isProvisional ? 'text-[#ba1a1a]' : 'text-[#0f172a]'}`} style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
+          <View className="flex-row items-center rounded-full px-4 py-1.5 mt-2" style={{ backgroundColor: isProvisional ? PROFILE_THEME_COLORS.errorContainer : PROFILE_THEME_COLORS.primaryFixed }}>
+            {isProvisional ? <ShieldQuestion size={14} color={PROFILE_THEME_COLORS.error} /> : <ShieldCheck size={14} color={PROFILE_THEME_COLORS.onPrimaryFixed} />}
+            <Text className="ml-1.5 text-[10px] uppercase tracking-widest" style={{ color: isProvisional ? PROFILE_THEME_COLORS.error : PROFILE_THEME_COLORS.onPrimaryFixed, fontFamily: 'PlusJakartaSans-Bold' }}>
               {isProvisional ? `${placementPlayed}/5` : 'VERIFIED'}
             </Text>
           </View>
@@ -99,10 +99,10 @@ export function ProfileIdentityCard({
       </View>
 
       <View className="flex-row items-center justify-center mt-4">
-        <MapPin size={14} color="#6d7a72" />
-        <Text className="ml-1.5 text-sm text-[#3d4a42]" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>{city || 'Unknown'}</Text>
-        <Text className="mx-2 text-[#6d7a72]">•</Text>
-        <Text className="text-sm text-[#3d4a42]" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>Thành viên từ {formatJoinedDate(joinedAt)}</Text>
+        <MapPin size={14} color={PROFILE_THEME_COLORS.outline} />
+        <Text className="ml-1.5 text-sm" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Regular' }}>{city || 'Unknown'}</Text>
+        <Text className="mx-2" style={{ color: PROFILE_THEME_COLORS.outline }}>•</Text>
+        <Text className="text-sm" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Regular' }}>Thành viên từ {formatJoinedDate(joinedAt)}</Text>
       </View>
 
       {actions.length > 0 ? (
@@ -113,9 +113,9 @@ export function ProfileIdentityCard({
                 key={action.label}
                 activeOpacity={0.9}
                 onPress={action.onPress}
-                className="flex-1 rounded-full overflow-hidden bg-[#059669] flex-row items-center justify-center py-4"
+                className="flex-1 rounded-full overflow-hidden flex-row items-center justify-center py-4" style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceTint }}
               >
-                {action.icon === 'logout' ? <LogOut size={16} color="#ffffff" /> : <PencilLine size={16} color="#ffffff" />}
+                {action.icon === 'logout' ? <LogOut size={16} color={PROFILE_THEME_COLORS.onPrimary} /> : <PencilLine size={16} color={PROFILE_THEME_COLORS.onPrimary} />}
                 <Text className="ml-2 text-[13px] text-white tracking-[0.5px] uppercase" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
                   {action.label}
                 </Text>
@@ -227,10 +227,10 @@ export function ProfileWinStreak({ current, active = true }: { current: number; 
   if (current <= 1) return null
 
   return (
-    <View className="mb-4 overflow-hidden rounded-[20px] bg-[#ADFF2F] px-5 py-4 flex-row items-center justify-center shadow-sm">
-      <Flame size={24} color="#0f172a" />
+    <View className="mb-4 overflow-hidden rounded-[20px] px-5 py-4 flex-row items-center justify-center shadow-sm" style={{ backgroundColor: PROFILE_THEME_COLORS.primaryFixed }}>
+      <Flame size={24} color={PROFILE_THEME_COLORS.onPrimaryFixed} />
       <View className="ml-3">
-        <Text className="text-[16px] text-[#0f172a] uppercase tracking-wider" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
+        <Text className="text-[16px] uppercase tracking-wider" style={{ color: PROFILE_THEME_COLORS.onPrimaryFixed, fontFamily: 'PlusJakartaSans-Bold' }}>
           Current Win Streak: {current} games!
         </Text>
       </View>
@@ -252,21 +252,21 @@ export function ProfileStatsGrid({
 }) {
   return (
     <View className="flex-row justify-between mb-4 gap-2">
-      <View className="flex-1 rounded-[20px] bg-[#f0f4f8] p-4 items-center justify-center">
-        <Text className="text-[20px] text-[#191c1e]" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>{played}</Text>
-        <Text className="mt-1 text-[9px] uppercase tracking-wider text-[#6d7a72] text-center" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Matches</Text>
+      <View className="flex-1 rounded-[20px] p-4 items-center justify-center" style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHigh }}>
+        <Text className="text-[20px]" style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: 'PlusJakartaSans-Bold' }}>{played}</Text>
+        <Text className="mt-1 text-[9px] uppercase tracking-wider text-center" style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-Bold' }}>Matches</Text>
       </View>
-      <View className="flex-1 rounded-[20px] bg-[#f0f4f8] p-4 items-center justify-center">
-        <Text className="text-[20px] text-[#191c1e]" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>{hosted}</Text>
-        <Text className="mt-1 text-[9px] uppercase tracking-wider text-[#6d7a72] text-center" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Hosts</Text>
+      <View className="flex-1 rounded-[20px] p-4 items-center justify-center" style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHigh }}>
+        <Text className="text-[20px]" style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: 'PlusJakartaSans-Bold' }}>{hosted}</Text>
+        <Text className="mt-1 text-[9px] uppercase tracking-wider text-center" style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-Bold' }}>Hosts</Text>
       </View>
-      <View className="flex-1 rounded-[20px] bg-[#f0f4f8] p-4 items-center justify-center">
-        <Text className="text-[20px] text-[#191c1e]" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>{winRate}</Text>
-        <Text className="mt-1 text-[9px] uppercase tracking-wider text-[#6d7a72] text-center" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Win Rate</Text>
+      <View className="flex-1 rounded-[20px] p-4 items-center justify-center" style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHigh }}>
+        <Text className="text-[20px]" style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: 'PlusJakartaSans-Bold' }}>{winRate}</Text>
+        <Text className="mt-1 text-[9px] uppercase tracking-wider text-center" style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-Bold' }}>Win Rate</Text>
       </View>
-      <View className="flex-1 rounded-[20px] bg-[#f0f4f8] p-4 items-center justify-center">
-        <Text className="text-[20px] text-[#059669]" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>{reliability}%</Text>
-        <Text className="mt-1 text-[9px] uppercase tracking-wider text-[#6d7a72] text-center" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Reliability</Text>
+      <View className="flex-1 rounded-[20px] p-4 items-center justify-center" style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHigh }}>
+        <Text className="text-[20px]" style={{ color: PROFILE_THEME_COLORS.surfaceTint, fontFamily: 'PlusJakartaSans-Bold' }}>{reliability}%</Text>
+        <Text className="mt-1 text-[9px] uppercase tracking-wider text-center" style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-Bold' }}>Reliability</Text>
       </View>
     </View>
   )
@@ -294,7 +294,7 @@ export function ProfileHistoryList({
     <View className={flushBottom ? '' : 'mb-6'}>
       {!hideHeader ? (
         <View className="mb-4">
-          <Text className="mt-1 text-[24px] text-[#191c1e]" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>{title}</Text>
+          <Text className="mt-1 text-[24px]" style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: 'PlusJakartaSans-Bold' }}>{title}</Text>
         </View>
       ) : null}
 
@@ -347,3 +347,5 @@ export function ProfileHistoryList({
     </View>
   )
 }
+
+

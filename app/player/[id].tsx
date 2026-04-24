@@ -1,4 +1,4 @@
-import { AppButton, EmptyState, ScreenHeader } from '@/components/design'
+﻿import { AppButton, EmptyState, ScreenHeader } from '@/components/design'
 import type { FeedbackTrait } from '@/components/profile/CommunityFeedbackSection'
 import CommunityFeedbackPanel from '@/components/profile/CommunityFeedbackSection'
 import { ProfileHistoryList, ProfileSkillHero, ProfileWinStreak } from '@/components/profile/ProfileSections'
@@ -242,7 +242,7 @@ export default function PlayerProfile() {
     return (
       <SafeAreaView className="flex-1" style={{ backgroundColor: PROFILE_THEME_COLORS.background }} edges={['top']}>
         <EmptyState
-          icon={<CircleAlert size={28} color="#64748b" />}
+          icon={<CircleAlert size={28} color={PROFILE_THEME_COLORS.outline} />}
           title="Không tìm thấy người chơi"
           description="Thử tải lại hoặc quay về trang trước để kiểm tra danh sách."
         />
@@ -478,7 +478,7 @@ export default function PlayerProfile() {
               <CommunityFeedbackPanel title="" traits={communityTraits} flushBottom />
             ) : (
               <EmptyState
-                icon={<CircleAlert size={28} color="#64748b" />}
+                icon={<CircleAlert size={28} color={PROFILE_THEME_COLORS.outline} />}
                 title="Chưa có đánh giá nào"
                 description="Sau khi chơi thêm vài kèo, phản hồi từ cộng đồng sẽ xuất hiện ở đây."
               />
@@ -509,7 +509,7 @@ export default function PlayerProfile() {
               </View>
             ) : (
               <EmptyState
-                icon={<MapPin size={28} color="#64748b" />}
+                icon={<MapPin size={28} color={PROFILE_THEME_COLORS.outline} />}
                 title="Chưa có sân thường chơi"
                 description="Thông tin sân quen sẽ xuất hiện ở đây khi người chơi lưu sân yêu thích."
               />
@@ -529,7 +529,7 @@ export default function PlayerProfile() {
               />
             ) : (
               <EmptyState
-                icon={<CalendarDays size={28} color="#64748b" />}
+                icon={<CalendarDays size={28} color={PROFILE_THEME_COLORS.outline} />}
                 title="Chưa tham gia kèo nào"
                 description="Khi người chơi tham gia hoặc host kèo, lịch sử sẽ hiện ở đây."
               />
@@ -560,3 +560,5 @@ export default function PlayerProfile() {
     </SafeAreaView>
   )
 }
+
+

@@ -1,6 +1,7 @@
 import type { LucideIcon } from 'lucide-react-native'
 import { Check, Lock } from 'lucide-react-native'
 import { Text, View } from 'react-native'
+import { PROFILE_THEME_COLORS, getTrophyBadgePalette } from '@/components/profile/profileTheme'
 
 type BadgeTone = 'emerald' | 'amber' | 'rose' | 'sky' | 'violet'
 
@@ -30,6 +31,7 @@ function categoryLabel(category: TrophyBadge['category']) {
 }
 
 function toneClasses(tone: BadgeTone) {
+  const badge = getTrophyBadgePalette(tone)
   switch (tone) {
     case 'emerald':
       return {
@@ -37,8 +39,8 @@ function toneClasses(tone: BadgeTone) {
         text: 'text-emerald-700',
         subtext: 'text-emerald-700/80',
         divider: 'border-emerald-700/10',
-        icon: '#047857',
-        watermark: 'rgba(4, 120, 87, 0.1)',
+        icon: badge.icon,
+        watermark: `rgba(4, 120, 87, 0.1)`,
       }
     case 'amber':
       return {
@@ -46,8 +48,8 @@ function toneClasses(tone: BadgeTone) {
         text: 'text-amber-700',
         subtext: 'text-amber-700/80',
         divider: 'border-amber-700/10',
-        icon: '#b45309',
-        watermark: 'rgba(180, 83, 9, 0.1)',
+        icon: badge.icon,
+        watermark: `rgba(180, 83, 9, 0.1)`,
       }
     case 'rose':
       return {
@@ -55,8 +57,8 @@ function toneClasses(tone: BadgeTone) {
         text: 'text-rose-700',
         subtext: 'text-rose-700/80',
         divider: 'border-rose-700/10',
-        icon: '#be123c',
-        watermark: 'rgba(190, 18, 60, 0.1)',
+        icon: badge.icon,
+        watermark: `rgba(190, 18, 60, 0.1)`,
       }
     case 'sky':
       return {
@@ -64,8 +66,8 @@ function toneClasses(tone: BadgeTone) {
         text: 'text-sky-700',
         subtext: 'text-sky-700/80',
         divider: 'border-sky-700/10',
-        icon: '#0369a1',
-        watermark: 'rgba(3, 105, 161, 0.1)',
+        icon: badge.icon,
+        watermark: `rgba(3, 105, 161, 0.1)`,
       }
     case 'violet':
       return {
@@ -73,8 +75,8 @@ function toneClasses(tone: BadgeTone) {
         text: 'text-violet-700',
         subtext: 'text-violet-700/80',
         divider: 'border-violet-700/10',
-        icon: '#6d28d9',
-        watermark: 'rgba(109, 40, 217, 0.1)',
+        icon: badge.icon,
+        watermark: `rgba(109, 40, 217, 0.1)`,
       }
   }
 }
@@ -115,8 +117,8 @@ export function TrophyRoom({ badges = [] }: Props) {
               />
 
               <View className="relative z-10 flex-row items-start justify-between">
-                <Icon size={24} color={badge.earned ? palette.icon : '#64748b'} strokeWidth={2.1} />
-                {badge.earned ? <Check size={16} color={palette.icon} /> : <Lock size={16} color="#64748b" />}
+                <Icon size={24} color={badge.earned ? palette.icon : PROFILE_THEME_COLORS.outline} strokeWidth={2.1} />
+                {badge.earned ? <Check size={16} color={palette.icon} /> : <Lock size={16} color={PROFILE_THEME_COLORS.outline} />}
               </View>
 
               <Text className={`relative z-10 mt-4 text-[9px] font-extrabold uppercase tracking-widest opacity-60 ${badge.earned ? palette.text : 'text-slate-500'}`}>

@@ -1,4 +1,4 @@
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+﻿import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { getEloBandForSessionRange } from '@/lib/eloSystem'
 import { resolveTab, type SessionRequestStatus, type SessionRole } from '@/lib/mySessionsLogic'
 import { getSessionSkillLabel } from '@/lib/sessionDetail'
@@ -218,7 +218,7 @@ function MySessionsEmptyStateCard({ activeTab }: { activeTab: SessionTab }) {
         backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
         borderLeftWidth: 3,
         borderLeftColor: PROFILE_THEME_COLORS.primary,
-        shadowColor: '#0f172a',
+        shadowColor: PROFILE_THEME_COLORS.onBackground,
         shadowOpacity: 0.04,
         shadowRadius: 10,
         shadowOffset: { width: 0, height: 4 },
@@ -311,7 +311,7 @@ function MySessionCard({
         backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
         borderLeftWidth: 3,
         borderLeftColor: PROFILE_THEME_COLORS.primary,
-        shadowColor: '#0f172a',
+        shadowColor: PROFILE_THEME_COLORS.onBackground,
         shadowOpacity: 0.06,
         shadowRadius: 14,
         shadowOffset: { width: 0, height: 6 },
@@ -1533,7 +1533,7 @@ export default function MySessions() {
             animationType="slide"
             onRequestClose={() => setHistoryFilterModalVisible(false)}
           >
-            <View className="flex-1" style={{ backgroundColor: withAlpha('#0f172a', 0.36), justifyContent: 'flex-end' }}>
+            <View className="flex-1" style={{ backgroundColor: withAlpha(PROFILE_THEME_COLORS.onBackground, 0.36), justifyContent: 'flex-end' }}>
               <Pressable className="flex-1" onPress={() => setHistoryFilterModalVisible(false)} />
               <View
                 className="rounded-t-[28px] px-5 pt-5 pb-8"
@@ -1717,3 +1717,5 @@ export default function MySessions() {
     </SafeAreaView>
   )
 }
+
+

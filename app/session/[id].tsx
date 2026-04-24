@@ -23,7 +23,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { AppDialog, type AppDialogConfig, ScreenHeader } from '@/components/design'
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
 import { JoinRequestModal } from '@/components/session/JoinRequestModal'
 import { PlayerRosterSection } from '@/components/session/PlayerRosterSection'
 import { SessionMetaCard } from '@/components/session/SessionMetaCard'
@@ -182,7 +182,7 @@ export default function SessionDetailScreen() {
           backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
           paddingHorizontal: 18,
           paddingVertical: 14,
-          shadowColor: '#0f172a',
+          shadowColor: PROFILE_THEME_COLORS.onBackground,
           shadowOpacity: 0.05,
           shadowRadius: 12,
           shadowOffset: { width: 0, height: 5 },
@@ -306,8 +306,8 @@ export default function SessionDetailScreen() {
             zIndex: 20,
             borderRadius: 16,
             borderWidth: 1,
-            borderColor: '#B7E6D3',
-            backgroundColor: '#ECFDF5',
+            borderColor: PROFILE_THEME_COLORS.primaryFixedDim,
+            backgroundColor: PROFILE_THEME_SEMANTIC.successBg,
             paddingHorizontal: 14,
             paddingVertical: 12,
             flexDirection: 'row',
@@ -315,13 +315,13 @@ export default function SessionDetailScreen() {
             gap: 8,
           }}
         >
-          <CheckCheck size={16} color="#065F46" strokeWidth={2.6} />
+          <CheckCheck size={16} color={PROFILE_THEME_COLORS.primaryContainer} strokeWidth={2.6} />
           <Text
             style={{
               flex: 1,
               fontSize: 13,
               fontFamily: 'PlusJakartaSans-ExtraBold',
-              color: '#065F46',
+              color: PROFILE_THEME_COLORS.primaryContainer,
             }}
           >
             Đã cập nhật kèo
@@ -358,7 +358,7 @@ export default function SessionDetailScreen() {
               }}
               activeOpacity={0.9}
             >
-              <Share2 size={18} color="#006948" strokeWidth={2.5} />
+              <Share2 size={18} color={PROFILE_THEME_COLORS.primaryContainer} strokeWidth={2.5} />
             </TouchableOpacity>
           }
         />
@@ -385,9 +385,9 @@ export default function SessionDetailScreen() {
           >
             <View className="flex-row items-center">
               {session.results_status === 'disputed' ? (
-                <ShieldAlert size={18} color="#be123c" strokeWidth={2.5} />
+                <ShieldAlert size={18} color={PROFILE_THEME_SEMANTIC.dangerText} strokeWidth={2.5} />
               ) : (
-                <CheckCheck size={18} color="#4338ca" strokeWidth={2.5} />
+                <CheckCheck size={18} color={PROFILE_THEME_COLORS.onSecondaryFixedVariant} strokeWidth={2.5} />
               )}
               <Text
                 className={`ml-2 text-[15px] font-black ${
@@ -534,8 +534,8 @@ export default function SessionDetailScreen() {
                   paddingVertical: 11,
                   borderRadius: 999,
                   borderWidth: 1.5,
-                  borderColor: '#e11d48',
-                  backgroundColor: '#e11d48',
+                  borderColor: PROFILE_THEME_SEMANTIC.dangerStrong,
+                  backgroundColor: PROFILE_THEME_SEMANTIC.dangerStrong,
                   opacity: hostActionBusy ? 0.55 : 1,
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -543,11 +543,11 @@ export default function SessionDetailScreen() {
               >
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                   {leaving ? (
-                    <ActivityIndicator size="small" color="#ffffff" />
+                    <ActivityIndicator size="small" color={PROFILE_THEME_COLORS.onPrimary} />
                   ) : (
-                    <LogOut size={16} strokeWidth={2.5} color="#ffffff" />
+                    <LogOut size={16} strokeWidth={2.5} color={PROFILE_THEME_COLORS.onPrimary} />
                   )}
-                  <Text style={{ fontSize: 15, fontFamily: 'PlusJakartaSans-ExtraBold', color: '#ffffff' }}>
+                  <Text style={{ fontSize: 15, fontFamily: 'PlusJakartaSans-ExtraBold', color: PROFILE_THEME_COLORS.onPrimary }}>
                     {leaving ? '\u0110ang h\u1EE7y...' : 'H\u1EE7y k\u00E8o'}
                   </Text>
                 </View>
@@ -566,8 +566,8 @@ export default function SessionDetailScreen() {
                   paddingVertical: 11,
                   borderRadius: 999,
                   borderWidth: 2,
-                  borderColor: '#e11d48',
-                  backgroundColor: '#e11d48',
+                  borderColor: PROFILE_THEME_SEMANTIC.dangerStrong,
+                  backgroundColor: PROFILE_THEME_SEMANTIC.dangerStrong,
                   opacity: leaving ? 0.55 : 1,
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -575,11 +575,11 @@ export default function SessionDetailScreen() {
               >
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                   {leaving ? (
-                    <ActivityIndicator size="small" color="#ffffff" />
+                    <ActivityIndicator size="small" color={PROFILE_THEME_COLORS.onPrimary} />
                   ) : (
-                    <LogOut size={18} strokeWidth={2.5} color="#ffffff" />
+                    <LogOut size={18} strokeWidth={2.5} color={PROFILE_THEME_COLORS.onPrimary} />
                   )}
-                  <Text style={{ fontSize: 15, fontFamily: 'PlusJakartaSans-ExtraBold', color: '#ffffff' }}>
+                  <Text style={{ fontSize: 15, fontFamily: 'PlusJakartaSans-ExtraBold', color: PROFILE_THEME_COLORS.onPrimary }}>
                     {leaving ? '\u0110ang r\u1EDDi...' : 'R\u1EDDi k\u00E8o'}
                   </Text>
                 </View>

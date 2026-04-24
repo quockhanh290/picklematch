@@ -5,7 +5,7 @@ import { AlertCircle, CalendarDays, DollarSign, MapPin, ShieldCheck, Star, Troph
 import type { GestureResponderEvent } from 'react-native'
 import { Pressable, Text, View } from 'react-native'
 
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
 import type { MatchSession } from '@/lib/homeFeed'
 import { getSkillLevelUi } from '@/lib/skillLevelUi'
 
@@ -56,9 +56,9 @@ function MiniBadgeLight({
   const isLarge = size === 'lg'
   const palette =
     tone === 'success'
-      ? { bg: '#ecfdf5', border: '#a7f3d0', text: '#047857', icon: '#047857' }
+      ? { bg: PROFILE_THEME_SEMANTIC.successBg, border: PROFILE_THEME_COLORS.primaryFixedDim, text: PROFILE_THEME_SEMANTIC.successText, icon: PROFILE_THEME_SEMANTIC.successText }
       : tone === 'urgent'
-        ? { bg: '#fff7ed', border: '#fdba74', text: '#c2410c', icon: '#c2410c' }
+        ? { bg: PROFILE_THEME_SEMANTIC.warningBg, border: PROFILE_THEME_COLORS.secondaryFixedDim, text: PROFILE_THEME_SEMANTIC.warningText, icon: PROFILE_THEME_SEMANTIC.warningText }
         : {
             bg: PROFILE_THEME_COLORS.surfaceContainerLow,
             border: PROFILE_THEME_COLORS.outlineVariant,
@@ -135,7 +135,7 @@ function HeroMatchSessionCard({ item, actionLabel }: { item: MatchSession; actio
         backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
         borderLeftWidth: 3,
         borderLeftColor: PROFILE_THEME_COLORS.primary,
-        shadowColor: '#0f172a',
+        shadowColor: PROFILE_THEME_COLORS.onBackground,
         shadowOpacity: 0.06,
         shadowRadius: 14,
         shadowOffset: { width: 0, height: 6 },
@@ -527,7 +527,7 @@ function SessionListCard({
       style={{
         minHeight: 300,
         backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
-        shadowColor: '#0f172a',
+        shadowColor: PROFILE_THEME_COLORS.onBackground,
         shadowOpacity: 0.06,
         shadowRadius: 14,
         shadowOffset: { width: 0, height: 6 },

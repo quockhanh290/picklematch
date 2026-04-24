@@ -1,4 +1,54 @@
-export const PROFILE_THEME_COLORS = {
+export type ProfileThemeColors = {
+  surfaceContainerHigh: string
+  surfaceContainerLow: string
+  inverseOnSurface: string
+  secondaryFixed: string
+  onSecondaryFixedVariant: string
+  surfaceBright: string
+  tertiary: string
+  secondary: string
+  onSecondaryFixed: string
+  primaryContainer: string
+  onError: string
+  primaryFixed: string
+  onPrimaryFixed: string
+  tertiaryFixedDim: string
+  background: string
+  primaryFixedDim: string
+  onBackground: string
+  surfaceVariant: string
+  surfaceContainer: string
+  onErrorContainer: string
+  inverseSurface: string
+  surfaceDim: string
+  surface: string
+  onTertiaryContainer: string
+  onPrimary: string
+  outline: string
+  onTertiaryFixed: string
+  inversePrimary: string
+  tertiaryContainer: string
+  onPrimaryFixedVariant: string
+  onTertiary: string
+  error: string
+  tertiaryFixed: string
+  surfaceTint: string
+  primary: string
+  onSecondary: string
+  secondaryContainer: string
+  onSurfaceVariant: string
+  onPrimaryContainer: string
+  outlineVariant: string
+  onSurface: string
+  secondaryFixedDim: string
+  surfaceContainerLowest: string
+  surfaceContainerHighest: string
+  onSecondaryContainer: string
+  errorContainer: string
+  onTertiaryFixedVariant: string
+}
+
+const FOREST_DEFAULT: ProfileThemeColors = {
   surfaceContainerHigh: '#e7e9e5',
   surfaceContainerLow: '#f2f4f1',
   inverseOnSurface: '#eff1ee',
@@ -46,7 +96,68 @@ export const PROFILE_THEME_COLORS = {
   onSecondaryContainer: '#50685d',
   errorContainer: '#ffdad6',
   onTertiaryFixedVariant: '#005046',
-} as const
+}
+
+export type ProfileThemeId = 'forest-default'
+
+export const PROFILE_THEMES: Record<ProfileThemeId, ProfileThemeColors> = {
+  'forest-default': FOREST_DEFAULT,
+}
+
+export const DEFAULT_PROFILE_THEME_ID: ProfileThemeId = 'forest-default'
+
+export function getProfileThemeColors(themeId: ProfileThemeId = DEFAULT_PROFILE_THEME_ID): ProfileThemeColors {
+  return PROFILE_THEMES[themeId]
+}
+
+// Backward-compatible export. Existing code can keep importing this constant.
+export const PROFILE_THEME_COLORS = getProfileThemeColors()
+
+export type ProfileThemeSemantic = {
+  successBg: string
+  successText: string
+  warningBg: string
+  warningText: string
+  warningStrong: string
+  infoBg: string
+  infoText: string
+  infoIcon: string
+  dangerBg: string
+  dangerText: string
+  dangerStrong: string
+  dangerBorderSoft: string
+  dangerBorder: string
+  dangerDeep: string
+  overlay: string
+}
+
+const FOREST_DEFAULT_SEMANTIC: ProfileThemeSemantic = {
+  successBg: '#dcfce7',
+  successText: '#047857',
+  warningBg: '#fef3c7',
+  warningText: '#b45309',
+  warningStrong: '#d97706',
+  infoBg: '#e2e8f0',
+  infoText: '#475569',
+  infoIcon: '#64748b',
+  dangerBg: '#ffe4e6',
+  dangerText: '#be123c',
+  dangerStrong: '#e11d48',
+  dangerBorderSoft: '#fda4af',
+  dangerBorder: '#f3b3b3',
+  dangerDeep: '#7a1f1f',
+  overlay: 'rgba(10, 20, 30, 0.45)',
+}
+
+export const PROFILE_THEME_SEMANTICS: Record<ProfileThemeId, ProfileThemeSemantic> = {
+  'forest-default': FOREST_DEFAULT_SEMANTIC,
+}
+
+export function getProfileThemeSemantic(themeId: ProfileThemeId = DEFAULT_PROFILE_THEME_ID): ProfileThemeSemantic {
+  return PROFILE_THEME_SEMANTICS[themeId]
+}
+
+export const PROFILE_THEME_SEMANTIC = getProfileThemeSemantic()
 
 export type ProfileBadgeTone = 'emerald' | 'amber' | 'rose' | 'sky' | 'violet'
 
@@ -99,7 +210,7 @@ export function getCommunityFeedbackPalette(tone: 'positive' | 'negative', count
   }
 
   return {
-    backgroundColor: '#7a1f1f',
+    backgroundColor: PROFILE_THEME_SEMANTIC.dangerDeep,
     borderColor: PROFILE_THEME_COLORS.error,
     textColor: PROFILE_THEME_COLORS.onError,
     iconColor: PROFILE_THEME_COLORS.onError,

@@ -1,4 +1,4 @@
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+﻿import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker'
 import Slider from '@react-native-community/slider'
 import React, { useState } from 'react'
@@ -326,7 +326,7 @@ export function AdvancedSessionFilterModal({
               />
             </View>
             {priceInvalid && (
-              <Text style={{ color: '#ef4444', fontSize: 11, marginBottom: 16 }}>
+              <Text style={{ color: PROFILE_THEME_COLORS.error, fontSize: 11, marginBottom: 16 }}>
                 Giá tối thiểu không được lớn hơn giá tối đa
               </Text>
             )}
@@ -396,4 +396,6 @@ export function AdvancedSessionFilterModal({
     </Modal>
   )
 }
+
+
 

@@ -1,7 +1,7 @@
 import { Modal, Pressable, Text, View } from 'react-native'
 
 import { AppButton } from '@/components/design/AppButton'
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { useAppTheme } from '@/lib/theme-context'
 
 export type AppDialogAction = {
   label: string
@@ -22,6 +22,7 @@ type Props = {
 }
 
 export function AppDialog({ visible, config, onClose }: Props) {
+  const theme = useAppTheme()
   if (!config) return null
 
   const actions = config.actions.slice(0, 3)
@@ -40,12 +41,12 @@ export function AppDialog({ visible, config, onClose }: Props) {
           style={{
             borderRadius: 28,
             borderWidth: 1,
-            borderColor: PROFILE_THEME_COLORS.outlineVariant,
-            backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+            borderColor: theme.border,
+            backgroundColor: theme.surface,
             paddingHorizontal: 18,
             paddingTop: 16,
             paddingBottom: 14,
-            shadowColor: '#0f172a',
+            shadowColor: theme.shadow,
             shadowOpacity: 0.08,
             shadowRadius: 18,
             shadowOffset: { width: 0, height: 8 },
@@ -56,7 +57,7 @@ export function AppDialog({ visible, config, onClose }: Props) {
             style={{
               fontSize: 21,
               lineHeight: 27,
-              color: PROFILE_THEME_COLORS.primary,
+              color: theme.primary,
               fontFamily: 'PlusJakartaSans-ExtraBold',
               textTransform: 'uppercase',
               letterSpacing: 0.5,
@@ -65,14 +66,14 @@ export function AppDialog({ visible, config, onClose }: Props) {
             {config.title}
           </Text>
 
-          <View style={{ marginTop: 12, height: 1, backgroundColor: PROFILE_THEME_COLORS.outlineVariant }} />
+          <View style={{ marginTop: 12, height: 1, backgroundColor: theme.border }} />
 
           <Text
             style={{
               marginTop: 12,
               fontSize: 14,
               lineHeight: 22,
-              color: PROFILE_THEME_COLORS.onSurfaceVariant,
+              color: theme.textMuted,
               fontFamily: 'PlusJakartaSans-Regular',
             }}
           >
@@ -94,14 +95,14 @@ export function AppDialog({ visible, config, onClose }: Props) {
                           borderRadius: 14,
                           alignItems: 'center',
                           justifyContent: 'center',
-                          backgroundColor: '#e11d48',
+                          backgroundColor: theme.danger,
                         }}
                       >
                         <Text
                           style={{
                             fontSize: 16,
                             fontFamily: 'PlusJakartaSans-Bold',
-                            color: '#ffffff',
+                            color: theme.primaryContrast,
                           }}
                         >
                           {action.label}

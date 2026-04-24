@@ -1,4 +1,4 @@
-import { AppButton, EmptyState, ScreenHeader } from '@/components/design'
+﻿import { AppButton, EmptyState, ScreenHeader } from '@/components/design'
 import type { FeedbackTrait } from '@/components/profile/CommunityFeedbackSection'
 import CommunityFeedbackPanel from '@/components/profile/CommunityFeedbackSection'
 import {
@@ -242,7 +242,7 @@ export default function ProfileScreenContent() {
           title="Hồ sơ"
         />
         <EmptyState
-          icon={<UserCircle2 size={28} color="#64748b" />}
+          icon={<UserCircle2 size={28} color={PROFILE_THEME_COLORS.outline} />}
           title="Đăng nhập để xem hồ sơ"
           description="Quản lý thông tin cá nhân và lịch sử tham gia kèo của bạn ở một nơi gọn gàng hơn."
         />
@@ -266,7 +266,7 @@ export default function ProfileScreenContent() {
     return (
       <SafeAreaView className="flex-1" style={{ backgroundColor: theme.backgroundMuted }} edges={['top']}>
         <EmptyState
-          icon={<CircleAlert size={28} color="#64748b" />}
+          icon={<CircleAlert size={28} color={PROFILE_THEME_COLORS.outline} />}
           title="Không tìm thấy hồ sơ"
           description="Thử tải lại hoặc đăng nhập lại để tiếp tục."
         />
@@ -507,3 +507,5 @@ export default function ProfileScreenContent() {
     </SafeAreaView>
   )
 }
+
+

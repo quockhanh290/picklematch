@@ -68,6 +68,18 @@ type TagOption = {
 }
 
 const SW = 2.5
+const RATE_THEME = {
+  pageBg: PROFILE_THEME_COLORS.surfaceContainerLow,
+  cardBg: PROFILE_THEME_COLORS.surfaceContainerLowest,
+  cardBorder: PROFILE_THEME_COLORS.outlineVariant,
+  textPrimary: PROFILE_THEME_COLORS.onSurface,
+  textSecondary: PROFILE_THEME_COLORS.onSurfaceVariant,
+  brand: PROFILE_THEME_COLORS.primaryContainer,
+  brandStrong: PROFILE_THEME_COLORS.surfaceTint,
+  brandOn: PROFILE_THEME_COLORS.onPrimary,
+  successTint: PROFILE_THEME_COLORS.secondaryContainer,
+  dangerTint: PROFILE_THEME_COLORS.errorContainer,
+} as const
 
 const SKILL_OPTIONS: SkillOption[] = [
   { value: 'weaker', label: 'Cần cố gắng', icon: ArrowDown },
@@ -127,8 +139,8 @@ function SkillChip({
         minHeight: 118,
         borderRadius: 18,
         borderWidth: active ? 2 : 1.2,
-        borderColor: active ? '#93DEC7' : '#E3E9E6',
-        backgroundColor: active ? '#064E3B' : '#FFFFFF',
+        borderColor: active ? PROFILE_THEME_COLORS.primaryFixedDim : RATE_THEME.cardBorder,
+        backgroundColor: active ? RATE_THEME.brand : RATE_THEME.cardBg,
         alignItems: 'center',
         justifyContent: 'center',
         gap: 8,
@@ -142,10 +154,10 @@ function SkillChip({
           borderRadius: 21,
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: active ? '#0A6A52' : '#F0F4F2',
+          backgroundColor: active ? RATE_THEME.brandStrong : PROFILE_THEME_COLORS.surfaceContainerLow,
         }}
       >
-        <Icon size={18} color={active ? '#DEFBF0' : '#7F8A85'} strokeWidth={SW} />
+        <Icon size={18} color={active ? RATE_THEME.brandOn : PROFILE_THEME_COLORS.outline} strokeWidth={SW} />
       </View>
       <Text
         style={{
@@ -153,7 +165,7 @@ function SkillChip({
           fontSize: 13,
           lineHeight: 19,
           fontFamily: 'PlusJakartaSans-ExtraBold',
-          color: active ? '#E8FFF7' : '#5C6964',
+          color: active ? RATE_THEME.brandOn : RATE_THEME.textSecondary,
         }}
       >
         {option.label}
@@ -173,22 +185,22 @@ function TagPill({
   disabled: boolean
   onPress: () => void
 }) {
-  let backgroundColor = '#E3F5EE'
-  let textColor = '#1F6B58'
+  let backgroundColor = RATE_THEME.successTint
+  let textColor = RATE_THEME.brandStrong
 
   if (tag.tone === 'warning') {
-    backgroundColor = '#FAF1F1'
-    textColor = '#CC4C4C'
+    backgroundColor = RATE_THEME.dangerTint
+    textColor = PROFILE_THEME_COLORS.error
   }
 
   if (active && tag.tone === 'positive') {
-    backgroundColor = '#C8F2E3'
-    textColor = '#0F5E4A'
+    backgroundColor = PROFILE_THEME_COLORS.primaryFixed
+    textColor = RATE_THEME.brandStrong
   }
 
   if (active && tag.tone === 'warning') {
-    backgroundColor = '#FFDAD6'
-    textColor = '#A23636'
+    backgroundColor = PROFILE_THEME_COLORS.errorContainer
+    textColor = PROFILE_THEME_COLORS.onErrorContainer
   }
 
   return (
@@ -201,7 +213,7 @@ function TagPill({
         alignSelf: 'flex-start',
         borderRadius: 999,
         borderWidth: active ? 1 : 0,
-        borderColor: active ? (tag.tone === 'positive' ? '#9FE5CF' : '#F3B3B3') : 'transparent',
+        borderColor: active ? (tag.tone === 'positive' ? PROFILE_THEME_COLORS.primaryFixedDim : PROFILE_THEME_COLORS.error) : 'transparent',
         paddingHorizontal: 14,
         paddingVertical: 7,
         backgroundColor,
@@ -419,8 +431,8 @@ export default function RateSessionScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#F1F3F2', alignItems: 'center', justifyContent: 'center' }} edges={['top']}>
-        <ActivityIndicator size="large" color="#0B5B47" />
+      <SafeAreaView style={{ flex: 1, backgroundColor: RATE_THEME.pageBg, alignItems: 'center', justifyContent: 'center' }} edges={['top']}>
+        <ActivityIndicator size="large" color={RATE_THEME.brandStrong} />
       </SafeAreaView>
     )
   }
@@ -452,7 +464,7 @@ export default function RateSessionScreen() {
   const progressPercent = players.length ? Math.round((progressCurrent / players.length) * 100) : 0
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#F6F8F7' }} edges={['top']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: RATE_THEME.pageBg }} edges={['top']}>
       <View style={{ flex: 1 }}>
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -469,33 +481,33 @@ export default function RateSessionScreen() {
                     width: 36,
                     height: 36,
                     borderRadius: 18,
-                    backgroundColor: '#A8E6D2',
+                    backgroundColor: PROFILE_THEME_COLORS.primaryFixed,
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                 >
-                  <Text style={{ fontSize: 15, fontFamily: 'PlusJakartaSans-ExtraBold', color: '#0D5A47' }}>{getAvatarLetter(currentPlayer.name)}</Text>
+                  <Text style={{ fontSize: 15, fontFamily: 'PlusJakartaSans-ExtraBold', color: RATE_THEME.brandStrong }}>{getAvatarLetter(currentPlayer.name)}</Text>
                 </View>
               }
             />
           </View>
 
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text style={{ flex: 1, fontSize: 14, fontFamily: 'PlusJakartaSans-Bold', color: '#5B6661' }}>
+            <Text style={{ flex: 1, fontSize: 14, fontFamily: 'PlusJakartaSans-Bold', color: RATE_THEME.textSecondary }}>
               Đánh giá người chơi {progressCurrent}/{players.length}
             </Text>
-            <Text style={{ fontSize: 16, fontFamily: 'PlusJakartaSans-ExtraBold', color: '#2B7C67' }}>{progressPercent}%</Text>
+            <Text style={{ fontSize: 16, fontFamily: 'PlusJakartaSans-ExtraBold', color: RATE_THEME.brandStrong }}>{progressPercent}%</Text>
           </View>
-          <View style={{ height: 5, borderRadius: 999, backgroundColor: '#DBE2DF', marginTop: 8, overflow: 'hidden', marginBottom: 18 }}>
-            <View style={{ height: '100%', width: `${progressPercent}%`, backgroundColor: '#0C5B47', borderRadius: 999 }} />
+          <View style={{ height: 5, borderRadius: 999, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHigh, marginTop: 8, overflow: 'hidden', marginBottom: 18 }}>
+            <View style={{ height: '100%', width: `${progressPercent}%`, backgroundColor: RATE_THEME.brandStrong, borderRadius: 999 }} />
           </View>
 
           <View
             style={{
               borderRadius: 22,
               borderWidth: 1,
-              borderColor: '#E6ECE9',
-              backgroundColor: '#FFFFFF',
+              borderColor: RATE_THEME.cardBorder,
+              backgroundColor: RATE_THEME.cardBg,
               paddingHorizontal: 16,
               paddingVertical: 15,
               flexDirection: 'row',
@@ -512,7 +524,7 @@ export default function RateSessionScreen() {
                 width: 70,
                 height: 70,
                 borderRadius: 35,
-                backgroundColor: '#F0F4F2',
+                backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHigh,
               }}
             />
             <View
@@ -520,14 +532,14 @@ export default function RateSessionScreen() {
                 width: 78,
                 height: 78,
                 borderRadius: 39,
-                backgroundColor: '#1F2937',
+                backgroundColor: PROFILE_THEME_COLORS.surfaceTint,
                 borderWidth: 2,
-                borderColor: '#DDE7E2',
+                borderColor: PROFILE_THEME_COLORS.surfaceContainerHigh,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <Text style={{ fontSize: 30, fontFamily: 'PlusJakartaSans-ExtraBold', color: '#FFFFFF' }}>{getAvatarLetter(currentPlayer.name)}</Text>
+              <Text style={{ fontSize: 30, fontFamily: 'PlusJakartaSans-ExtraBold', color: PROFILE_THEME_COLORS.onPrimary }}>{getAvatarLetter(currentPlayer.name)}</Text>
               <View
                 style={{
                   position: 'absolute',
@@ -536,19 +548,19 @@ export default function RateSessionScreen() {
                   width: 24,
                   height: 24,
                   borderRadius: 12,
-                  backgroundColor: '#0F5F49',
+                  backgroundColor: RATE_THEME.brandStrong,
                   alignItems: 'center',
                   justifyContent: 'center',
                   borderWidth: 2,
-                  borderColor: '#FFFFFF',
+                  borderColor: RATE_THEME.cardBg,
                 }}
               >
-                <Check size={12} color="#E7FFF7" strokeWidth={SW} />
+                <Check size={12} color={RATE_THEME.brandOn} strokeWidth={SW} />
               </View>
             </View>
             <View style={{ marginLeft: 14, flex: 1 }}>
-              <Text style={{ fontSize: 20, lineHeight: 25, fontFamily: 'PlusJakartaSans-ExtraBold', color: '#0F4E3D' }}>{currentPlayer.name}</Text>
-              <Text style={{ fontSize: 15, lineHeight: 21, fontFamily: 'PlusJakartaSans-Bold', color: '#6A7571', marginTop: 2 }}>Mức chơi: {skillLabel}</Text>
+              <Text style={{ fontSize: 20, lineHeight: 25, fontFamily: 'PlusJakartaSans-ExtraBold', color: RATE_THEME.brandStrong }}>{currentPlayer.name}</Text>
+              <Text style={{ fontSize: 15, lineHeight: 21, fontFamily: 'PlusJakartaSans-Bold', color: RATE_THEME.textSecondary, marginTop: 2 }}>Mức chơi: {skillLabel}</Text>
             </View>
           </View>
 
@@ -557,8 +569,8 @@ export default function RateSessionScreen() {
             style={{
               borderRadius: 22,
               borderWidth: 1,
-              borderColor: '#E6ECE9',
-              backgroundColor: '#FFFFFF',
+              borderColor: RATE_THEME.cardBorder,
+              backgroundColor: RATE_THEME.cardBg,
               paddingHorizontal: 16,
               paddingVertical: 14,
               flexDirection: 'row',
@@ -571,14 +583,14 @@ export default function RateSessionScreen() {
                 width: 42,
                 height: 42,
                 borderRadius: 21,
-                backgroundColor: '#FDF0F0',
+                backgroundColor: RATE_THEME.dangerTint,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <UserX size={20} color="#D43E3E" strokeWidth={SW} />
+              <UserX size={20} color={PROFILE_THEME_COLORS.error} strokeWidth={SW} />
             </View>
-              <Text style={{ flex: 1, marginLeft: 12, fontSize: 16, lineHeight: 22, fontFamily: 'PlusJakartaSans-ExtraBold', color: '#2E3432' }}>
+              <Text style={{ flex: 1, marginLeft: 12, fontSize: 16, lineHeight: 22, fontFamily: 'PlusJakartaSans-ExtraBold', color: RATE_THEME.textPrimary }}>
                 Người này không đến{`\n`}(No-show)
               </Text>
             <View
@@ -588,7 +600,7 @@ export default function RateSessionScreen() {
                 borderRadius: 16,
                 paddingHorizontal: 4,
                 justifyContent: 'center',
-                backgroundColor: currentEntry.no_show ? '#0C5B47' : '#D6DBD8',
+                backgroundColor: currentEntry.no_show ? RATE_THEME.brandStrong : PROFILE_THEME_COLORS.surfaceDim,
               }}
             >
               <View
@@ -596,14 +608,14 @@ export default function RateSessionScreen() {
                   width: 22,
                   height: 22,
                   borderRadius: 11,
-                  backgroundColor: '#FFFFFF',
+                  backgroundColor: RATE_THEME.cardBg,
                   alignSelf: currentEntry.no_show ? 'flex-end' : 'flex-start',
                 }}
               />
             </View>
           </Pressable>
 
-          <Text style={{ fontSize: 20, lineHeight: 26, fontFamily: 'PlusJakartaSans-ExtraBold', color: '#222D28', marginBottom: 12 }}>
+          <Text style={{ fontSize: 20, lineHeight: 26, fontFamily: 'PlusJakartaSans-ExtraBold', color: RATE_THEME.textPrimary, marginBottom: 12 }}>
             Đánh giá trình độ
           </Text>
           <View style={{ flexDirection: 'row', gap: 10, marginBottom: 24 }}>
@@ -618,7 +630,7 @@ export default function RateSessionScreen() {
             ))}
           </View>
 
-          <Text style={{ fontSize: 20, lineHeight: 26, fontFamily: 'PlusJakartaSans-ExtraBold', color: '#222D28', marginBottom: 10 }}>
+          <Text style={{ fontSize: 20, lineHeight: 26, fontFamily: 'PlusJakartaSans-ExtraBold', color: RATE_THEME.textPrimary, marginBottom: 10 }}>
             Nhận xét tích cực
           </Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
@@ -633,7 +645,7 @@ export default function RateSessionScreen() {
             ))}
           </View>
 
-          <Text style={{ fontSize: 20, lineHeight: 26, fontFamily: 'PlusJakartaSans-ExtraBold', color: '#222D28', marginBottom: 10 }}>
+          <Text style={{ fontSize: 20, lineHeight: 26, fontFamily: 'PlusJakartaSans-ExtraBold', color: RATE_THEME.textPrimary, marginBottom: 10 }}>
             Lưu ý
           </Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
@@ -658,9 +670,9 @@ export default function RateSessionScreen() {
             paddingHorizontal: 16,
             paddingTop: 10,
             paddingBottom: Math.max(insets.bottom, 12),
-            backgroundColor: '#F6F8F7',
+            backgroundColor: RATE_THEME.pageBg,
             borderTopWidth: 1,
-            borderTopColor: '#E5EBE8',
+            borderTopColor: RATE_THEME.cardBorder,
           }}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
@@ -670,14 +682,14 @@ export default function RateSessionScreen() {
               style={{
                 flex: 1,
                 borderRadius: 999,
-                backgroundColor: '#DFE4E1',
+                backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHigh,
                 alignItems: 'center',
                 justifyContent: 'center',
                 height: 52,
                 opacity: saving ? 0.6 : 1,
               }}
             >
-              <Text style={{ fontSize: 15, fontFamily: 'PlusJakartaSans-ExtraBold', color: '#303734' }}>Bỏ qua</Text>
+              <Text style={{ fontSize: 15, fontFamily: 'PlusJakartaSans-ExtraBold', color: RATE_THEME.textPrimary }}>Bỏ qua</Text>
             </Pressable>
 
             <Pressable
@@ -686,7 +698,7 @@ export default function RateSessionScreen() {
               style={{
                 flex: 1.6,
                 borderRadius: 999,
-                backgroundColor: '#064E3B',
+                backgroundColor: RATE_THEME.brand,
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -695,10 +707,10 @@ export default function RateSessionScreen() {
                 opacity: saving ? 0.75 : 1,
               }}
             >
-              <Text style={{ fontSize: 15, fontFamily: 'PlusJakartaSans-ExtraBold', color: '#F4FFF9' }}>
+              <Text style={{ fontSize: 15, fontFamily: 'PlusJakartaSans-ExtraBold', color: RATE_THEME.brandOn }}>
                 {saving ? 'Đang gửi...' : players.length > 1 && currentIndex < players.length - 1 ? 'Tiếp theo' : 'Gửi đánh giá'}
               </Text>
-              {!saving ? <ArrowRight size={18} color="#F4FFF9" strokeWidth={SW} /> : null}
+              {!saving ? <ArrowRight size={18} color={RATE_THEME.brandOn} strokeWidth={SW} /> : null}
             </Pressable>
           </View>
         </View>

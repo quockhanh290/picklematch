@@ -1,5 +1,6 @@
-import type { LucideIcon } from 'lucide-react-native'
+﻿import type { LucideIcon } from 'lucide-react-native'
 import { Activity, Medal, Sparkles, Swords, Trophy } from 'lucide-react-native'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
 
 import type { SkillAssessmentLevel } from './skillAssessment'
 
@@ -22,9 +23,9 @@ export const SKILL_LEVEL_UI: Record<SkillAssessmentLevel['id'], SkillTierUi> = {
     tagClassName: 'bg-slate-50',
     textClassName: 'text-slate-700',
     borderClassName: 'border-slate-200',
-    iconColor: '#334155',
-    heroFrom: '#64748b',
-    heroTo: '#334155',
+    iconColor: PROFILE_THEME_COLORS.onSurfaceVariant,
+    heroFrom: PROFILE_THEME_COLORS.outline,
+    heroTo: PROFILE_THEME_COLORS.onSurfaceVariant,
     duprValue: '2.5',
   },
   level_2: {
@@ -33,9 +34,9 @@ export const SKILL_LEVEL_UI: Record<SkillAssessmentLevel['id'], SkillTierUi> = {
     tagClassName: 'bg-emerald-50',
     textClassName: 'text-emerald-700',
     borderClassName: 'border-emerald-200',
-    iconColor: '#047857',
-    heroFrom: '#10b981',
-    heroTo: '#0d9488',
+    iconColor: PROFILE_THEME_SEMANTIC.successText,
+    heroFrom: PROFILE_THEME_COLORS.surfaceTint,
+    heroTo: PROFILE_THEME_COLORS.primaryContainer,
     duprValue: '3.0',
   },
   level_3: {
@@ -44,9 +45,9 @@ export const SKILL_LEVEL_UI: Record<SkillAssessmentLevel['id'], SkillTierUi> = {
     tagClassName: 'bg-indigo-50',
     textClassName: 'text-indigo-700',
     borderClassName: 'border-indigo-200',
-    iconColor: '#4338ca',
-    heroFrom: '#6366f1',
-    heroTo: '#7c3aed',
+    iconColor: PROFILE_THEME_COLORS.onSecondaryFixedVariant,
+    heroFrom: PROFILE_THEME_COLORS.secondary,
+    heroTo: PROFILE_THEME_COLORS.onSecondaryFixedVariant,
     duprValue: '3.5',
   },
   level_4: {
@@ -55,9 +56,9 @@ export const SKILL_LEVEL_UI: Record<SkillAssessmentLevel['id'], SkillTierUi> = {
     tagClassName: 'bg-amber-50',
     textClassName: 'text-amber-700',
     borderClassName: 'border-amber-200',
-    iconColor: '#b45309',
-    heroFrom: '#f59e0b',
-    heroTo: '#ea580c',
+    iconColor: PROFILE_THEME_SEMANTIC.warningText,
+    heroFrom: PROFILE_THEME_SEMANTIC.warningStrong,
+    heroTo: PROFILE_THEME_SEMANTIC.warningText,
     duprValue: '4.0',
   },
   level_5: {
@@ -66,9 +67,9 @@ export const SKILL_LEVEL_UI: Record<SkillAssessmentLevel['id'], SkillTierUi> = {
     tagClassName: 'bg-sky-50',
     textClassName: 'text-sky-700',
     borderClassName: 'border-sky-200',
-    iconColor: '#0369a1',
-    heroFrom: '#0ea5e9',
-    heroTo: '#2563eb',
+    iconColor: PROFILE_THEME_COLORS.onTertiaryFixedVariant,
+    heroFrom: PROFILE_THEME_COLORS.tertiaryFixed,
+    heroTo: PROFILE_THEME_COLORS.tertiaryContainer,
     duprValue: '4.5',
   },
 }
@@ -81,3 +82,5 @@ export function getSkillLevelUi(levelId?: SkillAssessmentLevel['id'] | null) {
 export function getSkillTargetElo(eloMin: number, eloMax: number) {
   return Math.round((eloMin + eloMax) / 2)
 }
+
+

@@ -2,7 +2,7 @@ import { KeyboardAvoidingView, Modal, Platform, ScrollView, Text, TextInput, Vie
 import { AlertCircle, Clock3, Send, Users } from 'lucide-react-native'
 
 import { AppButton } from '@/components/design'
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
 import type { MatchStatus } from '@/lib/matchmaking'
 
 type Props = {
@@ -61,7 +61,7 @@ export function JoinRequestModal({
               paddingHorizontal: 20,
               paddingTop: 18,
               paddingBottom: 16,
-              shadowColor: '#0f172a',
+              shadowColor: PROFILE_THEME_COLORS.onBackground,
               shadowOpacity: 0.08,
               shadowRadius: 18,
               shadowOffset: { width: 0, height: 8 },
@@ -136,14 +136,14 @@ export function JoinRequestModal({
                     marginTop: 14,
                     borderRadius: 20,
                     borderWidth: 1,
-                    borderColor: '#f3b37a',
-                    backgroundColor: '#fff7ed',
+                    borderColor: PROFILE_THEME_COLORS.secondaryFixedDim,
+                    backgroundColor: PROFILE_THEME_SEMANTIC.warningBg,
                     paddingHorizontal: 14,
                     paddingVertical: 12,
                   }}
                 >
                   <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <AlertCircle size={15} color="#c2410c" />
+                    <AlertCircle size={15} color={PROFILE_THEME_SEMANTIC.warningStrong} />
                     <Text
                       style={{
                         marginLeft: 7,
@@ -151,7 +151,7 @@ export function JoinRequestModal({
                         fontFamily: 'PlusJakartaSans-ExtraBold',
                         textTransform: 'uppercase',
                         letterSpacing: 1,
-                        color: '#9a3412',
+                        color: PROFILE_THEME_COLORS.onPrimaryFixedVariant,
                       }}
                     >
                       Cảnh báo biến động Elo
@@ -162,7 +162,7 @@ export function JoinRequestModal({
                       marginTop: 8,
                       fontSize: 13,
                       lineHeight: 20,
-                      color: '#9a3412',
+                      color: PROFILE_THEME_COLORS.onPrimaryFixedVariant,
                       fontFamily: 'PlusJakartaSans-Regular',
                     }}
                   >

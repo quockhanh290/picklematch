@@ -1,5 +1,6 @@
-import type { LucideIcon } from 'lucide-react-native'
+﻿import type { LucideIcon } from 'lucide-react-native'
 import { Activity, Diamond, Sparkles, Swords, Trophy } from 'lucide-react-native'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
 
 export type CreateSessionSkillOption = {
   id: number
@@ -19,7 +20,7 @@ export const CREATE_SESSION_SKILL_OPTIONS: CreateSessionSkillOption[] = [
     icon: Sparkles,
     activeClassName: 'bg-slate-100 border-slate-300',
     textClassName: 'text-slate-800',
-    iconColor: '#1f2937',
+    iconColor: PROFILE_THEME_COLORS.onSurface,
     elo: 800,
     dupr: '2.5',
   },
@@ -29,7 +30,7 @@ export const CREATE_SESSION_SKILL_OPTIONS: CreateSessionSkillOption[] = [
     icon: Activity,
     activeClassName: 'bg-emerald-50 border-emerald-300',
     textClassName: 'text-emerald-700',
-    iconColor: '#047857',
+    iconColor: PROFILE_THEME_SEMANTIC.successText,
     elo: 1000,
     dupr: '3.0',
   },
@@ -39,7 +40,7 @@ export const CREATE_SESSION_SKILL_OPTIONS: CreateSessionSkillOption[] = [
     icon: Swords,
     activeClassName: 'bg-violet-50 border-violet-300',
     textClassName: 'text-violet-700',
-    iconColor: '#6d28d9',
+    iconColor: PROFILE_THEME_COLORS.onSecondaryFixedVariant,
     elo: 1150,
     dupr: '3.5',
   },
@@ -49,7 +50,7 @@ export const CREATE_SESSION_SKILL_OPTIONS: CreateSessionSkillOption[] = [
     icon: Trophy,
     activeClassName: 'bg-orange-50 border-orange-300',
     textClassName: 'text-orange-700',
-    iconColor: '#c2410c',
+    iconColor: PROFILE_THEME_SEMANTIC.warningText,
     elo: 1300,
     dupr: '4.0',
   },
@@ -59,7 +60,7 @@ export const CREATE_SESSION_SKILL_OPTIONS: CreateSessionSkillOption[] = [
     icon: Diamond,
     activeClassName: 'bg-sky-50 border-sky-300',
     textClassName: 'text-sky-700',
-    iconColor: '#0369a1',
+    iconColor: PROFILE_THEME_COLORS.onTertiaryFixedVariant,
     elo: 1500,
     dupr: '4.5',
   },
@@ -71,3 +72,4 @@ export const CREATE_SESSION_SKILL_INACTIVE_CLASSNAME =
 export function getCreateSessionSkillOption(level: number) {
   return CREATE_SESSION_SKILL_OPTIONS.find((option) => option.id === level) ?? CREATE_SESSION_SKILL_OPTIONS[2]
 }
+

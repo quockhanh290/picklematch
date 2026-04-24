@@ -15,6 +15,28 @@ import { AppDialog, type AppDialogConfig } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { supabase } from '@/lib/supabase'
 
+const RESULT_THEME = {
+  pageBg: PROFILE_THEME_COLORS.surfaceContainerLow,
+  pageBlob: 'rgba(10,90,69,0.04)',
+  headerChipBg: PROFILE_THEME_COLORS.surfaceContainerHigh,
+  headerIcon: PROFILE_THEME_COLORS.onSecondaryContainer,
+  title: PROFILE_THEME_COLORS.primary,
+  subtitle: PROFILE_THEME_COLORS.onSecondaryContainer,
+  muted: PROFILE_THEME_COLORS.outline,
+  line: PROFILE_THEME_COLORS.outlineVariant,
+  vsBg: PROFILE_THEME_COLORS.surfaceContainer,
+  vsText: PROFILE_THEME_COLORS.onSurfaceVariant,
+  sectionBg: PROFILE_THEME_COLORS.surfaceContainer,
+  sectionBorder: PROFILE_THEME_COLORS.outlineVariant,
+  sectionCardBg: PROFILE_THEME_COLORS.surfaceContainerLowest,
+  inputPlaceholder: PROFILE_THEME_COLORS.outline,
+  inputText: PROFILE_THEME_COLORS.onSurface,
+  primaryCta: PROFILE_THEME_COLORS.primaryContainer,
+  primaryCtaPressed: PROFILE_THEME_COLORS.surfaceTint,
+  primaryCtaText: PROFILE_THEME_COLORS.onPrimary,
+  shadow: PROFILE_THEME_COLORS.primary,
+} as const
+
 type SessionPlayerRecord = {
   player_id: string
   status?: string | null
@@ -115,9 +137,9 @@ function PlayerTag({ name, dark }: { name: string; dark: boolean }) {
         borderRadius: 999,
         paddingHorizontal: 10,
         paddingVertical: 5,
-        backgroundColor: dark ? 'rgba(255,255,255,0.14)' : '#FFFFFF',
+        backgroundColor: dark ? 'rgba(255,255,255,0.14)' : PROFILE_THEME_COLORS.surfaceContainerLowest,
         borderWidth: 1,
-        borderColor: dark ? 'rgba(255,255,255,0.22)' : '#E3E9E6',
+        borderColor: dark ? 'rgba(255,255,255,0.22)' : PROFILE_THEME_COLORS.outlineVariant,
         marginLeft: 6,
       }}
     >
@@ -126,7 +148,7 @@ function PlayerTag({ name, dark }: { name: string; dark: boolean }) {
         style={{
           fontFamily: 'PlusJakartaSans-Bold',
           fontSize: 11,
-          color: dark ? '#DDF8EE' : '#285446',
+          color: dark ? PROFILE_THEME_COLORS.secondaryContainer : PROFILE_THEME_COLORS.onSecondaryContainer,
         }}
       >
         {name}
@@ -148,20 +170,20 @@ function ScoreCard({
   onDecrease: () => void
   onIncrease: () => void
 }) {
-  const bg = dark ? '#045840' : '#F1F3F2'
-  const text = dark ? '#FFFFFF' : '#044A37'
-  const label = dark ? '#9CD8C2' : '#627B72'
-  const btnMinusBg = dark ? '#034636' : '#FFFFFF'
-  const btnPlusBg = dark ? '#9DE9CB' : '#045840'
-  const btnMinusText = dark ? '#E8FFF5' : '#1A3D31'
-  const btnPlusText = dark ? '#063D2D' : '#FFFFFF'
+  const bg = dark ? PROFILE_THEME_COLORS.primaryContainer : PROFILE_THEME_COLORS.surfaceContainerLow
+  const text = dark ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.primary
+  const label = dark ? PROFILE_THEME_COLORS.secondaryContainer : PROFILE_THEME_COLORS.onSecondaryContainer
+  const btnMinusBg = dark ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surfaceContainerLowest
+  const btnPlusBg = dark ? PROFILE_THEME_COLORS.secondaryContainer : PROFILE_THEME_COLORS.primaryContainer
+  const btnMinusText = dark ? PROFILE_THEME_COLORS.surfaceContainerLowest : PROFILE_THEME_COLORS.primary
+  const btnPlusText = dark ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.onPrimary
 
   return (
     <View
       style={{
         borderRadius: 30,
         borderWidth: 1,
-        borderColor: dark ? '#056B4E' : '#E2E8E4',
+        borderColor: dark ? PROFILE_THEME_COLORS.surfaceTint : PROFILE_THEME_COLORS.outlineVariant,
         backgroundColor: bg,
         paddingHorizontal: 16,
         paddingTop: 16,
@@ -380,17 +402,17 @@ export default function MatchResultEntryScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#F3F6F4', alignItems: 'center', justifyContent: 'center' }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: RESULT_THEME.pageBg, alignItems: 'center', justifyContent: 'center' }}>
         <ActivityIndicator color={PROFILE_THEME_COLORS.primary} />
-        <Text style={{ marginTop: 10, fontFamily: 'PlusJakartaSans-Bold', color: '#52756A' }}>Đang tải trận đấu...</Text>
+        <Text style={{ marginTop: 10, fontFamily: 'PlusJakartaSans-Bold', color: RESULT_THEME.subtitle }}>Đang tải trận đấu...</Text>
       </SafeAreaView>
     )
   }
 
   if (!session) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#F3F6F4', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 }}>
-        <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 22, color: '#10392E' }}>Không tìm thấy trận đấu</Text>
+      <SafeAreaView style={{ flex: 1, backgroundColor: RESULT_THEME.pageBg, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 }}>
+        <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 22, color: RESULT_THEME.title }}>Không tìm thấy trận đấu</Text>
         <Pressable onPress={() => router.back()} style={{ marginTop: 14 }}>
           <Text style={{ fontFamily: 'PlusJakartaSans-Bold', color: PROFILE_THEME_COLORS.primary }}>Quay lại</Text>
         </Pressable>
@@ -399,9 +421,9 @@ export default function MatchResultEntryScreen() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#F3F6F4' }}>
-      <View style={{ position: 'absolute', width: 220, height: 220, borderRadius: 999, backgroundColor: 'rgba(10,90,69,0.04)', top: 80, right: -80 }} />
-      <View style={{ position: 'absolute', width: 180, height: 180, borderRadius: 999, backgroundColor: 'rgba(10,90,69,0.04)', bottom: 20, left: -70 }} />
+    <SafeAreaView style={{ flex: 1, backgroundColor: RESULT_THEME.pageBg }}>
+      <View style={{ position: 'absolute', width: 220, height: 220, borderRadius: 999, backgroundColor: RESULT_THEME.pageBlob, top: 80, right: -80 }} />
+      <View style={{ position: 'absolute', width: 180, height: 180, borderRadius: 999, backgroundColor: RESULT_THEME.pageBlob, bottom: 20, left: -70 }} />
 
       <ScrollView
         contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: 28 }}
@@ -416,27 +438,27 @@ export default function MatchResultEntryScreen() {
               width: 38,
               height: 38,
               borderRadius: 999,
-              backgroundColor: '#E8EEEB',
+              backgroundColor: RESULT_THEME.headerChipBg,
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <ArrowLeft size={18} color="#21473C" />
+            <ArrowLeft size={18} color={RESULT_THEME.headerIcon} />
           </Pressable>
-          <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 28, color: '#133D31' }}>Kết quả trận đấu</Text>
+          <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 28, color: RESULT_THEME.title }}>Kết quả trận đấu</Text>
         </View>
 
         <View style={{ marginTop: 8, alignItems: 'center' }}>
-          <Text style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 11, letterSpacing: 1.2, color: '#86A69A', textTransform: 'uppercase' }}>
+          <Text style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 11, letterSpacing: 1.2, color: RESULT_THEME.muted, textTransform: 'uppercase' }}>
             Thông tin trận đấu
           </Text>
           <Text
             numberOfLines={2}
-            style={{ marginTop: 4, textAlign: 'center', fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 30, lineHeight: 36, color: '#0B4A39' }}
+            style={{ marginTop: 4, textAlign: 'center', fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 30, lineHeight: 36, color: RESULT_THEME.title }}
           >
             {session.slot?.court?.name ?? 'Sân thi đấu'}
           </Text>
-          <Text style={{ marginTop: 4, fontFamily: 'PlusJakartaSans-Bold', fontSize: 13, color: '#6D8A80' }}>
+          <Text style={{ marginTop: 4, fontFamily: 'PlusJakartaSans-Bold', fontSize: 13, color: RESULT_THEME.subtitle }}>
             {formatMatchDateTime(session.slot?.start_time, session.slot?.end_time)}
           </Text>
         </View>
@@ -452,11 +474,11 @@ export default function MatchResultEntryScreen() {
         </View>
 
         <View style={{ marginVertical: 16, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-          <View style={{ flex: 1, height: 1, backgroundColor: '#DFE6E2' }} />
-          <View style={{ width: 42, height: 42, borderRadius: 999, backgroundColor: '#ECF0EE', borderWidth: 1, borderColor: '#DFE6E2', alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBoldItalic', fontSize: 15, color: '#7A8C85' }}>VS</Text>
+          <View style={{ flex: 1, height: 1, backgroundColor: RESULT_THEME.line }} />
+          <View style={{ width: 42, height: 42, borderRadius: 999, backgroundColor: RESULT_THEME.vsBg, borderWidth: 1, borderColor: RESULT_THEME.line, alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBoldItalic', fontSize: 15, color: RESULT_THEME.vsText }}>VS</Text>
           </View>
-          <View style={{ flex: 1, height: 1, backgroundColor: '#DFE6E2' }} />
+          <View style={{ flex: 1, height: 1, backgroundColor: RESULT_THEME.line }} />
         </View>
 
         <ScoreCard
@@ -472,17 +494,17 @@ export default function MatchResultEntryScreen() {
             marginTop: 18,
             borderRadius: 24,
             borderWidth: 1,
-            borderColor: '#E4EBE7',
-            backgroundColor: '#EDF1EF',
+            borderColor: RESULT_THEME.sectionBorder,
+            backgroundColor: RESULT_THEME.sectionBg,
             padding: 16,
           }}
         >
-          <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 14, color: '#1E4E40', textTransform: 'uppercase' }}>
+          <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 14, color: RESULT_THEME.subtitle, textTransform: 'uppercase' }}>
             Chi tiết trận đấu
           </Text>
 
-          <View style={{ marginTop: 12, borderRadius: 16, borderWidth: 1, borderColor: '#E4EBE7', backgroundColor: '#FFFFFF', padding: 12 }}>
-            <Text style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 10, color: '#7A8C85', textTransform: 'uppercase' }}>
+          <View style={{ marginTop: 12, borderRadius: 16, borderWidth: 1, borderColor: RESULT_THEME.sectionBorder, backgroundColor: RESULT_THEME.sectionCardBg, padding: 12 }}>
+            <Text style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 10, color: RESULT_THEME.vsText, textTransform: 'uppercase' }}>
               Thời lượng (phút)
             </Text>
             <TextInput
@@ -490,26 +512,26 @@ export default function MatchResultEntryScreen() {
               onChangeText={(value) => setMatchDuration(value.replace(/\D/g, ''))}
               keyboardType="number-pad"
               placeholder="45"
-              placeholderTextColor="#A2B2AC"
+              placeholderTextColor={RESULT_THEME.inputPlaceholder}
               style={{
                 marginTop: 6,
                 fontFamily: 'PlusJakartaSans-ExtraBold',
                 fontSize: 30,
-                color: '#123E32',
+                color: RESULT_THEME.inputText,
                 padding: 0,
               }}
             />
           </View>
 
-          <View style={{ marginTop: 10, borderRadius: 16, borderWidth: 1, borderColor: '#E4EBE7', backgroundColor: '#FFFFFF', padding: 12 }}>
-            <Text style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 10, color: '#7A8C85', textTransform: 'uppercase' }}>
+          <View style={{ marginTop: 10, borderRadius: 16, borderWidth: 1, borderColor: RESULT_THEME.sectionBorder, backgroundColor: RESULT_THEME.sectionCardBg, padding: 12 }}>
+            <Text style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 10, color: RESULT_THEME.vsText, textTransform: 'uppercase' }}>
               Ghi chú trọng tài
             </Text>
             <TextInput
               value={refereeNote}
               onChangeText={setRefereeNote}
               placeholder="Trận đấu kịch tính, không có chấn thương."
-              placeholderTextColor="#A2B2AC"
+              placeholderTextColor={RESULT_THEME.inputPlaceholder}
               multiline
               textAlignVertical="top"
               style={{
@@ -518,7 +540,7 @@ export default function MatchResultEntryScreen() {
                 fontFamily: 'PlusJakartaSans-SemiBold',
                 fontSize: 14,
                 lineHeight: 20,
-                color: '#1E4E40',
+                color: RESULT_THEME.subtitle,
                 padding: 0,
               }}
             />
@@ -530,20 +552,20 @@ export default function MatchResultEntryScreen() {
             style={{
               borderRadius: 999,
               height: 56,
-              backgroundColor: submitting ? '#2E7F67' : '#045840',
+              backgroundColor: submitting ? RESULT_THEME.primaryCtaPressed : RESULT_THEME.primaryCta,
               alignItems: 'center',
               justifyContent: 'center',
               flexDirection: 'row',
               gap: 8,
-              shadowColor: '#00392C',
+              shadowColor: RESULT_THEME.shadow,
               shadowOpacity: 0.22,
               shadowOffset: { width: 0, height: 8 },
               shadowRadius: 16,
               elevation: 5,
             }}
           >
-            <Save size={18} color="#FFFFFF" />
-            <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 18, color: '#FFFFFF' }}>
+            <Save size={18} color={RESULT_THEME.primaryCtaText} />
+            <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 18, color: RESULT_THEME.primaryCtaText }}>
               {submitting ? 'Đang lưu...' : 'Lưu kết quả'}
             </Text>
           </View>

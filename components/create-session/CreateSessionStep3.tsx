@@ -1,4 +1,4 @@
-import { AppButton, ScreenHeader } from '@/components/design'
+﻿import { AppButton, ScreenHeader } from '@/components/design'
 import { MatchSessionCard } from '@/components/home/MatchSessionCard'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { type MatchSession, getStatusLabel } from '@/lib/homeFeed'
@@ -203,15 +203,15 @@ export function CreateSessionStep3({
         />
 
         <View style={{ flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: 2, paddingTop: 14, paddingBottom: 14 }}>
-          <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBoldItalic', fontSize: 56, color: '#00654E', lineHeight: 56, marginTop: 2 }}>03</Text>
+          <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBoldItalic', fontSize: 56, color: PROFILE_THEME_COLORS.primary, lineHeight: 56, marginTop: 2 }}>03</Text>
           <View style={{ marginLeft: 10, flex: 1 }}>
-            <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 48, color: '#024838', lineHeight: 48 }}>
+            <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 48, color: PROFILE_THEME_COLORS.primary, lineHeight: 48 }}>
               {'\u0058\u00e1\u0063\u0020\u006e\u0068\u1ead\u006e'}
             </Text>
-            <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 48, color: '#024838', lineHeight: 48 }}>
+            <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 48, color: PROFILE_THEME_COLORS.primary, lineHeight: 48 }}>
               {'\u0054\u1ea1\u006f\u0020\u006b\u00e8\u006f'}
             </Text>
-            <View style={{ marginTop: 10, width: 84, height: 4, borderRadius: 999, backgroundColor: '#A5E9D4' }} />
+            <View style={{ marginTop: 10, width: 84, height: 4, borderRadius: 999, backgroundColor: PROFILE_THEME_COLORS.primaryFixed }} />
           </View>
         </View>
 
@@ -312,3 +312,4 @@ export function CreateSessionStep3({
     </View>
   )
 }
+

@@ -1,4 +1,4 @@
-import { Home, MapPin, Zap } from 'lucide-react-native'
+﻿import { Home, MapPin, Zap } from 'lucide-react-native'
 import { ImageBackground, Pressable, Text, View } from 'react-native'
 
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
@@ -23,10 +23,10 @@ export function FamiliarCourtCard({ item, onPress }: { item: FamiliarCourt; onPr
         <View className="flex-row items-start justify-between">
           <View className="rounded-full border px-4 py-2" style={{ borderColor: 'rgba(255,255,255,0.32)', backgroundColor: 'rgba(255,255,255,0.16)' }}>
             <View className="flex-row items-center">
-              <Home size={14} color="#ffffff" strokeWidth={iconStroke} />
+              <Home size={14} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={iconStroke} />
               <Text
                 className="ml-2 text-xs uppercase tracking-[2.2px]"
-                style={{ color: '#ffffff', fontFamily: 'PlusJakartaSans-Bold' }}
+                style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-Bold' }}
               >
                 Sân quen
               </Text>
@@ -51,7 +51,7 @@ export function FamiliarCourtCard({ item, onPress }: { item: FamiliarCourt; onPr
           style={{
             borderColor: 'rgba(255,255,255,0.7)',
             backgroundColor: 'rgba(255,255,255,0.9)',
-            shadowColor: '#0f172a',
+            shadowColor: PROFILE_THEME_COLORS.onBackground,
             shadowOpacity: 0.12,
             shadowRadius: 18,
             shadowOffset: { width: 0, height: 10 },
@@ -84,3 +84,5 @@ export function FamiliarCourtCard({ item, onPress }: { item: FamiliarCourt; onPr
     </Pressable>
   )
 }
+
+

@@ -1,4 +1,4 @@
-import {
+﻿import {
     ADVANCED_FILTER_INITIAL,
     AdvancedFilter,
     AdvancedSessionFilterModal,
@@ -174,7 +174,7 @@ function SearchResultCard({ session, rescueMode }: { session: Session; rescueMod
         backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
         borderLeftWidth: 3,
         borderLeftColor: PROFILE_THEME_COLORS.primary,
-        shadowColor: '#0f172a',
+        shadowColor: PROFILE_THEME_COLORS.onBackground,
         shadowOpacity: 0.06,
         shadowRadius: 14,
         shadowOffset: { width: 0, height: 6 },
@@ -819,7 +819,7 @@ export default function FindSession() {
             backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
             borderLeftWidth: 3,
             borderLeftColor: PROFILE_THEME_COLORS.primary,
-            shadowColor: '#0f172a',
+            shadowColor: PROFILE_THEME_COLORS.onBackground,
             shadowOpacity: 0.04,
             shadowRadius: 10,
             shadowOffset: { width: 0, height: 4 },
@@ -844,7 +844,7 @@ export default function FindSession() {
           backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
           borderLeftWidth: 3,
           borderLeftColor: PROFILE_THEME_COLORS.primary,
-          shadowColor: '#0f172a',
+          shadowColor: PROFILE_THEME_COLORS.onBackground,
           shadowOpacity: 0.04,
           shadowRadius: 10,
           shadowOffset: { width: 0, height: 4 },
@@ -946,3 +946,5 @@ export default function FindSession() {
     </SafeAreaView>
   )
 }
+
+

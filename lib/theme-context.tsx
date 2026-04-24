@@ -1,11 +1,16 @@
 import { createContext, useContext, type PropsWithChildren } from 'react';
 
-import { defaultAppTheme, type AppTheme } from '@/constants/theme';
+import { AppThemes, defaultAppTheme, type AppTheme, type AppThemeId } from '@/constants/theme';
 
 const ThemeContext = createContext<AppTheme>(defaultAppTheme);
 
-export function AppThemeProvider({ children, value = defaultAppTheme }: PropsWithChildren<{ value?: AppTheme }>) {
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+export function AppThemeProvider({
+  children,
+  value,
+  themeId,
+}: PropsWithChildren<{ value?: AppTheme; themeId?: AppThemeId }>) {
+  const resolvedTheme = value ?? (themeId ? AppThemes[themeId] : defaultAppTheme)
+  return <ThemeContext.Provider value={resolvedTheme}>{children}</ThemeContext.Provider>;
 }
 
 export function useAppTheme() {

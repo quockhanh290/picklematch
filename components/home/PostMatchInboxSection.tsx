@@ -3,7 +3,7 @@ import { AlertTriangle, BookmarkCheck, CheckCheck, Clock3, LayoutList } from 'lu
 import { useMemo, useRef, useState } from 'react'
 import { Dimensions, Pressable, ScrollView, Text, View } from 'react-native'
 
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
 import type { PendingMatch, PostMatchAction } from '@/lib/homeFeed'
 
 type InboxItem = {
@@ -67,8 +67,8 @@ function itemPresentation(kind: InboxItem['kind']) {
 function kindUrgencyPalette(kind: InboxItem['kind']) {
   if (kind === 'report') {
     return {
-      cardBg: '#fff3f1',
-      borderColor: '#f2b8b2',
+      cardBg: PROFILE_THEME_COLORS.errorContainer,
+      borderColor: PROFILE_THEME_SEMANTIC.dangerBorder,
       accent: PROFILE_THEME_COLORS.error,
       iconBg: PROFILE_THEME_COLORS.errorContainer,
       iconColor: PROFILE_THEME_COLORS.error,
@@ -83,17 +83,17 @@ function kindUrgencyPalette(kind: InboxItem['kind']) {
 
   if (kind === 'submit') {
     return {
-      cardBg: '#fff8ec',
-      borderColor: '#f6cf99',
-      accent: '#d97706',
-      iconBg: '#ffe6bf',
-      iconColor: '#d97706',
-      courtNameColor: '#9a3412',
-      metaColor: '#b45309',
-      chipBg: '#ffe6bf',
-      chipText: '#9a3412',
-      actionBg: '#d97706',
-      actionText: '#ffffff',
+      cardBg: PROFILE_THEME_SEMANTIC.warningBg,
+      borderColor: PROFILE_THEME_COLORS.secondaryFixedDim,
+      accent: PROFILE_THEME_SEMANTIC.warningStrong,
+      iconBg: PROFILE_THEME_COLORS.primaryFixed,
+      iconColor: PROFILE_THEME_SEMANTIC.warningStrong,
+      courtNameColor: PROFILE_THEME_COLORS.onPrimaryFixedVariant,
+      metaColor: PROFILE_THEME_SEMANTIC.warningText,
+      chipBg: PROFILE_THEME_COLORS.primaryFixed,
+      chipText: PROFILE_THEME_COLORS.onPrimaryFixedVariant,
+      actionBg: PROFILE_THEME_SEMANTIC.warningStrong,
+      actionText: PROFILE_THEME_COLORS.onPrimary,
     }
   }
 

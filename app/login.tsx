@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase'
 import { router } from 'expo-router'
 import { ShieldCheck, Smartphone } from 'lucide-react-native'
 import DevLoginSection from '@/components/auth/DevLoginSection'
+import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { StatusBar } from 'expo-status-bar'
 import { useState } from 'react'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -21,14 +22,14 @@ import {
 const HERO_IMAGE = require('../assets/images/login-electric-court-hero.png')
 
 const ELECTRIC = {
-  emerald: '#059669',
-  emeraldDark: '#047857',
-  lime: '#ADFF2F',
-  sky: '#E0F2FE',
-  skySoft: '#DCE9FF',
-  ink: '#020617',
-  smoke: '#F8FAFC',
-  white: '#FFFFFF',
+  emerald: PROFILE_THEME_COLORS.surfaceTint,
+  emeraldDark: PROFILE_THEME_COLORS.primaryContainer,
+  lime: PROFILE_THEME_COLORS.tertiaryFixed,
+  sky: PROFILE_THEME_COLORS.surfaceContainerHigh,
+  skySoft: PROFILE_THEME_COLORS.surfaceContainer,
+  ink: PROFILE_THEME_COLORS.onSurface,
+  smoke: PROFILE_THEME_COLORS.background,
+  white: PROFILE_THEME_COLORS.onPrimary,
 }
 
 function OTPDots({ value }: { value: string }) {
@@ -158,7 +159,7 @@ export default function LoginScreen() {
             style={{
               position: 'absolute',
               inset: 0,
-              backgroundColor: '#030817',
+              backgroundColor: PROFILE_THEME_COLORS.onBackground,
             }}
           />
           <View
@@ -176,7 +177,7 @@ export default function LoginScreen() {
               height: 74,
               borderRadius: 999,
               backgroundColor: 'rgba(255,255,255,0.08)',
-              shadowColor: '#FFFFFF',
+              shadowColor: PROFILE_THEME_COLORS.onPrimary,
               shadowOpacity: 0.35,
               shadowRadius: 36,
               shadowOffset: { width: 0, height: 0 },
@@ -191,7 +192,7 @@ export default function LoginScreen() {
               height: 74,
               borderRadius: 999,
               backgroundColor: 'rgba(255,255,255,0.08)',
-              shadowColor: '#FFFFFF',
+              shadowColor: PROFILE_THEME_COLORS.onPrimary,
               shadowOpacity: 0.35,
               shadowRadius: 36,
               shadowOffset: { width: 0, height: 0 },
@@ -332,7 +333,7 @@ export default function LoginScreen() {
               <Text
                 style={{
                   marginTop: 14,
-                  color: '#F8FAFC',
+                  color: PROFILE_THEME_COLORS.onPrimary,
                   fontSize: 10,
                   fontFamily: 'PlusJakartaSans-Bold',
                   letterSpacing: 0.4,
@@ -363,7 +364,7 @@ export default function LoginScreen() {
               paddingHorizontal: 20,
               paddingTop: 34,
               paddingBottom: 32,
-              shadowColor: '#1E293B',
+              shadowColor: PROFILE_THEME_COLORS.onBackground,
               shadowOpacity: 0.08,
               shadowRadius: 28,
               shadowOffset: { width: 0, height: 16 },
@@ -372,7 +373,7 @@ export default function LoginScreen() {
           >
             <View className="mb-6">
               <Text style={{ color: ELECTRIC.ink, fontSize: 28, fontFamily: 'PlusJakartaSans-Bold' }}>Chào mừng trở lại</Text>
-              <Text style={{ marginTop: 6, color: '#64748B', fontSize: 14, lineHeight: 22, fontFamily: 'PlusJakartaSans-Regular' }}>
+              <Text style={{ marginTop: 6, color: PROFILE_THEME_COLORS.onSurfaceVariant, fontSize: 14, lineHeight: 22, fontFamily: 'PlusJakartaSans-Regular' }}>
                 Đăng nhập để bắt đầu trận đấu của bạn
               </Text>
             </View>
@@ -380,13 +381,13 @@ export default function LoginScreen() {
             <View
               style={{
                 borderRadius: 28,
-                backgroundColor: '#F0F9FF',
+                backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
                 padding: 16,
                 borderWidth: 1,
-                borderColor: '#D7EEF9',
+                borderColor: PROFILE_THEME_COLORS.outlineVariant,
               }}
             >
-              <Text style={{ color: '#64748B', fontSize: 12, fontFamily: 'PlusJakartaSans-Bold', letterSpacing: 0.8, marginBottom: 10 }}>
+              <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontSize: 12, fontFamily: 'PlusJakartaSans-Bold', letterSpacing: 0.8, marginBottom: 10 }}>
                 SỐ ĐIỆN THOẠI
               </Text>
               <View
@@ -403,12 +404,12 @@ export default function LoginScreen() {
                   <Smartphone size={18} color={ELECTRIC.emeraldDark} />
                 </View>
                 <Text style={{ color: ELECTRIC.ink, fontSize: 16, fontFamily: 'PlusJakartaSans-Bold' }}>+84</Text>
-                <View style={{ width: 1, height: 24, backgroundColor: '#94A3B8', marginHorizontal: 12 }} />
+                <View style={{ width: 1, height: 24, backgroundColor: PROFILE_THEME_COLORS.outline, marginHorizontal: 12 }} />
                 <TextInput
                   value={phone}
                   onChangeText={setPhone}
                   placeholder="Nhập số điện thoại"
-                  placeholderTextColor="#C0CDA7"
+                  placeholderTextColor={PROFILE_THEME_COLORS.outline}
                   keyboardType="phone-pad"
                   maxLength={10}
                   style={{
@@ -424,13 +425,13 @@ export default function LoginScreen() {
 
             <View className="mt-7">
               <View className="mb-3 flex-row items-center justify-between">
-                <Text style={{ color: '#64748B', fontSize: 12, fontFamily: 'PlusJakartaSans-Bold', letterSpacing: 0.8 }}>Mã OTP (6 CHỮ SỐ)</Text>
+                <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontSize: 12, fontFamily: 'PlusJakartaSans-Bold', letterSpacing: 0.8 }}>Mã OTP (6 CHỮ SỐ)</Text>
                 {step === 'otp' ? (
                   <Pressable onPress={sendOTP} disabled={loading}>
                     <Text style={{ color: ELECTRIC.emerald, fontSize: 13, fontFamily: 'PlusJakartaSans-Bold' }}>Gửi lại mã</Text>
                   </Pressable>
                 ) : (
-                  <Text style={{ color: '#94A3B8', fontSize: 13, fontFamily: 'PlusJakartaSans-Bold' }}>6 số xác thực</Text>
+                  <Text style={{ color: PROFILE_THEME_COLORS.outline, fontSize: 13, fontFamily: 'PlusJakartaSans-Bold' }}>6 số xác thực</Text>
                 )}
               </View>
 
@@ -440,7 +441,7 @@ export default function LoginScreen() {
                 value={otp}
                 onChangeText={(value) => setOtp(value.replace(/\D/g, '').slice(0, 6))}
                 placeholder="Nhập mã OTP"
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor={PROFILE_THEME_COLORS.outline}
                 keyboardType="number-pad"
                 maxLength={6}
                 style={{
@@ -450,7 +451,7 @@ export default function LoginScreen() {
                 }}
               />
 
-              <Text style={{ marginTop: 12, color: '#64748B', fontSize: 13, lineHeight: 20 }}>
+              <Text style={{ marginTop: 12, color: PROFILE_THEME_COLORS.onSurfaceVariant, fontSize: 13, lineHeight: 20 }}>
                 {step === 'phone'
                   ? 'Nhấn gửi mã OTP để nhận tin nhắn xác thực qua SMS.'
                   : `Mã xác thực đã được gửi tới ${formattedPhonePreview}.`}
@@ -460,20 +461,20 @@ export default function LoginScreen() {
             <View
               className="mt-6 flex-row rounded-[24px] px-4 py-4"
               style={{
-                backgroundColor: '#EEF2FF',
+                backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
               }}
             >
               <View
                 className="mr-3 h-12 w-12 items-center justify-center rounded-full"
-                style={{ backgroundColor: '#DDECF6' }}
+                style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainer }}
               >
                 <ShieldCheck size={19} color={ELECTRIC.emeraldDark} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={{ color: '#1E293B', fontSize: 12, fontFamily: 'PlusJakartaSans-Bold', letterSpacing: 0.6 }}>
+                <Text style={{ color: PROFILE_THEME_COLORS.onSurface, fontSize: 12, fontFamily: 'PlusJakartaSans-Bold', letterSpacing: 0.6 }}>
                   BẢO MẬT TUYỆT ĐỐI
                 </Text>
-                <Text style={{ marginTop: 4, color: '#64748B', fontSize: 13, lineHeight: 22, fontFamily: 'PlusJakartaSans-Regular' }}>
+                <Text style={{ marginTop: 4, color: PROFILE_THEME_COLORS.onSurfaceVariant, fontSize: 13, lineHeight: 22, fontFamily: 'PlusJakartaSans-Regular' }}>
                   Thông tin cá nhân và số điện thoại của bạn được mã hóa theo tiêu chuẩn quốc tế.
                 </Text>
               </View>
@@ -486,11 +487,11 @@ export default function LoginScreen() {
                 marginTop: 28,
                 height: 58,
                 borderRadius: 29,
-                backgroundColor: '#0A8A5B',
+                backgroundColor: PROFILE_THEME_COLORS.surfaceTint,
                 alignItems: 'center',
                 justifyContent: 'center',
                 opacity: loading ? 0.72 : 1,
-                shadowColor: '#0A8A5B',
+                shadowColor: PROFILE_THEME_COLORS.surfaceTint,
                 shadowOpacity: 0.24,
                 shadowRadius: 16,
                 shadowOffset: { width: 0, height: 10 },
@@ -522,7 +523,7 @@ export default function LoginScreen() {
           </View>
 
           <View className="mt-8 items-center">
-            <Text style={{ color: '#475569', fontSize: 14, fontFamily: 'PlusJakartaSans-Regular' }}>
+            <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontSize: 14, fontFamily: 'PlusJakartaSans-Regular' }}>
               Chưa có tài khoản?{' '}
               <Text style={{ color: ELECTRIC.emerald, fontFamily: 'PlusJakartaSans-Bold' }}>Đăng ký ngay</Text>
             </Text>
@@ -530,7 +531,7 @@ export default function LoginScreen() {
             <Text
               style={{
                 marginTop: 16,
-                color: '#94A3B8',
+                color: PROFILE_THEME_COLORS.outline,
                 fontSize: 11,
                 fontFamily: 'PlusJakartaSans-Bold',
                 letterSpacing: 1.2,

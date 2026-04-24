@@ -1,6 +1,7 @@
-import { Hand } from 'lucide-react-native'
+﻿import { Hand } from 'lucide-react-native'
 import Animated from 'react-native-reanimated'
 import { View } from 'react-native'
+import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 
 export function HelloWave() {
   return (
@@ -15,8 +16,10 @@ export function HelloWave() {
       }}
     >
       <View>
-        <Hand size={28} color="#0f172a" />
+        <Hand size={28} color={PROFILE_THEME_COLORS.onBackground} />
       </View>
     </Animated.View>
   )
 }
+
+

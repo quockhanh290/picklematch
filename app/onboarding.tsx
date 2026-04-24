@@ -17,6 +17,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { getUserDescriptionForTier } from '@/lib/eloSystem'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
 import {
     calculateInitialElo,
     getLegacySkillLabelForTier,
@@ -42,16 +43,16 @@ type OnboardingPreview = {
 const HERO_IMAGE = require('../assets/images/login-electric-court-hero.png')
 
 const ELECTRIC = {
-  emerald: '#059669',
-  emeraldDark: '#006948',
-  surfaceTint: '#ECFDF5',
-  panel: '#F8FAFC',
-  border: '#E2E8F0',
-  borderStrong: '#CBD5E1',
-  textStrong: '#0F2A1F',
-  smoke: '#F7F9FB',
-  white: '#FFFFFF',
-  muted: '#64748B',
+  emerald: PROFILE_THEME_COLORS.surfaceTint,
+  emeraldDark: PROFILE_THEME_COLORS.primaryContainer,
+  surfaceTint: PROFILE_THEME_COLORS.secondaryContainer,
+  panel: PROFILE_THEME_COLORS.surfaceContainerLowest,
+  border: PROFILE_THEME_COLORS.outlineVariant,
+  borderStrong: PROFILE_THEME_COLORS.outline,
+  textStrong: PROFILE_THEME_COLORS.onSurface,
+  smoke: PROFILE_THEME_COLORS.background,
+  white: PROFILE_THEME_COLORS.onPrimary,
+  muted: PROFILE_THEME_COLORS.onSurfaceVariant,
 }
 
 export default function OnboardingScreen() {
@@ -277,7 +278,7 @@ export default function OnboardingScreen() {
                 className="rounded-full px-4 py-2"
                 style={{ backgroundColor: 'rgba(236,253,245,0.18)', borderWidth: 1, borderColor: 'rgba(236,253,245,0.38)' }}
               >
-                <Text style={{ color: '#D1FAE5', fontSize: 11, letterSpacing: 1.2, fontFamily: 'PlusJakartaSans-Bold' }}>
+                <Text style={{ color: PROFILE_THEME_COLORS.onPrimaryContainer, fontSize: 11, letterSpacing: 1.2, fontFamily: 'PlusJakartaSans-Bold' }}>
                   ELECTRIC COURT
                 </Text>
               </View>
@@ -286,7 +287,7 @@ export default function OnboardingScreen() {
             <View style={{ marginTop: 34 }}>
               <Text
                 style={{
-                  color: '#D1FAE5',
+                  color: PROFILE_THEME_COLORS.onPrimaryContainer,
                   fontSize: 28,
                   lineHeight: 30,
                   fontFamily: 'PlusJakartaSans-ExtraBoldItalic',
@@ -297,7 +298,7 @@ export default function OnboardingScreen() {
               <Text
                 style={{
                   marginTop: 12,
-                  color: '#F8FAFC',
+                  color: PROFILE_THEME_COLORS.onPrimary,
                   fontSize: 12,
                   letterSpacing: 0.5,
                   fontFamily: 'PlusJakartaSans-Bold',
@@ -327,7 +328,7 @@ export default function OnboardingScreen() {
                   <Sparkles size={18} color={ELECTRIC.white} />
                 </View>
                 <View>
-                  <Text style={{ color: '#FFFFFF', fontSize: 14, fontFamily: 'PlusJakartaSans-Bold' }}>
+                  <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontSize: 14, fontFamily: 'PlusJakartaSans-Bold' }}>
                     Bước {stepIndex + 1}/{ONBOARDING_QUESTIONS.length}
                   </Text>
                   <Text style={{ color: 'rgba(255,255,255,0.66)', fontSize: 12, fontFamily: 'PlusJakartaSans-Regular' }}>
@@ -365,7 +366,7 @@ export default function OnboardingScreen() {
                   width: `${progress}%`,
                   height: '100%',
                   borderRadius: 999,
-                  backgroundColor: '#34D399',
+                  backgroundColor: PROFILE_THEME_COLORS.primaryFixedDim,
                 }}
               />
             </View>
@@ -379,7 +380,7 @@ export default function OnboardingScreen() {
               backgroundColor: ELECTRIC.white,
               padding: 20,
               minHeight: questionCardMinHeight,
-              shadowColor: '#191C1E',
+              shadowColor: PROFILE_THEME_COLORS.onBackground,
               shadowOpacity: 0.08,
               shadowRadius: 28,
               shadowOffset: { width: 0, height: 16 },
@@ -466,7 +467,7 @@ export default function OnboardingScreen() {
                         {isSelected ? (
                           <CheckCircle2 size={18} color={ELECTRIC.emerald} />
                         ) : (
-                          <View style={{ width: 10, height: 10, borderRadius: 999, backgroundColor: '#CBD5E1' }} />
+                          <View style={{ width: 10, height: 10, borderRadius: 999, backgroundColor: PROFILE_THEME_COLORS.outlineVariant }} />
                         )}
                       </View>
                     </View>
@@ -489,7 +490,7 @@ export default function OnboardingScreen() {
                 borderRadius: 28,
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: '#F0F4F8',
+                backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
                 opacity: stepIndex === 0 ? 0.45 : 1,
               }}
             >
@@ -516,7 +517,7 @@ export default function OnboardingScreen() {
                   elevation: 5,
                 }}
               >
-                <Text style={{ color: '#FFFFFF', fontSize: 16, fontFamily: 'PlusJakartaSans-Bold' }}>Xem kết quả</Text>
+                <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontSize: 16, fontFamily: 'PlusJakartaSans-Bold' }}>Xem kết quả</Text>
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
@@ -538,7 +539,7 @@ export default function OnboardingScreen() {
                   elevation: 5,
                 }}
               >
-                <Text style={{ color: '#FFFFFF', fontSize: 16, fontFamily: 'PlusJakartaSans-Bold' }}>Tiếp theo</Text>
+                <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontSize: 16, fontFamily: 'PlusJakartaSans-Bold' }}>Tiếp theo</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -548,7 +549,7 @@ export default function OnboardingScreen() {
               style={{
                 marginTop: 14,
                 borderRadius: 22,
-                backgroundColor: '#FFDAD6',
+                backgroundColor: PROFILE_THEME_COLORS.errorContainer,
                 paddingHorizontal: 16,
                 paddingVertical: 14,
                 flexDirection: 'row',
@@ -556,13 +557,13 @@ export default function OnboardingScreen() {
                 justifyContent: 'space-between',
               }}
             >
-              <Text style={{ color: '#BA1A1A', fontSize: 14, fontFamily: 'PlusJakartaSans-Bold' }}>Có lỗi xảy ra, thử lại nhé</Text>
+              <Text style={{ color: PROFILE_THEME_COLORS.error, fontSize: 14, fontFamily: 'PlusJakartaSans-Bold' }}>Có lỗi xảy ra, thử lại nhé</Text>
               <TouchableOpacity
                 activeOpacity={0.92}
                 onPress={openResultPreview}
                 style={{
                   borderRadius: 999,
-                  backgroundColor: '#BA1A1A',
+                  backgroundColor: PROFILE_THEME_COLORS.error,
                   paddingHorizontal: 12,
                   paddingVertical: 8,
                 }}
@@ -622,7 +623,7 @@ export default function OnboardingScreen() {
             <Text
               style={{
                 marginTop: 8,
-                color: '#3D4A42',
+                color: PROFILE_THEME_COLORS.onSurfaceVariant,
                 fontSize: 15,
                 lineHeight: 22,
                 textAlign: 'center',
@@ -677,7 +678,7 @@ export default function OnboardingScreen() {
               <Text
                 style={{
                   marginTop: 14,
-                  color: '#b91c1c',
+                  color: PROFILE_THEME_SEMANTIC.dangerStrong,
                   fontSize: 14,
                   lineHeight: 20,
                   textAlign: 'center',
@@ -723,9 +724,9 @@ export default function OnboardingScreen() {
                 }}
               >
                 {submitting ? (
-                  <ActivityIndicator color="#ffffff" />
+                  <ActivityIndicator color={PROFILE_THEME_COLORS.onPrimary} />
                 ) : (
-                  <Text style={{ color: '#FFFFFF', fontSize: 15, fontFamily: 'PlusJakartaSans-Bold' }}>Xác nhận mức này</Text>
+                  <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontSize: 15, fontFamily: 'PlusJakartaSans-Bold' }}>Xác nhận mức này</Text>
                 )}
               </TouchableOpacity>
             </View>

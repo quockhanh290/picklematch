@@ -1,5 +1,5 @@
 import { ScreenHeader } from '@/components/design'
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
 import { insertNotification } from '@/lib/notifications'
 import { calculateReliabilityScore } from '@/lib/profileData'
 import {
@@ -112,32 +112,32 @@ function getReliabilityScore(player: ApplicantRecord['player']) {
 function getReliabilityTone(score: number | null) {
   if (score == null) {
     return {
-      badgeBg: '#e2e8f0',
-      badgeIcon: '#64748b',
-      badgeText: '#475569',
+      badgeBg: PROFILE_THEME_SEMANTIC.infoBg,
+      badgeIcon: PROFILE_THEME_SEMANTIC.infoIcon,
+      badgeText: PROFILE_THEME_SEMANTIC.infoText,
     }
   }
 
   if (score >= 90) {
     return {
-      badgeBg: '#dcfce7',
-      badgeIcon: '#059669',
-      badgeText: '#047857',
+      badgeBg: PROFILE_THEME_SEMANTIC.successBg,
+      badgeIcon: PROFILE_THEME_SEMANTIC.successText,
+      badgeText: PROFILE_THEME_SEMANTIC.successText,
     }
   }
 
   if (score >= 70) {
     return {
-      badgeBg: '#fef3c7',
-      badgeIcon: '#d97706',
-      badgeText: '#b45309',
+      badgeBg: PROFILE_THEME_SEMANTIC.warningBg,
+      badgeIcon: PROFILE_THEME_SEMANTIC.warningStrong,
+      badgeText: PROFILE_THEME_SEMANTIC.warningText,
     }
   }
 
   return {
-    badgeBg: '#ffe4e6',
-    badgeIcon: '#e11d48',
-    badgeText: '#be123c',
+    badgeBg: PROFILE_THEME_SEMANTIC.dangerBg,
+    badgeIcon: PROFILE_THEME_SEMANTIC.dangerStrong,
+    badgeText: PROFILE_THEME_SEMANTIC.dangerText,
   }
 }
 
@@ -176,7 +176,7 @@ type RequestCardProps = {
 
 function premiumShadow(elevation = 5) {
   return {
-    shadowColor: '#0f172a',
+    shadowColor: PROFILE_THEME_COLORS.onBackground,
     shadowOpacity: 0.08,
     shadowRadius: 18,
     shadowOffset: { width: 0, height: 10 },
@@ -252,7 +252,7 @@ function RequestCard({
       {lowMatch ? (
         <View className="mt-4 flex-row rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3">
           <View className="mt-0.5">
-            <AlertTriangle size={16} color="#e11d48" strokeWidth={ICON_STROKE} />
+            <AlertTriangle size={16} color={PROFILE_THEME_SEMANTIC.dangerStrong} strokeWidth={ICON_STROKE} />
           </View>
           <Text className="ml-3 flex-1 text-[13px] font-bold leading-5 text-rose-700">
             Trình độ hơi lệch ({diffFromTarget >= 0 ? '+' : ''}
@@ -276,16 +276,17 @@ function RequestCard({
           disabled={busy}
           className="active:scale-95 flex-1 flex-row items-center justify-center rounded-2xl bg-slate-100 px-4 py-4"
         >
-          <UserX size={18} color="#475569" strokeWidth={ICON_STROKE} />
+          <UserX size={18} color={PROFILE_THEME_SEMANTIC.infoText} strokeWidth={ICON_STROKE} />
           <Text className="ml-2 text-[14px] font-black text-slate-700">Từ chối</Text>
         </Pressable>
 
         <Pressable
           onPress={() => onAccept(applicant.id, applicant.player_id)}
           disabled={busy}
-          className="active:scale-95 flex-[1.5] flex-row items-center justify-center rounded-2xl bg-[#059669] px-4 py-4 shadow-lg shadow-emerald-900/20"
+          className="active:scale-95 flex-[1.5] flex-row items-center justify-center rounded-2xl px-4 py-4 shadow-lg shadow-emerald-900/20"
+          style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceTint }}
         >
-          <UserCheck size={18} color="#ffffff" strokeWidth={ICON_STROKE} />
+          <UserCheck size={18} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={ICON_STROKE} />
           <Text className="ml-2 text-[14px] font-black text-white">Chấp nhận</Text>
         </Pressable>
       </View>
@@ -557,7 +558,7 @@ export default function HostReviewCenterScreen() {
   if (!userId || userId !== session.host.id) {
     return (
       <SafeAreaView className="flex-1 items-center justify-center bg-stone-50 px-6" edges={['top']}>
-        <CircleX size={28} color="#e11d48" strokeWidth={ICON_STROKE} />
+        <CircleX size={28} color={PROFILE_THEME_SEMANTIC.dangerStrong} strokeWidth={ICON_STROKE} />
         <Text className="mt-4 text-center text-[18px] font-black text-slate-950">Bạn không có quyền truy cập</Text>
         <Text className="mt-2 text-center text-[14px] leading-6 text-slate-500">
           Chỉ host của kèo mới có thể xem và xử lý trung tâm duyệt yêu cầu này.
@@ -651,7 +652,7 @@ export default function HostReviewCenterScreen() {
                 style={premiumShadow(4)}
               >
                 <View className="h-14 w-14 items-center justify-center rounded-full bg-emerald-50">
-                  <ShieldCheck size={24} color="#059669" strokeWidth={ICON_STROKE} />
+                  <ShieldCheck size={24} color={PROFILE_THEME_SEMANTIC.successText} strokeWidth={ICON_STROKE} />
                 </View>
                 <Text className="mt-4 text-center text-[22px] font-black text-slate-950">Không còn yêu cầu chờ duyệt</Text>
                 <Text className="mt-2 text-center text-[14px] leading-6 text-slate-500">
@@ -670,9 +671,9 @@ export default function HostReviewCenterScreen() {
               className="active:scale-95 h-14 flex-1 flex-row items-center justify-center rounded-2xl border border-rose-100 bg-rose-50"
             >
               {cancelling ? (
-                <LoaderCircle size={18} color="#e11d48" strokeWidth={ICON_STROKE} />
+                <LoaderCircle size={18} color={PROFILE_THEME_SEMANTIC.dangerStrong} strokeWidth={ICON_STROKE} />
               ) : (
-                <CircleX size={18} color="#e11d48" strokeWidth={ICON_STROKE} />
+                <CircleX size={18} color={PROFILE_THEME_SEMANTIC.dangerStrong} strokeWidth={ICON_STROKE} />
               )}
               <Text className="ml-2 text-[14px] font-black text-rose-600">
                 {cancelling ? 'Đang hủy...' : 'Hủy kèo'}
@@ -688,7 +689,7 @@ export default function HostReviewCenterScreen() {
               }
               className="active:scale-95 h-14 flex-[1.2] flex-row items-center justify-center rounded-2xl bg-slate-900"
             >
-              <PencilLine size={18} color="#ffffff" strokeWidth={ICON_STROKE} />
+              <PencilLine size={18} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={ICON_STROKE} />
               <Text className="ml-2 text-[14px] font-black text-white">Chỉnh sửa kèo</Text>
             </Pressable>
           </View>

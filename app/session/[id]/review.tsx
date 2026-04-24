@@ -1,5 +1,5 @@
 ﻿import { ScreenHeader } from '@/components/design'
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
 import { SessionMetaCard } from '@/components/session/SessionMetaCard'
 import { insertNotification } from '@/lib/notifications'
 import { formatPricePerPerson } from '@/lib/sessionDetail'
@@ -132,32 +132,32 @@ function getReliabilityScore(player: ApplicantRecord['player']) {
 function getReliabilityTone(score: number | null) {
   if (score == null) {
     return {
-      badgeBg: '#e2e8f0',
-      badgeIcon: '#64748b',
-      badgeText: '#475569',
+      badgeBg: PROFILE_THEME_SEMANTIC.infoBg,
+      badgeIcon: PROFILE_THEME_SEMANTIC.infoIcon,
+      badgeText: PROFILE_THEME_SEMANTIC.infoText,
     }
   }
 
   if (score >= 90) {
     return {
-      badgeBg: '#dcfce7',
-      badgeIcon: '#059669',
-      badgeText: '#047857',
+      badgeBg: PROFILE_THEME_SEMANTIC.successBg,
+      badgeIcon: PROFILE_THEME_COLORS.surfaceTint,
+      badgeText: PROFILE_THEME_SEMANTIC.successText,
     }
   }
 
   if (score >= 70) {
     return {
-      badgeBg: '#fef3c7',
-      badgeIcon: '#d97706',
-      badgeText: '#b45309',
+      badgeBg: PROFILE_THEME_SEMANTIC.warningBg,
+      badgeIcon: PROFILE_THEME_SEMANTIC.warningStrong,
+      badgeText: PROFILE_THEME_SEMANTIC.warningText,
     }
   }
 
   return {
-    badgeBg: '#ffe4e6',
-    badgeIcon: '#e11d48',
-    badgeText: '#be123c',
+    badgeBg: PROFILE_THEME_SEMANTIC.dangerBg,
+    badgeIcon: PROFILE_THEME_SEMANTIC.dangerStrong,
+    badgeText: PROFILE_THEME_SEMANTIC.dangerText,
   }
 }
 
@@ -196,7 +196,7 @@ type RequestCardProps = {
 
 function premiumShadow(elevation = 5) {
   return {
-    shadowColor: '#0f172a',
+    shadowColor: PROFILE_THEME_COLORS.onBackground,
     shadowOpacity: 0.08,
     shadowRadius: 18,
     shadowOffset: { width: 0, height: 10 },
@@ -221,7 +221,7 @@ function RequestCard({
   const lowMatch = matchScore < 50
   const diffFromTarget = playerElo - Math.round((eloMin + eloMax) / 2)
   const matchTone = lowMatch
-    ? { bg: '#ffe4e6', border: '#fda4af', text: '#be123c' }
+    ? { bg: PROFILE_THEME_SEMANTIC.dangerBg, border: PROFILE_THEME_SEMANTIC.dangerBorderSoft, text: PROFILE_THEME_SEMANTIC.dangerText }
     : { bg: PROFILE_THEME_COLORS.secondaryContainer, border: PROFILE_THEME_COLORS.outlineVariant, text: PROFILE_THEME_COLORS.surfaceTint }
 
   return (
@@ -243,7 +243,7 @@ function RequestCard({
               className="h-14 w-14 items-center justify-center rounded-2xl"
               style={{ backgroundColor: PROFILE_THEME_COLORS.primary }}
             >
-              <Text style={{ fontSize: 18, fontFamily: 'PlusJakartaSans-ExtraBold', color: '#ffffff' }}>{getInitials(applicant.player.name)}</Text>
+              <Text style={{ fontSize: 18, fontFamily: 'PlusJakartaSans-ExtraBold', color: PROFILE_THEME_COLORS.onPrimary }}>{getInitials(applicant.player.name)}</Text>
             </View>
             <View
               className="absolute -bottom-1 -right-1 h-6 w-6 items-center justify-center rounded-full border-2 border-white"
@@ -277,9 +277,9 @@ function RequestCard({
       {lowMatch ? (
         <View className="mt-4 flex-row rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3">
           <View className="mt-0.5">
-            <AlertTriangle size={16} color="#e11d48" strokeWidth={ICON_STROKE} />
+            <AlertTriangle size={16} color={PROFILE_THEME_SEMANTIC.dangerStrong} strokeWidth={ICON_STROKE} />
           </View>
-          <Text className="ml-3 flex-1" style={{ fontSize: 13, lineHeight: 20, fontFamily: 'PlusJakartaSans-Bold', color: '#be123c' }}>
+          <Text className="ml-3 flex-1" style={{ fontSize: 13, lineHeight: 20, fontFamily: 'PlusJakartaSans-Bold', color: PROFILE_THEME_SEMANTIC.dangerText }}>
             Trình độ hơi lệch ({diffFromTarget >= 0 ? '+' : ''}
             {diffFromTarget} Elo). {'\u0042\u1EA1\u006E\u0020\u0063\u0068\u1EAF\u0063\u0020\u0063\u0068\u1EE9\u003F'}
           </Text>
@@ -333,7 +333,7 @@ function RequestCard({
             disabled={busy}
             className="active:scale-95 rounded-full border border-slate-200 bg-white px-3 py-2"
           >
-            <Text className="text-[12px]" style={{ fontFamily: 'PlusJakartaSans-SemiBold', color: '#475569' }}>{template}</Text>
+            <Text className="text-[12px]" style={{ fontFamily: 'PlusJakartaSans-SemiBold', color: PROFILE_THEME_SEMANTIC.infoText }}>{template}</Text>
           </Pressable>
         ))}
       </View>
@@ -578,7 +578,7 @@ export default function HostReviewCenterScreen() {
   if (!session) {
     return (
       <SafeAreaView className="flex-1 items-center justify-center bg-stone-50 px-6">
-        <Text style={{ textAlign: 'center', fontSize: 15, fontFamily: 'PlusJakartaSans-SemiBold', color: '#64748b' }}>{'\u004B\u0068\u00F4\u006E\u0067\u0020\u0074\u00EC\u006D\u0020\u0074\u0068\u1EA5\u0079\u0020\u0064\u1EEF\u0020\u006C\u0069\u1EC7\u0075\u0020\u0072\u0065\u0076\u0069\u0065\u0077\u0020\u0063\u0068\u006F\u0020\u006B\u00E8\u006F\u0020\u006E\u00E0\u0079\u002E'}</Text>
+        <Text style={{ textAlign: 'center', fontSize: 15, fontFamily: 'PlusJakartaSans-SemiBold', color: PROFILE_THEME_SEMANTIC.infoIcon }}>{'\u004B\u0068\u00F4\u006E\u0067\u0020\u0074\u00EC\u006D\u0020\u0074\u0068\u1EA5\u0079\u0020\u0064\u1EEF\u0020\u006C\u0069\u1EC7\u0075\u0020\u0072\u0065\u0076\u0069\u0065\u0077\u0020\u0063\u0068\u006F\u0020\u006B\u00E8\u006F\u0020\u006E\u00E0\u0079\u002E'}</Text>
       </SafeAreaView>
     )
   }
@@ -586,13 +586,13 @@ export default function HostReviewCenterScreen() {
   if (!userId || userId !== session.host.id) {
     return (
       <SafeAreaView className="flex-1 items-center justify-center bg-stone-50 px-6">
-        <CircleX size={28} color="#e11d48" strokeWidth={ICON_STROKE} />
-        <Text className="mt-4 text-center" style={{ fontSize: 18, fontFamily: 'PlusJakartaSans-ExtraBold', color: '#020617' }}>{'\u0042\u1EA1\u006E\u0020\u006B\u0068\u00F4\u006E\u0067\u0020\u0063\u00F3\u0020\u0071\u0075\u0079\u1EC1\u006E\u0020\u0074\u0072\u0075\u0079\u0020\u0063\u1EAD\u0070'}</Text>
+        <CircleX size={28} color={PROFILE_THEME_SEMANTIC.dangerStrong} strokeWidth={ICON_STROKE} />
+        <Text className="mt-4 text-center" style={{ fontSize: 18, fontFamily: 'PlusJakartaSans-ExtraBold', color: PROFILE_THEME_COLORS.onSurface }}>{'\u0042\u1EA1\u006E\u0020\u006B\u0068\u00F4\u006E\u0067\u0020\u0063\u00F3\u0020\u0071\u0075\u0079\u1EC1\u006E\u0020\u0074\u0072\u0075\u0079\u0020\u0063\u1EAD\u0070'}</Text>
         <Text className="mt-2 text-center text-[14px] leading-6 text-slate-500">
           {'\u0043\u0068\u1EC9\u0020\u0068\u006F\u0073\u0074\u0020\u0063\u1EE7\u0061\u0020\u006B\u00E8\u006F\u0020\u006D\u1EDB\u0069\u0020\u0063\u00F3\u0020\u0074\u0068\u1EC3\u0020\u0078\u0065\u006D\u0020\u0076\u00E0\u0020\u0078\u1EED\u0020\u006C\u00FD\u0020\u0074\u0072\u0075\u006E\u0067\u0020\u0074\u00E2\u006D\u0020\u0064\u0075\u0079\u1EC7\u0074\u0020\u0079\u00EA\u0075\u0020\u0063\u1EA7\u0075\u0020\u006E\u00E0\u0079\u002E'}
         </Text>
         <Pressable onPress={() => router.back()} className="mt-6 active:scale-95 rounded-2xl bg-slate-900 px-5 py-3.5">
-          <Text style={{ fontSize: 14, fontFamily: 'PlusJakartaSans-ExtraBold', color: '#ffffff' }}>{'\u0051\u0075\u0061\u0079\u0020\u006C\u1EA1\u0069'}</Text>
+          <Text style={{ fontSize: 14, fontFamily: 'PlusJakartaSans-ExtraBold', color: PROFILE_THEME_COLORS.onPrimary }}>{'\u0051\u0075\u0061\u0079\u0020\u006C\u1EA1\u0069'}</Text>
         </Pressable>
       </SafeAreaView>
     )
@@ -650,12 +650,12 @@ export default function HostReviewCenterScreen() {
                 style={premiumShadow(4)}
               >
                 <View className="h-14 w-14 items-center justify-center rounded-full bg-emerald-50">
-                  <ShieldCheck size={24} color="#059669" strokeWidth={ICON_STROKE} />
+                  <ShieldCheck size={24} color={PROFILE_THEME_COLORS.surfaceTint} strokeWidth={ICON_STROKE} />
                 </View>
-                <Text className="mt-4 text-center" style={{ fontSize: 22, fontFamily: 'PlusJakartaSans-ExtraBold', color: '#020617' }}>{'\u004B\u0068\u00F4\u006E\u0067\u0020\u0063\u00F2\u006E\u0020\u0079\u00EA\u0075\u0020\u0063\u1EA7\u0075\u0020\u0063\u0068\u1EDD\u0020\u0064\u0075\u0079\u1EC7\u0074'}</Text>
+                <Text className="mt-4 text-center" style={{ fontSize: 22, fontFamily: 'PlusJakartaSans-ExtraBold', color: PROFILE_THEME_COLORS.onSurface }}>{'\u004B\u0068\u00F4\u006E\u0067\u0020\u0063\u00F2\u006E\u0020\u0079\u00EA\u0075\u0020\u0063\u1EA7\u0075\u0020\u0063\u0068\u1EDD\u0020\u0064\u0075\u0079\u1EC7\u0074'}</Text>
                 <Text
                   className="mt-2 text-center"
-                  style={{ fontSize: 14, lineHeight: 24, fontFamily: 'PlusJakartaSans-Regular', color: '#64748b' }}
+                  style={{ fontSize: 14, lineHeight: 24, fontFamily: 'PlusJakartaSans-Regular', color: PROFILE_THEME_SEMANTIC.infoIcon }}
                 >
                   {'\u0052\u0065\u0076\u0069\u0065\u0077\u0020\u0063\u0065\u006E\u0074\u0065\u0072\u0020\u0111\u0061\u006E\u0067\u0020\u0074\u0072\u1ED1\u006E\u0067\u002E\u0020\u004B\u0068\u0069\u0020\u0063\u00F3\u0020\u006E\u0067\u01B0\u1EDD\u0069\u0020\u006D\u0075\u1ED1\u006E\u0020\u0074\u0068\u0061\u006D\u0020\u0067\u0069\u0061\u002C\u0020\u0068\u1ED3\u0020\u0073\u01A1\u0020\u0063\u1EE7\u0061\u0020\u0068\u1ECD\u0020\u0073\u1EBD\u0020\u0078\u0075\u1EA5\u0074\u0020\u0068\u0069\u1EC7\u006E\u0020\u0074\u1EA1\u0069\u0020\u0111\u00E2\u0079\u002E'}
                 </Text>

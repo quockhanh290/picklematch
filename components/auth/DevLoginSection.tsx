@@ -1,18 +1,19 @@
-import { supabase } from '@/lib/supabase'
+﻿import { supabase } from '@/lib/supabase'
 import { router } from 'expo-router'
+import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { Code2, LockKeyhole, Mail } from 'lucide-react-native'
 import { useState } from 'react'
 import { Alert, Pressable, Text, TextInput, View } from 'react-native'
 
 const DEV = {
-  emerald: '#059669',
-  emeraldDark: '#047857',
-  ink: '#020617',
-  skySoft: '#DCE9FF',
-  panel: '#EEF2FF',
-  textMuted: '#64748B',
-  white: '#FFFFFF',
-}
+  emerald: PROFILE_THEME_COLORS.surfaceTint,
+  emeraldDark: PROFILE_THEME_COLORS.primaryContainer,
+  ink: PROFILE_THEME_COLORS.onSurface,
+  skySoft: PROFILE_THEME_COLORS.secondaryContainer,
+  panel: PROFILE_THEME_COLORS.surfaceContainer,
+  textMuted: PROFILE_THEME_COLORS.onSurfaceVariant,
+  white: PROFILE_THEME_COLORS.onPrimary,
+} as const
 
 export default function DevLoginSection({
   nextRouteForPlayer,
@@ -65,7 +66,7 @@ export default function DevLoginSection({
       <View className="mb-4 flex-row items-start">
         <View
           className="mr-3 h-12 w-12 items-center justify-center rounded-full"
-          style={{ backgroundColor: '#DDECF6' }}
+          style={{ backgroundColor: PROFILE_THEME_COLORS.secondaryFixed }}
         >
           <Code2 size={20} color={DEV.emeraldDark} />
         </View>
@@ -115,7 +116,7 @@ export default function DevLoginSection({
               value={devEmail}
               onChangeText={setDevEmail}
               placeholder="Nhập email dev"
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={PROFILE_THEME_COLORS.outline}
               autoCapitalize="none"
               keyboardType="email-address"
               style={{
@@ -157,7 +158,7 @@ export default function DevLoginSection({
               value={devPassword}
               onChangeText={setDevPassword}
               placeholder="Nhập mật khẩu dev"
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={PROFILE_THEME_COLORS.outline}
               secureTextEntry
               style={{
                 flex: 1,
@@ -180,7 +181,7 @@ export default function DevLoginSection({
             alignItems: 'center',
             justifyContent: 'center',
             opacity: devLoading ? 0.72 : 1,
-            shadowColor: DEV.emerald,
+            shadowColor: PROFILE_THEME_COLORS.surfaceTint,
             shadowOpacity: 0.22,
             shadowRadius: 14,
             shadowOffset: { width: 0, height: 8 },
@@ -195,3 +196,6 @@ export default function DevLoginSection({
     </View>
   )
 }
+
+
+

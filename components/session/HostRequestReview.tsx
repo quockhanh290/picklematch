@@ -1,5 +1,6 @@
 import { Check, ChevronRight, MessageSquareText, ShieldAlert, X } from 'lucide-react-native'
 import { Text, TouchableOpacity, View } from 'react-native'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
 
 type RequestItem = {
   id: string
@@ -72,7 +73,7 @@ export function HostRequestReview({
 
             <View className="mt-4 rounded-2xl bg-slate-50 px-4 py-4">
               <View className="flex-row items-center">
-                <MessageSquareText size={15} color="#64748b" />
+                <MessageSquareText size={15} color={PROFILE_THEME_COLORS.outline} />
                 <Text className="ml-2 text-[11px] font-extrabold uppercase tracking-[1px] text-slate-400">Lời nhắn giới thiệu</Text>
               </View>
               <Text className="mt-2 text-sm leading-6 text-slate-700">
@@ -83,7 +84,7 @@ export function HostRequestReview({
             {request.host_response_template ? (
               <View className="mt-3 rounded-2xl border border-sky-200 bg-sky-50 px-4 py-4">
                 <View className="flex-row items-center">
-                  <ShieldAlert size={15} color="#0369a1" />
+                  <ShieldAlert size={15} color={PROFILE_THEME_COLORS.onTertiaryFixedVariant} />
                   <Text className="ml-2 text-[11px] font-extrabold uppercase tracking-[1px] text-sky-700">Phản hồi đã gửi</Text>
                 </View>
                 <Text className="mt-2 text-sm leading-6 text-sky-800">{request.host_response_template}</Text>
@@ -105,7 +106,7 @@ export function HostRequestReview({
                 onPress={() => onReject(request.id, request.player_id)}
                 className="flex-1 flex-row items-center justify-center rounded-2xl bg-rose-50 py-3.5"
               >
-                <X size={16} color="#be123c" />
+                <X size={16} color={PROFILE_THEME_SEMANTIC.dangerText} />
                 <Text className="ml-2 text-sm font-bold text-rose-700">Từ chối</Text>
               </TouchableOpacity>
             </View>
@@ -119,7 +120,7 @@ export function HostRequestReview({
                   className="flex-row items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-2"
                 >
                   <Text className="text-xs font-semibold text-slate-700">{template}</Text>
-                  <ChevronRight size={12} color="#475569" style={{ marginLeft: 6 }} />
+                  <ChevronRight size={12} color={PROFILE_THEME_COLORS.onSurfaceVariant} style={{ marginLeft: 6 }} />
                 </TouchableOpacity>
               ))}
             </View>

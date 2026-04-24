@@ -1,5 +1,6 @@
-import { ChevronRight, Users } from 'lucide-react-native'
+﻿import { ChevronRight, Users } from 'lucide-react-native'
 import { Image, Pressable, Text, View } from 'react-native'
+import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 
 type Props = {
   count: number
@@ -68,10 +69,13 @@ export function PendingRequestsWidget({ count, avatars, onPress }: Props) {
           </View>
 
           <View className="h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10">
-            <ChevronRight size={18} color="#ffffff" />
+            <ChevronRight size={18} color={PROFILE_THEME_COLORS.onPrimary} />
           </View>
         </View>
       </View>
     </Pressable>
   )
 }
+
+
+

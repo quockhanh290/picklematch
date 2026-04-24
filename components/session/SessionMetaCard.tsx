@@ -63,7 +63,7 @@ export function SessionMetaCard({
         borderRadius: 34,
         overflow: 'hidden',
         backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
-        shadowColor: '#0f172a',
+        shadowColor: PROFILE_THEME_COLORS.onBackground,
         shadowOpacity: 0.08,
         shadowRadius: 18,
         shadowOffset: { width: 0, height: 8 },
@@ -349,3 +349,4 @@ export function SessionMetaCard({
     </View>
   )
 }
+

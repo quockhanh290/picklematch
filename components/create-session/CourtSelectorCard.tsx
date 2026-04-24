@@ -1,4 +1,4 @@
-import { MapPin, Search } from 'lucide-react-native'
+﻿import { MapPin, Search } from 'lucide-react-native'
 import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from 'react-native'
 
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
@@ -35,7 +35,7 @@ function CourtRow({ court, onPress }: { court: NearByCourt; onPress: (court: Nea
     >
       <View className="flex-row items-start gap-3">
         <View className="h-11 w-11 items-center justify-center rounded-[14px] bg-emerald-100">
-          <MapPin size={18} color="#059669" />
+          <MapPin size={18} color={PROFILE_THEME_COLORS.surfaceTint} />
         </View>
         <View className="flex-1">
           <View className="flex-row items-start justify-between gap-3">
@@ -97,7 +97,7 @@ export function CourtSelectorCard({
       {selectedCourt ? (
         <View className="mt-3.5 flex-row items-center gap-3.5 rounded-[14px] border border-slate-100 bg-slate-50 p-3.5">
           <View className="h-10 w-10 items-center justify-center rounded-full bg-emerald-100">
-            <MapPin size={18} color="#059669" />
+            <MapPin size={18} color={PROFILE_THEME_COLORS.surfaceTint} />
           </View>
           <View className="flex-1">
             <Text className="text-[15px] font-black text-slate-900" numberOfLines={1}>
@@ -114,12 +114,12 @@ export function CourtSelectorCard({
       {showPicker ? (
         <>
           <View className="mt-3.5 flex-row items-center gap-3 rounded-[14px] border border-slate-200 bg-slate-50 px-3.5 py-3">
-            <Search size={16} color="#94a3b8" />
+            <Search size={16} color={PROFILE_THEME_COLORS.outline} />
             <TextInput
               value={keyword}
               onChangeText={setKeyword}
               placeholder="Tìm tên sân hoặc địa chỉ"
-              placeholderTextColor="#94a3b8"
+              placeholderTextColor={PROFILE_THEME_COLORS.outline}
               className="flex-1 py-0 text-[14px] text-slate-700"
               returnKeyType="search"
             />
@@ -158,3 +158,5 @@ export function CourtSelectorCard({
     </View>
   )
 }
+
+

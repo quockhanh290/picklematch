@@ -2,6 +2,7 @@ import { router } from 'expo-router'
 import { Hand, LayoutList } from 'lucide-react-native'
 import { Dimensions, Pressable, ScrollView, Text, View } from 'react-native'
 
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
 import type { PendingMatch } from '@/lib/homeFeed'
 
 const screenWidth = Dimensions.get('window').width
@@ -29,7 +30,7 @@ function PendingMatchResultCard({ item }: { item: PendingMatch }) {
       className="mb-8 flex-row items-center gap-4 overflow-hidden rounded-[32px] border border-amber-200 bg-amber-50 p-5"
       style={{
         width: pendingCardWidth,
-        shadowColor: '#d97706',
+        shadowColor: PROFILE_THEME_SEMANTIC.warningStrong,
         shadowOpacity: 0.08,
         shadowRadius: 12,
         shadowOffset: { width: 0, height: 8 },
@@ -41,14 +42,14 @@ function PendingMatchResultCard({ item }: { item: PendingMatch }) {
       <View
         className="h-12 w-12 items-center justify-center rounded-full bg-amber-500"
         style={{
-          shadowColor: '#f59e0b',
+          shadowColor: PROFILE_THEME_SEMANTIC.warningStrong,
           shadowOpacity: 0.18,
           shadowRadius: 10,
           shadowOffset: { width: 0, height: 6 },
           elevation: 4,
         }}
       >
-        <LayoutList size={22} color="#ffffff" strokeWidth={2.5} />
+        <LayoutList size={22} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.5} />
       </View>
 
       <View className="min-w-0 flex-1">
@@ -113,7 +114,7 @@ export function PendingMatchResultCarousel({ items, activeIndex, onIndexChange }
       <View className="-mt-3 flex-row items-center justify-between px-1">
         <CarouselDots count={items.length} activeIndex={activeIndex} />
         <View className="flex-row items-center rounded-full bg-amber-100 px-3 py-1.5">
-          <Hand size={14} color="#92400e" strokeWidth={2.5} />
+          <Hand size={14} color={PROFILE_THEME_COLORS.onPrimaryFixedVariant} strokeWidth={2.5} />
           <Text className="ml-1.5 text-[10px] font-black uppercase tracking-[1.4px] text-amber-800">
             Vuốt để xem thêm
           </Text>
