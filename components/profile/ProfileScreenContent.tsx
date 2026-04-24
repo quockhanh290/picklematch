@@ -1,4 +1,4 @@
-﻿import { AppButton, EmptyState, ScreenHeader } from '@/components/design'
+import { AppButton, EmptyState, ScreenHeader } from '@/components/design'
 import type { FeedbackTrait } from '@/components/profile/CommunityFeedbackSection'
 import CommunityFeedbackPanel from '@/components/profile/CommunityFeedbackSection'
 import {

@@ -1,4 +1,4 @@
-﻿import { AppButton, ScreenHeader } from '@/components/design'
+import { AppButton, ScreenHeader } from '@/components/design'
 import { MatchSessionCard } from '@/components/home/MatchSessionCard'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { type MatchSession, getStatusLabel } from '@/lib/homeFeed'

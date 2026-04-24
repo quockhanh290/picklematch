@@ -1,4 +1,4 @@
-﻿import { AppInput, EmptyState, ScreenHeader, StatusBadge } from '@/components/design'
+import { AppInput, EmptyState, ScreenHeader, StatusBadge } from '@/components/design'
 import { PROFILE_SKILL_HERO_TONE, ProfileSkillHero } from '@/components/profile/ProfileSections'
 import { PROFILE_THEME_COLORS as EDIT_PROFILE_COLORS } from '@/components/profile/profileTheme'
 import { getEloBandByLegacySkillLabel } from '@/lib/eloSystem'

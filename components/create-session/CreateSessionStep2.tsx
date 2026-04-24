@@ -1,4 +1,4 @@
-﻿import { AppButton, ScreenHeader } from '@/components/design'
+import { AppButton, ScreenHeader } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { Info, UserRound, Users } from 'lucide-react-native'
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native'

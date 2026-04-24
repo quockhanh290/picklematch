@@ -1,4 +1,4 @@
-﻿import { AppButton, ScreenHeader } from '@/components/design'
+import { AppButton, ScreenHeader } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { LinearGradient } from 'expo-linear-gradient'
