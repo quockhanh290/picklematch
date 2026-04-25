@@ -3,24 +3,18 @@ import {
     AdvancedFilter,
     AdvancedSessionFilterModal,
 } from '@/components/find-session/AdvancedSessionFilterModal'
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
-import { getSkillLevelFromEloRange, getSkillLevelFromPlayer } from '@/lib/skillAssessment'
-import { getSkillLevelUi } from '@/lib/skillLevelUi'
+import SessionCard from '@/components/sessions/SessionCard'
+import { colors } from '@/constants/colors'
+import { getSkillLevelFromEloRange, getSkillLevelFromPlayer, getSkillScoreFromLevelId } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { LinearGradient } from 'expo-linear-gradient'
 import * as Linking from 'expo-linking'
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
 import {
-    AlertCircle,
-    CalendarDays,
     Map,
-    MapPin,
     Search,
-    ShieldCheck,
     SlidersHorizontal,
     Sparkles,
-    UserRound,
     X,
 } from 'lucide-react-native'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -76,6 +70,21 @@ type PlayerQueueProfile = {
 }
 
 const SMART_QUEUE_STORAGE_PREFIX = '@picklematch/smart-queue:'
+const PROFILE_THEME_COLORS = {
+  primary: colors.primary,
+  onPrimary: '#FFFFFF',
+  background: colors.background,
+  onBackground: colors.text,
+  onSurface: colors.text,
+  onSurfaceVariant: colors.textSecondary,
+  outline: colors.textSecondary,
+  outlineVariant: colors.border,
+  surfaceContainerLow: colors.surface,
+  surfaceContainerLowest: colors.surface,
+  surfaceContainerHighest: colors.surfaceAlt,
+  secondaryContainer: colors.primaryLight,
+  onSecondaryContainer: colors.primaryDark,
+} as const
 
 function getSmartQueueKey(userId: string) {
   return `${SMART_QUEUE_STORAGE_PREFIX}${userId}`
@@ -138,28 +147,32 @@ function computeMatchScore(session: Session, rescueMode: boolean, level3Mode: bo
   return Math.max(78, Math.min(score, 99))
 }
 
-const BADGE = {
-  backgroundColor: withAlpha(PROFILE_THEME_COLORS.primary, 0.1),
+const SCREEN_FONTS = {
+  headline: 'BarlowCondensed-Bold',
+  body: 'PlusJakartaSans-Regular',
+  label: 'PlusJakartaSans-SemiBold',
 } as const
 
-function SearchResultCard({ session, rescueMode }: { session: Session; rescueMode: boolean }) {
+function getCardStatus(session: Session): 'open' | 'starting_soon' | 'full' | 'past' {
+  const startTime = new Date(session.slot?.start_time ?? 0).getTime()
+  const minutesToStart = (startTime - Date.now()) / 60000
+  if (session.status === 'closed' || session.status === 'completed' || startTime < Date.now()) return 'past'
+  if (session.player_count >= session.max_players) return 'full'
+  if (minutesToStart >= 0 && minutesToStart <= 30) return 'starting_soon'
+  return 'open'
+}
+
+function SearchResultCard({ session, rescueMode: _rescueMode }: { session: Session; rescueMode: boolean }) {
   const court = session.slot?.court
-  const { dayLabel, timeLabel } = formatDateTime(
-    session.slot?.start_time ?? new Date().toISOString(),
-    session.slot?.end_time ?? new Date().toISOString(),
-  )
-  const skillLevel = getSkillLevelFromEloRange(session.elo_min, session.elo_max)
-  const skillUi = getSkillLevelUi(skillLevel.id)
-  const SkillIcon = skillUi.icon
-  const slotsLeft = Math.max(session.max_players - session.player_count, 0)
-  const isFull = slotsLeft === 0
-  const isBooked = session.court_booking_status === 'confirmed'
-  const progress = session.max_players > 0 ? Math.min(session.player_count / session.max_players, 1) : 0
-  const progressPercent = Math.max(progress * 100, 0)
-  const hostInitials = (session.host?.name || '?').slice(0, 1).toUpperCase()
-  const address = [court?.address, court?.city].filter(Boolean).join(', ')
-  const compactAddress = address.split(',').map((p) => p.trim()).filter(Boolean).slice(0, 2).join(', ')
-  const matchScore = computeMatchScore(session, rescueMode, skillLevel.id === 'level_3')
+  const district = extractDistrict(court?.address) ?? court?.city ?? 'Khu vuc chua ro'
+  const fullAddress = court?.address?.trim() || district
+  const skill = getSkillLevelFromEloRange(session.elo_min, session.elo_max)
+  const hostName = session.host?.name ?? 'An danh'
+  const hostInitial = hostName.slice(0, 1).toUpperCase()
+  const startTime = new Date(session.slot?.start_time ?? new Date().toISOString())
+  const endTime = new Date(session.slot?.end_time ?? new Date().toISOString())
+  const pricePerPlayer = session.max_players > 0 ? Math.round((session.slot?.price ?? 0) / session.max_players) : 0
+  const status = getCardStatus(session)
 
   const openSessionDetail = () =>
     router.push({
@@ -168,225 +181,33 @@ function SearchResultCard({ session, rescueMode }: { session: Session; rescueMod
     })
 
   return (
-    <Pressable
-      onPress={openSessionDetail}
-      className="mb-4 overflow-hidden rounded-[34px] px-6 pt-6 pb-4"
-      style={{
-        backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
-        borderLeftWidth: 3,
-        borderLeftColor: PROFILE_THEME_COLORS.primary,
-        shadowColor: PROFILE_THEME_COLORS.onBackground,
-        shadowOpacity: 0.06,
-        shadowRadius: 14,
-        shadowOffset: { width: 0, height: 6 },
-        elevation: 3,
+    <SessionCard
+      session={{
+        id: session.id,
+        courtName: court?.name ?? 'Keo Pickleball',
+        courtAddress: fullAddress,
+        distanceKm: undefined,
+        courtBookingConfirmed: session.court_booking_status === 'confirmed',
+        startTime,
+        endTime,
+        level: String(getSkillScoreFromLevelId(skill.id) ?? 3),
+        levelDescription: skill.title,
+        levelMatchesUser: true,
+        host: {
+          id: session.host?.id ?? `host-${session.id}`,
+          name: hostName,
+          initial: hostInitial || '?',
+        },
+        enrolledCount: session.player_count,
+        capacity: session.max_players,
+        pricePerPerson: pricePerPlayer,
+        status,
       }}
-    >
-      <View style={{ position: 'absolute', top: -10, right: -16, zIndex: 0, opacity: 0.07 }} pointerEvents="none">
-        <SkillIcon size={96} color={PROFILE_THEME_COLORS.primary} strokeWidth={1.4} />
-      </View>
-
-      <Text
-        numberOfLines={2}
-        ellipsizeMode="tail"
-        style={{
-          color: PROFILE_THEME_COLORS.primary,
-          fontFamily: 'PlusJakartaSans-ExtraBold',
-          fontSize: 20,
-          lineHeight: 24,
-          letterSpacing: 0.8,
-          textTransform: 'uppercase',
-        }}
-      >
-        {court?.name ?? 'Kèo Pickleball'}
-      </Text>
-
-      {compactAddress ? (
-        <View className="mt-1">
-          <View
-            className="self-start flex-row items-center rounded-full px-3 py-1.5"
-            style={{ ...BADGE, maxWidth: '100%' }}
-          >
-            <MapPin size={13} color={PROFILE_THEME_COLORS.primary} strokeWidth={2.4} />
-            <Text
-              className="ml-1.5"
-              numberOfLines={1}
-              ellipsizeMode="tail"
-              style={{
-                color: PROFILE_THEME_COLORS.onSurfaceVariant,
-                fontFamily: 'PlusJakartaSans-SemiBold',
-                fontSize: 13,
-                lineHeight: 18,
-              }}
-            >
-              {compactAddress}
-            </Text>
-          </View>
-        </View>
-      ) : null}
-
-      <View className="mt-2 flex-row flex-wrap gap-2">
-        <View className="flex-row items-center rounded-full px-3 py-1.5" style={BADGE}>
-          <CalendarDays size={13} color={PROFILE_THEME_COLORS.primary} strokeWidth={2.4} />
-          <Text
-            className="ml-1.5"
-            numberOfLines={1}
-            style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13, lineHeight: 18 }}
-          >
-            {dayLabel} • {timeLabel}
-          </Text>
-        </View>
-
-        <View className="flex-row items-center rounded-full px-3 py-1.5" style={BADGE}>
-          <SkillIcon size={13} color={PROFILE_THEME_COLORS.primary} strokeWidth={2.4} />
-          <Text
-            className="ml-1.5"
-            style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13, lineHeight: 18 }}
-          >
-            {skillUi.shortLabel}
-          </Text>
-        </View>
-
-        <View className="flex-row items-center rounded-full px-3 py-1.5" style={BADGE}>
-          {isBooked
-            ? <ShieldCheck size={13} color={PROFILE_THEME_COLORS.primary} strokeWidth={2.4} />
-            : <AlertCircle size={13} color={PROFILE_THEME_COLORS.primary} strokeWidth={2.4} />}
-          <Text
-            className="ml-1.5"
-            style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13, lineHeight: 18 }}
-          >
-            {isBooked ? 'Đã đặt sân' : 'Chưa đặt sân'}
-          </Text>
-        </View>
-
-        <View
-          className="flex-row items-center rounded-full px-3 py-1.5"
-          style={{ backgroundColor: withAlpha(PROFILE_THEME_COLORS.primary, 0.1) }}
-        >
-          <Text
-            style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 12, lineHeight: 18 }}
-          >
-            {matchScore}% phù hợp
-          </Text>
-        </View>
-      </View>
-
-      <View
-        className="mt-4 rounded-[24px] p-3.5"
-        style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow }}
-      >
-        <View className="flex-row items-center justify-between">
-          <View className="mr-3 flex-1 flex-row items-center">
-            <Pressable
-              onPress={(event) => {
-                event.stopPropagation()
-                if (!session.host?.id) return
-                router.push({ pathname: '/player/[id]' as never, params: { id: session.host.id } })
-              }}
-              className="mr-3 h-11 w-11 items-center justify-center rounded-full"
-              style={{
-                backgroundColor: PROFILE_THEME_COLORS.primary,
-                borderWidth: 1,
-                borderColor: withAlpha(PROFILE_THEME_COLORS.primary, 0.14),
-              }}
-            >
-              <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 15 }}>
-                {hostInitials}
-              </Text>
-            </Pressable>
-            <View className="flex-1">
-              <Text
-                numberOfLines={1}
-                style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13 }}
-              >
-                {session.host?.name ?? 'Ẩn danh'}
-              </Text>
-              <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Regular', fontSize: 11, marginTop: 1 }}>
-                Chủ kèo
-              </Text>
-            </View>
-          </View>
-
-          <View className="items-end">
-            <Text style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 18 }}>
-              {formatPrice(session.slot?.price ?? 0, session.max_players)}
-            </Text>
-            <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Regular', fontSize: 10 }}>
-              /người
-            </Text>
-          </View>
-        </View>
-
-        <View
-          className="mt-3 h-2 overflow-hidden rounded-full"
-          style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHighest }}
-        >
-          <LinearGradient
-            colors={[PROFILE_THEME_COLORS.primary, PROFILE_THEME_COLORS.tertiary]}
-            start={{ x: 0, y: 0.5 }}
-            end={{ x: 1, y: 0.5 }}
-            style={{ width: `${Math.max(progressPercent, 8)}%`, height: '100%', borderRadius: 999 }}
-          />
-        </View>
-
-        <View className="mt-2 flex-row items-center justify-between">
-          <View className="flex-row items-center">
-            {Array.from({ length: Math.min(session.player_count, 4) }).map((_, index) => (
-              <View
-                key={index}
-                className={`h-7 w-7 items-center justify-center rounded-full ${index === 0 ? '' : '-ml-2'}`}
-                style={{
-                  backgroundColor: PROFILE_THEME_COLORS.primary,
-                  borderWidth: 2,
-                  borderColor: PROFILE_THEME_COLORS.surfaceContainerLow,
-                }}
-              >
-                <UserRound size={12} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.2} />
-              </View>
-            ))}
-            {session.player_count > 4 ? (
-              <View
-                className="-ml-2 h-7 w-7 items-center justify-center rounded-full"
-                style={{
-                  backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHighest,
-                  borderWidth: 2,
-                  borderColor: PROFILE_THEME_COLORS.surfaceContainerLow,
-                }}
-              >
-                <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 9 }}>
-                  +{session.player_count - 4}
-                </Text>
-              </View>
-            ) : null}
-          </View>
-          <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 12 }}>
-            {isFull ? 'Đã đủ người' : `Còn ${slotsLeft} chỗ`}
-          </Text>
-        </View>
-
-        <Pressable
-          onPress={openSessionDetail}
-          className="mt-3 flex-row items-center justify-center rounded-[20px] px-4 py-3.5"
-          style={{
-            backgroundColor: isFull ? PROFILE_THEME_COLORS.surfaceContainerHighest : PROFILE_THEME_COLORS.primary,
-          }}
-        >
-          <Text
-            style={{
-              color: isFull ? PROFILE_THEME_COLORS.onSurfaceVariant : PROFILE_THEME_COLORS.onPrimary,
-              fontFamily: 'PlusJakartaSans-ExtraBold',
-              fontSize: 13,
-              letterSpacing: 0.5,
-            }}
-          >
-            {isFull ? 'Đã đủ người' : 'Vào kèo'}
-          </Text>
-        </Pressable>
-      </View>
-    </Pressable>
+      onPress={openSessionDetail}
+      onJoinPress={openSessionDetail}
+    />
   )
 }
-
 function extractDistrict(address?: string | null): string | null {
   if (!address) return null
   const match = address.match(/(?:Quận|Huyện)\s+[^,\n]+/i)
@@ -662,16 +483,21 @@ export default function FindSession() {
       <View className="flex-row items-start justify-between px-5 pt-5 pb-4">
         <View className="flex-1 pr-4">
           <Text
-            className="text-[11px] uppercase tracking-[0.16em]"
-            style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-ExtraBold' }}
-          >
-            KHÁM PHÁ
-          </Text>
-          <Text
-            className="mt-2 text-[28px] leading-[34px]"
-            style={{ color: PROFILE_THEME_COLORS.onBackground, fontFamily: 'PlusJakartaSans-ExtraBold' }}
+            className="text-[28px] leading-[34px]"
+            style={{
+              color: PROFILE_THEME_COLORS.onBackground,
+              fontFamily: SCREEN_FONTS.headline,
+              textTransform: 'uppercase',
+              letterSpacing: 1.2,
+            }}
           >
             Tìm kèo
+          </Text>
+          <Text
+            className="mt-1 text-[13px] leading-[18px]"
+            style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body }}
+          >
+            {loading ? 'Đang tải...' : `${filteredSessions.length} kèo phù hợp`}
           </Text>
         </View>
 
@@ -704,7 +530,7 @@ export default function FindSession() {
               flex: 1,
               marginLeft: 10,
               fontSize: 15,
-              fontFamily: 'PlusJakartaSans-SemiBold',
+              fontFamily: SCREEN_FONTS.body,
               color: PROFILE_THEME_COLORS.onSurface,
             }}
           />
@@ -716,16 +542,16 @@ export default function FindSession() {
         </View>
       </View>
 
-      {/* Bộ lọc nâng cao */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 16 }}>
+      {/* Bộ lọc + sắp xếp */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 16, columnGap: 8 }}>
         <Pressable
           onPress={() => setFilterModalVisible(true)}
-          className="flex-row items-center rounded-full px-4 py-2.5"
+          className="flex-row items-center justify-center rounded-full px-4 py-2.5"
           style={{
+            minWidth: 152,
             backgroundColor: activeAdvancedFiltersCount > 0 ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surfaceContainerLow,
             borderWidth: 1,
             borderColor: activeAdvancedFiltersCount > 0 ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
-            marginRight: 8,
           }}
         >
           <SlidersHorizontal
@@ -737,13 +563,58 @@ export default function FindSession() {
             className="ml-1.5"
             style={{
               color: activeAdvancedFiltersCount > 0 ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant,
-              fontFamily: 'PlusJakartaSans-ExtraBold',
+              fontFamily: SCREEN_FONTS.label,
               fontSize: 12,
             }}
           >
             {activeAdvancedFiltersCount > 0 ? `Bộ lọc (${activeAdvancedFiltersCount})` : 'Bộ lọc nâng cao'}
           </Text>
         </Pressable>
+
+        <View
+          className="flex-1 flex-row items-center rounded-full p-1"
+          style={{
+            backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
+            borderWidth: 1,
+            borderColor: PROFILE_THEME_COLORS.outlineVariant,
+          }}
+        >
+          <Pressable
+            onPress={() => setSortMode('match')}
+            className="flex-1 items-center justify-center rounded-full py-2"
+            style={{
+              backgroundColor: sortMode === 'match' ? PROFILE_THEME_COLORS.primary : 'transparent',
+            }}
+          >
+            <Text
+              style={{
+                color: sortMode === 'match' ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant,
+                fontFamily: SCREEN_FONTS.label,
+                fontSize: 12,
+              }}
+            >
+              Độ phù hợp
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => setSortMode('time')}
+            className="flex-1 items-center justify-center rounded-full py-2"
+            style={{
+              backgroundColor: sortMode === 'time' ? PROFILE_THEME_COLORS.primary : 'transparent',
+            }}
+          >
+            <Text
+              style={{
+                color: sortMode === 'time' ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant,
+                fontFamily: SCREEN_FONTS.label,
+                fontSize: 12,
+              }}
+            >
+              Giờ chơi
+            </Text>
+          </Pressable>
+        </View>
       </View>
 
       {/* Preferred court filter banner */}
@@ -756,14 +627,14 @@ export default function FindSession() {
         >
           <View className="flex-1 pr-3">
             <Text
-              style={{ color: PROFILE_THEME_COLORS.onSecondaryContainer, fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 10, letterSpacing: 1.5, textTransform: 'uppercase' }}
+              style={{ color: PROFILE_THEME_COLORS.onSecondaryContainer, fontFamily: SCREEN_FONTS.headline, fontSize: 10, letterSpacing: 2.2, textTransform: 'uppercase' }}
             >
               Đang lọc theo sân quen
             </Text>
             <Text
               numberOfLines={1}
               className="mt-1"
-              style={{ color: PROFILE_THEME_COLORS.onSecondaryContainer, fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 13 }}
+              style={{ color: PROFILE_THEME_COLORS.onSecondaryContainer, fontFamily: SCREEN_FONTS.label, fontSize: 13 }}
             >
               {preferredCourtFilter.name ?? 'Sân đã chọn'}
             </Text>
@@ -776,7 +647,7 @@ export default function FindSession() {
             <X size={13} color={PROFILE_THEME_COLORS.onSecondaryContainer} strokeWidth={2.5} />
             <Text
               className="ml-1"
-              style={{ color: PROFILE_THEME_COLORS.onSecondaryContainer, fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 12 }}
+              style={{ color: PROFILE_THEME_COLORS.onSecondaryContainer, fontFamily: SCREEN_FONTS.label, fontSize: 12 }}
             >
               Bỏ lọc
             </Text>
@@ -784,30 +655,7 @@ export default function FindSession() {
         </View>
       ) : null}
 
-      {/* Results header */}
-      <View className="flex-row items-center justify-between px-5 pb-4">
-        <View className="flex-1 pr-4">
-          <Text
-            style={{ color: PROFILE_THEME_COLORS.onBackground, fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 16 }}
-          >
-            {loading
-              ? 'Đang tải...'
-              : filteredSessions.length > 0
-                ? `${filteredSessions.length} kèo phù hợp`
-                : 'Không tìm thấy kèo'}
-          </Text>
-        </View>
-
-        <Pressable
-          onPress={() => setSortMode((current) => (current === 'match' ? 'time' : 'match'))}
-          className="flex-row items-center rounded-full px-4 py-2.5"
-          style={BADGE}
-        >
-          <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 12 }}>
-            {sortMode === 'match' ? 'Độ phù hợp ↕' : 'Giờ chơi ↕'}
-          </Text>
-        </Pressable>
-      </View>
+      <View style={{ height: 4 }} />
     </View>
   ), [loading, filteredSessions.length, query, activeAdvancedFiltersCount, preferredCourtFilter, sortMode, openMapSearch])
 
@@ -827,13 +675,13 @@ export default function FindSession() {
             elevation: 2,
           }}
         >
-          <Text style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 10, letterSpacing: 2, textTransform: 'uppercase' }}>
+          <Text style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: SCREEN_FONTS.headline, fontSize: 10, letterSpacing: 2, textTransform: 'uppercase' }}>
             Chưa có kèo khớp
           </Text>
-          <Text className="mt-3" style={{ color: PROFILE_THEME_COLORS.onBackground, fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 22, lineHeight: 28 }}>
+          <Text className="mt-3" style={{ color: PROFILE_THEME_COLORS.onBackground, fontFamily: SCREEN_FONTS.headline, fontSize: 22, lineHeight: 28, textTransform: 'uppercase', letterSpacing: 1 }}>
             Thử đổi bộ lọc hoặc bật gợi ý hợp gu
           </Text>
-          <Text className="mt-2" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Regular', fontSize: 14, lineHeight: 22 }}>
+          <Text className="mt-2" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, fontSize: 14, lineHeight: 22 }}>
             Hệ thống sẽ tiếp tục săn trận phù hợp để bạn không bỏ lỡ cơ hội vào sân đúng gu.
           </Text>
         </View>
@@ -852,20 +700,20 @@ export default function FindSession() {
           elevation: 2,
         }}
       >
-        <Text style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 10, letterSpacing: 2, textTransform: 'uppercase' }}>
+        <Text style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: SCREEN_FONTS.headline, fontSize: 10, letterSpacing: 2.2, textTransform: 'uppercase' }}>
           Gợi ý thông minh
         </Text>
-        <Text className="mt-3" style={{ color: PROFILE_THEME_COLORS.onBackground, fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 22, lineHeight: 28 }}>
+        <Text className="mt-3" style={{ color: PROFILE_THEME_COLORS.onBackground, fontFamily: SCREEN_FONTS.headline, fontSize: 22, lineHeight: 28, textTransform: 'uppercase', letterSpacing: 1 }}>
           Chưa thấy kèo ưng ý?
         </Text>
-        <Text className="mt-2" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Regular', fontSize: 14, lineHeight: 22 }}>
+        <Text className="mt-2" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, fontSize: 14, lineHeight: 22 }}>
           Bật gợi ý hợp gu để ưu tiên kèo vừa trình, vừa giờ, vừa khoảng cách bạn đang săn.
         </Text>
 
         {smartQueueEnabled ? (
           <Text
             className="mt-3"
-            style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 12, lineHeight: 18 }}
+            style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.label, fontSize: 12, lineHeight: 18 }}
           >
             Đang ưu tiên kèo gần {playerProfile?.city?.trim() || 'gu của bạn'} và khớp nhịp chơi hiện tại
           </Text>
@@ -891,7 +739,7 @@ export default function FindSession() {
             className="ml-2 text-[13px]"
             style={{
               color: smartQueueEnabled ? PROFILE_THEME_COLORS.onSurfaceVariant : PROFILE_THEME_COLORS.onPrimary,
-              fontFamily: 'PlusJakartaSans-ExtraBold',
+              fontFamily: SCREEN_FONTS.label,
             }}
           >
             {smartQueueEnabled ? 'Tắt gợi ý hợp gu' : 'Bật gợi ý hợp gu'}
@@ -910,7 +758,7 @@ export default function FindSession() {
             <ActivityIndicator size="large" color={PROFILE_THEME_COLORS.primary} />
             <Text
               className="mt-4 text-[14px]"
-              style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-SemiBold' }}
+              style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.label }}
             >
               Đang tải kèo phù hợp...
             </Text>
@@ -947,5 +795,8 @@ export default function FindSession() {
     </SafeAreaView>
   )
 }
+
+
+
 
 

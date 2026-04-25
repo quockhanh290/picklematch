@@ -1,3 +1,4 @@
+import { AppFontSet } from '@/constants/typography'
 import { useAppTheme } from '@/lib/theme-context'
 import { ChevronLeft } from 'lucide-react-native'
 import type { ReactNode } from 'react'
@@ -66,7 +67,7 @@ export function ScreenHeader({
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center gap-4">
             {brandLeading}
-            <Text className="text-3xl" style={{ color: theme.primary, fontFamily: 'PlusJakartaSans-ExtraBoldItalic' }}>
+            <Text className="text-3xl" style={{ color: theme.primary, fontFamily: AppFontSet.display }}>
               {title}
             </Text>
           </View>
@@ -105,7 +106,7 @@ export function ScreenHeader({
             numberOfLines={1}
             style={{
               color: theme.primary,
-              fontFamily: 'PlusJakartaSans-Bold',
+              fontFamily: AppFontSet.title,
               textTransform: compactTitleUppercase ? 'uppercase' : 'none',
               textAlign: useLeftAlignedCompact ? 'left' : 'center',
             }}
@@ -124,15 +125,15 @@ export function ScreenHeader({
       <View className="flex-row items-start justify-between">
         <View className="flex-1 pr-3">
           {eyebrow ? (
-            <Text className="text-sm font-medium" style={{ color: theme.primary, fontFamily: 'PlusJakartaSans-Regular' }}>
+            <Text className="text-sm font-medium" style={{ color: theme.primary, fontFamily: AppFontSet.body }}>
               {eyebrow}
             </Text>
           ) : null}
-          <Text className="mt-1 text-3xl font-black" style={{ color: theme.text, fontFamily: 'PlusJakartaSans-Bold' }}>
+          <Text className="mt-1 text-3xl font-black" style={{ color: theme.text, fontFamily: AppFontSet.headline }}>
             {title}
           </Text>
           {subtitle ? (
-            <Text className="mt-2 text-sm leading-6" style={{ color: theme.textMuted, fontFamily: 'PlusJakartaSans-Regular' }}>
+            <Text className="mt-2 text-sm leading-6" style={{ color: theme.textMuted, fontFamily: AppFontSet.body }}>
               {subtitle}
             </Text>
           ) : null}
@@ -142,3 +143,4 @@ export function ScreenHeader({
     </View>
   )
 }
+

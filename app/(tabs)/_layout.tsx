@@ -1,4 +1,5 @@
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { AppFontSet } from '@/constants/typography'
 import { useNotificationsContext } from '@/lib/NotificationsContext'
 import { Tabs } from 'expo-router'
 import { Bell, Calendar, House, MagnifyingGlass, User } from 'phosphor-react-native'
@@ -93,7 +94,7 @@ export default function TabLayout() {
         },
         tabBarLabelStyle: {
           fontSize: 11,
-          fontFamily: 'PlusJakartaSans-ExtraBold',
+          fontFamily: AppFontSet.label,
         },
       }}
     >
@@ -155,3 +156,4 @@ export default function TabLayout() {
     </Tabs>
   )
 }
+

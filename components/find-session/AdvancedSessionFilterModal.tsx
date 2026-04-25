@@ -1,4 +1,4 @@
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+﻿import { colors } from '@/constants/colors'
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker'
 import Slider from '@react-native-community/slider'
 import React, { useState } from 'react'
@@ -39,7 +39,27 @@ type Props = {
   skillLevels?: { id: string; label: string }[]
 }
 
+
+const PROFILE_THEME_COLORS = {
+  primary: colors.primary,
+  onPrimary: '#FFFFFF',
+  background: colors.background,
+  onBackground: colors.text,
+  onSurface: colors.text,
+  onSurfaceVariant: colors.textSecondary,
+  outline: colors.textSecondary,
+  outlineVariant: colors.border,
+  surfaceContainerLow: colors.surface,
+  surfaceContainerHighest: colors.surfaceAlt,
+  error: colors.accentDark,
+} as const
 const PRICE_SLIDER_MAX = 300
+const FILTER_FONTS = {
+  headline: 'BarlowCondensed-Bold',
+  body: 'PlusJakartaSans-Regular',
+  label: 'PlusJakartaSans-SemiBold',
+  cta: 'PlusJakartaSans-Bold',
+} as const
 
 function withAlpha(hex: string, alpha: number) {
   const clean = hex.replace('#', '')
@@ -61,13 +81,13 @@ function chipStyle(active: boolean) {
 function chipTextStyle(active: boolean) {
   return {
     color: active ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant,
-    fontFamily: 'PlusJakartaSans-SemiBold',
+    fontFamily: FILTER_FONTS.label,
     fontSize: 13,
   }
 }
 
 const sectionLabel = {
-  fontFamily: 'PlusJakartaSans-SemiBold',
+  fontFamily: FILTER_FONTS.label,
   fontSize: 13,
   color: PROFILE_THEME_COLORS.onSurface,
   marginBottom: 8,
@@ -91,7 +111,7 @@ function addDays(n: number): Date {
 
 function buildDateChips(): { label: string; value: string }[] {
   const today = new Date()
-  const dayOfWeek = today.getDay() // 0=Sun, 6=Sat
+  const dayOfWeek = today.getDay()
   const daysToSat = ((6 - dayOfWeek) + 7) % 7
   const daysToSun = (7 - dayOfWeek) % 7
 
@@ -99,6 +119,7 @@ function buildDateChips(): { label: string; value: string }[] {
     { label: 'Hôm nay', value: fmtDate(today) },
     { label: 'Ngày mai', value: fmtDate(addDays(1)) },
   ]
+
   if (daysToSat >= 2) chips.push({ label: 'Thứ 7', value: fmtDate(addDays(daysToSat)) })
   if (daysToSun >= 2) chips.push({ label: 'Chủ nhật', value: fmtDate(addDays(daysToSun)) })
   return chips
@@ -177,16 +198,15 @@ export function AdvancedSessionFilterModal({
           }}
         >
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
-            <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 18, color: PROFILE_THEME_COLORS.onBackground }}>
-              Bộ lọc nâng cao
+            <Text style={{ fontFamily: FILTER_FONTS.headline, fontSize: 24, letterSpacing: 0.8, color: PROFILE_THEME_COLORS.onBackground }}>
+              BỘ LỌC NÂNG CAO
             </Text>
             <Pressable onPress={onClose} hitSlop={12}>
-              <Text style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: 'PlusJakartaSans-ExtraBold' }}>Đóng</Text>
+              <Text style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: FILTER_FONTS.cta }}>Đóng</Text>
             </Pressable>
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-            {/* District */}
             {districts.length > 0 && (
               <>
                 <Text style={sectionLabel}>Quận/Huyện</Text>
@@ -204,7 +224,6 @@ export function AdvancedSessionFilterModal({
               </>
             )}
 
-            {/* Date chips */}
             <Text style={sectionLabel}>Ngày</Text>
             <ScrollView
               horizontal
@@ -225,28 +244,43 @@ export function AdvancedSessionFilterModal({
                 <Text style={chipTextStyle(filter.weekend)}>Cuối tuần</Text>
               </Pressable>
               <Pressable onPress={openDatePicker} style={chipStyle(hasCustomDate || showDatePicker)}>
-                <Text style={chipTextStyle(hasCustomDate || showDatePicker)}>
+                <Text
+                  style={{
+                    fontFamily: FILTER_FONTS.label,
+                    fontSize: 13,
+                    color: PROFILE_THEME_COLORS.onSurface,
+                  }}
+                >
                   {hasCustomDate ? filter.date.slice(0, 5) : 'Chọn ngày'}
                 </Text>
               </Pressable>
             </ScrollView>
 
-            {/* Date picker */}
             {showDatePicker && (
-              <View style={{ marginBottom: 12, alignItems: 'center' }}>
+              <View
+                style={{
+                  marginBottom: 12,
+                  alignItems: 'center',
+                  backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
+                  borderRadius: 14,
+                  borderWidth: 1,
+                  borderColor: PROFILE_THEME_COLORS.outlineVariant,
+                  paddingVertical: 6,
+                }}
+              >
                 <DateTimePicker
                   value={pickerDate}
                   mode="date"
                   display={Platform.OS === 'ios' ? 'inline' : 'default'}
                   minimumDate={new Date()}
                   onChange={handleDateChange}
-                  style={{ width: '100%', maxWidth: 360 }}
+                  style={{ width: '100%', maxWidth: 360, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow }}
                   accentColor={PROFILE_THEME_COLORS.primary}
+                  themeVariant="light"
                 />
               </View>
             )}
 
-            {/* Time slot */}
             <Text style={sectionLabel}>Khung giờ</Text>
             <View style={{ flexDirection: 'row', marginBottom: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
               {['Sáng', 'Chiều', 'Tối'].map((slot) => (
@@ -260,7 +294,6 @@ export function AdvancedSessionFilterModal({
               ))}
             </View>
 
-            {/* Skill level */}
             <Text style={sectionLabel}>Trình độ</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
               {skillLevels.map((level) => (
@@ -276,7 +309,6 @@ export function AdvancedSessionFilterModal({
               ))}
             </ScrollView>
 
-            {/* Price sliders */}
             <Text style={sectionLabel}>Giá/người</Text>
             <View
               style={{
@@ -287,10 +319,10 @@ export function AdvancedSessionFilterModal({
               }}
             >
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 2 }}>
-                <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 12, color: PROFILE_THEME_COLORS.onSurfaceVariant }}>
+                <Text style={{ fontFamily: FILTER_FONTS.label, fontSize: 12, color: PROFILE_THEME_COLORS.onSurfaceVariant }}>
                   Từ
                 </Text>
-                <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 13, color: PROFILE_THEME_COLORS.primary }}>
+                <Text style={{ fontFamily: FILTER_FONTS.cta, fontSize: 13, color: PROFILE_THEME_COLORS.primary }}>
                   {priceMinLabel}
                 </Text>
               </View>
@@ -308,10 +340,10 @@ export function AdvancedSessionFilterModal({
                 style={{ marginHorizontal: -4 }}
               />
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8, marginBottom: 2 }}>
-                <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 12, color: PROFILE_THEME_COLORS.onSurfaceVariant }}>
+                <Text style={{ fontFamily: FILTER_FONTS.label, fontSize: 12, color: PROFILE_THEME_COLORS.onSurfaceVariant }}>
                   Đến
                 </Text>
-                <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 13, color: PROFILE_THEME_COLORS.primary }}>
+                <Text style={{ fontFamily: FILTER_FONTS.cta, fontSize: 13, color: PROFILE_THEME_COLORS.primary }}>
                   {priceMaxLabel}
                 </Text>
               </View>
@@ -333,12 +365,11 @@ export function AdvancedSessionFilterModal({
               />
             </View>
             {priceInvalid && (
-              <Text style={{ color: PROFILE_THEME_COLORS.error, fontSize: 11, marginBottom: 16 }}>
+              <Text style={{ color: PROFILE_THEME_COLORS.error, fontFamily: FILTER_FONTS.body, fontSize: 11, marginBottom: 16 }}>
                 Giá tối thiểu không được lớn hơn giá tối đa
               </Text>
             )}
 
-            {/* Booking status */}
             <Text style={sectionLabel}>Trạng thái sân</Text>
             <View style={{ flexDirection: 'row', marginBottom: 16 }}>
               {BOOKING_OPTIONS.map((opt) => (
@@ -357,7 +388,6 @@ export function AdvancedSessionFilterModal({
               ))}
             </View>
 
-            {/* Slots left */}
             <Text style={sectionLabel}>Còn ít nhất</Text>
             <View style={{ flexDirection: 'row', marginBottom: 24 }}>
               {[1, 2, 3, 4].map((n) => (
@@ -374,7 +404,7 @@ export function AdvancedSessionFilterModal({
 
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 12 }}>
             <Pressable onPress={onReset} style={{ padding: 12 }}>
-              <Text style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-ExtraBold' }}>Đặt lại</Text>
+              <Text style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: FILTER_FONTS.cta }}>Đặt lại</Text>
             </Pressable>
             <Pressable
               onPress={onApply}
@@ -391,7 +421,7 @@ export function AdvancedSessionFilterModal({
               <Text
                 style={{
                   color: priceInvalid ? PROFILE_THEME_COLORS.onSurfaceVariant : PROFILE_THEME_COLORS.onPrimary,
-                  fontFamily: 'PlusJakartaSans-ExtraBold',
+                  fontFamily: FILTER_FONTS.cta,
                 }}
               >
                 Áp dụng
@@ -403,6 +433,4 @@ export function AdvancedSessionFilterModal({
     </Modal>
   )
 }
-
-
 

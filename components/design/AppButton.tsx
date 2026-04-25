@@ -1,5 +1,7 @@
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native'
 
+import { AppFontSet } from '@/constants/typography'
+
 import { useAppTheme } from '@/lib/theme-context'
 
 type Props = {
@@ -58,15 +60,16 @@ export function AppButton({
       {loading ? (
         <View className="flex-row items-center gap-3">
           <ActivityIndicator color={isPrimary ? theme.primaryContrast : theme.primaryStrong} />
-          <Text className="text-base font-extrabold" style={{ ...textStyle, fontFamily: 'PlusJakartaSans-Bold' }}>
+          <Text className="text-base font-extrabold" style={{ ...textStyle, fontFamily: AppFontSet.cta }}>
             Đang xử lý...
           </Text>
         </View>
       ) : (
-        <Text className="text-base font-extrabold" style={{ ...textStyle, fontFamily: 'PlusJakartaSans-Bold' }}>
+        <Text className="text-base font-extrabold" style={{ ...textStyle, fontFamily: AppFontSet.cta }}>
           {label}
         </Text>
       )}
     </TouchableOpacity>
   )
 }
+

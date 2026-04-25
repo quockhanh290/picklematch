@@ -1,6 +1,8 @@
 import { NotificationsProvider } from '@/lib/NotificationsContext'
 import { AppThemeProvider } from '@/lib/theme-context'
 import { useAuth } from '@/lib/useAuth'
+import { BarlowCondensed_700Bold, BarlowCondensed_700Bold_Italic } from '@expo-google-fonts/barlow-condensed'
+import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter'
 import { PlusJakartaSans_400Regular } from '@expo-google-fonts/plus-jakarta-sans/400Regular'
 import { PlusJakartaSans_500Medium } from '@expo-google-fonts/plus-jakarta-sans/500Medium'
 import { PlusJakartaSans_600SemiBold } from '@expo-google-fonts/plus-jakarta-sans/600SemiBold'
@@ -21,6 +23,12 @@ export default function RootLayout() {
   const segments = useSegments()
   const router = useRouter()
   const [fontsLoaded] = useFonts({
+    'BarlowCondensed-Bold': BarlowCondensed_700Bold,
+    'BarlowCondensed-BoldItalic': BarlowCondensed_700Bold_Italic,
+    'Inter-Regular': Inter_400Regular,
+    'Inter-Medium': Inter_500Medium,
+    'Inter-SemiBold': Inter_600SemiBold,
+    'Inter-Bold': Inter_700Bold,
     'PlusJakartaSans-Regular': PlusJakartaSans_400Regular,
     'PlusJakartaSans-Medium': PlusJakartaSans_500Medium,
     'PlusJakartaSans-SemiBold': PlusJakartaSans_600SemiBold,
@@ -75,6 +83,7 @@ export default function RootLayout() {
             <Stack.Screen name="session/[id]" options={{ headerShown: false }} />
             <Stack.Screen name="session/[id]/confirm-result" options={{ headerShown: false }} />
             <Stack.Screen name="session/[id]/review" options={{ headerShown: false }} />
+            <Stack.Screen name="(dev)/session-card-preview" options={{ headerShown: false }} />
           </Stack>
         </NotificationsProvider>
       </AppThemeProvider>

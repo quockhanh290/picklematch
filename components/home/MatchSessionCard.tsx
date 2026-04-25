@@ -6,6 +6,7 @@ import type { GestureResponderEvent } from 'react-native'
 import { Pressable, Text, View } from 'react-native'
 
 import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
+import { AppFontSet } from '@/constants/typography'
 import type { MatchSession } from '@/lib/homeFeed'
 import { getSkillLevelUi } from '@/lib/skillLevelUi'
 
@@ -156,7 +157,7 @@ function HeroMatchSessionCard({ item, actionLabel }: { item: MatchSession; actio
             minimumFontScale={0.68}
             style={{
               color: PROFILE_THEME_COLORS.primary,
-              fontFamily: 'PlusJakartaSans-ExtraBold',
+              fontFamily: AppFontSet.headline,
               fontSize: heroTitleFontSize,
               lineHeight: heroTitleLineHeight,
               letterSpacing: 0.8,
@@ -173,7 +174,7 @@ function HeroMatchSessionCard({ item, actionLabel }: { item: MatchSession; actio
           minimumFontScale={0.6}
           style={{
             color: withAlpha(PROFILE_THEME_COLORS.onSurfaceVariant, 0.44),
-            fontFamily: 'PlusJakartaSans-ExtraBoldItalic',
+            fontFamily: AppFontSet.display,
             fontSize: 44,
             lineHeight: 52,
           }}
@@ -291,7 +292,7 @@ function HeroMatchSessionCard({ item, actionLabel }: { item: MatchSession; actio
                 <Text
                   style={{
                     color: PROFILE_THEME_COLORS.onPrimary,
-                    fontFamily: 'PlusJakartaSans-ExtraBold',
+                    fontFamily: AppFontSet.headline,
                     fontSize: 15,
                   }}
                 >
@@ -345,7 +346,7 @@ function HeroMatchSessionCard({ item, actionLabel }: { item: MatchSession; actio
               <Text
                 style={{
                   color: PROFILE_THEME_COLORS.onSurface,
-                  fontFamily: 'PlusJakartaSans-ExtraBold',
+                  fontFamily: AppFontSet.headline,
                   fontSize: 16,
                 }}
               >
@@ -415,7 +416,7 @@ function HeroMatchSessionCard({ item, actionLabel }: { item: MatchSession; actio
                   <Text
                     style={{
                       color: PROFILE_THEME_COLORS.outlineVariant,
-                      fontFamily: 'PlusJakartaSans-ExtraBold',
+                      fontFamily: AppFontSet.headline,
                       fontSize: 10,
                     }}
                   >
@@ -457,7 +458,7 @@ function HeroMatchSessionCard({ item, actionLabel }: { item: MatchSession; actio
               <Text
                 style={{
                   color: PROFILE_THEME_COLORS.onPrimary,
-                  fontFamily: 'PlusJakartaSans-ExtraBold',
+                  fontFamily: AppFontSet.headline,
                   fontSize: 11,
                   textTransform: 'uppercase',
                   letterSpacing: 1.2,
@@ -558,7 +559,7 @@ function SessionListCard({
             ellipsizeMode="tail"
             style={{
               color: onAccentColor,
-              fontFamily: 'PlusJakartaSans-ExtraBold',
+              fontFamily: AppFontSet.headline,
               fontSize: 32,
               lineHeight: 38,
               letterSpacing: 0.8,
@@ -573,7 +574,7 @@ function SessionListCard({
           className="mt-1"
           style={{
             color: withAlpha(onAccentColor, 0.68),
-            fontFamily: 'PlusJakartaSans-ExtraBoldItalic',
+            fontFamily: AppFontSet.display,
             fontSize: 36,
             lineHeight: 42,
           }}
@@ -684,7 +685,7 @@ function SessionListCard({
               <Text
                 style={{
                   color: onAccentColor,
-                  fontFamily: 'PlusJakartaSans-ExtraBold',
+                  fontFamily: AppFontSet.headline,
                   fontSize: 15,
                 }}
               >
@@ -738,7 +739,7 @@ function SessionListCard({
             <Text
               style={{
                 color: PROFILE_THEME_COLORS.onSurface,
-                fontFamily: 'PlusJakartaSans-ExtraBold',
+                fontFamily: AppFontSet.headline,
                 fontSize: 16,
               }}
             >
@@ -808,7 +809,7 @@ function SessionListCard({
                 <Text
                   style={{
                     color: PROFILE_THEME_COLORS.outlineVariant,
-                    fontFamily: 'PlusJakartaSans-ExtraBold',
+                    fontFamily: AppFontSet.headline,
                     fontSize: 10,
                   }}
                 >
@@ -850,7 +851,7 @@ function SessionListCard({
             <Text
               style={{
                 color: onAccentColor,
-                fontFamily: 'PlusJakartaSans-ExtraBold',
+                fontFamily: AppFontSet.headline,
                 fontSize: 11,
                 textTransform: 'uppercase',
                 letterSpacing: 1.3,
@@ -864,3 +865,4 @@ function SessionListCard({
     </Pressable>
   )
 }
+
