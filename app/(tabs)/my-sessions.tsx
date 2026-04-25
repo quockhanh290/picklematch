@@ -1,26 +1,17 @@
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
-import { getEloBandForSessionRange } from '@/lib/eloSystem'
+﻿import { colors } from '@/constants/colors'
 import { resolveTab, type SessionRequestStatus, type SessionRole } from '@/lib/mySessionsLogic'
 import { getSessionSkillLabel } from '@/lib/sessionDetail'
-import { getSkillLevelUi } from '@/lib/skillLevelUi'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/lib/useAuth'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useFocusEffect } from '@react-navigation/native'
-import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
 import {
-  AlertCircle,
-  CalendarDays,
   ChevronDown,
   ChevronRight,
   Pencil as Edit3,
-  FileText,
-  Hourglass,
-  MapPin,
   Plus,
   Share2,
-  ShieldCheck,
   SlidersHorizontal,
   Star,
   UserRound,
@@ -38,6 +29,31 @@ import {
   View,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+
+const SCREEN_FONTS = {
+  headline: 'BarlowCondensed-Bold',
+  body: 'PlusJakartaSans-Regular',
+  label: 'PlusJakartaSans-SemiBold',
+  cta: 'PlusJakartaSans-Bold',
+} as const
+
+const PROFILE_THEME_COLORS = {
+  primary: colors.primary,
+  onPrimary: '#FFFFFF',
+  background: colors.background,
+  onBackground: colors.text,
+  onSurface: colors.text,
+  onSurfaceVariant: colors.textSecondary,
+  outline: colors.textSecondary,
+  outlineVariant: colors.border,
+  surfaceContainerLow: colors.surface,
+  surfaceContainerLowest: colors.surface,
+  surfaceContainerHighest: colors.surfaceAlt,
+  primaryContainer: colors.primaryLight,
+  onPrimaryContainer: colors.primaryDark,
+  secondaryContainer: colors.primaryLight,
+  onSecondaryContainer: colors.primaryDark,
+} as const
 
 function hexToRgb(hex: string) {
   const clean = hex.replace('#', '')
@@ -238,7 +254,7 @@ function MySessionsEmptyStateCard({ activeTab }: { activeTab: SessionTab }) {
       <Text
         style={{
           color: PROFILE_THEME_COLORS.outline,
-          fontFamily: 'PlusJakartaSans-ExtraBold',
+          fontFamily: SCREEN_FONTS.cta,
           fontSize: 10,
           letterSpacing: 2,
           textTransform: 'uppercase',
@@ -250,7 +266,7 @@ function MySessionsEmptyStateCard({ activeTab }: { activeTab: SessionTab }) {
         className="mt-3"
         style={{
           color: PROFILE_THEME_COLORS.onBackground,
-          fontFamily: 'PlusJakartaSans-ExtraBold',
+          fontFamily: SCREEN_FONTS.headline,
           fontSize: 22,
           lineHeight: 28,
         }}
@@ -261,7 +277,7 @@ function MySessionsEmptyStateCard({ activeTab }: { activeTab: SessionTab }) {
         className="mt-2"
         style={{
           color: PROFILE_THEME_COLORS.onSurfaceVariant,
-          fontFamily: 'PlusJakartaSans-Regular',
+          fontFamily: SCREEN_FONTS.body,
           fontSize: 14,
           lineHeight: 22,
         }}
@@ -291,155 +307,105 @@ function MySessionCard({
   formatDatePart: (value: string) => string
   formatTimeRange: (start: string, end: string) => string
 }) {
-  const skillBand = getEloBandForSessionRange(item.elo_min ?? 0, item.elo_max ?? 0)
-  const skillUi = getSkillLevelUi(skillBand.levelId)
-  const SkillIcon = skillUi.icon
-  const isHost = item.role === 'host'
   const isBooked = item.court_booking_status === 'confirmed'
   const isClosedRecruitment = item.status === 'closed_recruitment'
-  const progress = item.max_players > 0 ? Math.min(item.player_count / item.max_players, 1) : 0
-  const progressPercent = Math.max(progress * 100, 0)
-  const visiblePlayerCount = Math.min(item.player_count, 4)
-  const displayCap = Math.min(item.max_players, 4)
-  const emptySlots = Math.max(displayCap - visiblePlayerCount, 0)
-  const remainingPlayers = Math.max(item.player_count - visiblePlayerCount, 0)
   const address = [item.court_address, item.court_city].filter(Boolean).join(', ')
   const compactAddress = address.split(',').map((p) => p.trim()).filter(Boolean).slice(0, 2).join(', ')
   const hostInitials = (item.host_name || '?').slice(0, 1).toUpperCase()
-
-  const BADGE = {
-    backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
-    borderWidth: 1,
-    borderColor: PROFILE_THEME_COLORS.outlineVariant,
-  } as const
+  const bookingStatusLabel = isClosedRecruitment ? 'Đã ngừng nhận người' : isBooked ? 'Đã đặt sân' : 'Chưa đặt sân'
+  const bookingStatusColor = isClosedRecruitment ? colors.accentDark : isBooked ? colors.successText : colors.warningDark
 
   return (
     <Pressable
       onPress={() => onOpenSessionDetail(item.id)}
-      className="mb-4 overflow-hidden rounded-[34px] px-6 pt-6 pb-4"
+      className="mb-4 overflow-hidden rounded-[14px]"
       style={{
         backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
-        borderLeftWidth: 3,
-        borderLeftColor: PROFILE_THEME_COLORS.primary,
+        borderWidth: 0.5,
+        borderColor: PROFILE_THEME_COLORS.outlineVariant,
         shadowColor: PROFILE_THEME_COLORS.onBackground,
-        shadowOpacity: 0.06,
-        shadowRadius: 14,
-        shadowOffset: { width: 0, height: 6 },
-        elevation: 3,
+        shadowOpacity: 0.04,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 4 },
+        elevation: 2,
       }}
     >
-      <View style={{ position: 'absolute', top: -6, right: -16, zIndex: 0, opacity: 0.07 }} pointerEvents="none">
-        <SkillIcon size={96} color={PROFILE_THEME_COLORS.primary} strokeWidth={1.4} />
-      </View>
+      <View style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12 }}>
+        <Text
+          numberOfLines={1}
+          ellipsizeMode="tail"
+          style={{
+            color: PROFILE_THEME_COLORS.onBackground,
+            fontFamily: SCREEN_FONTS.headline,
+            fontSize: 24,
+            lineHeight: 26,
+            letterSpacing: 0.4,
+            textTransform: 'uppercase',
+          }}
+        >
+          {item.court_name}
+        </Text>
 
-      <Text
-        numberOfLines={2}
-        ellipsizeMode="tail"
-        style={{
-          color: PROFILE_THEME_COLORS.primary,
-          fontFamily: 'PlusJakartaSans-ExtraBold',
-          fontSize: 20,
-          lineHeight: 24,
-          letterSpacing: 0.8,
-          textTransform: 'uppercase',
-        }}
-      >
-        {item.court_name}
-      </Text>
-
-      {compactAddress ? (
-        <View className="mt-1">
-          <View
-            className="self-start flex-row items-center rounded-full px-3 py-1.5"
-            style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, maxWidth: '100%' }}
-          >
-            <MapPin size={13} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />
-            <Text
-              className="ml-1.5"
-              numberOfLines={1}
-              ellipsizeMode="tail"
-              style={{
-                color: PROFILE_THEME_COLORS.onSurfaceVariant,
-                fontFamily: 'PlusJakartaSans-SemiBold',
-                fontSize: 13,
-                lineHeight: 18,
-              }}
-            >
-              {compactAddress}
-            </Text>
-          </View>
-        </View>
-      ) : null}
-
-      <View className="mt-1 flex-row flex-wrap gap-2">
-        <View className="flex-row items-center rounded-full px-3 py-1.5" style={BADGE}>
-          <CalendarDays size={13} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6, marginBottom: 12 }}>
           <Text
-            className="ml-1.5"
             numberOfLines={1}
-            ellipsizeMode="tail"
             style={{
+              flex: 1,
               color: PROFILE_THEME_COLORS.onSurfaceVariant,
-              fontFamily: 'PlusJakartaSans-SemiBold',
+              fontFamily: SCREEN_FONTS.body,
               fontSize: 13,
-              lineHeight: 18,
             }}
           >
-            {`${formatDatePart(item.start_time)} • ${formatTimeRange(item.start_time, item.end_time)}`}
-          </Text>
-        </View>
-
-        <View className="flex-row items-center rounded-full px-3 py-1.5" style={BADGE}>
-          <SkillIcon size={13} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />
-          <Text
-            className="ml-1.5"
-            style={{
-              color: PROFILE_THEME_COLORS.onSurfaceVariant,
-              fontFamily: 'PlusJakartaSans-SemiBold',
-              fontSize: 13,
-              lineHeight: 18,
-            }}
-          >
-            {getSessionSkillLabel(item.elo_min ?? 0, item.elo_max ?? 0)}
+            {compactAddress || 'Đang cập nhật địa chỉ'}
           </Text>
         </View>
 
         <View
-          className="flex-row items-center rounded-full px-3 py-1.5"
-          style={isHost ? { backgroundColor: PROFILE_THEME_COLORS.primary } : BADGE}
+          style={{
+            backgroundColor: colors.surfaceAlt,
+            borderRadius: 10,
+            paddingHorizontal: 12,
+            paddingVertical: 10,
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginBottom: 12,
+          }}
         >
-          <UserRound
-            size={13}
-            color={isHost ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant}
-            strokeWidth={2.4}
-          />
-          <Text
-            className="ml-1.5"
-            style={{
-              color: isHost ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant,
-              fontFamily: 'PlusJakartaSans-SemiBold',
-              fontSize: 13,
-              lineHeight: 18,
-            }}
-          >
-            {isHost ? 'Chủ kèo' : 'Người chơi'}
-          </Text>
+          <View>
+            <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, fontSize: 11 }}>
+              {formatDatePart(item.start_time)}
+            </Text>
+            <Text style={{ color: PROFILE_THEME_COLORS.onBackground, fontFamily: SCREEN_FONTS.headline, fontSize: 22, lineHeight: 24 }}>
+              {formatTimeRange(item.start_time, item.end_time)}
+            </Text>
+          </View>
+          <View style={{ marginLeft: 'auto', flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ width: 6, height: 6, borderRadius: 999, backgroundColor: isBooked ? colors.success : colors.warning }} />
+            <Text style={{ marginLeft: 6, color: bookingStatusColor, fontFamily: SCREEN_FONTS.label, fontSize: 12 }}>
+              {bookingStatusLabel}
+            </Text>
+          </View>
         </View>
 
-        <View className="flex-row items-center rounded-full px-3 py-1.5" style={BADGE}>
-          {isClosedRecruitment || !isBooked
-            ? <AlertCircle size={13} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />
-            : <ShieldCheck size={13} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.4} />}
-          <Text
-            className="ml-1.5"
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, fontSize: 13 }}>
+            Trình độ
+          </Text>
+          <View
             style={{
-              color: PROFILE_THEME_COLORS.onSurfaceVariant,
-              fontFamily: 'PlusJakartaSans-SemiBold',
-              fontSize: 13,
-              lineHeight: 18,
+              marginLeft: 8,
+              backgroundColor: colors.primaryLight,
+              borderRadius: 6,
+              paddingHorizontal: 12,
+              paddingVertical: 3,
             }}
           >
-            {isClosedRecruitment ? 'Đã ngưng nhận người' : isBooked ? 'Đã đặt sân' : 'Chưa đặt sân'}
+            <Text style={{ color: colors.primary, fontFamily: SCREEN_FONTS.label, fontSize: 13 }}>
+              {getSessionSkillLabel(item.elo_min ?? 0, item.elo_max ?? 0)}
+            </Text>
+          </View>
+          <Text style={{ marginLeft: 'auto', color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, fontSize: 12 }}>
+            {`${item.player_count}/${item.max_players} đã vào`}
           </Text>
         </View>
       </View>
@@ -454,7 +420,7 @@ function MySessionCard({
         return (
           <Pressable
             onPress={canRate ? () => onOpenRateSession(item.id) : undefined}
-            className="mt-4 flex-row items-center justify-center rounded-[20px] px-4 py-3.5"
+            className="mt-4 flex-row items-center justify-center rounded-[10px] px-4 py-3.5"
             style={{
               backgroundColor: canRate
                 ? PROFILE_THEME_COLORS.primary
@@ -473,7 +439,7 @@ function MySessionCard({
               className="ml-2 text-[13px]"
               style={{
                 color: canRate ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant,
-                fontFamily: 'PlusJakartaSans-ExtraBold',
+                fontFamily: SCREEN_FONTS.cta,
               }}
             >
               {label}
@@ -482,8 +448,11 @@ function MySessionCard({
         )
       })() : (
       <View
-        className="mt-4 rounded-[24px] p-3.5"
-        style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow }}
+        className="p-3.5"
+        style={{
+          borderTopWidth: 0.5,
+          borderColor: PROFILE_THEME_COLORS.outlineVariant,
+        }}
       >
         <View className="flex-row items-center justify-between">
           <View className="mr-3 flex-1 flex-row items-center">
@@ -494,15 +463,15 @@ function MySessionCard({
               }}
               className="mr-3 h-11 w-11 items-center justify-center rounded-full"
               style={{
-                backgroundColor: PROFILE_THEME_COLORS.primary,
+                backgroundColor: PROFILE_THEME_COLORS.primaryContainer,
                 borderWidth: 1,
-                borderColor: withAlpha(PROFILE_THEME_COLORS.primary, 0.14),
+                borderColor: withAlpha(PROFILE_THEME_COLORS.primary, 0.22),
               }}
             >
               <Text
                 style={{
-                  color: PROFILE_THEME_COLORS.onPrimary,
-                  fontFamily: 'PlusJakartaSans-ExtraBold',
+                  color: PROFILE_THEME_COLORS.onPrimaryContainer,
+                  fontFamily: SCREEN_FONTS.cta,
                   fontSize: 15,
                 }}
               >
@@ -515,7 +484,7 @@ function MySessionCard({
                 numberOfLines={1}
                 style={{
                   color: PROFILE_THEME_COLORS.onSurface,
-                  fontFamily: 'PlusJakartaSans-SemiBold',
+                  fontFamily: SCREEN_FONTS.label,
                   fontSize: 13,
                 }}
               >
@@ -528,213 +497,47 @@ function MySessionCard({
             <Text
               style={{
                 color: PROFILE_THEME_COLORS.onSurface,
-                fontFamily: 'PlusJakartaSans-ExtraBold',
+                fontFamily: SCREEN_FONTS.cta,
                 fontSize: 16,
               }}
             >
               {item.player_count}/{item.max_players}
             </Text>
-            <Text
-              style={{
-                color: PROFILE_THEME_COLORS.onSurfaceVariant,
-                fontFamily: 'PlusJakartaSans-Regular',
-                fontSize: 10,
-              }}
-            >
-              người chơi
-            </Text>
           </View>
         </View>
 
-        <View
-          className="mt-3 h-2 overflow-hidden rounded-full"
-          style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHighest }}
-        >
-          <LinearGradient
-            colors={[PROFILE_THEME_COLORS.primary, PROFILE_THEME_COLORS.tertiary]}
-            start={{ x: 0, y: 0.5 }}
-            end={{ x: 1, y: 0.5 }}
-            style={{ width: `${Math.max(progressPercent, 8)}%`, height: '100%', borderRadius: 999 }}
-          />
-        </View>
-
-        <View className="mt-3 flex-row items-center">
-          {Array.from({ length: visiblePlayerCount }).map((_, index) => (
-            <View
-              key={index}
-              className={`h-8 w-8 items-center justify-center rounded-full ${index === 0 ? '' : '-ml-2.5'}`}
-              style={{
-                position: 'relative',
-                zIndex: 20 - index,
-                backgroundColor: PROFILE_THEME_COLORS.primary,
-                borderWidth: 2,
-                borderColor: PROFILE_THEME_COLORS.surfaceContainerLow,
-              }}
-            >
-              <UserRound size={14} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.2} />
-            </View>
-          ))}
-
-          {Array.from({ length: emptySlots }).map((_, index) => (
-            <View
-              key={`empty-${index}`}
-              className={`h-8 w-8 items-center justify-center rounded-full ${visiblePlayerCount === 0 && index === 0 ? '' : '-ml-2.5'}`}
-              style={{
-                position: 'relative',
-                zIndex: 1,
-                backgroundColor: 'transparent',
-                borderWidth: 1.5,
-                borderStyle: 'dashed',
-                borderColor: PROFILE_THEME_COLORS.outlineVariant,
-              }}
-            >
-              <Text
-                style={{
-                  color: PROFILE_THEME_COLORS.outlineVariant,
-                  fontFamily: 'PlusJakartaSans-ExtraBold',
-                  fontSize: 10,
-                }}
-              >
-                +
-              </Text>
-            </View>
-          ))}
-
-          {remainingPlayers > 0 ? (
-            <View
-              className="-ml-2.5 h-8 w-8 items-center justify-center rounded-full"
-              style={{
-                position: 'relative',
-                zIndex: 2,
-                backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHighest,
-                borderWidth: 2,
-                borderColor: PROFILE_THEME_COLORS.surfaceContainerLow,
-              }}
-            >
-              <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 10 }}>
-                +{remainingPlayers}
-              </Text>
-            </View>
-          ) : null}
-        </View>
-
-        {tab === 'pending' ? (
-          <View className="mt-3 gap-2">
-            <View
-              className="flex-row items-center rounded-[16px] px-4 py-3"
-              style={{
-                backgroundColor: isHost
-                  ? PROFILE_THEME_COLORS.secondaryContainer
-                  : PROFILE_THEME_COLORS.surfaceContainerHighest,
-              }}
-            >
-              <Hourglass
-                size={14}
-                color={isHost ? PROFILE_THEME_COLORS.onSecondaryContainer : PROFILE_THEME_COLORS.onSurfaceVariant}
-                strokeWidth={2.3}
-              />
-              <Text
-                className="ml-2 flex-1 text-[12px] leading-5"
-                style={{
-                  color: isHost ? PROFILE_THEME_COLORS.onSecondaryContainer : PROFILE_THEME_COLORS.onSurfaceVariant,
-                  fontFamily: 'PlusJakartaSans-SemiBold',
-                }}
-              >
-                {isHost
-                  ? 'Có người đang chờ bạn duyệt yêu cầu tham gia.'
-                  : 'Đang chờ chủ kèo phản hồi yêu cầu tham gia của bạn.'}
-              </Text>
-            </View>
-
-            <View className="flex-row gap-3">
-              <Pressable
-                onPress={() => {
-                  if (isHost) {
-                    router.push({ pathname: '/session/[id]/review' as any, params: { id: item.id } })
-                    return
-                  }
-                  onOpenSessionDetail(item.id)
-                }}
-                className="flex-1 flex-row items-center justify-center rounded-[20px] px-4 py-3.5"
-                style={{
-                  backgroundColor: isHost ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surfaceContainerLowest,
-                  borderWidth: isHost ? 0 : 1,
-                  borderColor: PROFILE_THEME_COLORS.outlineVariant,
-                }}
-              >
-                <FileText
-                  size={15}
-                  color={isHost ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurface}
-                  strokeWidth={2.3}
-                />
-                <Text
-                  className="ml-2 text-[13px]"
-                  style={{
-                    color: isHost ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurface,
-                    fontFamily: 'PlusJakartaSans-ExtraBold',
-                  }}
-                >
-                  {isHost ? 'Duyệt yêu cầu' : 'Xem chi tiết'}
-                </Text>
-              </Pressable>
-
-              <Pressable
-                onPress={() => void onShare(item)}
-                className="flex-1 flex-row items-center justify-center rounded-[20px] px-4 py-3.5"
-                style={{ backgroundColor: PROFILE_THEME_COLORS.secondaryContainer }}
-              >
-                <Share2 size={15} color={PROFILE_THEME_COLORS.onSecondaryContainer} strokeWidth={2.3} />
-                <Text
-                  className="ml-2 text-[13px]"
-                  style={{ color: PROFILE_THEME_COLORS.onSecondaryContainer, fontFamily: 'PlusJakartaSans-ExtraBold' }}
-                >
-                  Chia sẻ
-                </Text>
-              </Pressable>
-            </View>
-          </View>
-        ) : null}
-
-        {tab === 'upcoming' ? (
-          <View className="mt-3 flex-row gap-3">
+        <View className="mt-3 flex-row gap-3">
             <Pressable
               onPress={() => onOpenSessionDetail(item.id)}
-              className="flex-1 flex-row items-center justify-center rounded-[20px] px-4 py-3.5"
-              style={{
-                backgroundColor: isHost ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surfaceContainerLowest,
-                borderWidth: isHost ? 0 : 1,
-                borderColor: PROFILE_THEME_COLORS.outlineVariant,
-              }}
+              className="flex-1 flex-row items-center justify-center rounded-[10px] px-4 py-3.5"
+              style={{ backgroundColor: PROFILE_THEME_COLORS.primary }}
             >
-              {isHost
-                ? <Edit3 size={15} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.3} />
-                : <FileText size={15} color={PROFILE_THEME_COLORS.onSurface} strokeWidth={2.3} />}
+              <Edit3 size={15} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.3} />
               <Text
                 className="ml-2 text-[13px]"
                 style={{
-                  color: isHost ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurface,
-                  fontFamily: 'PlusJakartaSans-ExtraBold',
+                  color: PROFILE_THEME_COLORS.onPrimary,
+                  fontFamily: SCREEN_FONTS.cta,
                 }}
               >
-                {isHost ? 'Sửa kèo' : 'Chi tiết'}
+                Sửa kèo
               </Text>
             </Pressable>
 
             <Pressable
               onPress={() => void onShare(item)}
-              className="flex-1 flex-row items-center justify-center rounded-[20px] px-4 py-3.5"
+              className="flex-1 flex-row items-center justify-center rounded-[10px] px-4 py-3.5"
               style={{ backgroundColor: PROFILE_THEME_COLORS.secondaryContainer }}
             >
               <Share2 size={15} color={PROFILE_THEME_COLORS.onSecondaryContainer} strokeWidth={2.3} />
               <Text
                 className="ml-2 text-[13px]"
-                style={{ color: PROFILE_THEME_COLORS.onSecondaryContainer, fontFamily: 'PlusJakartaSans-ExtraBold' }}
+                style={{ color: PROFILE_THEME_COLORS.onSecondaryContainer, fontFamily: SCREEN_FONTS.cta }}
               >
                 Chia sẻ
               </Text>
             </Pressable>
           </View>
-        ) : null}
 
       </View>
       )}
@@ -1112,7 +915,7 @@ export default function MySessions() {
     return [
       'Cùng xem kèo pickleball này nhé:',
       session.court_name,
-      `${formatDatePart(session.start_time)} • ${formatTimeRange(session.start_time, session.end_time)}`,
+      `${formatDatePart(session.start_time)} · ${formatTimeRange(session.start_time, session.end_time)}`,
       session.court_address ? `${session.court_address}${session.court_city ? `, ${session.court_city}` : ''}` : '',
     ].filter(Boolean).join('\n')
   }
@@ -1295,6 +1098,7 @@ export default function MySessions() {
     return totals
   }, [filteredHistorySessions])
   const stickyHeaderIndices = isHistoryTab ? [1] : undefined
+  const activeTabCount = isHistoryTab ? filteredHistorySessions.length : activeSessions.length
 
   const loadMoreHistory = useCallback(() => {
     if (!isHistoryTab || !canLoadMoreHistory) return
@@ -1327,7 +1131,7 @@ export default function MySessions() {
       <Text
         style={{
           color: isActive ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant,
-          fontFamily: 'PlusJakartaSans-ExtraBold',
+          fontFamily: SCREEN_FONTS.cta,
           fontSize: 12,
         }}
       >
@@ -1343,7 +1147,7 @@ export default function MySessions() {
           <ActivityIndicator size="large" color={PROFILE_THEME_COLORS.primary} />
           <Text
             className="mt-4 text-[14px]"
-            style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-SemiBold' }}
+            style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.label }}
           >
             Đang tải kèo của bạn...
           </Text>
@@ -1364,16 +1168,16 @@ export default function MySessions() {
                 <View className="flex-row items-start justify-between py-1 mb-6">
                   <View className="flex-1 pr-4">
                     <Text
-                      className="text-[11px] uppercase tracking-[0.16em]"
-                      style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-ExtraBold' }}
-                    >
-                      LỊCH CỦA TÔI
-                    </Text>
-                    <Text
-                      className="mt-2 text-[28px] leading-[34px]"
-                      style={{ color: PROFILE_THEME_COLORS.onBackground, fontFamily: 'PlusJakartaSans-ExtraBold' }}
+                      className="text-[28px] leading-[34px]"
+                      style={{ color: PROFILE_THEME_COLORS.onBackground, fontFamily: SCREEN_FONTS.headline, letterSpacing: 1 }}
                     >
                       Kèo của tôi
+                    </Text>
+                    <Text
+                      className="mt-1 text-[13px] leading-[18px]"
+                      style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body }}
+                    >
+                      {`${activeTabCount} kèo`}
                     </Text>
                   </View>
                   <Pressable
@@ -1391,7 +1195,7 @@ export default function MySessions() {
                 </View>
 
                 <View
-                  className="rounded-[24px] p-1.5 flex-row gap-1.5"
+                  className="rounded-[14px] p-1.5 flex-row gap-1.5"
                   style={{
                     backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
                     borderWidth: 1,
@@ -1404,7 +1208,7 @@ export default function MySessions() {
                       <Pressable
                         key={tab.key}
                         onPress={() => setActiveTab(tab.key)}
-                        className="flex-1 rounded-[18px] px-3 py-3 items-center"
+                        className="flex-1 rounded-[10px] px-3 py-3 items-center"
                         style={active ? {
                           backgroundColor: PROFILE_THEME_COLORS.primary,
                           shadowColor: withAlpha(PROFILE_THEME_COLORS.primary, 0.4),
@@ -1417,7 +1221,7 @@ export default function MySessions() {
                         <Text
                           style={{
                             color: active ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant,
-                            fontFamily: 'PlusJakartaSans-ExtraBold',
+                            fontFamily: SCREEN_FONTS.cta,
                             fontSize: 13,
                           }}
                         >
@@ -1465,7 +1269,7 @@ export default function MySessions() {
                           className="ml-1.5"
                           style={{
                             color: activeHistoryFiltersCount > 0 ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant,
-                            fontFamily: 'PlusJakartaSans-ExtraBold',
+                            fontFamily: SCREEN_FONTS.cta,
                             fontSize: 12,
                           }}
                         >
@@ -1494,7 +1298,7 @@ export default function MySessions() {
                           className="ml-2 text-[11px] uppercase tracking-[2px]"
                           style={{
                             color: PROFILE_THEME_COLORS.outline,
-                            fontFamily: 'PlusJakartaSans-Bold',
+                            fontFamily: SCREEN_FONTS.cta,
                           }}
                         >
                           {item.monthLabel}
@@ -1505,7 +1309,7 @@ export default function MySessions() {
                         className="pl-3 text-[11px] uppercase tracking-[2px]"
                         style={{
                           color: PROFILE_THEME_COLORS.outline,
-                          fontFamily: 'PlusJakartaSans-Bold',
+                          fontFamily: SCREEN_FONTS.cta,
                         }}
                       >
                         {monthTotal} trận
@@ -1565,7 +1369,7 @@ export default function MySessions() {
                   <Text
                     style={{
                       color: PROFILE_THEME_COLORS.onBackground,
-                      fontFamily: 'PlusJakartaSans-ExtraBold',
+                      fontFamily: SCREEN_FONTS.cta,
                       fontSize: 18,
                     }}
                   >
@@ -1584,7 +1388,7 @@ export default function MySessions() {
                   className="mb-2"
                   style={{
                     color: PROFILE_THEME_COLORS.outline,
-                    fontFamily: 'PlusJakartaSans-ExtraBold',
+                    fontFamily: SCREEN_FONTS.cta,
                     fontSize: 10,
                     letterSpacing: 1.4,
                     textTransform: 'uppercase',
@@ -1607,7 +1411,7 @@ export default function MySessions() {
                   className="mb-2"
                   style={{
                     color: PROFILE_THEME_COLORS.outline,
-                    fontFamily: 'PlusJakartaSans-ExtraBold',
+                    fontFamily: SCREEN_FONTS.cta,
                     fontSize: 10,
                     letterSpacing: 1.4,
                     textTransform: 'uppercase',
@@ -1630,7 +1434,7 @@ export default function MySessions() {
                   className="mb-2"
                   style={{
                     color: PROFILE_THEME_COLORS.outline,
-                    fontFamily: 'PlusJakartaSans-ExtraBold',
+                    fontFamily: SCREEN_FONTS.cta,
                     fontSize: 10,
                     letterSpacing: 1.4,
                     textTransform: 'uppercase',
@@ -1653,7 +1457,7 @@ export default function MySessions() {
                   className="mb-2"
                   style={{
                     color: PROFILE_THEME_COLORS.outline,
-                    fontFamily: 'PlusJakartaSans-ExtraBold',
+                    fontFamily: SCREEN_FONTS.cta,
                     fontSize: 10,
                     letterSpacing: 1.4,
                     textTransform: 'uppercase',
@@ -1676,7 +1480,7 @@ export default function MySessions() {
                   className="mb-2"
                   style={{
                     color: PROFILE_THEME_COLORS.outline,
-                    fontFamily: 'PlusJakartaSans-ExtraBold',
+                    fontFamily: SCREEN_FONTS.cta,
                     fontSize: 10,
                     letterSpacing: 1.4,
                     textTransform: 'uppercase',
@@ -1700,7 +1504,7 @@ export default function MySessions() {
                   className="h-12 items-center justify-center rounded-full"
                   style={{ backgroundColor: PROFILE_THEME_COLORS.primary }}
                 >
-                  <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 13 }}>
+                  <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta, fontSize: 13 }}>
                     Áp dụng
                   </Text>
                 </Pressable>
@@ -1725,7 +1529,7 @@ export default function MySessions() {
             <Plus size={20} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.7} />
             <Text
               className="ml-3 text-sm uppercase tracking-[2.6px]"
-              style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-ExtraBold' }}
+              style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta }}
             >
               Tạo kèo mới
             </Text>
@@ -1735,5 +1539,6 @@ export default function MySessions() {
     </SafeAreaView>
   )
 }
+
 
 
