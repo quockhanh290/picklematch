@@ -38,7 +38,7 @@ interface SessionCardProps {
 
 type ChipVariant = 'urgent' | 'warn' | 'neutral'
 
-const CARD_HEIGHT = 344
+const CARD_HEIGHT = 271
 
 type ChipState = {
   variant: ChipVariant
@@ -83,6 +83,18 @@ function Chip({ variant, label }: { variant: ChipVariant; label: string }) {
   )
 }
 
+function getDayBadgeBackground(startTime: Date) {
+  const todayLabel = formatRelativeDate(new Date())
+  const tomorrow = new Date()
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  const tomorrowLabel = formatRelativeDate(tomorrow)
+  const dateLabel = formatRelativeDate(startTime)
+
+  if (dateLabel === todayLabel) return colors.primary
+  if (dateLabel === tomorrowLabel) return colors.textSecondary
+  return colors.textMuted
+}
+
 export default function SessionCard({ session, onPress, onJoinPress }: SessionCardProps) {
   const disabled = session.status === 'full' || session.status === 'past'
   const chip = getStatusChip(session.status, session.enrolledCount, session.capacity)
@@ -91,10 +103,13 @@ export default function SessionCard({ session, onPress, onJoinPress }: SessionCa
   const addressLine = distance ? `${session.courtAddress} · ${distance}` : session.courtAddress
 
   const courtNameSize = getCourtNameSize(session.courtName)
-  const courtNameLineHeight = courtNameSize === 26 ? 28 : courtNameSize === 22 ? 24 : 20
+  const compactCourtNameSize = courtNameSize === 26 ? 24 : courtNameSize
+  const courtNameLineHeight = compactCourtNameSize === 24 ? 26 : compactCourtNameSize === 22 ? 24 : 20
 
   const ctaLabel = session.status === 'past' ? 'Đã kết thúc' : session.status === 'full' ? 'Đã đầy' : 'Vào kèo'
   const levelChipLabel = session.levelDescription?.trim() || `Level ${session.level}`
+  const dateLabel = formatRelativeDate(session.startTime)
+  const dayBadgeBackground = getDayBadgeBackground(session.startTime)
 
   return (
     <Pressable onPress={onPress} style={styles.card}>
@@ -106,7 +121,7 @@ export default function SessionCard({ session, onPress, onJoinPress }: SessionCa
             style={[
               styles.courtName,
               {
-                fontSize: courtNameSize,
+                fontSize: compactCourtNameSize,
                 lineHeight: courtNameLineHeight,
                 color: disabled ? colors.textMuted : colors.text,
               },
@@ -124,9 +139,11 @@ export default function SessionCard({ session, onPress, onJoinPress }: SessionCa
         </View>
 
         <View style={styles.timeBlock}>
-          <View>
-            <Text style={[typography.bodyXs, { color: colors.textSecondary }]}>{formatRelativeDate(session.startTime)}</Text>
-            <Text style={[typography.displayMd, { color: disabled ? colors.textMuted : colors.text }]}>
+          <View style={styles.timeLabelRow}>
+            <View style={[styles.dayBadge, { backgroundColor: dayBadgeBackground }]}>
+              <Text style={styles.dayBadgeText}>{dateLabel.toLocaleUpperCase('vi-VN')}</Text>
+            </View>
+            <Text style={[styles.timeText, { color: disabled ? colors.textMuted : colors.text }]}>
               {formatTimeRange(session.startTime, session.endTime)}
             </Text>
           </View>
@@ -140,11 +157,11 @@ export default function SessionCard({ session, onPress, onJoinPress }: SessionCa
         </View>
 
         <View style={styles.levelRow}>
-          <Text style={[typography.bodyMd, { color: colors.textSecondary }]}>Trình độ</Text>
+          <Text style={[styles.levelLabel, { color: colors.textSecondary }]}>Trình độ</Text>
           <View style={styles.levelChip}>
-            <Text style={[typography.labelMd, { color: colors.primary }]}>{levelChipLabel}</Text>
+            <Text style={[styles.levelChipText, { color: colors.primary }]}>{levelChipLabel}</Text>
           </View>
-          <Text style={[typography.bodySm, styles.levelMatchHint, { color: colors.textSecondary }]}>
+          <Text style={[styles.levelMatchHint, { color: colors.textSecondary }]}>
             {session.levelMatchesUser ? 'khớp với bạn' : 'chưa khớp'}
           </Text>
         </View>
@@ -156,7 +173,7 @@ export default function SessionCard({ session, onPress, onJoinPress }: SessionCa
             <Text style={[styles.avatarInitial, { color: avatar.fg }]}>{session.host.initial}</Text>
           </View>
           <View style={styles.hostMeta}>
-            <Text numberOfLines={1} style={[typography.labelMd, { color: disabled ? colors.textMuted : colors.text }]}>
+            <Text numberOfLines={1} style={[styles.hostName, { color: disabled ? colors.textMuted : colors.text }]}>
               {session.host.name}
             </Text>
             <Text style={[typography.bodyXs, { color: disabled ? colors.textMuted : colors.textSecondary }]}>{`Chủ kèo · ${session.enrolledCount}/${session.capacity} đã vào`}</Text>
@@ -165,7 +182,7 @@ export default function SessionCard({ session, onPress, onJoinPress }: SessionCa
 
         <View style={styles.priceWrap}>
           <Text style={[styles.priceValue, { color: disabled ? colors.textMuted : colors.text }]}>{formatVND(session.pricePerPerson)}</Text>
-          <Text style={[typography.bodyXs, { color: disabled ? colors.textMuted : colors.textSecondary }]}>/người</Text>
+          <Text style={[typography.bodyXs, styles.priceUnit, { color: disabled ? colors.textMuted : colors.textSecondary }]}>/người</Text>
         </View>
       </View>
 
@@ -180,7 +197,7 @@ export default function SessionCard({ session, onPress, onJoinPress }: SessionCa
           }}
           style={[styles.ctaButton, disabled ? styles.ctaButtonDisabled : styles.ctaButtonActive]}
         >
-          <Text style={[typography.cta, { color: '#FFFFFF' }]}>{ctaLabel}</Text>
+          <Text style={[styles.ctaText, { color: '#FFFFFF' }]}>{ctaLabel.toLocaleUpperCase('vi-VN')}</Text>
         </Pressable>
       </View>
     </Pressable>
@@ -198,13 +215,13 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   topSection: {
-    height: 196,
-    paddingHorizontal: 18,
-    paddingTop: 16,
+    height: 151,
+    paddingHorizontal: 16,
+    paddingTop: 14,
   },
   courtNameWrap: {
     height: 28,
-    marginBottom: 6,
+    marginBottom: 3,
     justifyContent: 'center',
   },
   courtName: {
@@ -215,7 +232,7 @@ const styles = StyleSheet.create({
   subHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 14,
+    marginBottom: 8,
   },
   addressText: {
     flex: 1,
@@ -233,12 +250,34 @@ const styles = StyleSheet.create({
   },
   timeBlock: {
     backgroundColor: colors.surfaceAlt,
-    borderRadius: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    marginBottom: 14,
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginBottom: 8,
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  timeLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    columnGap: 8,
+  },
+  dayBadge: {
+    borderRadius: 4,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+  },
+  dayBadgeText: {
+    fontFamily: 'PlusJakartaSans-Bold',
+    fontSize: 10,
+    lineHeight: 12,
+    color: '#FFFFFF',
+  },
+  timeText: {
+    fontFamily: 'BarlowCondensed-Bold',
+    fontSize: 19,
+    lineHeight: 22,
+    letterSpacing: 0.3,
   },
   bookingWrap: {
     marginLeft: 'auto',
@@ -254,24 +293,38 @@ const styles = StyleSheet.create({
   levelRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 0,
+    paddingBottom: 2,
     columnGap: 10,
+  },
+  levelLabel: {
+    fontFamily: 'PlusJakartaSans-Regular',
+    fontSize: 12,
+    lineHeight: 16,
   },
   levelChip: {
     backgroundColor: colors.primaryLight,
     borderRadius: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 3,
+    paddingHorizontal: 10,
+    paddingVertical: 2,
+  },
+  levelChipText: {
+    fontFamily: 'PlusJakartaSans-SemiBold',
+    fontSize: 12,
+    lineHeight: 16,
   },
   levelMatchHint: {
+    fontFamily: 'PlusJakartaSans-Regular',
+    fontSize: 11,
+    lineHeight: 14,
     marginLeft: 'auto',
   },
   footerSection: {
-    height: 62,
+    height: 52,
     borderTopWidth: 0.5,
     borderTopColor: colors.border,
-    paddingVertical: 12,
-    paddingHorizontal: 18,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -283,19 +336,24 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   avatar: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarInitial: {
     fontFamily: 'BarlowCondensed-Bold',
-    fontSize: 18,
+    fontSize: 16,
+    lineHeight: 16,
+  },
+  hostName: {
+    fontFamily: 'PlusJakartaSans-SemiBold',
+    fontSize: 13,
     lineHeight: 18,
   },
   hostMeta: {
-    marginLeft: 10,
+    marginLeft: 8,
     flex: 1,
   },
   priceWrap: {
@@ -307,11 +365,14 @@ const styles = StyleSheet.create({
     lineHeight: 26,
     letterSpacing: 0.3,
   },
+  priceUnit: {
+    marginTop: 0,
+  },
   ctaSection: {
-    height: 86,
+    height: 68,
     paddingHorizontal: 14,
     paddingTop: 8,
-    paddingBottom: 14,
+    paddingBottom: 12,
     justifyContent: 'center',
   },
   ctaButton: {
@@ -320,6 +381,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.primaryDark,
     borderRadius: 10,
+    paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: colors.primaryDark,
@@ -335,5 +397,11 @@ const styles = StyleSheet.create({
   ctaButtonDisabled: {
     backgroundColor: '#6B7280',
     borderColor: '#6B7280',
+  },
+  ctaText: {
+    fontFamily: 'PlusJakartaSans-Bold',
+    fontSize: 14,
+    lineHeight: 20,
+    letterSpacing: 0.2,
   },
 })

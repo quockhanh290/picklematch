@@ -195,12 +195,14 @@ export function useHomeFeedData(userId?: string | null, isAuthLoading?: boolean)
         .map((item) => {
           const slot = normalizeRelation(item.slot)
           const court = normalizeRelation(slot?.court ?? null)
+          const startTime = slot?.start_time ?? ''
           const endTime = slot?.end_time ?? ''
 
           return {
             id: item.id,
             courtName: court?.name ?? 'Kèo Pickleball',
             timeLabel: formatPendingResultTimeLabel(endTime),
+            startTime,
             endTime,
           }
         })
@@ -215,6 +217,7 @@ export function useHomeFeedData(userId?: string | null, isAuthLoading?: boolean)
           const session = normalizeRelation(row.session ?? null)
           const slot = normalizeRelation(session?.slot ?? null)
           const court = normalizeRelation(slot?.court ?? null)
+          const startTime = slot?.start_time ?? ''
           const endTime = slot?.end_time ?? ''
           const endMs = Date.parse(endTime)
 
@@ -226,6 +229,8 @@ export function useHomeFeedData(userId?: string | null, isAuthLoading?: boolean)
               id: session.id,
               courtName: court?.name ?? 'K??o Pickleball',
               timeLabel: formatPendingResultTimeLabel(endTime),
+              startTime,
+              endTime,
               actionType: 'confirm' as const,
               resultsStatus: session.results_status,
             })
@@ -237,6 +242,8 @@ export function useHomeFeedData(userId?: string | null, isAuthLoading?: boolean)
               id: session.id,
               courtName: court?.name ?? 'K??o Pickleball',
               timeLabel: formatPendingResultTimeLabel(endTime),
+              startTime,
+              endTime,
               actionType: 'report' as const,
               resultsStatus: 'not_submitted' as const,
             })
@@ -260,13 +267,18 @@ export function useHomeFeedData(userId?: string | null, isAuthLoading?: boolean)
             })
           : null,
       )
-      setPersonalizedSessions(
-        sortedOpenSessions
+      const nextPersonalizedSessions = sortedOpenSessions
           .filter((session) => session.id !== liveNextSession?.id)
           .map((session) => mapLiveSessionToMatchSession(session, { viewerId: userId, viewerElo }))
           .sort((left, right) => right.matchScore - left.matchScore)
-          .slice(0, 5),
-      )
+          .slice(0, 5)
+          .map((session, index, sessions) => ({
+            ...session,
+            carouselIndex: index,
+            carouselTotal: sessions.length,
+          }))
+
+      setPersonalizedSessions(nextPersonalizedSessions)
       setRescueSessions(
         sortedOpenSessions
           .filter((session) => {

@@ -185,6 +185,26 @@ function formatDatePart(value: string) {
   return `${weekday} ${day}`
 }
 
+function formatDateBadgeLabel(value: string) {
+  const date = new Date(value)
+  const today = new Date()
+  const tomorrow = new Date()
+  tomorrow.setDate(today.getDate() + 1)
+
+  const isSameDay =
+    (a: Date, b: Date) =>
+      a.getFullYear() === b.getFullYear() &&
+      a.getMonth() === b.getMonth() &&
+      a.getDate() === b.getDate()
+
+  if (isSameDay(date, today)) return 'Hôm nay'
+  if (isSameDay(date, tomorrow)) return 'Ngày mai'
+
+  const weekday = date.getDay() === 0 ? 'Chủ nhật' : `Thứ ${date.getDay() + 1}`
+  const day = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}`
+  return `${weekday}, ${day}`
+}
+
 function formatTimeRange(start: string, end: string) {
   const startDate = new Date(start)
   const endDate = new Date(end)
@@ -193,6 +213,31 @@ function formatTimeRange(start: string, end: string) {
   const endHour = endDate.getHours().toString().padStart(2, '0')
   const endMinute = endDate.getMinutes().toString().padStart(2, '0')
   return `${startHour}:${startMinute} - ${endHour}:${endMinute}`
+}
+
+function getDayBadgeBackground(value: string) {
+  const startDate = new Date(value)
+  const today = new Date()
+  const tomorrow = new Date()
+  tomorrow.setDate(today.getDate() + 1)
+
+  if (
+    startDate.getFullYear() === today.getFullYear() &&
+    startDate.getMonth() === today.getMonth() &&
+    startDate.getDate() === today.getDate()
+  ) {
+    return colors.primary
+  }
+
+  if (
+    startDate.getFullYear() === tomorrow.getFullYear() &&
+    startDate.getMonth() === tomorrow.getMonth() &&
+    startDate.getDate() === tomorrow.getDate()
+  ) {
+    return colors.textSecondary
+  }
+
+  return colors.textMuted
 }
 
 function isSessionInPast(session: Pick<MySession, 'start_time' | 'end_time'>, nowMs = Date.now()) {
@@ -314,6 +359,8 @@ function MySessionCard({
   const hostInitials = (item.host_name || '?').slice(0, 1).toUpperCase()
   const bookingStatusLabel = isClosedRecruitment ? 'Đã ngừng nhận người' : isBooked ? 'Đã đặt sân' : 'Chưa đặt sân'
   const bookingStatusColor = isClosedRecruitment ? colors.accentDark : isBooked ? colors.successText : colors.warningDark
+  const dateBadgeLabel = formatDateBadgeLabel(item.start_time).toLocaleUpperCase('vi-VN')
+  const dateBadgeBackground = getDayBadgeBackground(item.start_time)
 
   return (
     <Pressable
@@ -330,7 +377,7 @@ function MySessionCard({
         elevation: 2,
       }}
     >
-      <View style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12 }}>
+      <View style={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 10 }}>
         <Text
           numberOfLines={1}
           ellipsizeMode="tail"
@@ -346,7 +393,7 @@ function MySessionCard({
           {item.court_name}
         </Text>
 
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6, marginBottom: 12 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 3, marginBottom: 8 }}>
           <Text
             numberOfLines={1}
             style={{
@@ -363,19 +410,29 @@ function MySessionCard({
         <View
           style={{
             backgroundColor: colors.surfaceAlt,
-            borderRadius: 10,
+            borderRadius: 8,
             paddingHorizontal: 12,
-            paddingVertical: 10,
+            paddingVertical: 8,
             flexDirection: 'row',
             alignItems: 'center',
-            marginBottom: 12,
+            marginBottom: 8,
           }}
         >
-          <View>
-            <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, fontSize: 11 }}>
-              {formatDatePart(item.start_time)}
-            </Text>
-            <Text style={{ color: PROFILE_THEME_COLORS.onBackground, fontFamily: SCREEN_FONTS.headline, fontSize: 22, lineHeight: 24 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View
+              style={{
+                backgroundColor: dateBadgeBackground,
+                borderRadius: 4,
+                paddingHorizontal: 7,
+                paddingVertical: 2,
+                marginRight: 8,
+              }}
+            >
+              <Text style={{ color: '#FFFFFF', fontFamily: SCREEN_FONTS.cta, fontSize: 10, lineHeight: 12 }}>
+                {dateBadgeLabel}
+              </Text>
+            </View>
+            <Text style={{ color: PROFILE_THEME_COLORS.onBackground, fontFamily: SCREEN_FONTS.headline, fontSize: 19, lineHeight: 22 }}>
               {formatTimeRange(item.start_time, item.end_time)}
             </Text>
           </View>
@@ -387,8 +444,8 @@ function MySessionCard({
           </View>
         </View>
 
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, fontSize: 13 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', paddingBottom: 2 }}>
+          <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, fontSize: 12, lineHeight: 16 }}>
             Trình độ
           </Text>
           <View
@@ -396,15 +453,15 @@ function MySessionCard({
               marginLeft: 8,
               backgroundColor: colors.primaryLight,
               borderRadius: 6,
-              paddingHorizontal: 12,
-              paddingVertical: 3,
+              paddingHorizontal: 10,
+              paddingVertical: 2,
             }}
           >
-            <Text style={{ color: colors.primary, fontFamily: SCREEN_FONTS.label, fontSize: 13 }}>
+            <Text style={{ color: colors.primary, fontFamily: SCREEN_FONTS.label, fontSize: 12, lineHeight: 16 }}>
               {getSessionSkillLabel(item.elo_min ?? 0, item.elo_max ?? 0)}
             </Text>
           </View>
-          <Text style={{ marginLeft: 'auto', color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, fontSize: 12 }}>
+          <Text style={{ marginLeft: 'auto', color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, fontSize: 11, lineHeight: 14 }}>
             {`${item.player_count}/${item.max_players} đã vào`}
           </Text>
         </View>
@@ -420,7 +477,7 @@ function MySessionCard({
         return (
           <Pressable
             onPress={canRate ? () => onOpenRateSession(item.id) : undefined}
-            className="mt-4 flex-row items-center justify-center rounded-[10px] px-4 py-3.5"
+            className="mt-3 flex-row items-center justify-center rounded-[10px] px-4 py-3"
             style={{
               backgroundColor: canRate
                 ? PROFILE_THEME_COLORS.primary
@@ -436,7 +493,7 @@ function MySessionCard({
               strokeWidth={2.3}
             />
             <Text
-              className="ml-2 text-[13px]"
+              className="ml-2 text-[14px]"
               style={{
                 color: canRate ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant,
                 fontFamily: SCREEN_FONTS.cta,
@@ -448,10 +505,11 @@ function MySessionCard({
         )
       })() : (
       <View
-        className="p-3.5"
         style={{
           borderTopWidth: 0.5,
           borderColor: PROFILE_THEME_COLORS.outlineVariant,
+          paddingHorizontal: 16,
+          paddingVertical: 10,
         }}
       >
         <View className="flex-row items-center justify-between">
@@ -461,18 +519,22 @@ function MySessionCard({
                 event.stopPropagation()
                 onOpenHostProfile(item.host_id)
               }}
-              className="mr-3 h-11 w-11 items-center justify-center rounded-full"
+              className="items-center justify-center rounded-full"
               style={{
+                width: 32,
+                height: 32,
                 backgroundColor: PROFILE_THEME_COLORS.primaryContainer,
                 borderWidth: 1,
                 borderColor: withAlpha(PROFILE_THEME_COLORS.primary, 0.22),
+                marginRight: 8,
               }}
             >
               <Text
                 style={{
                   color: PROFILE_THEME_COLORS.onPrimaryContainer,
                   fontFamily: SCREEN_FONTS.cta,
-                  fontSize: 15,
+                  fontSize: 16,
+                  lineHeight: 16,
                 }}
               >
                 {hostInitials}
@@ -486,6 +548,7 @@ function MySessionCard({
                   color: PROFILE_THEME_COLORS.onSurface,
                   fontFamily: SCREEN_FONTS.label,
                   fontSize: 13,
+                  lineHeight: 18,
                 }}
               >
                 {item.host_name || 'Ẩn danh'}
@@ -509,12 +572,12 @@ function MySessionCard({
         <View className="mt-3 flex-row gap-3">
             <Pressable
               onPress={() => onOpenSessionDetail(item.id)}
-              className="flex-1 flex-row items-center justify-center rounded-[10px] px-4 py-3.5"
+              className="flex-1 flex-row items-center justify-center rounded-[10px] px-4 py-3"
               style={{ backgroundColor: PROFILE_THEME_COLORS.primary }}
             >
               <Edit3 size={15} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.3} />
               <Text
-                className="ml-2 text-[13px]"
+                className="ml-2 text-[14px]"
                 style={{
                   color: PROFILE_THEME_COLORS.onPrimary,
                   fontFamily: SCREEN_FONTS.cta,
@@ -526,12 +589,12 @@ function MySessionCard({
 
             <Pressable
               onPress={() => void onShare(item)}
-              className="flex-1 flex-row items-center justify-center rounded-[10px] px-4 py-3.5"
+              className="flex-1 flex-row items-center justify-center rounded-[10px] px-4 py-3"
               style={{ backgroundColor: PROFILE_THEME_COLORS.secondaryContainer }}
             >
               <Share2 size={15} color={PROFILE_THEME_COLORS.onSecondaryContainer} strokeWidth={2.3} />
               <Text
-                className="ml-2 text-[13px]"
+                className="ml-2 text-[14px]"
                 style={{ color: PROFILE_THEME_COLORS.onSecondaryContainer, fontFamily: SCREEN_FONTS.cta }}
               >
                 Chia sẻ
@@ -958,12 +1021,8 @@ export default function MySessions() {
             .sort((a, b) => {
               const aTime = new Date(a.start_time).getTime()
               const bTime = new Date(b.start_time).getTime()
-              const safeATime = Number.isNaN(aTime) ? (tab.key === 'history' ? 0 : Number.MAX_SAFE_INTEGER) : aTime
-              const safeBTime = Number.isNaN(bTime) ? (tab.key === 'history' ? 0 : Number.MAX_SAFE_INTEGER) : bTime
-              if (tab.key === 'history') return safeBTime - safeATime
-              const bookingWeight =
-                Number(b.court_booking_status === 'confirmed') - Number(a.court_booking_status === 'confirmed')
-              if (bookingWeight !== 0) return bookingWeight
+              const safeATime = Number.isNaN(aTime) ? Number.MAX_SAFE_INTEGER : aTime
+              const safeBTime = Number.isNaN(bTime) ? Number.MAX_SAFE_INTEGER : bTime
               return safeATime - safeBTime
             })
           return acc
@@ -1539,6 +1598,3 @@ export default function MySessions() {
     </SafeAreaView>
   )
 }
-
-
-

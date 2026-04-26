@@ -117,6 +117,7 @@ export type PendingMatch = {
   id: string
   courtName: string
   timeLabel: string
+  startTime?: string
   endTime: string
 }
 
@@ -124,6 +125,8 @@ export type PostMatchAction = {
   id: string
   courtName: string
   timeLabel: string
+  startTime?: string
+  endTime?: string
   actionType: 'confirm' | 'report'
   resultsStatus: 'pending_confirmation' | 'disputed' | 'not_submitted'
 }
@@ -137,6 +140,8 @@ export type MatchSession = {
   matchScore: number
   skillLabel: string
   timeLabel: string
+  startTime?: string
+  endTime?: string
   priceLabel: string
   openSlotsLabel: string
   statusLabel: string
@@ -149,6 +154,8 @@ export type MatchSession = {
   players: Player[]
   urgent?: boolean
   joined?: boolean
+  carouselIndex?: number
+  carouselTotal?: number
 }
 
 export type FamiliarCourt = {
@@ -355,6 +362,8 @@ export function mapLiveSessionToMatchSession(
     matchScore: computeLiveMatchScore(session, options?.viewerElo, joined),
     skillLabel: getSkillLevelUi(levelId).shortLabel,
     timeLabel: formatTimeLabel(session.slot?.start_time ?? new Date().toISOString(), session.slot?.end_time ?? new Date().toISOString()),
+    startTime: session.slot?.start_time,
+    endTime: session.slot?.end_time,
     priceLabel: formatPriceLabel(session.slot?.price ?? 0, session.max_players),
     openSlotsLabel: urgent ? `Thiếu ${Math.max(slotsLeft, 1)} người` : `${slotsLeft} chỗ trống`,
     statusLabel: getStatusLabel(session.court_booking_status, session.status),
@@ -611,5 +620,3 @@ export function buildUpcomingMatchPreviewSession(): MatchSession {
     joined: true,
   }
 }
-
-

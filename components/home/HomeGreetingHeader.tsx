@@ -1,47 +1,68 @@
 import { router } from 'expo-router'
-import { Hand, UserRound } from 'lucide-react-native'
-import { Pressable, Text, View } from 'react-native'
+import { Image, Pressable, Text, View } from 'react-native'
 
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+function getGreetingLabel() {
+  const hour = new Date().getHours()
 
-const iconStroke = 2.7
+  if (hour >= 5 && hour <= 11) return 'Chào buổi sáng ☀️'
+  if (hour >= 12 && hour <= 17) return 'Chào buổi chiều 🌤️'
+  if (hour >= 18 && hour <= 21) return 'Chào buổi tối 🌙'
+  return 'Xin chào 👋'
+}
 
 export function HomeGreetingHeader({
   name,
   statusPrompt,
+  profilePhotoUrl,
 }: {
   name: string
   statusPrompt: string
+  profilePhotoUrl?: string | null
 }) {
+  const displayName = name.trim() || 'Bạn'
+  const initial = displayName.charAt(0).toUpperCase()
+
   return (
-    <View className="flex-row items-start justify-between px-1 py-1">
-      <View className="flex-1 pr-4">
-        <View className="flex-row items-center">
-          <Text className="text-[28px] leading-[34px]" style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: 'PlusJakartaSans-ExtraBold' }}>
-            Chào, {name}
-          </Text>
-          <View className="ml-2 rounded-full p-2" style={{ backgroundColor: PROFILE_THEME_COLORS.secondaryContainer }}>
-            <Hand size={18} color={PROFILE_THEME_COLORS.primary} strokeWidth={iconStroke} />
-          </View>
-        </View>
-        <Text className="mt-2 text-[14px]" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-BoldItalic', lineHeight: 22 }}>
+    <View className="flex-row items-start justify-between" style={{ paddingHorizontal: 16, paddingTop: 4 }}>
+      <View className="min-w-0 flex-1 pr-4">
+        <Text
+          className="mb-[3px] text-[11px]"
+          style={{ color: '#7A8884', fontFamily: 'PlusJakartaSans-SemiBold', lineHeight: 15 }}
+        >
+          {getGreetingLabel()}
+        </Text>
+
+        <Text
+          className="text-[32px] uppercase"
+          numberOfLines={1}
+          ellipsizeMode="tail"
+          style={{ color: '#1A2E2A', fontFamily: 'BarlowCondensed-Bold', lineHeight: 34, letterSpacing: 0 }}
+        >
+          {displayName.toUpperCase()}
+        </Text>
+
+        <Text
+          className="mt-1 text-[12px]"
+          numberOfLines={1}
+          ellipsizeMode="tail"
+          style={{ color: '#7A8884', fontFamily: 'PlusJakartaSans-Regular', lineHeight: 17 }}
+        >
           {statusPrompt}
         </Text>
       </View>
 
       <Pressable
         onPress={() => router.push('/(tabs)/profile' as never)}
-        className="mt-1 h-16 w-16 items-center justify-center rounded-full p-1.5"
-        style={{
-          backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
-        }}
+        className="h-[42px] w-[42px] items-center justify-center overflow-hidden rounded-full border-2"
+        style={{ backgroundColor: '#E1F5EE', borderColor: '#C5DDD3' }}
       >
-        <View
-          className="flex-1 self-stretch items-center justify-center rounded-full"
-          style={{ backgroundColor: PROFILE_THEME_COLORS.primaryContainer }}
-        >
-          <UserRound size={30} color={PROFILE_THEME_COLORS.onPrimaryContainer} strokeWidth={2.4} />
-        </View>
+        {profilePhotoUrl ? (
+          <Image source={{ uri: profilePhotoUrl }} className="h-full w-full" resizeMode="cover" />
+        ) : (
+          <Text style={{ color: '#0F6E56', fontFamily: 'BarlowCondensed-Bold', fontSize: 18, lineHeight: 22 }}>
+            {initial}
+          </Text>
+        )}
       </Pressable>
     </View>
   )

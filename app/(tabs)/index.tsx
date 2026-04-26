@@ -1,7 +1,6 @@
-import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
-import { Flame, Plus } from 'phosphor-react-native'
-import { memo, useCallback, useMemo, useState } from 'react'
+import { Plus } from 'phosphor-react-native'
+import { memo, useCallback, useState } from 'react'
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
@@ -12,19 +11,12 @@ import { MatchSessionCard } from '@/components/home/MatchSessionCard'
 import { PostMatchInboxSection } from '@/components/home/PostMatchInboxSection'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { useHomeFeedData } from '@/hooks/useHomeFeedData'
-import { buildUpcomingMatchPreviewSession, type FamiliarCourt, type MatchSession } from '@/lib/homeFeed'
+import type { FamiliarCourt, MatchSession } from '@/lib/homeFeed'
 import { useAppTheme } from '@/lib/theme-context'
 import { useAuth } from '@/lib/useAuth'
 
 const CAROUSEL_SECTION_HEIGHT = 430
 const COURT_CAROUSEL_HEIGHT = 272
-
-function withAlpha(hex: string, alpha: number) {
-  const clean = hex.replace('#', '')
-  const normalized = clean.length === 3 ? clean.split('').map((char) => char + char).join('') : clean
-  const n = Number.parseInt(normalized, 16)
-  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`
-}
 
 const SmartMatchCard = memo(function SmartMatchCard({ item, accentMode = 'default' }: { item: MatchSession; accentMode?: 'default' | 'rescue' }) {
   return <MatchSessionCard item={item} variant="standard" actionLabel={item.joined ? 'Xem kèo' : 'Vào kèo'} accentMode={accentMode} />
@@ -47,49 +39,59 @@ const HeroThemeCard = memo(function HeroThemeCard({
 const HomeStreakCard = memo(function HomeStreakCard({ current }: { current: number }) {
   if (current <= 0) return null
 
-  return (
-    <View className="relative mt-5 overflow-hidden rounded-[32px] px-6 py-5 shadow-sm">
-      <View style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, backgroundColor: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.7) }} />
-      <LinearGradient
-        colors={[PROFILE_THEME_COLORS.primaryContainer, PROFILE_THEME_COLORS.tertiaryContainer]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}
-      />
-      <Flame
-        size={132}
-        color={withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.12)}
-        style={{ position: 'absolute', right: -18, bottom: -36 }}
-      />
+  if (current < 3) {
+    const remaining = 3 - current
 
-      <View style={{ paddingRight: 0 }}>
-        <View className="flex-row items-center justify-between gap-3">
-          <View className="flex-1 flex-row items-center">
+    return (
+      <View
+        className="mt-4 flex-row items-center rounded-[10px] border"
+        style={{ marginHorizontal: 16, paddingHorizontal: 14, paddingVertical: 9, borderColor: '#C5DDD3', backgroundColor: '#FFFFFF', columnGap: 8 }}
+      >
+        <Text style={{ fontSize: 15, lineHeight: 18 }}>🔥</Text>
+        <Text className="min-w-0 flex-1 text-[12px]" style={{ color: '#1A2E2A', fontFamily: 'PlusJakartaSans-SemiBold', lineHeight: 17 }}>
+          Chuỗi{' '}
+          <Text style={{ color: '#0F6E56', fontFamily: 'PlusJakartaSans-Bold' }}>{current}</Text>
+          {' '}ngày · {remaining} ngày nữa lên huy hiệu
+        </Text>
+        <Text style={{ color: '#7A8884', fontFamily: 'PlusJakartaSans-Regular', fontSize: 14, lineHeight: 18 }}>›</Text>
+      </View>
+    )
+  }
+
+  const filledPips = Math.min(current, 10)
+
+  return (
+    <View
+      className="mt-4 flex-row items-center rounded-[10px]"
+      style={{ marginHorizontal: 16, paddingHorizontal: 14, paddingVertical: 10, backgroundColor: '#0F6E56', columnGap: 12 }}
+    >
+      <Text style={{ fontSize: 22, lineHeight: 26 }}>🔥</Text>
+
+      <View className="min-w-0 flex-1">
+        <Text
+          className="mb-1 text-[10px] uppercase"
+          style={{ color: '#A8D9C8', fontFamily: 'PlusJakartaSans-SemiBold', letterSpacing: 0.5, lineHeight: 14 }}
+        >
+          CHUỖI RA SÂN
+        </Text>
+        <View className="flex-row" style={{ columnGap: 4 }}>
+          {Array.from({ length: 10 }).map((_, index) => (
             <View
-              className="mr-2 h-9 w-9 items-center justify-center rounded-full"
-              style={{ backgroundColor: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.14) }}
-            >
-              <Flame size={16} color={PROFILE_THEME_COLORS.onPrimary} />
-            </View>
-            <Text
-              className="text-[20px] uppercase tracking-[1px]"
-              style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-ExtraBold', lineHeight: 28 }}
-            >
-              Chuỗi Ra Sân
-            </Text>
-          </View>
-          <View
-            className="rounded-full px-4 py-2"
-            style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest }}
-          >
-            <Text
-              className="text-[18px] uppercase"
-              style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: 'PlusJakartaSans-ExtraBold' }}
-            >
-              {current} NGÀY
-            </Text>
-          </View>
+              key={index}
+              className="h-1 flex-1 rounded-full"
+              style={{ backgroundColor: index < filledPips ? '#5DCAA5' : 'rgba(255,255,255,0.15)' }}
+            />
+          ))}
         </View>
+      </View>
+
+      <View className="items-center">
+        <Text style={{ color: '#FFFFFF', fontFamily: 'BarlowCondensed-Bold', fontSize: 24, lineHeight: 24 }}>
+          {current}
+        </Text>
+        <Text className="mt-px text-[9px]" style={{ color: '#A8D9C8', fontFamily: 'PlusJakartaSans-Regular', lineHeight: 12, textAlign: 'center' }}>
+          ngày
+        </Text>
       </View>
     </View>
   )
@@ -115,11 +117,10 @@ export default function HomeScreen() {
     onRefresh,
   } = useHomeFeedData(userId, isAuthLoading)
 
-  const previewUpcomingMatch = useMemo(() => (__DEV__ ? buildUpcomingMatchPreviewSession() : null), [])
-  const upcomingMatch = nextMatch ?? previewUpcomingMatch
+  const upcomingMatch = nextMatch
   const hasUpcomingMatch = Boolean(upcomingMatch)
   const currentWinStreak = playerStats?.current_win_streak ?? 0
-  const displayWinStreak = currentWinStreak > 0 ? currentWinStreak : __DEV__ ? 7 : 0
+  const displayWinStreak = currentWinStreak
   const statusPrompt = hasUpcomingMatch ? 'Đã sẵn sàng ra sân chưa?' : 'Hôm nay ra sân chứ?'
 
   const renderPersonalizedCard = useCallback(
@@ -157,10 +158,10 @@ export default function HomeScreen() {
 
           <HomeStreakCard current={displayWinStreak} />
 
-          <PostMatchInboxSection pendingMatches={pendingMatches} postMatchActions={postMatchActions} />
+          <PostMatchInboxSection pendingMatches={pendingMatches} postMatchActions={postMatchActions} marginTopClassName="mt-3" />
 
           {upcomingMatch ? (
-            <View className="mt-8">
+            <View className="mt-4">
               <View className="mb-5">
                 <Text className="mb-3 text-[11px] uppercase tracking-[0.16em]" style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-ExtraBold' }}>
                   Sắp diễn ra
