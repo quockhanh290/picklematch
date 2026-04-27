@@ -14,6 +14,7 @@ import { Pressable, Text, View } from 'react-native'
 
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { SCREEN_FONTS } from '@/constants/screenFonts'
+import { RADIUS } from '@/constants/screenLayout'
 
 type Props = {
   courtName: string
@@ -353,7 +354,7 @@ export function FeedMatchCard({
             colors={[PROFILE_THEME_COLORS.primary, PROFILE_THEME_COLORS.tertiary]}
             start={{ x: 0, y: 0.5 }}
             end={{ x: 1, y: 0.5 }}
-            style={{ width: `${progressPercent}%`, height: '100%', borderRadius: 999 }}
+            style={{ width: `${progressPercent}%`, height: '100%', borderRadius: RADIUS.full }}
           />
         </View>
 

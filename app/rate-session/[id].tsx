@@ -23,6 +23,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { ActivityIndicator, LayoutAnimation, Platform, Pressable, ScrollView, Text, UIManager, View } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { SCREEN_FONTS } from '@/constants/screenFonts'
+import { RADIUS, SPACING } from '@/constants/screenLayout'
 
 type SkillValidation = 'weaker' | 'matched' | 'outclass'
 
@@ -119,10 +120,10 @@ function StepProgress({ total, current }: { total: number; current: number }) {
   return (
     <View
       style={{
-        borderRadius: 999,
+        borderRadius: RADIUS.full,
         backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHighest,
         paddingHorizontal: 12,
-        paddingVertical: 6,
+        paddingVertical: SPACING.xs,
       }}
     >
       <Text
@@ -191,11 +192,11 @@ function SkillChip({
       style={({ pressed }) => ({
         flex: 1,
         minHeight: 118,
-        borderRadius: 20,
+        borderRadius: RADIUS.lg,
         borderWidth: active ? 2 : 1.5,
         borderColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
         backgroundColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surfaceContainerHigh,
-        paddingHorizontal: 10,
+        paddingHorizontal: SPACING.sm,
         paddingVertical: 12,
         alignItems: 'center',
         justifyContent: 'center',
@@ -216,7 +217,7 @@ function SkillChip({
             right: 8,
             width: 18,
             height: 18,
-            borderRadius: 999,
+            borderRadius: RADIUS.full,
             backgroundColor: PROFILE_THEME_COLORS.onPrimary,
             alignItems: 'center',
             justifyContent: 'center',
@@ -303,11 +304,11 @@ function TagChip({
       style={({ pressed }) => ({
         flex: 1,
         minHeight: 92,
-        borderRadius: 20,
+        borderRadius: RADIUS.lg,
         borderWidth: active ? 2 : 1.5,
         borderColor: border,
         backgroundColor: bg,
-        paddingHorizontal: 10,
+        paddingHorizontal: SPACING.sm,
         paddingVertical: 12,
         alignItems: 'center',
         justifyContent: 'center',
@@ -328,7 +329,7 @@ function TagChip({
             right: 8,
             width: 18,
             height: 18,
-            borderRadius: 999,
+            borderRadius: RADIUS.full,
             backgroundColor: isPositive ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onError,
             alignItems: 'center',
             justifyContent: 'center',
@@ -567,7 +568,7 @@ export default function RateSessionScreen() {
   if (alreadyRated || !currentPlayer) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: PROFILE_THEME_COLORS.background }} edges={['top']}>
-        <View style={{ flex: 1, paddingHorizontal: 20, paddingTop: 24 }}>
+        <View style={{ flex: 1, paddingHorizontal: SPACING.xl, paddingTop: 24 }}>
           <EmptyState
             icon={<CheckCheck size={28} color={PROFILE_THEME_COLORS.primary} strokeWidth={SW} />}
             title={alreadyRated ? 'Bạn đã đánh giá rồi' : 'Đã hoàn tất đánh giá'}
@@ -595,7 +596,7 @@ export default function RateSessionScreen() {
 
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: 144 + insets.bottom }}
+          contentContainerStyle={{ paddingHorizontal: SPACING.xl, paddingTop: 10, paddingBottom: 144 + insets.bottom }}
         >
           <View
             style={{
@@ -603,7 +604,7 @@ export default function RateSessionScreen() {
               borderWidth: 1,
               borderColor: PROFILE_THEME_COLORS.primaryFixedDim,
               backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
-              paddingHorizontal: 20,
+              paddingHorizontal: SPACING.xl,
               paddingVertical: 22,
               marginBottom: 14,
             }}
@@ -613,7 +614,7 @@ export default function RateSessionScreen() {
                 style={{
                   width: 104,
                   height: 104,
-                  borderRadius: 999,
+                  borderRadius: RADIUS.full,
                   borderWidth: 3,
                   borderColor: PROFILE_THEME_COLORS.primaryFixed,
                   backgroundColor: PROFILE_THEME_COLORS.secondaryContainer,
@@ -641,8 +642,8 @@ export default function RateSessionScreen() {
                 <View
                   style={{
                     marginTop: 8,
-                    borderRadius: 999,
-                    paddingHorizontal: 10,
+                    borderRadius: RADIUS.full,
+                    paddingHorizontal: SPACING.sm,
                     paddingVertical: 4,
                     backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHigh,
                   }}
@@ -663,11 +664,11 @@ export default function RateSessionScreen() {
               <View
                 style={{
                   marginTop: 10,
-                  borderRadius: 999,
+                  borderRadius: RADIUS.full,
                   borderWidth: 1,
                   borderColor: PROFILE_THEME_COLORS.primaryFixedDim,
                   backgroundColor: PROFILE_THEME_COLORS.secondaryContainer,
-                  paddingHorizontal: 14,
+                  paddingHorizontal: SPACING.md,
                   paddingVertical: 8,
                 }}
               >
@@ -682,8 +683,8 @@ export default function RateSessionScreen() {
               borderWidth: 1,
               borderColor: PROFILE_THEME_COLORS.outlineVariant,
               backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
-              paddingHorizontal: 20,
-              paddingVertical: 20,
+              paddingHorizontal: SPACING.xl,
+              paddingVertical: SPACING.xl,
               marginBottom: 14,
             }}
           >
@@ -707,8 +708,8 @@ export default function RateSessionScreen() {
               borderWidth: 1,
               borderColor: PROFILE_THEME_COLORS.outlineVariant,
               backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
-              paddingHorizontal: 20,
-              paddingVertical: 20,
+              paddingHorizontal: SPACING.xl,
+              paddingVertical: SPACING.xl,
               marginBottom: 14,
             }}
           >
@@ -786,7 +787,7 @@ export default function RateSessionScreen() {
                 flexDirection: 'row',
                 alignItems: 'center',
                 gap: 12,
-                paddingHorizontal: 20,
+                paddingHorizontal: SPACING.xl,
                 paddingVertical: 16,
                 opacity: pressed ? 0.86 : 1,
               })}
@@ -840,7 +841,7 @@ export default function RateSessionScreen() {
                 borderRadius: 16,
                 backgroundColor: currentEntry.no_show ? withAlpha(PROFILE_THEME_COLORS.onBackground, 0.04) : PROFILE_THEME_COLORS.surfaceContainerLow,
                 paddingHorizontal: 12,
-                paddingVertical: 10,
+                paddingVertical: SPACING.sm,
                 flexDirection: 'row',
                 alignItems: 'flex-start',
                 gap: 9,
@@ -867,7 +868,7 @@ export default function RateSessionScreen() {
             borderTopWidth: 1,
             borderTopColor: PROFILE_THEME_COLORS.outlineVariant,
             backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
-            paddingHorizontal: 20,
+            paddingHorizontal: SPACING.xl,
             paddingTop: 10,
             paddingBottom: Math.max(insets.bottom, 10),
           }}

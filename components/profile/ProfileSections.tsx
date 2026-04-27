@@ -15,6 +15,7 @@ import {
   Users
 } from 'lucide-react-native'
 import { Text, TouchableOpacity, View } from 'react-native'
+import { RADIUS } from '@/constants/screenLayout'
 
 type ActionItem = {
   label: string
@@ -181,7 +182,7 @@ export function ProfileSkillHero({
           top: miniTitleOnly ? -26 : -40,
           width: miniTitleOnly ? 132 : 220,
           height: miniTitleOnly ? 132 : 220,
-          borderRadius: 999,
+          borderRadius: RADIUS.full,
           backgroundColor: heroColors.bubble,
         }}
       />

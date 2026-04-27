@@ -30,6 +30,7 @@ import {
   View,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { RADIUS, SPACING } from '@/constants/screenLayout'
 
 
 const PROFILE_THEME_COLORS = {
@@ -432,7 +433,7 @@ function MySessionCard({
             </Text>
           </View>
           <View style={{ marginLeft: 'auto', flexDirection: 'row', alignItems: 'center' }}>
-            <View style={{ width: 6, height: 6, borderRadius: 999, backgroundColor: isBooked ? colors.success : colors.warning }} />
+            <View style={{ width: 6, height: 6, borderRadius: RADIUS.full, backgroundColor: isBooked ? colors.success : colors.warning }} />
             <Text style={{ marginLeft: 6, color: bookingStatusColor, fontFamily: SCREEN_FONTS.label, fontSize: 12 }}>
               {bookingStatusLabel}
             </Text>
@@ -447,8 +448,8 @@ function MySessionCard({
             style={{
               marginLeft: 8,
               backgroundColor: colors.primaryLight,
-              borderRadius: 6,
-              paddingHorizontal: 10,
+              borderRadius: RADIUS.xs,
+              paddingHorizontal: SPACING.sm,
               paddingVertical: 2,
             }}
           >
@@ -504,7 +505,7 @@ function MySessionCard({
           borderTopWidth: 0.5,
           borderColor: PROFILE_THEME_COLORS.outlineVariant,
           paddingHorizontal: 16,
-          paddingVertical: 10,
+          paddingVertical: SPACING.sm,
         }}
       >
         <View className="flex-row items-center justify-between">
@@ -1212,7 +1213,7 @@ export default function MySessions() {
             data={listData}
             keyExtractor={(item) => ('type' in item ? `${activeTab}-${item.key}` : `${activeTab}-${item.id}`)}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 160 }}
+            contentContainerStyle={{ paddingHorizontal: SPACING.xl, paddingTop: 16, paddingBottom: 160 }}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={PROFILE_THEME_COLORS.primary} />}
             stickyHeaderIndices={stickyHeaderIndices}
             onEndReached={loadMoreHistory}
@@ -1303,7 +1304,7 @@ export default function MySessions() {
                   return (
                     <View
                       className="pt-1 pb-1"
-                      style={{ backgroundColor: PROFILE_THEME_COLORS.background, marginHorizontal: -20, paddingHorizontal: 20 }}
+                      style={{ backgroundColor: PROFILE_THEME_COLORS.background, marginHorizontal: -20, paddingHorizontal: SPACING.xl }}
                     >
                       <Pressable
                         onPress={() => setHistoryFilterModalVisible(true)}

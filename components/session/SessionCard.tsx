@@ -2,6 +2,7 @@ import { colors } from '@/constants/colors'
 import { typography } from '@/constants/typography'
 import { Pressable, Text, View } from 'react-native'
 import { SCREEN_FONTS } from '@/constants/screenFonts'
+import { RADIUS, SPACING } from '@/constants/screenLayout'
 
 type SessionCardProps = {
   session: {
@@ -121,9 +122,9 @@ function Chip({ variant, label }: { variant: ChipVariant; label: string }) {
     <View
       style={{
         backgroundColor: styleByVariant.backgroundColor,
-        paddingHorizontal: 10,
+        paddingHorizontal: SPACING.sm,
         paddingVertical: 3,
-        borderRadius: 999,
+        borderRadius: RADIUS.full,
       }}
     >
       <Text numberOfLines={1} style={{ ...typography.labelSm, color: styleByVariant.color }}>
@@ -151,7 +152,7 @@ export function SessionCard({ session, onPress, onJoinPress }: SessionCardProps)
         backgroundColor: colors.bgCard,
         borderColor: colors.borderSubtle,
         borderWidth: 1,
-        borderRadius: 14,
+        borderRadius: RADIUS.md,
         overflow: 'hidden',
       }}
     >
@@ -180,7 +181,7 @@ export function SessionCard({ session, onPress, onJoinPress }: SessionCardProps)
         <View
           style={{
             backgroundColor: colors.bgTimeBlock,
-            borderRadius: 10,
+            borderRadius: RADIUS.sm,
             padding: 12,
             flexDirection: 'row',
             alignItems: 'center',
@@ -196,7 +197,7 @@ export function SessionCard({ session, onPress, onJoinPress }: SessionCardProps)
           </View>
 
           <View style={{ marginLeft: 'auto', flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <View style={{ width: 6, height: 6, borderRadius: 999, backgroundColor: colors.liveGreen }} />
+            <View style={{ width: 6, height: 6, borderRadius: RADIUS.full, backgroundColor: colors.liveGreen }} />
             <Text style={{ ...typography.bodySm, color: session.courtBookingStatus === 'booked' ? colors.brandPrimary : colors.statusWarnText }}>
               {bookingLabel}
             </Text>
@@ -210,7 +211,7 @@ export function SessionCard({ session, onPress, onJoinPress }: SessionCardProps)
               backgroundColor: colors.brandPrimaryBg,
               paddingHorizontal: 12,
               paddingVertical: 3,
-              borderRadius: 6,
+              borderRadius: RADIUS.xs,
             }}
           >
             <Text style={{ ...typography.labelMd, color: colors.brandPrimary }}>Level {session.skillLevel.toFixed(1)}</Text>
@@ -224,7 +225,7 @@ export function SessionCard({ session, onPress, onJoinPress }: SessionCardProps)
           borderTopColor: colors.borderSubtle,
           borderTopWidth: 0.5,
           paddingVertical: 12,
-          paddingHorizontal: 18,
+          paddingHorizontal: SPACING.lg,
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -235,7 +236,7 @@ export function SessionCard({ session, onPress, onJoinPress }: SessionCardProps)
             style={{
               width: 38,
               height: 38,
-              borderRadius: 999,
+              borderRadius: RADIUS.full,
               backgroundColor: avatarTone.bg,
               alignItems: 'center',
               justifyContent: 'center',
@@ -262,7 +263,7 @@ export function SessionCard({ session, onPress, onJoinPress }: SessionCardProps)
         </View>
       </View>
 
-      <View style={{ paddingHorizontal: 14, paddingTop: 10, paddingBottom: 14 }}>
+      <View style={{ paddingHorizontal: SPACING.md, paddingTop: 10, paddingBottom: 14 }}>
         <Pressable
           onPress={(event) => {
             event.stopPropagation()
@@ -273,7 +274,7 @@ export function SessionCard({ session, onPress, onJoinPress }: SessionCardProps)
             backgroundColor: isFull ? colors.statusWarnBg : colors.accentCoral,
             borderWidth: isFull ? 1 : 0,
             borderColor: colors.borderSubtle,
-            borderRadius: 10,
+            borderRadius: RADIUS.sm,
             paddingVertical: 13,
             alignItems: 'center',
             opacity: pressed ? 0.85 : 1,

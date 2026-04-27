@@ -13,14 +13,14 @@ export const RADIUS = {
   xs: 6,
   /** 10 — small info card, streak badge */
   sm: 10,
-  /** 14 — input field, dialog, time block, SessionCard outline */
-  md: 14,
-  /** 20 — inner info block, PlayerRoster section box, JoinRequestModal fields */
-  lg: 20,
-  /** 24 — inner card block (MatchSessionCard bottom panel, FamiliarCourtCard info) */
-  xl: 24,
-  /** 32 — card container standard (MatchSessionCard, FamiliarCourtCard, JoinRequestModal modal) */
-  hero: 32,
+  /** 12 — input field, dialog, inner content */
+  md: 12,
+  /** 16 — Standard Card Container (Suggestion Card, FamiliarCourtCard) */
+  lg: 16,
+  /** 20 — Large info block */
+  xl: 20,
+  /** 24 — Hero elements */
+  hero: 24,
   /** 999 — pill chip, avatar, dot, progress bar */
   full: 999,
 } as const
@@ -42,14 +42,14 @@ export const SHADOW = {
     shadowOffset: { width: 0, height: 3 },
     elevation: 1,
   },
-  /** Standard card — MatchSessionCard, BookingDetailsCard, SessionCard */
+  /** Standard card — Now flat based on Suggestion Card design */
   sm: {
-    shadowOpacity: 0.06,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 3,
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 0,
   },
-  /** Elevated card — FamiliarCourtCard info, Modal, PendingRequestsWidget */
+  /** Elevated card — Modals, popups */
   md: {
     shadowOpacity: 0.08,
     shadowRadius: 18,
@@ -92,9 +92,9 @@ export const SPACING = {
 // ─── Border ───────────────────────────────────────────────────────────────────
 
 export const BORDER = {
-  /** 0.5 — row divider, progress track */
+  /** 0.5 — Standard Card Border (Suggestion Card), row divider */
   hairline: 0.5,
-  /** 1 — default chip/card border */
+  /** 1 — default chip border */
   base: 1,
   /** 1.5 — CTA secondary button, dashed empty slot */
   medium: 1.5,
@@ -122,9 +122,9 @@ export const BUTTON = {
   },
   /** Inline pill button (Vào kèo label on card) */
   pill: {
-    borderRadius: RADIUS.full,
+    borderRadius: 999, // RADIUS.full
     paddingVertical: 8,
-    paddingHorizontal: SPACING.md,
+    paddingHorizontal: 16,
   },
   /** Compact pill chip (filter, skill selector, deadline option) */
   pillSm: {

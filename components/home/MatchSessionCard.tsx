@@ -326,18 +326,18 @@ function HeroMatchSessionCard({ item }: { item: MatchSession; actionLabel: strin
   return (
     <Pressable
       onPress={() => router.push({ pathname: '/session/[id]' as never, params: { id: item.id } })}
-      className="overflow-hidden rounded-[20px]"
+      className="overflow-hidden rounded-[16px]"
       style={{ backgroundColor: colors.primary }}
     >
       <LinearGradient
         colors={['#083D2B', '#0F6E56']}
         start={{ x: 0.1, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={{ paddingTop: 18, paddingHorizontal: 20, paddingBottom: 16 }}
+        style={{ paddingTop: 18, paddingHorizontal: SPACING.xl, paddingBottom: 16 }}
       >
         <View className="flex-row items-center justify-between" style={{ marginBottom: 16 }}>
           <View className="flex-row items-center">
-            <View style={{ width: 5, height: 5, borderRadius: 999, backgroundColor: '#5DCAA5', marginRight: 6 }} />
+            <View style={{ width: 5, height: 5, borderRadius: RADIUS.full, backgroundColor: '#5DCAA5', marginRight: 6 }} />
             <Text
               style={{
                 color: '#A8D9C8',
@@ -355,7 +355,7 @@ function HeroMatchSessionCard({ item }: { item: MatchSession; actionLabel: strin
             <View
               style={{
                 backgroundColor: headerTimeLabel.pill ? 'rgba(0,0,0,0.2)' : 'transparent',
-                borderRadius: 999,
+                borderRadius: RADIUS.full,
                 paddingHorizontal: headerTimeLabel.pill ? 9 : 0,
                 paddingVertical: headerTimeLabel.pill ? 2 : 0,
               }}
@@ -415,7 +415,7 @@ function HeroMatchSessionCard({ item }: { item: MatchSession; actionLabel: strin
                 alignSelf: 'flex-start',
                 backgroundColor: 'rgba(255,255,255,0.15)',
                 borderRadius: 5,
-                paddingHorizontal: 10,
+                paddingHorizontal: SPACING.sm,
                 paddingVertical: 3,
                 marginBottom: 8,
               }}
@@ -438,7 +438,7 @@ function HeroMatchSessionCard({ item }: { item: MatchSession; actionLabel: strin
       <View
         style={{
           backgroundColor: 'rgba(0,0,0,0.22)',
-          paddingHorizontal: 20,
+          paddingHorizontal: SPACING.xl,
           paddingVertical: 12,
           flexDirection: 'row',
           alignItems: 'center',
@@ -455,7 +455,7 @@ function HeroMatchSessionCard({ item }: { item: MatchSession; actionLabel: strin
                 style={{
                   width: 28,
                   height: 28,
-                  borderRadius: 999,
+                  borderRadius: RADIUS.full,
                   alignItems: 'center',
                   justifyContent: 'center',
                   backgroundColor: avatar.bg,
@@ -478,7 +478,7 @@ function HeroMatchSessionCard({ item }: { item: MatchSession; actionLabel: strin
               style={{
                 width: 28,
                 height: 28,
-                borderRadius: 999,
+                borderRadius: RADIUS.full,
                 alignItems: 'center',
                 justifyContent: 'center',
                 backgroundColor: 'rgba(255,255,255,0.12)',
@@ -507,7 +507,7 @@ function HeroMatchSessionCard({ item }: { item: MatchSession; actionLabel: strin
             event.stopPropagation()
             router.push({ pathname: '/session/[id]' as never, params: { id: item.id } })
           }}
-          style={{ backgroundColor: '#FFFFFF', borderRadius: 999, paddingHorizontal: 16, paddingVertical: 8, flexShrink: 0 }}
+          style={{ backgroundColor: '#FFFFFF', borderRadius: RADIUS.full, paddingHorizontal: 16, paddingVertical: 8, flexShrink: 0 }}
         >
           <Text style={{ color: '#0F6E56', fontFamily: SCREEN_FONTS.cta, fontSize: 12, lineHeight: 16 }}>
             {'Xem \u2192'}
@@ -546,14 +546,14 @@ function SuggestedSessionCard({ item }: { item: MatchSession }) {
         style={{
           backgroundColor: '#1D9E75',
           paddingHorizontal: 16,
-          paddingVertical: 6,
+          paddingVertical: SPACING.xs,
           flexDirection: 'row',
           justifyContent: 'space-between',
           alignItems: 'center',
         }}
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 6 }}>
-          <View style={{ width: 5, height: 5, borderRadius: 999, backgroundColor: '#FFFFFF' }} />
+          <View style={{ width: 5, height: 5, borderRadius: RADIUS.full, backgroundColor: '#FFFFFF' }} />
           <Text
             style={{
               color: '#FFFFFF',
@@ -603,7 +603,7 @@ function SuggestedSessionCard({ item }: { item: MatchSession }) {
           </Text>
           {levelMatchesUser ? (
             <>
-              <View style={{ width: 3, height: 3, borderRadius: 999, backgroundColor: '#B4B2A9' }} />
+              <View style={{ width: 3, height: 3, borderRadius: RADIUS.full, backgroundColor: '#B4B2A9' }} />
               <Text style={{ color: '#0F6E56', fontFamily: SCREEN_FONTS.label, fontSize: 11, lineHeight: 15 }}>
                 {'\u2713 kh\u1edbp v\u1edbi b\u1ea1n'}
               </Text>
@@ -665,7 +665,7 @@ function SuggestedSessionCard({ item }: { item: MatchSession }) {
               event.stopPropagation()
               router.push({ pathname: '/session/[id]' as never, params: { id: item.id } })
             }}
-            style={{ backgroundColor: '#0F6E56', borderRadius: 999, paddingHorizontal: 16, paddingVertical: 8 }}
+            style={{ backgroundColor: '#0F6E56', borderRadius: RADIUS.full, paddingHorizontal: 16, paddingVertical: 8 }}
           >
             <Text style={{ color: '#FFFFFF', fontFamily: SCREEN_FONTS.cta, fontSize: 13, lineHeight: 17 }}>
               {'V\u00e0o k\u00e8o'}
@@ -716,14 +716,14 @@ function UrgentFillCard({ item }: { item: MatchSession }) {
         style={{
           backgroundColor: '#D85A30',
           paddingHorizontal: 16,
-          paddingVertical: 6,
+          paddingVertical: SPACING.xs,
           flexDirection: 'row',
           justifyContent: 'space-between',
           alignItems: 'center',
         }}
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 6, flexShrink: 1 }}>
-          <View style={{ width: 5, height: 5, borderRadius: 999, backgroundColor: '#FFD580' }} />
+          <View style={{ width: 5, height: 5, borderRadius: RADIUS.full, backgroundColor: '#FFD580' }} />
           <Text
             numberOfLines={1}
             style={{
@@ -778,7 +778,7 @@ function UrgentFillCard({ item }: { item: MatchSession }) {
           </Text>
           {waitingPlayers > 0 ? (
             <>
-              <View style={{ width: 3, height: 3, borderRadius: 999, backgroundColor: '#B4B2A9' }} />
+              <View style={{ width: 3, height: 3, borderRadius: RADIUS.full, backgroundColor: '#B4B2A9' }} />
               <Text style={{ color: '#D85A30', fontFamily: SCREEN_FONTS.label, fontSize: 11, lineHeight: 15 }}>
                 {urgentText}
               </Text>
@@ -843,7 +843,7 @@ function UrgentFillCard({ item }: { item: MatchSession }) {
               event.stopPropagation()
               router.push({ pathname: '/session/[id]' as never, params: { id: item.id } })
             }}
-            style={{ backgroundColor: '#D85A30', borderRadius: 999, paddingHorizontal: 16, paddingVertical: 8 }}
+            style={{ backgroundColor: '#D85A30', borderRadius: RADIUS.full, paddingHorizontal: 16, paddingVertical: 8 }}
           >
             <Text style={{ color: '#FFFFFF', fontFamily: SCREEN_FONTS.cta, fontSize: 13, lineHeight: 17 }}>
               {'V\u00e0o ngay'}
@@ -909,14 +909,14 @@ function SessionListCard({
       style={{
         padding: SPACING.xl,
         minHeight: 300,
-        borderRadius: RADIUS.hero,
+        borderRadius: 16,
         backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
         ...SHADOW.sm,
       }}
     >
       <View
         className="relative overflow-hidden"
-        style={{ marginHorizontal: -SPACING.xl, marginTop: -SPACING.xl, paddingHorizontal: SPACING.xl, paddingTop: SPACING.xl, paddingBottom: SPACING.lg, borderTopLeftRadius: RADIUS.hero, borderTopRightRadius: RADIUS.hero }}
+        style={{ marginHorizontal: -SPACING.xl, marginTop: -SPACING.xl, paddingHorizontal: SPACING.xl, paddingTop: SPACING.xl, paddingBottom: SPACING.lg, borderTopLeftRadius: 16, borderTopRightRadius: 16 }}
       >
         <LinearGradient
           colors={[accentColor, accentSurfaceColor]}
@@ -1046,8 +1046,10 @@ function SessionListCard({
       </View>
 
       <View
-        className="mt-4 rounded-[24px] p-3.5"
+        className="mt-4"
         style={{
+          padding: SPACING.md,
+          borderRadius: 16,
           backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
         }}
       >
@@ -1142,7 +1144,7 @@ function SessionListCard({
             colors={[accentColor, isRescueAccent ? PROFILE_THEME_COLORS.onErrorContainer : PROFILE_THEME_COLORS.tertiary]}
             start={{ x: 0, y: 0.5 }}
             end={{ x: 1, y: 0.5 }}
-            style={{ width: `${progressPercent}%`, height: '100%', borderRadius: 999 }}
+            style={{ width: `${progressPercent}%`, height: '100%', borderRadius: RADIUS.full }}
           />
         </View>
 

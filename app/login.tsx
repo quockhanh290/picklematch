@@ -7,6 +7,7 @@ import { StatusBar } from 'expo-status-bar'
 import { useState } from 'react'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { SCREEN_FONTS } from '@/constants/screenFonts'
+import { RADIUS, SPACING } from '@/constants/screenLayout'
 import {
   Alert,
   ImageBackground,
@@ -176,7 +177,7 @@ export default function LoginScreen() {
               left: 26,
               width: 74,
               height: 74,
-              borderRadius: 999,
+              borderRadius: RADIUS.full,
               backgroundColor: 'rgba(255,255,255,0.08)',
               shadowColor: PROFILE_THEME_COLORS.onPrimary,
               shadowOpacity: 0.35,
@@ -191,7 +192,7 @@ export default function LoginScreen() {
               right: 26,
               width: 74,
               height: 74,
-              borderRadius: 999,
+              borderRadius: RADIUS.full,
               backgroundColor: 'rgba(255,255,255,0.08)',
               shadowColor: PROFILE_THEME_COLORS.onPrimary,
               shadowOpacity: 0.35,
@@ -227,7 +228,7 @@ export default function LoginScreen() {
                 position: 'absolute',
                 width: 9,
                 height: 9,
-                borderRadius: 999,
+                borderRadius: RADIUS.full,
                 backgroundColor: 'rgba(255,255,255,0.38)',
                 ...dot,
               }}
@@ -240,7 +241,7 @@ export default function LoginScreen() {
               alignSelf: 'center',
               width: 392,
               height: 392,
-              borderRadius: 999,
+              borderRadius: RADIUS.full,
               borderWidth: 1,
               borderColor: 'rgba(173,255,47,0.36)',
             }}
@@ -252,7 +253,7 @@ export default function LoginScreen() {
               alignSelf: 'center',
               width: 286,
               height: 286,
-              borderRadius: 999,
+              borderRadius: RADIUS.full,
               borderWidth: 1,
               borderColor: 'rgba(6,182,212,0.32)',
             }}
@@ -295,7 +296,7 @@ export default function LoginScreen() {
               bottom: 140,
               width: 92,
               height: 92,
-              borderRadius: 999,
+              borderRadius: RADIUS.full,
               backgroundColor: 'rgba(255,255,255,0.08)',
             }}
           />
@@ -360,9 +361,9 @@ export default function LoginScreen() {
         <View style={{ paddingHorizontal: 24, marginTop: -cardOverlap }}>
           <View
             style={{
-              borderRadius: 32,
+              borderRadius: RADIUS.hero,
               backgroundColor: ELECTRIC.white,
-              paddingHorizontal: 20,
+              paddingHorizontal: SPACING.xl,
               paddingTop: 34,
               paddingBottom: 32,
               shadowColor: PROFILE_THEME_COLORS.onBackground,

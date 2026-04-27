@@ -30,6 +30,7 @@ import {
     View,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { SPACING } from '@/constants/screenLayout'
 
 type Session = {
   id: string
@@ -524,7 +525,7 @@ export default function FindSession() {
       </View>
 
       {/* Bộ lọc + sắp xếp */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 16, columnGap: 8 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: SPACING.xl, paddingBottom: 16, columnGap: 8 }}>
         <Pressable
           onPress={() => setFilterModalVisible(true)}
           className="flex-row items-center justify-center rounded-full px-4 py-2.5"

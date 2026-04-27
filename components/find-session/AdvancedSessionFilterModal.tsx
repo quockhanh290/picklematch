@@ -4,6 +4,7 @@ import Slider from '@react-native-community/slider'
 import React, { useState } from 'react'
 import { Modal, Platform, Pressable, ScrollView, Text, View } from 'react-native'
 import { SCREEN_FONTS } from '@/constants/screenFonts'
+import { RADIUS, SPACING } from '@/constants/screenLayout'
 
 export type AdvancedFilter = {
   district: string | null
@@ -73,7 +74,7 @@ function chipStyle(active: boolean) {
   return {
     backgroundColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surfaceContainerLow,
     borderRadius: 16,
-    paddingHorizontal: 14,
+    paddingHorizontal: SPACING.md,
     paddingVertical: 8,
     marginRight: 8,
   }
@@ -263,10 +264,10 @@ export function AdvancedSessionFilterModal({
                   marginBottom: 12,
                   alignItems: 'center',
                   backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
-                  borderRadius: 14,
+                  borderRadius: RADIUS.md,
                   borderWidth: 1,
                   borderColor: PROFILE_THEME_COLORS.outlineVariant,
-                  paddingVertical: 6,
+                  paddingVertical: SPACING.xs,
                 }}
               >
                 <DateTimePicker

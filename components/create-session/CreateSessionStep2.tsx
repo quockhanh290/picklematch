@@ -5,6 +5,7 @@ import { UserRound, Users } from 'lucide-react-native'
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native'
 
 import { CREATE_SESSION_SKILL_OPTIONS } from './skillLevelOptions'
+import { RADIUS, SPACING } from '@/constants/screenLayout'
 
 type Props = {
   onBack: () => void
@@ -97,8 +98,8 @@ function SkillRangeSelector({
                   key={`min-${option.id}`}
                   onPress={() => onSelectMin(option.id)}
                   style={{
-                    paddingHorizontal: 12, paddingVertical: 6,
-                    borderRadius: 999,
+                    paddingHorizontal: 12, paddingVertical: SPACING.xs,
+                    borderRadius: RADIUS.full,
                     backgroundColor: isSelected ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surface,
                     borderWidth: 1,
                     borderColor: isSelected ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
@@ -125,8 +126,8 @@ function SkillRangeSelector({
                   key={`max-${option.id}`}
                   onPress={() => onSelectMax(option.id)}
                   style={{
-                    paddingHorizontal: 12, paddingVertical: 6,
-                    borderRadius: 999,
+                    paddingHorizontal: 12, paddingVertical: SPACING.xs,
+                    borderRadius: RADIUS.full,
                     backgroundColor: isSelected ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surface,
                     borderWidth: 1,
                     borderColor: isSelected ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
@@ -210,8 +211,8 @@ export function CreateSessionStep2({
           />
 
           {/* Progress bar */}
-          <View style={{ height: 3, backgroundColor: PROFILE_THEME_COLORS.outlineVariant, borderRadius: 999, marginTop: 12, marginBottom: 16, overflow: 'hidden' }}>
-            <View style={{ height: '100%', width: '66%', backgroundColor: PROFILE_THEME_COLORS.primary, borderRadius: 999 }} />
+          <View style={{ height: 3, backgroundColor: PROFILE_THEME_COLORS.outlineVariant, borderRadius: RADIUS.full, marginTop: 12, marginBottom: 16, overflow: 'hidden' }}>
+            <View style={{ height: '100%', width: '66%', backgroundColor: PROFILE_THEME_COLORS.primary, borderRadius: RADIUS.full }} />
           </View>
 
           {/* Step title */}
@@ -235,7 +236,7 @@ export function CreateSessionStep2({
           <SectionDivider index="01" title="Cấu hình trận đấu" />
 
           {/* Player count */}
-          <View style={{ borderRadius: 14, borderWidth: 0.5, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surface, padding: 14, marginBottom: 16 }}>
+          <View style={{ borderRadius: RADIUS.md, borderWidth: 0.5, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surface, padding: SPACING.md, marginBottom: 16 }}>
             <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 12, letterSpacing: 1.2, color: PROFILE_THEME_COLORS.primary, marginBottom: 10 }}>
               {'SỐ LƯỢNG NGƯỜI CHƠI'}
             </Text>
@@ -254,7 +255,7 @@ export function CreateSessionStep2({
                       style={({ pressed }) => ({ flex: 1, opacity: pressed ? 0.85 : 1 })}
                     >
                       <View style={{
-                        flex: 1, borderRadius: 10,
+                        flex: 1, borderRadius: RADIUS.sm,
                         backgroundColor: isSelected ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surface,
                         paddingVertical: 12, paddingHorizontal: 8,
                         alignItems: 'center', justifyContent: 'center', gap: 4,
@@ -277,7 +278,7 @@ export function CreateSessionStep2({
           </View>
 
           {/* Toggles */}
-          <View style={{ borderRadius: 22, borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, padding: 18, marginBottom: 16 }}>
+          <View style={{ borderRadius: 22, borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, padding: SPACING.lg, marginBottom: 16 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
               <View style={{ flex: 1, paddingRight: 12 }}>
                 <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 16, color: PROFILE_THEME_COLORS.primary }}>{'Tính điểm xếp hạng'}</Text>
@@ -311,7 +312,7 @@ export function CreateSessionStep2({
           </View>
 
           {/* Skill range */}
-          <View style={{ borderRadius: 22, borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, padding: 18, marginBottom: 14 }}>
+          <View style={{ borderRadius: 22, borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, padding: SPACING.lg, marginBottom: 14 }}>
             <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 12, letterSpacing: 1.2, color: PROFILE_THEME_COLORS.primary, marginBottom: 10 }}>
               {'PHẠM VI TRÌNH ĐỘ'}
             </Text>
@@ -333,7 +334,7 @@ export function CreateSessionStep2({
           <SectionDivider index="02" title="Booking và chi phí" />
 
           {/* Cost input */}
-          <View style={{ borderRadius: 22, borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, padding: 18, marginBottom: 16 }}>
+          <View style={{ borderRadius: 22, borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, padding: SPACING.lg, marginBottom: 16 }}>
             <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 12, letterSpacing: 1.2, color: PROFILE_THEME_COLORS.primary, marginBottom: 10 }}>
               CHI PHÍ TRẬN ĐẤU
             </Text>
@@ -347,14 +348,14 @@ export function CreateSessionStep2({
                   keyboardType="number-pad"
                   style={{
                     flex: 1, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
-                    borderRadius: 8, padding: 10,
+                    borderRadius: 8, padding: SPACING.sm,
                     fontSize: 14, color: PROFILE_THEME_COLORS.onSurface,
                     fontFamily: SCREEN_FONTS.body,
                   }}
                 />
                 <Text style={{ fontSize: 12, color: PROFILE_THEME_COLORS.onSurfaceVariant }}>VNĐ</Text>
               </View>
-              <View style={{ backgroundColor: PROFILE_THEME_COLORS.primaryContainer, borderRadius: 8, padding: 10 }}>
+              <View style={{ backgroundColor: PROFILE_THEME_COLORS.primaryContainer, borderRadius: 8, padding: SPACING.sm }}>
                 <Text style={{ fontSize: 13, color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.label }}>
                   {costPerPerson > 0
                     ? `Chi phí / người: ${formatCurrencyLabel(costPerPerson)}`
@@ -365,7 +366,7 @@ export function CreateSessionStep2({
           </View>
 
           {/* Deadline */}
-          <View style={{ borderRadius: 22, borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, padding: 18, marginBottom: 16 }}>
+          <View style={{ borderRadius: 22, borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, padding: SPACING.lg, marginBottom: 16 }}>
             <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 12, letterSpacing: 1.2, color: PROFILE_THEME_COLORS.primary, marginBottom: 10 }}>
               HẠN CHỐT VÀO KÈO
             </Text>
@@ -386,7 +387,7 @@ export function CreateSessionStep2({
                     onPress={() => setDeadlineMinutes(option.value)}
                     style={{
                       paddingHorizontal: 16, paddingVertical: 8,
-                      borderRadius: 999,
+                      borderRadius: RADIUS.full,
                       backgroundColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surface,
                       borderWidth: 1.5,
                       borderColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
@@ -402,7 +403,7 @@ export function CreateSessionStep2({
           </View>
 
           {/* Booking status */}
-          <View style={{ borderRadius: 22, borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, padding: 18, marginBottom: 14 }}>
+          <View style={{ borderRadius: 22, borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, padding: SPACING.lg, marginBottom: 14 }}>
             <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 12, letterSpacing: 1.2, color: PROFILE_THEME_COLORS.primary, marginBottom: 10 }}>
               TÌNH TRẠNG SÂN
             </Text>
@@ -422,10 +423,10 @@ export function CreateSessionStep2({
                     style={({ pressed }) => ({ opacity: pressed ? 0.82 : 1 })}
                   >
                     <View style={{
-                      borderRadius: 999, borderWidth: 1,
+                      borderRadius: RADIUS.full, borderWidth: 1,
                       borderColor: active ? PROFILE_THEME_COLORS.primaryContainer : PROFILE_THEME_COLORS.outlineVariant,
                       backgroundColor: active ? PROFILE_THEME_COLORS.primaryContainer : PROFILE_THEME_COLORS.surfaceContainerLowest,
-                      paddingHorizontal: 14, paddingVertical: 11, alignItems: 'center',
+                      paddingHorizontal: SPACING.md, paddingVertical: 11, alignItems: 'center',
                     }}>
                       <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 13, color: active ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSecondaryContainer }}>
                         {item.label}
@@ -454,10 +455,10 @@ export function CreateSessionStep2({
                         style={({ pressed }) => ({ opacity: pressed ? 0.82 : 1 })}
                       >
                         <View style={{
-                          borderRadius: 999, borderWidth: 1,
+                          borderRadius: RADIUS.full, borderWidth: 1,
                           borderColor: active ? PROFILE_THEME_COLORS.surfaceTint : PROFILE_THEME_COLORS.outlineVariant,
                           backgroundColor: active ? PROFILE_THEME_COLORS.surfaceTint : PROFILE_THEME_COLORS.surfaceContainerLowest,
-                          paddingHorizontal: 14, paddingVertical: 9, alignItems: 'center',
+                          paddingHorizontal: SPACING.md, paddingVertical: 9, alignItems: 'center',
                         }}>
                           <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 13, color: active ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSecondaryContainer }}>
                             {item.label}
@@ -472,7 +473,7 @@ export function CreateSessionStep2({
 
             {showBookingLinkCta ? (
               <Pressable onPress={onOpenBookingLink} style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1, marginBottom: 12 })}>
-                <View style={{ borderRadius: 12, borderWidth: 1, borderColor: PROFILE_THEME_COLORS.secondaryFixedDim, backgroundColor: PROFILE_THEME_COLORS.secondaryContainer, paddingVertical: 10, alignItems: 'center' }}>
+                <View style={{ borderRadius: 12, borderWidth: 1, borderColor: PROFILE_THEME_COLORS.secondaryFixedDim, backgroundColor: PROFILE_THEME_COLORS.secondaryContainer, paddingVertical: SPACING.sm, alignItems: 'center' }}>
                   <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 13, color: PROFILE_THEME_COLORS.surfaceTint }}>Mở link đặt sân</Text>
                 </View>
               </Pressable>
@@ -511,7 +512,7 @@ export function CreateSessionStep2({
                     style={{ fontFamily: SCREEN_FONTS.body, fontSize: 14, color: PROFILE_THEME_COLORS.primary, padding: 0 }}
                   />
                 </View>
-                <View style={{ borderRadius: 12, borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest, paddingHorizontal: 12, paddingVertical: 10 }}>
+                <View style={{ borderRadius: 12, borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest, paddingHorizontal: 12, paddingVertical: SPACING.sm }}>
                   <TextInput
                     value={bookingNotes}
                     onChangeText={setBookingNotes}
@@ -531,13 +532,13 @@ export function CreateSessionStep2({
         <View style={{ flexDirection: 'row', gap: 10, marginHorizontal: -20, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 28, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, borderTopWidth: 0.5, borderTopColor: PROFILE_THEME_COLORS.outlineVariant }}>
           <TouchableOpacity
             onPress={onBack}
-            style={{ flex: 1, borderRadius: 999, borderWidth: 1.5, borderColor: PROFILE_THEME_COLORS.outlineVariant, paddingVertical: 13, alignItems: 'center', backgroundColor: PROFILE_THEME_COLORS.surface }}
+            style={{ flex: 1, borderRadius: RADIUS.full, borderWidth: 1.5, borderColor: PROFILE_THEME_COLORS.outlineVariant, paddingVertical: 13, alignItems: 'center', backgroundColor: PROFILE_THEME_COLORS.surface }}
           >
             <Text style={{ fontSize: 14, color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.cta }}>Quay lại</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={onContinue}
-            style={{ flex: 2, borderRadius: 999, backgroundColor: PROFILE_THEME_COLORS.primary, paddingVertical: 13, alignItems: 'center' }}
+            style={{ flex: 2, borderRadius: RADIUS.full, backgroundColor: PROFILE_THEME_COLORS.primary, paddingVertical: 13, alignItems: 'center' }}
           >
             <Text style={{ fontSize: 14, color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta }}>Tiếp tục →</Text>
           </TouchableOpacity>

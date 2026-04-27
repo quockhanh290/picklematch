@@ -11,6 +11,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ActivityIndicator, Alert, FlatList, ImageBackground, Keyboard, ScrollView, Switch, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { SCREEN_FONTS } from '@/constants/screenFonts'
+import { RADIUS } from '@/constants/screenLayout'
 
 const CITIES = ['Hồ Chí Minh', 'Hà Nội', 'Đà Nẵng', 'Cần Thơ', 'Hải Phòng']
 const HERO_IMAGE = require('../assets/images/login-electric-court-hero.png')
@@ -313,7 +314,7 @@ export default function EditProfile() {
               width: heroCardSize,
               height: heroCardSize,
               alignSelf: 'center',
-              borderRadius: 32,
+              borderRadius: RADIUS.hero,
               overflow: 'hidden',
               backgroundColor: EDIT_PROFILE_COLORS.primaryContainer,
             }}
@@ -324,7 +325,7 @@ export default function EditProfile() {
                   style={{
                     width: 148,
                     height: 148,
-                    borderRadius: 999,
+                    borderRadius: RADIUS.full,
                     overflow: 'hidden',
                     borderWidth: 4,
                     borderColor: EDIT_PROFILE_COLORS.primaryFixed,

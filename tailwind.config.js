@@ -17,6 +17,23 @@ module.exports = {
       boxShadow: {
         card: '0 10px 30px rgba(15, 23, 42, 0.08)',
       },
+      spacing: {
+        'xs': '6px',
+        'sm': '10px',
+        'md': '14px',
+        'lg': '18px',
+        'xl': '20px',
+        'xxl': '28px',
+      },
+      borderRadius: {
+        'xs': '6px',
+        'sm': '10px',
+        'md': '12px',
+        'lg': '16px',
+        'xl': '20px',
+        'hero': '24px',
+        'full': '999px',
+      },
     },
   },
   plugins: [],

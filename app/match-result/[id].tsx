@@ -15,6 +15,7 @@ import { AppDialog, type AppDialogConfig } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { supabase } from '@/lib/supabase'
 import { SCREEN_FONTS } from '@/constants/screenFonts'
+import { RADIUS, SPACING } from '@/constants/screenLayout'
 
 function withAlpha(hex: string, alpha: number) {
   const clean = hex.replace('#', '')
@@ -142,8 +143,8 @@ function PlayerTag({ name, dark }: { name: string; dark: boolean }) {
   return (
     <View
       style={{
-        borderRadius: 999,
-        paddingHorizontal: 10,
+        borderRadius: RADIUS.full,
+        paddingHorizontal: SPACING.sm,
         paddingVertical: 5,
         backgroundColor: dark ? withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.14) : PROFILE_THEME_COLORS.surfaceContainerLowest,
         borderWidth: 1,
@@ -233,7 +234,7 @@ function ScoreCard({
         <Pressable onPress={onDecrease} style={{ flex: 1 }}>
           <View
             style={{
-              borderRadius: 999,
+              borderRadius: RADIUS.full,
               height: 52,
               backgroundColor: btnMinusBg,
               alignItems: 'center',
@@ -248,7 +249,7 @@ function ScoreCard({
         <Pressable onPress={onIncrease} style={{ flex: 1 }}>
           <View
             style={{
-              borderRadius: 999,
+              borderRadius: RADIUS.full,
               height: 52,
               backgroundColor: btnPlusBg,
               alignItems: 'center',
@@ -430,11 +431,11 @@ export default function MatchResultEntryScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: RESULT_THEME.pageBg }}>
-      <View style={{ position: 'absolute', width: 220, height: 220, borderRadius: 999, backgroundColor: RESULT_THEME.pageBlob, top: 80, right: -80 }} />
-      <View style={{ position: 'absolute', width: 180, height: 180, borderRadius: 999, backgroundColor: RESULT_THEME.pageBlob, bottom: 20, left: -70 }} />
+      <View style={{ position: 'absolute', width: 220, height: 220, borderRadius: RADIUS.full, backgroundColor: RESULT_THEME.pageBlob, top: 80, right: -80 }} />
+      <View style={{ position: 'absolute', width: 180, height: 180, borderRadius: RADIUS.full, backgroundColor: RESULT_THEME.pageBlob, bottom: 20, left: -70 }} />
 
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: 28 }}
+        contentContainerStyle={{ paddingHorizontal: SPACING.lg, paddingBottom: 28 }}
         showsVerticalScrollIndicator={false}
       >
         <View style={{ paddingTop: 8, paddingBottom: 10, alignItems: 'center', justifyContent: 'center' }}>
@@ -445,7 +446,7 @@ export default function MatchResultEntryScreen() {
               left: 0,
               width: 38,
               height: 38,
-              borderRadius: 999,
+              borderRadius: RADIUS.full,
               backgroundColor: RESULT_THEME.headerChipBg,
               alignItems: 'center',
               justifyContent: 'center',
@@ -483,7 +484,7 @@ export default function MatchResultEntryScreen() {
 
         <View style={{ marginVertical: 16, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           <View style={{ flex: 1, height: 1, backgroundColor: RESULT_THEME.line }} />
-          <View style={{ width: 42, height: 42, borderRadius: 999, backgroundColor: RESULT_THEME.vsBg, borderWidth: 1, borderColor: RESULT_THEME.line, alignItems: 'center', justifyContent: 'center' }}>
+          <View style={{ width: 42, height: 42, borderRadius: RADIUS.full, backgroundColor: RESULT_THEME.vsBg, borderWidth: 1, borderColor: RESULT_THEME.line, alignItems: 'center', justifyContent: 'center' }}>
             <Text style={{ fontFamily: SCREEN_FONTS.boldItalic, fontSize: 15, color: RESULT_THEME.vsText }}>VS</Text>
           </View>
           <View style={{ flex: 1, height: 1, backgroundColor: RESULT_THEME.line }} />
@@ -500,7 +501,7 @@ export default function MatchResultEntryScreen() {
         <View
           style={{
             marginTop: 18,
-            borderRadius: 24,
+            borderRadius: RADIUS.xl,
             borderWidth: 1,
             borderColor: RESULT_THEME.sectionBorder,
             backgroundColor: RESULT_THEME.sectionBg,
@@ -558,7 +559,7 @@ export default function MatchResultEntryScreen() {
         <Pressable onPress={() => void onSaveResult()} disabled={submitting} style={{ marginTop: 18 }}>
           <View
             style={{
-              borderRadius: 999,
+              borderRadius: RADIUS.full,
               height: 56,
               backgroundColor: submitting ? RESULT_THEME.primaryCtaPressed : RESULT_THEME.primaryCta,
               alignItems: 'center',

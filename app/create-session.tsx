@@ -11,6 +11,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ActivityIndicator, Alert } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { SPACING } from '@/constants/screenLayout'
 
 function toMins(hhmm: string): number {
   const [h, m] = hhmm.split(':').map(Number)
@@ -537,7 +538,7 @@ export default function CreateSession() {
 
   if (step === 1) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: PROFILE_THEME_COLORS.background, paddingHorizontal: 20 }} edges={['top']}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: PROFILE_THEME_COLORS.background, paddingHorizontal: SPACING.xl }} edges={['top']}>
         <CreateSessionStep1
           onBack={() => router.back()}
           courts={courts}
@@ -591,7 +592,7 @@ export default function CreateSession() {
 
   if (step === 2) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: PROFILE_THEME_COLORS.background, paddingHorizontal: 20 }} edges={['top']}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: PROFILE_THEME_COLORS.background, paddingHorizontal: SPACING.xl }} edges={['top']}>
         <CreateSessionStep2
           onBack={() => setStep(1)}
           maxPlayers={maxPlayers}
@@ -636,7 +637,7 @@ export default function CreateSession() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: PROFILE_THEME_COLORS.background, paddingHorizontal: 20 }} edges={['top']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: PROFILE_THEME_COLORS.background, paddingHorizontal: SPACING.xl }} edges={['top']}>
       <CreateSessionStep3
         selectedCourt={selectedCourt}
         selectedDate={selectedDate}

@@ -28,6 +28,7 @@ import {
 } from '@/lib/onboardingAssessment'
 import { supabase } from '@/lib/supabase'
 import { SCREEN_FONTS } from '@/constants/screenFonts'
+import { RADIUS, SPACING } from '@/constants/screenLayout'
 
 type AnswerLabels = Partial<Record<OnboardingQuestionId, string>>
 type AnswerScores = Partial<Record<OnboardingQuestionId, number>>
@@ -241,7 +242,7 @@ export default function OnboardingScreen() {
               alignSelf: 'center',
               width: 320,
               height: 320,
-              borderRadius: 999,
+              borderRadius: RADIUS.full,
               borderWidth: 1,
               borderColor: 'rgba(255,255,255,0.28)',
             }}
@@ -253,13 +254,13 @@ export default function OnboardingScreen() {
               alignSelf: 'center',
               width: 228,
               height: 228,
-              borderRadius: 999,
+              borderRadius: RADIUS.full,
               borderWidth: 1,
               borderColor: 'rgba(255,255,255,0.24)',
             }}
           />
 
-          <View style={{ paddingTop: heroTopPadding, paddingHorizontal: 20, paddingBottom: 32 }}>
+          <View style={{ paddingTop: heroTopPadding, paddingHorizontal: SPACING.xl, paddingBottom: 32 }}>
             <View className="flex-row items-center justify-between">
               <Pressable
                 onPress={() => (resultPreview ? setResultPreview(null) : stepIndex > 0 ? handleBack() : router.back())}
@@ -357,7 +358,7 @@ export default function OnboardingScreen() {
               style={{
                 marginTop: 14,
                 height: 10,
-                borderRadius: 999,
+                borderRadius: RADIUS.full,
                 backgroundColor: 'rgba(255,255,255,0.22)',
                 overflow: 'hidden',
               }}
@@ -366,7 +367,7 @@ export default function OnboardingScreen() {
                 style={{
                   width: `${progress}%`,
                   height: '100%',
-                  borderRadius: 999,
+                  borderRadius: RADIUS.full,
                   backgroundColor: PROFILE_THEME_COLORS.primaryFixedDim,
                 }}
               />
@@ -374,12 +375,12 @@ export default function OnboardingScreen() {
           </View>
         </View>
 
-        <View style={{ paddingHorizontal: 20, marginTop: -20 }}>
+        <View style={{ paddingHorizontal: SPACING.xl, marginTop: -20 }}>
           <View
             style={{
-              borderRadius: 32,
+              borderRadius: RADIUS.hero,
               backgroundColor: ELECTRIC.white,
-              padding: 20,
+              padding: SPACING.xl,
               minHeight: questionCardMinHeight,
               shadowColor: PROFILE_THEME_COLORS.onBackground,
               shadowOpacity: 0.08,
@@ -439,7 +440,7 @@ export default function OnboardingScreen() {
                     disabled={submitting}
                     style={{
                       minHeight: 68,
-                      borderRadius: 24,
+                      borderRadius: RADIUS.xl,
                       paddingHorizontal: 16,
                       paddingVertical: 16,
                       justifyContent: 'center',
@@ -468,7 +469,7 @@ export default function OnboardingScreen() {
                         {isSelected ? (
                           <CheckCircle2 size={18} color={ELECTRIC.emerald} />
                         ) : (
-                          <View style={{ width: 10, height: 10, borderRadius: 999, backgroundColor: PROFILE_THEME_COLORS.outlineVariant }} />
+                          <View style={{ width: 10, height: 10, borderRadius: RADIUS.full, backgroundColor: PROFILE_THEME_COLORS.outlineVariant }} />
                         )}
                       </View>
                     </View>
@@ -479,7 +480,7 @@ export default function OnboardingScreen() {
           </View>
         </View>
 
-        <View style={{ paddingHorizontal: 20, paddingTop: 16 }}>
+        <View style={{ paddingHorizontal: SPACING.xl, paddingTop: 16 }}>
           <View className="flex-row items-center" style={{ gap: 12 }}>
             <TouchableOpacity
               activeOpacity={0.9}
@@ -552,7 +553,7 @@ export default function OnboardingScreen() {
                 borderRadius: 22,
                 backgroundColor: PROFILE_THEME_COLORS.errorContainer,
                 paddingHorizontal: 16,
-                paddingVertical: 14,
+                paddingVertical: SPACING.md,
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'space-between',
@@ -563,7 +564,7 @@ export default function OnboardingScreen() {
                 activeOpacity={0.92}
                 onPress={openResultPreview}
                 style={{
-                  borderRadius: 999,
+                  borderRadius: RADIUS.full,
                   backgroundColor: PROFILE_THEME_COLORS.error,
                   paddingHorizontal: 12,
                   paddingVertical: 8,
@@ -589,7 +590,7 @@ export default function OnboardingScreen() {
           <View
             style={{
               width: '100%',
-              borderRadius: 32,
+              borderRadius: RADIUS.hero,
               backgroundColor: ELECTRIC.white,
               padding: 24,
               alignItems: 'center',
@@ -698,7 +699,7 @@ export default function OnboardingScreen() {
                 style={{
                   flex: 1,
                   height: 54,
-                  borderRadius: 999,
+                  borderRadius: RADIUS.full,
                   alignItems: 'center',
                   justifyContent: 'center',
                   backgroundColor: ELECTRIC.panel,
@@ -717,7 +718,7 @@ export default function OnboardingScreen() {
                 style={{
                   flex: 1,
                   height: 54,
-                  borderRadius: 999,
+                  borderRadius: RADIUS.full,
                   alignItems: 'center',
                   justifyContent: 'center',
                   backgroundColor: ELECTRIC.emerald,

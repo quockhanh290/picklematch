@@ -7,6 +7,7 @@ import type { NearByCourt } from '@/lib/useNearbyCourts'
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
 
 import { getCreateSessionSkillOption } from './skillLevelOptions'
+import { RADIUS } from '@/constants/screenLayout'
 
 type Props = {
   selectedCourt: NearByCourt
@@ -132,8 +133,8 @@ export function CreateSessionStep3({
         />
 
         {/* Progress bar */}
-        <View style={{ height: 3, backgroundColor: PROFILE_THEME_COLORS.outlineVariant, borderRadius: 999, marginTop: 12, marginBottom: 16, overflow: 'hidden' }}>
-          <View style={{ height: '100%', width: '100%', backgroundColor: PROFILE_THEME_COLORS.primary, borderRadius: 999 }} />
+        <View style={{ height: 3, backgroundColor: PROFILE_THEME_COLORS.outlineVariant, borderRadius: RADIUS.full, marginTop: 12, marginBottom: 16, overflow: 'hidden' }}>
+          <View style={{ height: '100%', width: '100%', backgroundColor: PROFILE_THEME_COLORS.primary, borderRadius: RADIUS.full }} />
         </View>
 
         {/* Step title */}
@@ -165,7 +166,7 @@ export function CreateSessionStep3({
         </View>
 
         {/* Detail list */}
-        <View style={{ backgroundColor: PROFILE_THEME_COLORS.surface, borderRadius: 14, borderWidth: 0.5, borderColor: PROFILE_THEME_COLORS.outlineVariant, overflow: 'hidden', marginBottom: 16 }}>
+        <View style={{ backgroundColor: PROFILE_THEME_COLORS.surface, borderRadius: RADIUS.md, borderWidth: 0.5, borderColor: PROFILE_THEME_COLORS.outlineVariant, overflow: 'hidden', marginBottom: 16 }}>
           {details.map((item, i) => (
             <View
               key={i}
@@ -192,7 +193,7 @@ export function CreateSessionStep3({
         </View>
 
         {/* Info note */}
-        <View style={{ backgroundColor: PROFILE_THEME_COLORS.primaryContainer, borderRadius: 10, padding: 12, flexDirection: 'row', gap: 10, marginBottom: 16 }}>
+        <View style={{ backgroundColor: PROFILE_THEME_COLORS.primaryContainer, borderRadius: RADIUS.sm, padding: 12, flexDirection: 'row', gap: 10, marginBottom: 16 }}>
           <Text style={{ fontSize: 14 }}>ℹ️</Text>
           <Text style={{ fontSize: 12, color: PROFILE_THEME_COLORS.primary, lineHeight: 18, flex: 1 }}>
             Kiểm tra lại thông tin, chi phí và trạng thái booking để bài đăng ra feed đúng ngay từ lần đầu.
@@ -205,14 +206,14 @@ export function CreateSessionStep3({
         <TouchableOpacity
           onPress={onBack}
           disabled={submitting}
-          style={{ flex: 1, borderRadius: 999, borderWidth: 1.5, borderColor: PROFILE_THEME_COLORS.outlineVariant, paddingVertical: 13, alignItems: 'center', backgroundColor: PROFILE_THEME_COLORS.surface, opacity: submitting ? 0.5 : 1 }}
+          style={{ flex: 1, borderRadius: RADIUS.full, borderWidth: 1.5, borderColor: PROFILE_THEME_COLORS.outlineVariant, paddingVertical: 13, alignItems: 'center', backgroundColor: PROFILE_THEME_COLORS.surface, opacity: submitting ? 0.5 : 1 }}
         >
           <Text style={{ fontSize: 14, color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.cta }}>Quay lại</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={onCreate}
           disabled={submitting}
-          style={{ flex: 2, borderRadius: 999, backgroundColor: PROFILE_THEME_COLORS.primary, paddingVertical: 13, alignItems: 'center', opacity: submitting ? 0.7 : 1 }}
+          style={{ flex: 2, borderRadius: RADIUS.full, backgroundColor: PROFILE_THEME_COLORS.primary, paddingVertical: 13, alignItems: 'center', opacity: submitting ? 0.7 : 1 }}
         >
           <Text style={{ fontSize: 14, color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta }}>
             {submitting ? 'Đang tạo...' : 'Tạo kèo 🏓'}

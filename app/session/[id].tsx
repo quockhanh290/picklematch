@@ -41,6 +41,7 @@ import {
 import { getSkillLevelUi } from '@/lib/skillLevelUi'
 import { useAuth } from '@/lib/useAuth'
 import { SCREEN_FONTS } from '@/constants/screenFonts'
+import { RADIUS, SPACING } from '@/constants/screenLayout'
 
 export default function SessionDetailScreen() {
   const { id, updated } = useLocalSearchParams<{ id: string; updated?: string }>()
@@ -195,8 +196,8 @@ export default function SessionDetailScreen() {
           borderWidth: 1,
           borderColor: PROFILE_THEME_COLORS.outlineVariant,
           backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
-          paddingHorizontal: 18,
-          paddingVertical: 14,
+          paddingHorizontal: SPACING.lg,
+          paddingVertical: SPACING.md,
           shadowColor: PROFILE_THEME_COLORS.onBackground,
           shadowOpacity: 0.05,
           shadowRadius: 12,
@@ -226,7 +227,7 @@ export default function SessionDetailScreen() {
               height: 62,
               alignItems: 'center',
               justifyContent: 'center',
-              borderRadius: 999,
+              borderRadius: RADIUS.full,
               borderWidth: 1,
               borderColor: PROFILE_THEME_COLORS.primary,
               backgroundColor: PROFILE_THEME_COLORS.primary,
@@ -248,7 +249,7 @@ export default function SessionDetailScreen() {
                 bottom: -3,
                 width: 24,
                 height: 24,
-                borderRadius: 999,
+                borderRadius: RADIUS.full,
                 borderWidth: 2,
                 borderColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
                 backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHighest,
@@ -323,7 +324,7 @@ export default function SessionDetailScreen() {
             borderWidth: 1,
             borderColor: PROFILE_THEME_COLORS.primaryFixedDim,
             backgroundColor: PROFILE_THEME_SEMANTIC.successBg,
-            paddingHorizontal: 14,
+            paddingHorizontal: SPACING.md,
             paddingVertical: 12,
             flexDirection: 'row',
             alignItems: 'center',
@@ -350,7 +351,7 @@ export default function SessionDetailScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void onRefresh()} />}
         contentContainerStyle={{
           paddingBottom: 48 + insets.bottom,
-          paddingHorizontal: 20,
+          paddingHorizontal: SPACING.xl,
         }}
       >
         <ScreenHeader
@@ -482,10 +483,10 @@ export default function SessionDetailScreen() {
                   activeOpacity={0.84}
                 style={{
                   flex: 1,
-                  paddingHorizontal: 14,
+                  paddingHorizontal: SPACING.md,
                   minHeight: 52,
                   paddingVertical: 11,
-                  borderRadius: 999,
+                  borderRadius: RADIUS.full,
                   borderWidth: 1.5,
                   borderColor: PROFILE_THEME_COLORS.primary,
                   backgroundColor: PROFILE_THEME_COLORS.primary,
@@ -544,10 +545,10 @@ export default function SessionDetailScreen() {
                   style={{
                     flex: 1,
                     marginLeft: 10,
-                    paddingHorizontal: 14,
+                    paddingHorizontal: SPACING.md,
                   minHeight: 52,
                   paddingVertical: 11,
-                  borderRadius: 999,
+                  borderRadius: RADIUS.full,
                   borderWidth: 1.5,
                   borderColor: PROFILE_THEME_SEMANTIC.dangerStrong,
                   backgroundColor: PROFILE_THEME_SEMANTIC.dangerStrong,
@@ -576,10 +577,10 @@ export default function SessionDetailScreen() {
                 style={{
                   alignSelf: 'center',
                   minWidth: 190,
-                  paddingHorizontal: 20,
+                  paddingHorizontal: SPACING.xl,
                   minHeight: 52,
                   paddingVertical: 11,
-                  borderRadius: 999,
+                  borderRadius: RADIUS.full,
                   borderWidth: 2,
                   borderColor: PROFILE_THEME_SEMANTIC.dangerStrong,
                   backgroundColor: PROFILE_THEME_SEMANTIC.dangerStrong,

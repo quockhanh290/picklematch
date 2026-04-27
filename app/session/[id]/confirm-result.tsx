@@ -16,6 +16,7 @@ import { AppDialog, type AppDialogConfig } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { supabase } from '@/lib/supabase'
 import { SCREEN_FONTS } from '@/constants/screenFonts'
+import { RADIUS, SPACING } from '@/constants/screenLayout'
 
 function withAlpha(hex: string, alpha: number) {
   const clean = hex.replace('#', '')
@@ -141,12 +142,12 @@ function TeamPlayerRow({
   return (
     <View
       style={{
-        borderRadius: 20,
+        borderRadius: RADIUS.lg,
         borderWidth: 1,
         borderColor: CONFIRM_THEME.cardBorder,
         backgroundColor: CONFIRM_THEME.cardBg,
         paddingHorizontal: 12,
-        paddingVertical: 10,
+        paddingVertical: SPACING.sm,
         flexDirection: 'row',
         alignItems: 'center',
       }}
@@ -156,7 +157,7 @@ function TeamPlayerRow({
         style={{
           width: 44,
           height: 44,
-          borderRadius: 999,
+          borderRadius: RADIUS.full,
           alignItems: 'center',
           justifyContent: 'center',
           backgroundColor: PROFILE_THEME_COLORS.primary,
@@ -199,7 +200,7 @@ function TeamBlock({
           style={{
             width: 28,
             height: 28,
-            borderRadius: 999,
+            borderRadius: RADIUS.full,
             backgroundColor: CONFIRM_THEME.primaryCtaBg,
             alignItems: 'center',
             justifyContent: 'center',
@@ -470,7 +471,7 @@ export default function ConfirmSessionResultScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: CONFIRM_THEME.pageBg }}>
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 8, paddingBottom: 28 }}
+        contentContainerStyle={{ paddingHorizontal: SPACING.lg, paddingTop: 8, paddingBottom: 28 }}
         showsVerticalScrollIndicator={false}
       >
         <View style={{ alignItems: 'center', justifyContent: 'center', minHeight: 44 }}>
@@ -481,7 +482,7 @@ export default function ConfirmSessionResultScreen() {
               left: 0,
               width: 38,
               height: 38,
-              borderRadius: 999,
+              borderRadius: RADIUS.full,
               backgroundColor: CONFIRM_THEME.pageChipBg,
               alignItems: 'center',
               justifyContent: 'center',
@@ -539,7 +540,7 @@ export default function ConfirmSessionResultScreen() {
             borderWidth: 1,
             borderColor: CONFIRM_THEME.heroBorder,
             overflow: 'hidden',
-            paddingHorizontal: 18,
+            paddingHorizontal: SPACING.lg,
             paddingTop: 16,
             paddingBottom: 18,
           }}
@@ -549,7 +550,7 @@ export default function ConfirmSessionResultScreen() {
               position: 'absolute',
               width: 220,
               height: 220,
-              borderRadius: 999,
+              borderRadius: RADIUS.full,
               backgroundColor: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.06),
               top: -110,
               right: -50,
@@ -560,7 +561,7 @@ export default function ConfirmSessionResultScreen() {
               position: 'absolute',
               width: 180,
               height: 180,
-              borderRadius: 999,
+              borderRadius: RADIUS.full,
               backgroundColor: withAlpha(PROFILE_THEME_COLORS.onBackground, 0.08),
               bottom: -60,
               right: -40,
@@ -568,7 +569,7 @@ export default function ConfirmSessionResultScreen() {
           />
 
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <View style={{ borderRadius: 999, backgroundColor: CONFIRM_THEME.heroBadgeBg, paddingHorizontal: 12, paddingVertical: 6 }}>
+            <View style={{ borderRadius: RADIUS.full, backgroundColor: CONFIRM_THEME.heroBadgeBg, paddingHorizontal: 12, paddingVertical: SPACING.xs }}>
               <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 10, letterSpacing: 1.1, color: CONFIRM_THEME.heroBadgeText }}>
                 KẾT QUẢ TRẬN ĐẤU
               </Text>
@@ -603,11 +604,11 @@ export default function ConfirmSessionResultScreen() {
         <View
           style={{
             marginTop: 16,
-            borderRadius: 24,
+            borderRadius: RADIUS.xl,
             borderWidth: 1,
             borderColor: CONFIRM_THEME.sectionBorder,
             backgroundColor: CONFIRM_THEME.sectionBg,
-            padding: 14,
+            padding: SPACING.md,
           }}
         >
           <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 14, color: CONFIRM_THEME.pageTitle, letterSpacing: 0.8 }}>
@@ -631,11 +632,11 @@ export default function ConfirmSessionResultScreen() {
         <View
           style={{
             marginTop: 16,
-            borderRadius: 24,
+            borderRadius: RADIUS.xl,
             borderWidth: 1,
             borderColor: CONFIRM_THEME.sectionBorder,
             backgroundColor: CONFIRM_THEME.sectionBg,
-            padding: 14,
+            padding: SPACING.md,
           }}
         >
           <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 15, color: CONFIRM_THEME.pageTitle, textTransform: 'uppercase', letterSpacing: 0.8 }}>
@@ -668,7 +669,7 @@ export default function ConfirmSessionResultScreen() {
               backgroundColor: CONFIRM_THEME.cardBg,
               minHeight: 120,
               paddingHorizontal: 12,
-              paddingVertical: 10,
+              paddingVertical: SPACING.sm,
               fontFamily: SCREEN_FONTS.body,
               fontSize: 14,
               color: CONFIRM_THEME.inputText,
@@ -683,7 +684,7 @@ export default function ConfirmSessionResultScreen() {
             <View
               style={{
                 height: 50,
-                borderRadius: 999,
+                borderRadius: RADIUS.full,
                 borderWidth: 2,
                 borderColor: CONFIRM_THEME.dangerText,
                 backgroundColor: PROFILE_THEME_COLORS.secondaryContainer,
@@ -728,7 +729,7 @@ export default function ConfirmSessionResultScreen() {
               <View
                 style={{
                   height: 56,
-                  borderRadius: 999,
+                  borderRadius: RADIUS.full,
                   backgroundColor: CONFIRM_THEME.primaryCtaBg,
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -753,7 +754,7 @@ export default function ConfirmSessionResultScreen() {
               <View
                 style={{
                   height: 56,
-                  borderRadius: 999,
+                  borderRadius: RADIUS.full,
                   backgroundColor: CONFIRM_THEME.secondaryCtaBg,
                   alignItems: 'center',
                   justifyContent: 'center',

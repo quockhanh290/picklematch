@@ -4,6 +4,7 @@ import { getSkillLevelUi } from '@/lib/skillLevelUi'
 import { LinearGradient } from 'expo-linear-gradient'
 import { CreditCard, MapPin, MessageSquareText, ShieldAlert, ShieldCheck, Trophy } from 'lucide-react-native'
 import { Text, View } from 'react-native'
+import { RADIUS, SPACING } from '@/constants/screenLayout'
 
 type Props = {
   skillLevelId: string
@@ -137,7 +138,7 @@ export function SessionMetaCard({
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                borderRadius: 999,
+                borderRadius: RADIUS.full,
                 paddingHorizontal: 12,
                 paddingVertical: 7,
                 backgroundColor: withAlpha(onAccent, 0.13),
@@ -164,7 +165,7 @@ export function SessionMetaCard({
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
-                  borderRadius: 999,
+                  borderRadius: RADIUS.full,
                   paddingHorizontal: 12,
                   paddingVertical: 7,
                   backgroundColor: withAlpha(onAccent, 0.13),
@@ -192,7 +193,7 @@ export function SessionMetaCard({
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
-                  borderRadius: 999,
+                  borderRadius: RADIUS.full,
                   paddingHorizontal: 12,
                   paddingVertical: 7,
                   backgroundColor: withAlpha(onAccent, 0.13),
@@ -216,13 +217,13 @@ export function SessionMetaCard({
         </View>
       </View>
 
-      <View style={{ paddingHorizontal: 20, paddingVertical: 18 }}>
+      <View style={{ paddingHorizontal: SPACING.xl, paddingVertical: SPACING.lg }}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <View
             style={{
               width: 40,
               height: 40,
-              borderRadius: 999,
+              borderRadius: RADIUS.full,
               backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
               alignItems: 'center',
               justifyContent: 'center',
@@ -262,7 +263,7 @@ export function SessionMetaCard({
             style={{
               width: 40,
               height: 40,
-              borderRadius: 999,
+              borderRadius: RADIUS.full,
               backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
               alignItems: 'center',
               justifyContent: 'center',
@@ -314,7 +315,7 @@ export function SessionMetaCard({
             style={{
               width: 40,
               height: 40,
-              borderRadius: 999,
+              borderRadius: RADIUS.full,
               backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
               alignItems: 'center',
               justifyContent: 'center',

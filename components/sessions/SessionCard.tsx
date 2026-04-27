@@ -11,6 +11,7 @@ import {
   getCourtNameSize,
 } from '@/utils/formatters'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { RADIUS, SPACING } from '@/constants/screenLayout'
 
 interface SessionCardProps {
   session: {
@@ -219,7 +220,7 @@ const styles = StyleSheet.create({
   card: {
     height: CARD_HEIGHT,
     marginBottom: 12,
-    borderRadius: 14,
+    borderRadius: RADIUS.md,
     borderWidth: 0.5,
     borderColor: colors.border,
     backgroundColor: colors.surface,
@@ -254,9 +255,9 @@ const styles = StyleSheet.create({
     height: 1,
   },
   statusChip: {
-    borderRadius: 999,
+    borderRadius: RADIUS.full,
     paddingVertical: 4,
-    paddingHorizontal: 10,
+    paddingHorizontal: SPACING.sm,
     flexShrink: 0,
   },
   timeBlock: {
@@ -315,8 +316,8 @@ const styles = StyleSheet.create({
   },
   levelChip: {
     backgroundColor: colors.primaryLight,
-    borderRadius: 6,
-    paddingHorizontal: 10,
+    borderRadius: RADIUS.xs,
+    paddingHorizontal: SPACING.sm,
     paddingVertical: 2,
   },
   levelChipText: {
@@ -334,7 +335,7 @@ const styles = StyleSheet.create({
     height: 52,
     borderTopWidth: 0.5,
     borderTopColor: colors.border,
-    paddingVertical: 10,
+    paddingVertical: SPACING.sm,
     paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
@@ -381,7 +382,7 @@ const styles = StyleSheet.create({
   },
   ctaSection: {
     height: 68,
-    paddingHorizontal: 14,
+    paddingHorizontal: SPACING.md,
     paddingTop: 8,
     paddingBottom: 12,
     justifyContent: 'center',
@@ -391,7 +392,7 @@ const styles = StyleSheet.create({
     height: 48,
     borderWidth: 1,
     borderColor: colors.primaryDark,
-    borderRadius: 10,
+    borderRadius: RADIUS.sm,
     paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',

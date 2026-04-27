@@ -8,6 +8,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { ActivityIndicator, Keyboard, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 
 import type { NearByCourt } from '@/lib/useNearbyCourts'
+import { RADIUS, SPACING } from '@/constants/screenLayout'
 
 type Props = {
   onBack: () => void
@@ -99,16 +100,16 @@ function CourtRow({ court, onPress }: { court: NearByCourt; onPress: (court: Nea
     <Pressable
       onPress={() => onPress(court)}
       style={({ pressed }) => ({
-        borderRadius: 20,
+        borderRadius: RADIUS.lg,
         borderWidth: 1,
         borderColor: PROFILE_THEME_COLORS.outlineVariant,
         backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
-        padding: 14,
+        padding: SPACING.md,
         opacity: pressed ? 0.88 : 1,
       })}
     >
       <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
-        <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: PROFILE_THEME_COLORS.secondaryContainer, alignItems: 'center', justifyContent: 'center' }}>
+        <View style={{ width: 44, height: 44, borderRadius: RADIUS.md, backgroundColor: PROFILE_THEME_COLORS.secondaryContainer, alignItems: 'center', justifyContent: 'center' }}>
           <MapPin size={18} color={PROFILE_THEME_COLORS.surfaceTint} />
         </View>
         <View style={{ flex: 1 }}>
@@ -125,11 +126,11 @@ function CourtRow({ court, onPress }: { court: NearByCourt; onPress: (court: Nea
           </Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 }}>
             <View style={{
-              borderRadius: 999,
+              borderRadius: RADIUS.full,
               borderWidth: 1,
               borderColor: isOpen ? PROFILE_THEME_COLORS.outlineVariant : PROFILE_THEME_COLORS.error,
               backgroundColor: isOpen ? PROFILE_THEME_COLORS.secondaryContainer : PROFILE_THEME_COLORS.errorContainer,
-              paddingHorizontal: 10,
+              paddingHorizontal: SPACING.sm,
               paddingVertical: 4,
             }}>
               <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8, color: isOpen ? PROFILE_THEME_COLORS.surfaceTint : PROFILE_THEME_COLORS.error }}>
@@ -144,11 +145,11 @@ function CourtRow({ court, onPress }: { court: NearByCourt; onPress: (court: Nea
 }
 
 const sectionCard = {
-  borderRadius: 24,
+  borderRadius: RADIUS.xl,
   borderWidth: 1,
   borderColor: PROFILE_THEME_COLORS.outlineVariant,
   backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
-  padding: 18,
+  padding: SPACING.lg,
   marginBottom: 18,
 } as const
 
@@ -321,15 +322,15 @@ export function CreateSessionStep1({
             onBackPress={onBack}
             style={{ marginHorizontal: -20, marginTop: -12 }}
             rightSlot={
-              <View style={{ width: 32, height: 32, borderRadius: 999, backgroundColor: PROFILE_THEME_COLORS.primaryContainer, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant }}>
+              <View style={{ width: 32, height: 32, borderRadius: RADIUS.full, backgroundColor: PROFILE_THEME_COLORS.primaryContainer, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant }}>
                 <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 11, color: PROFILE_THEME_COLORS.surfaceTint }}>QK</Text>
               </View>
             }
           />
 
           {/* Progress bar */}
-          <View style={{ height: 3, backgroundColor: '#E5E3DC', borderRadius: 999, marginTop: 12, marginBottom: 16, overflow: 'hidden' }}>
-            <View style={{ height: '100%', width: '33%', backgroundColor: '#0F6E56', borderRadius: 999 }} />
+          <View style={{ height: 3, backgroundColor: '#E5E3DC', borderRadius: RADIUS.full, marginTop: 12, marginBottom: 16, overflow: 'hidden' }}>
+            <View style={{ height: '100%', width: '33%', backgroundColor: '#0F6E56', borderRadius: RADIUS.full }} />
           </View>
 
           {/* Step title */}
@@ -353,7 +354,7 @@ export function CreateSessionStep1({
           <SectionDivider index="01" title="Chọn sân" />
 
           {/* Search bar */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 999, borderWidth: 0.5, borderColor: '#E5E3DC', backgroundColor: 'white', paddingHorizontal: 14, paddingVertical: 10 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: RADIUS.full, borderWidth: 0.5, borderColor: '#E5E3DC', backgroundColor: 'white', paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm }}>
             <Search size={16} color={PROFILE_THEME_COLORS.outline} />
             <TextInput
               value={keyword}
@@ -372,7 +373,7 @@ export function CreateSessionStep1({
               style={{ flex: 1, fontFamily: SCREEN_FONTS.body, fontSize: 13, color: PROFILE_THEME_COLORS.onSurface, padding: 0 }}
               returnKeyType="search"
             />
-            <View style={{ width: 34, height: 34, borderRadius: 999, backgroundColor: '#0F6E56', alignItems: 'center', justifyContent: 'center', opacity: isCourtScheduleLocked ? 0.45 : 1 }}>
+            <View style={{ width: 34, height: 34, borderRadius: RADIUS.full, backgroundColor: '#0F6E56', alignItems: 'center', justifyContent: 'center', opacity: isCourtScheduleLocked ? 0.45 : 1 }}>
               <SlidersHorizontal size={14} color="white" strokeWidth={2.6} />
             </View>
           </View>
@@ -413,7 +414,7 @@ export function CreateSessionStep1({
                 />
                 <MapPin size={120} color="rgba(255,255,255,0.12)" style={{ position: 'absolute', right: -18, bottom: -16 }} />
 
-                <View style={{ paddingHorizontal: 18, paddingTop: 16, paddingBottom: 14 }}>
+                <View style={{ paddingHorizontal: SPACING.lg, paddingTop: 16, paddingBottom: 14 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
                     <Text
                       numberOfLines={2}
@@ -423,7 +424,7 @@ export function CreateSessionStep1({
                     >
                       {selectedCourt.name}
                     </Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6, backgroundColor: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.14) }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', borderRadius: RADIUS.full, paddingHorizontal: SPACING.sm, paddingVertical: SPACING.xs, backgroundColor: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.14) }}>
                       {selectedCourtOpen
                         ? <ShieldCheck size={12} color={withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.84)} strokeWidth={2.5} />
                         : <ShieldAlert size={12} color={withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.84)} strokeWidth={2.5} />}
@@ -434,14 +435,14 @@ export function CreateSessionStep1({
                   </View>
 
                   <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6, backgroundColor: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.14), maxWidth: '100%' }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', borderRadius: RADIUS.full, paddingHorizontal: SPACING.sm, paddingVertical: SPACING.xs, backgroundColor: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.14), maxWidth: '100%' }}>
                       <MapPin size={12} color={withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.84)} strokeWidth={2.5} />
                       <Text numberOfLines={1} style={{ marginLeft: 6, color: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.9), fontFamily: SCREEN_FONTS.body, fontSize: 15, lineHeight: 20, letterSpacing: 0.2, flexShrink: 1 }}>
                         {selectedCourtAddress}
                       </Text>
                     </View>
                     {selectedCourtDistanceLabel ? (
-                      <View style={{ borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6, backgroundColor: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.14) }}>
+                      <View style={{ borderRadius: RADIUS.full, paddingHorizontal: SPACING.sm, paddingVertical: SPACING.xs, backgroundColor: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.14) }}>
                         <Text style={{ color: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.9), fontFamily: SCREEN_FONTS.label, fontSize: 13 }}>
                           {selectedCourtDistanceLabel}
                         </Text>
@@ -459,11 +460,11 @@ export function CreateSessionStep1({
                 </View>
 
                 {selectedCourtDetailRows.length > 0 ? (
-                  <View style={{ borderTopWidth: 1, borderTopColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest, paddingHorizontal: 14, paddingVertical: 12 }}>
+                  <View style={{ borderTopWidth: 1, borderTopColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest, paddingHorizontal: SPACING.md, paddingVertical: 12 }}>
                     {selectedCourtDetailRows.map((row, index) => (
                       <View key={row.label}>
                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                          <View style={{ width: 36, height: 36, borderRadius: 999, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, alignItems: 'center', justifyContent: 'center' }}>
+                          <View style={{ width: 36, height: 36, borderRadius: RADIUS.full, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, alignItems: 'center', justifyContent: 'center' }}>
                             <row.icon size={16} color={PROFILE_THEME_COLORS.primary} strokeWidth={2.4} />
                           </View>
                           <View style={{ marginLeft: 12, flex: 1 }}>
@@ -515,7 +516,7 @@ export function CreateSessionStep1({
                   />
                 ))
               ) : (
-                <View style={{ alignItems: 'center', justifyContent: 'center', borderRadius: 20, borderWidth: 1.5, borderStyle: 'dashed', borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, paddingVertical: 32, paddingHorizontal: 16 }}>
+                <View style={{ alignItems: 'center', justifyContent: 'center', borderRadius: RADIUS.lg, borderWidth: 1.5, borderStyle: 'dashed', borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, paddingVertical: 32, paddingHorizontal: 16 }}>
                   <Text style={{ fontFamily: SCREEN_FONTS.body, fontSize: 13, lineHeight: 20, color: PROFILE_THEME_COLORS.onSurfaceVariant, textAlign: 'center' }}>
                     {fallbackMode ? 'Nhập tên sân để tìm kiếm' : 'Không tìm thấy sân nào'}
                   </Text>
@@ -532,7 +533,7 @@ export function CreateSessionStep1({
             disabled={!selectedCourt || isCourtScheduleLocked}
             onPress={openDatePicker}
             style={({ pressed }) => ({
-              borderRadius: 20,
+              borderRadius: RADIUS.lg,
               borderWidth: 1,
               borderColor: PROFILE_THEME_COLORS.outlineVariant,
               backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
@@ -542,7 +543,7 @@ export function CreateSessionStep1({
             })}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <View style={{ width: 28, height: 28, borderRadius: 999, backgroundColor: PROFILE_THEME_COLORS.secondaryContainer, alignItems: 'center', justifyContent: 'center' }}>
+              <View style={{ width: 28, height: 28, borderRadius: RADIUS.full, backgroundColor: PROFILE_THEME_COLORS.secondaryContainer, alignItems: 'center', justifyContent: 'center' }}>
                 <Calendar size={14} color={PROFILE_THEME_COLORS.surfaceTint} strokeWidth={2.6} />
               </View>
               <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 11, textTransform: 'uppercase', letterSpacing: 1.2, color: PROFILE_THEME_COLORS.outline }}>
@@ -567,7 +568,7 @@ export function CreateSessionStep1({
                       style={({ pressed }) => ({
                         width: 46,
                         alignItems: 'center',
-                        borderRadius: 14,
+                        borderRadius: RADIUS.md,
                         borderWidth: 1,
                         borderColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
                         backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
@@ -579,7 +580,7 @@ export function CreateSessionStep1({
                       <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 11, textTransform: 'uppercase', color: active ? PROFILE_THEME_COLORS.primary : weekend ? PROFILE_THEME_COLORS.error : PROFILE_THEME_COLORS.outline }}>
                         {WEEKDAY_LABELS[day.getDay()]}
                       </Text>
-                      <View style={{ marginTop: 4, width: 30, height: 30, borderRadius: 999, alignItems: 'center', justifyContent: 'center', backgroundColor: active ? PROFILE_THEME_COLORS.primary : 'transparent' }}>
+                      <View style={{ marginTop: 4, width: 30, height: 30, borderRadius: RADIUS.full, alignItems: 'center', justifyContent: 'center', backgroundColor: active ? PROFILE_THEME_COLORS.primary : 'transparent' }}>
                         <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 18, lineHeight: 20, color: active ? PROFILE_THEME_COLORS.onPrimary : weekend ? PROFILE_THEME_COLORS.error : PROFILE_THEME_COLORS.onSurface }}>
                           {day.getDate().toString().padStart(2, '0')}
                         </Text>
@@ -599,7 +600,7 @@ export function CreateSessionStep1({
               disabled={!selectedCourt || isCourtScheduleLocked}
               onPress={onToggleStartPicker}
               style={({ pressed }) => ({
-                flex: 1, minWidth: 0, borderRadius: 20, borderWidth: 1,
+                flex: 1, minWidth: 0, borderRadius: RADIUS.lg, borderWidth: 1,
                 borderColor: PROFILE_THEME_COLORS.outlineVariant,
                 backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
                 padding: 16,
@@ -607,7 +608,7 @@ export function CreateSessionStep1({
               })}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                <View style={{ width: 28, height: 28, borderRadius: 999, backgroundColor: PROFILE_THEME_COLORS.secondaryContainer, alignItems: 'center', justifyContent: 'center' }}>
+                <View style={{ width: 28, height: 28, borderRadius: RADIUS.full, backgroundColor: PROFILE_THEME_COLORS.secondaryContainer, alignItems: 'center', justifyContent: 'center' }}>
                   <Clock3 size={14} color={PROFILE_THEME_COLORS.surfaceTint} strokeWidth={2.6} />
                 </View>
                 <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 11, textTransform: 'uppercase', letterSpacing: 1.2, color: PROFILE_THEME_COLORS.outline }}>Bắt đầu</Text>
@@ -621,7 +622,7 @@ export function CreateSessionStep1({
               disabled={!selectedDate || !startTime || isCourtScheduleLocked}
               onPress={onToggleEndPicker}
               style={({ pressed }) => ({
-                flex: 1, minWidth: 0, borderRadius: 20, borderWidth: 1,
+                flex: 1, minWidth: 0, borderRadius: RADIUS.lg, borderWidth: 1,
                 borderColor: PROFILE_THEME_COLORS.outlineVariant,
                 backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
                 padding: 16,
@@ -629,7 +630,7 @@ export function CreateSessionStep1({
               })}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                <View style={{ width: 28, height: 28, borderRadius: 999, backgroundColor: PROFILE_THEME_COLORS.secondaryContainer, alignItems: 'center', justifyContent: 'center' }}>
+                <View style={{ width: 28, height: 28, borderRadius: RADIUS.full, backgroundColor: PROFILE_THEME_COLORS.secondaryContainer, alignItems: 'center', justifyContent: 'center' }}>
                   <Clock3 size={14} color={PROFILE_THEME_COLORS.surfaceTint} strokeWidth={2.6} />
                 </View>
                 <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 11, textTransform: 'uppercase', letterSpacing: 1.2, color: PROFILE_THEME_COLORS.outline }}>Kết thúc</Text>
@@ -644,7 +645,7 @@ export function CreateSessionStep1({
           {durationHours ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12, paddingHorizontal: 4 }}>
               <Text style={{ fontSize: 11, color: '#7A8884' }}>Thời lượng:</Text>
-              <View style={{ backgroundColor: '#E1F5EE', paddingHorizontal: 12, paddingVertical: 3, borderRadius: 999 }}>
+              <View style={{ backgroundColor: '#E1F5EE', paddingHorizontal: 12, paddingVertical: 3, borderRadius: RADIUS.full }}>
                 <Text style={{ fontSize: 11, color: '#0F6E56', fontWeight: '600' }}>{durationHours} tiếng</Text>
               </View>
             </View>
@@ -739,7 +740,7 @@ export function CreateSessionStep1({
         ) : null}
 
         {/* Info note */}
-        <View style={{ backgroundColor: '#E1F5EE', borderRadius: 10, padding: 12, flexDirection: 'row', gap: 10, marginBottom: 16 }}>
+        <View style={{ backgroundColor: '#E1F5EE', borderRadius: RADIUS.sm, padding: 12, flexDirection: 'row', gap: 10, marginBottom: 16 }}>
           <Text style={{ fontSize: 14 }}>ℹ️</Text>
           <Text style={{ fontSize: 12, color: '#0F6E56', lineHeight: 18, flex: 1 }}>
             Vui lòng đảm bảo bạn đã liên hệ đặt sân trước khi tạo kèo trên hệ thống.
@@ -751,13 +752,13 @@ export function CreateSessionStep1({
       <View style={{ flexDirection: 'row', gap: 10, marginHorizontal: -20, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 28, backgroundColor: '#F2F0E8', borderTopWidth: 0.5, borderTopColor: '#E5E3DC' }}>
         <TouchableOpacity
           onPress={onBack}
-          style={{ flex: 1, borderRadius: 999, borderWidth: 1.5, borderColor: '#E5E3DC', paddingVertical: 13, alignItems: 'center', backgroundColor: 'white' }}
+          style={{ flex: 1, borderRadius: RADIUS.full, borderWidth: 1.5, borderColor: '#E5E3DC', paddingVertical: 13, alignItems: 'center', backgroundColor: 'white' }}
         >
           <Text style={{ fontSize: 14, fontWeight: '700', color: '#1A2E2A', fontFamily: SCREEN_FONTS.cta }}>Quay lại</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={onContinue}
-          style={{ flex: 2, borderRadius: 999, backgroundColor: '#0F6E56', paddingVertical: 13, alignItems: 'center' }}
+          style={{ flex: 2, borderRadius: RADIUS.full, backgroundColor: '#0F6E56', paddingVertical: 13, alignItems: 'center' }}
         >
           <Text style={{ fontSize: 14, fontWeight: '700', color: 'white', fontFamily: SCREEN_FONTS.cta }}>Tiếp tục →</Text>
         </TouchableOpacity>

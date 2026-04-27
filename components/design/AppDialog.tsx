@@ -3,6 +3,7 @@ import { Modal, Pressable, Text, View } from 'react-native'
 
 import { AppButton } from '@/components/design/AppButton'
 import { useAppTheme } from '@/lib/theme-context'
+import { RADIUS, SPACING } from '@/constants/screenLayout'
 
 export type AppDialogAction = {
   label: string
@@ -35,7 +36,7 @@ export function AppDialog({ visible, config, onClose }: Props) {
 
   return (
     <Modal transparent animationType="fade" visible={visible} onRequestClose={onClose}>
-      <View style={{ flex: 1, backgroundColor: theme.overlay, justifyContent: 'center', paddingHorizontal: 20 }}>
+      <View style={{ flex: 1, backgroundColor: theme.overlay, justifyContent: 'center', paddingHorizontal: SPACING.xl }}>
         <Pressable style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 }} onPress={onClose} />
 
         <View
@@ -44,7 +45,7 @@ export function AppDialog({ visible, config, onClose }: Props) {
             borderWidth: 1,
             borderColor: theme.border,
             backgroundColor: theme.surface,
-            paddingHorizontal: 18,
+            paddingHorizontal: SPACING.lg,
             paddingTop: 16,
             paddingBottom: 14,
             shadowColor: theme.shadow,
@@ -93,7 +94,7 @@ export function AppDialog({ visible, config, onClose }: Props) {
                       <View
                         style={{
                           height: 56,
-                          borderRadius: 14,
+                          borderRadius: RADIUS.md,
                           alignItems: 'center',
                           justifyContent: 'center',
                           backgroundColor: theme.danger,

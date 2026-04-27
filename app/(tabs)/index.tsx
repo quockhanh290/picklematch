@@ -15,6 +15,7 @@ import { useHomeFeedData } from '@/hooks/useHomeFeedData'
 import type { FamiliarCourt, MatchSession } from '@/lib/homeFeed'
 import { useAppTheme } from '@/lib/theme-context'
 import { useAuth } from '@/lib/useAuth'
+import { SPACING } from '@/constants/screenLayout'
 
 const CAROUSEL_SECTION_HEIGHT = 430
 const COURT_CAROUSEL_HEIGHT = 272
@@ -52,7 +53,7 @@ const HomeStreakCard = memo(function HomeStreakCard({ current }: { current: numb
     return (
       <View
         className="mt-4 flex-row items-center rounded-[10px] border"
-        style={{ marginHorizontal: 16, paddingHorizontal: 14, paddingVertical: 9, borderColor: PROFILE_THEME_COLORS.secondaryFixedDim, backgroundColor: PROFILE_THEME_COLORS.surface, columnGap: 8 }}
+        style={{ marginHorizontal: 16, paddingHorizontal: SPACING.md, paddingVertical: 9, borderColor: PROFILE_THEME_COLORS.secondaryFixedDim, backgroundColor: PROFILE_THEME_COLORS.surface, columnGap: 8 }}
       >
         <Text style={{ fontSize: 15, lineHeight: 18 }}>🔥</Text>
         <Text className="min-w-0 flex-1 text-[12px]" style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.label, lineHeight: 17 }}>
@@ -70,7 +71,7 @@ const HomeStreakCard = memo(function HomeStreakCard({ current }: { current: numb
   return (
     <View
       className="mt-4 flex-row items-center rounded-[10px]"
-      style={{ marginHorizontal: 16, paddingHorizontal: 14, paddingVertical: 10, backgroundColor: PROFILE_THEME_COLORS.primary, columnGap: 12 }}
+      style={{ marginHorizontal: 16, paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm, backgroundColor: PROFILE_THEME_COLORS.primary, columnGap: 12 }}
     >
       <Text style={{ fontSize: 22, lineHeight: 26 }}>🔥</Text>
 
@@ -158,7 +159,7 @@ export default function HomeScreen() {
       <View className="flex-1" style={{ backgroundColor: PROFILE_THEME_COLORS.background }}>
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 160 }}
+          contentContainerStyle={{ paddingHorizontal: SPACING.xl, paddingTop: 16, paddingBottom: 160 }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />}
         >
           <HomeGreetingHeader name={profile?.name ?? 'Bạn'} statusPrompt={statusPrompt} />

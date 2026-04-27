@@ -5,6 +5,7 @@ import { Code2, LockKeyhole, Mail } from 'lucide-react-native'
 import { useState } from 'react'
 import { Alert, Pressable, Text, TextInput, View } from 'react-native'
 import { SCREEN_FONTS } from '@/constants/screenFonts'
+import { SPACING } from '@/constants/screenLayout'
 
 const DEV = {
   emerald: PROFILE_THEME_COLORS.surfaceTint,
@@ -61,7 +62,7 @@ export default function DevLoginSection({
       style={{
         borderRadius: 28,
         backgroundColor: DEV.panel,
-        padding: 18,
+        padding: SPACING.lg,
       }}
     >
       <View className="mb-4 flex-row items-start">

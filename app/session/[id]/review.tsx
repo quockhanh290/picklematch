@@ -30,6 +30,7 @@ import {
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { SCREEN_FONTS } from '@/constants/screenFonts'
+import { SPACING } from '@/constants/screenLayout'
 
 const ICON_STROKE = 2.5
 const QUICK_REPLY_TEMPLATES = [
@@ -630,7 +631,7 @@ export default function HostReviewCenterScreen() {
         <ScrollView
           className="flex-1"
           contentContainerStyle={{
-            paddingHorizontal: 20,
+            paddingHorizontal: SPACING.xl,
             paddingTop: 8,
             paddingBottom: 140 + insets.bottom,
           }}

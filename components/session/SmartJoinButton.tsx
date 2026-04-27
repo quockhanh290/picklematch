@@ -5,6 +5,7 @@ import { AlertCircle, Clock3 } from 'lucide-react-native'
 import { AppButton } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import type { MatchStatus } from '@/lib/matchmaking'
+import { RADIUS, SPACING } from '@/constants/screenLayout'
 
 type Props = {
   matchStatus: MatchStatus
@@ -25,9 +26,9 @@ export function SmartJoinButton({
     return (
       <View
         style={{
-          borderRadius: 24,
+          borderRadius: RADIUS.xl,
           backgroundColor: PROFILE_THEME_COLORS.primaryFixed,
-          paddingHorizontal: 20,
+          paddingHorizontal: SPACING.xl,
           paddingVertical: 16,
         }}
       >
@@ -97,9 +98,9 @@ export function SmartJoinButton({
     return (
       <View
         style={{
-          borderRadius: 24,
+          borderRadius: RADIUS.xl,
           backgroundColor: PROFILE_THEME_COLORS.errorContainer,
-          paddingHorizontal: 20,
+          paddingHorizontal: SPACING.xl,
           paddingVertical: 16,
         }}
       >

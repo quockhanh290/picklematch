@@ -4,6 +4,7 @@ import { Repeat2, Shuffle } from 'lucide-react-native'
 import { Pressable, Text, View } from 'react-native'
 
 import type { ArrangementPlayer } from '@/lib/sessionDetail'
+import { RADIUS, SPACING } from '@/constants/screenLayout'
 
 type Props = {
   arrangedPlayers: ArrangementPlayer[]
@@ -39,8 +40,8 @@ function TeamHeader({ label, badge, avgElo }: { label: string; badge: string; av
         {avgElo > 0 && (
           <View
             style={{
-              borderRadius: 999,
-              paddingHorizontal: 10,
+              borderRadius: RADIUS.full,
+              paddingHorizontal: SPACING.sm,
               paddingVertical: 4,
               backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
               borderWidth: 1,
@@ -57,7 +58,7 @@ function TeamHeader({ label, badge, avgElo }: { label: string; badge: string; av
         style={{
           width: 32,
           height: 32,
-          borderRadius: 999,
+          borderRadius: RADIUS.full,
           backgroundColor: PROFILE_THEME_COLORS.primary,
           alignItems: 'center',
           justifyContent: 'center',
@@ -77,20 +78,20 @@ function EmptySlot() {
       style={{
         flexDirection: 'row',
         alignItems: 'center',
-        borderRadius: 24,
+        borderRadius: RADIUS.xl,
         borderWidth: 1.5,
         borderStyle: 'dashed',
         borderColor: PROFILE_THEME_COLORS.outlineVariant,
         backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
         paddingHorizontal: 16,
-        paddingVertical: 14,
+        paddingVertical: SPACING.md,
       }}
     >
       <View
         style={{
           width: 48,
           height: 48,
-          borderRadius: 999,
+          borderRadius: RADIUS.full,
           borderWidth: 1.5,
           borderStyle: 'dashed',
           borderColor: PROFILE_THEME_COLORS.outlineVariant,
@@ -160,9 +161,9 @@ export function PlayerRosterSection({
               flexDirection: 'row',
               alignItems: 'center',
               gap: 6,
-              borderRadius: 20,
+              borderRadius: RADIUS.lg,
               paddingHorizontal: 16,
-              paddingVertical: 10,
+              paddingVertical: SPACING.sm,
               backgroundColor: isArranging ? PROFILE_THEME_COLORS.inverseSurface : PROFILE_THEME_COLORS.surfaceContainerHighest,
               opacity: pressed ? 0.85 : 1,
             })}
@@ -191,7 +192,7 @@ export function PlayerRosterSection({
         <View style={{ marginBottom: 14, gap: 10 }}>
           <View
             style={{
-              borderRadius: 20,
+              borderRadius: RADIUS.lg,
               paddingHorizontal: 16,
               paddingVertical: 12,
               backgroundColor: PROFILE_THEME_COLORS.secondaryContainer,
@@ -211,9 +212,9 @@ export function PlayerRosterSection({
               flexDirection: 'row',
               alignItems: 'center',
               gap: 8,
-              borderRadius: 20,
+              borderRadius: RADIUS.lg,
               paddingHorizontal: 16,
-              paddingVertical: 10,
+              paddingVertical: SPACING.sm,
               backgroundColor: PROFILE_THEME_COLORS.primary,
               opacity: pressed ? 0.88 : 1,
             })}

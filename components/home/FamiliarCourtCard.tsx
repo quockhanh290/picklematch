@@ -21,14 +21,14 @@ export function FamiliarCourtCard({ item, onPress }: { item: FamiliarCourt; onPr
     <Pressable
       onPress={onPress}
       className="overflow-hidden active:scale-[0.99]"
-      style={{ height: COURT_CARD_HEIGHT, borderRadius: RADIUS.hero }}
+      style={{ height: COURT_CARD_HEIGHT, borderRadius: 16, ...SHADOW.sm }}
     >
       <ImageBackground
         source={{ uri: item.image }}
-        imageStyle={{ borderRadius: RADIUS.hero }}
+        imageStyle={{ borderRadius: 16 }}
         className="h-full w-full"
       >
-        <View className="flex-1 justify-between bg-black/15" style={{ padding: SPACING.xl }}>
+        <View className="flex-1 justify-between bg-black/15" style={{ padding: SPACING.xl, borderRadius: 16 }}>
           <View className="flex-row items-start justify-between">
             <View
               className="flex-row items-center"
@@ -73,9 +73,9 @@ export function FamiliarCourtCard({ item, onPress }: { item: FamiliarCourt; onPr
 
           <View
             style={{
-              borderRadius: RADIUS.xl,
+              borderRadius: 16,
               borderWidth: BORDER.base,
-              padding: SPACING.md + 2, // 16px
+              padding: SPACING.md,
               borderColor: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.7),
               backgroundColor: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.9),
               ...SHADOW.lg,

@@ -3,6 +3,7 @@ import { FileText, Hash, Phone, ShieldAlert, ShieldCheck, User } from 'lucide-re
 import type { ComponentType } from 'react'
 import { Text, View } from 'react-native'
 import { SCREEN_FONTS } from '@/constants/screenFonts'
+import { RADIUS, SPACING } from '@/constants/screenLayout'
 
 type Props = {
   courtBookingStatus: 'confirmed' | 'unconfirmed'
@@ -30,7 +31,7 @@ function InfoRow({
           style={{
             width: 40,
             height: 40,
-            borderRadius: 999,
+            borderRadius: RADIUS.full,
             backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
             alignItems: 'center',
             justifyContent: 'center',
@@ -109,7 +110,7 @@ export function BookingDetailsCard({
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
-          paddingHorizontal: 20,
+          paddingHorizontal: SPACING.xl,
           paddingTop: 18,
           paddingBottom: 14,
           borderBottomWidth: 1,
@@ -143,7 +144,7 @@ export function BookingDetailsCard({
           style={{
             flexDirection: 'row',
             alignItems: 'center',
-            borderRadius: 999,
+            borderRadius: RADIUS.full,
             paddingHorizontal: 12,
             paddingVertical: 7,
             backgroundColor: isConfirmed
@@ -168,7 +169,7 @@ export function BookingDetailsCard({
       </View>
 
       {/* Info rows */}
-      <View style={{ paddingHorizontal: 20, paddingTop: 18, paddingBottom: 20 }}>
+      <View style={{ paddingHorizontal: SPACING.xl, paddingTop: 18, paddingBottom: 20 }}>
         {rows.map((row, index) => (
           <InfoRow
             key={row.label}
