@@ -1,3 +1,4 @@
+import { SCREEN_FONTS } from '@/constants/screenFonts'
 import { Modal, Pressable, Text, View } from 'react-native'
 
 import { AppButton } from '@/components/design/AppButton'
@@ -58,7 +59,7 @@ export function AppDialog({ visible, config, onClose }: Props) {
               fontSize: 21,
               lineHeight: 27,
               color: theme.primary,
-              fontFamily: 'PlusJakartaSans-ExtraBold',
+              fontFamily: SCREEN_FONTS.bold,
               textTransform: 'uppercase',
               letterSpacing: 0.5,
             }}
@@ -74,7 +75,7 @@ export function AppDialog({ visible, config, onClose }: Props) {
               fontSize: 14,
               lineHeight: 22,
               color: theme.textMuted,
-              fontFamily: 'PlusJakartaSans-Regular',
+              fontFamily: SCREEN_FONTS.body,
             }}
           >
             {config.message}
@@ -101,7 +102,7 @@ export function AppDialog({ visible, config, onClose }: Props) {
                         <Text
                           style={{
                             fontSize: 16,
-                            fontFamily: 'PlusJakartaSans-Bold',
+                            fontFamily: SCREEN_FONTS.cta,
                             color: theme.primaryContrast,
                           }}
                         >

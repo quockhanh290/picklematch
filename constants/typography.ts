@@ -4,13 +4,13 @@ export const AppFontSet = {
   // Primary headings and key numeric emphasis
   headline: 'BarlowCondensed-Bold',
   // Section headers and compact titles
-  title: 'Inter-Bold',
+  title: 'BarlowCondensed-Bold',
   // Body copy
-  body: 'Inter-Regular',
+  body: 'BarlowCondensed-Bold',
   // UI support text (chips, meta labels)
-  label: 'Inter-SemiBold',
+  label: 'BarlowCondensed-Bold',
   // Primary action text
-  cta: 'Inter-Bold',
+  cta: 'BarlowCondensed-Bold',
 } as const
 
 export const typography = {

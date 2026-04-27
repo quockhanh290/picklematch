@@ -29,6 +29,7 @@ import {
     View,
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
+import { SCREEN_FONTS } from '@/constants/screenFonts'
 
 const ICON_STROKE = 2.5
 const QUICK_REPLY_TEMPLATES = [
@@ -248,7 +249,7 @@ function RequestCard({
               className="h-14 w-14 items-center justify-center rounded-2xl"
               style={{ backgroundColor: PROFILE_THEME_COLORS.primary }}
             >
-              <Text style={{ fontSize: 18, fontFamily: 'PlusJakartaSans-ExtraBold', color: PROFILE_THEME_COLORS.onPrimary }}>{getInitials(applicant.player.name)}</Text>
+              <Text style={{ fontSize: 18, fontFamily: SCREEN_FONTS.bold, color: PROFILE_THEME_COLORS.onPrimary }}>{getInitials(applicant.player.name)}</Text>
             </View>
             <View
               className="absolute -bottom-1 -right-1 h-6 w-6 items-center justify-center rounded-full border-2"
@@ -262,11 +263,11 @@ function RequestCard({
           </View>
 
           <View className="ml-4 min-w-0 flex-1">
-            <Text style={{ fontSize: 17, fontFamily: 'PlusJakartaSans-ExtraBold', color: PROFILE_THEME_COLORS.onSurface }}>{applicant.player.name}</Text>
-            <Text className="mt-1" style={{ fontSize: 13, fontFamily: 'PlusJakartaSans-SemiBold', color: PROFILE_THEME_COLORS.onSurfaceVariant }}>
+            <Text style={{ fontSize: 17, fontFamily: SCREEN_FONTS.bold, color: PROFILE_THEME_COLORS.onSurface }}>{applicant.player.name}</Text>
+            <Text className="mt-1" style={{ fontSize: 13, fontFamily: SCREEN_FONTS.label, color: PROFILE_THEME_COLORS.onSurfaceVariant }}>
               {`Elo ${playerElo} • ${applicant.player.sessions_joined ?? 0} kèo đã chơi`}
             </Text>
-            <Text className="mt-1" style={{ fontSize: 12, fontFamily: 'PlusJakartaSans-Bold', color: reliabilityTone.badgeText }}>
+            <Text className="mt-1" style={{ fontSize: 12, fontFamily: SCREEN_FONTS.cta, color: reliabilityTone.badgeText }}>
               {reliability != null ? `${reliability}% uy tín` : 'Chưa đủ dữ liệu uy tín'}
             </Text>
           </View>
@@ -275,7 +276,7 @@ function RequestCard({
             className="rounded-2xl border px-3 py-1.5"
             style={{ backgroundColor: matchTone.bg, borderColor: matchTone.border }}
           >
-            <Text className="text-[12px]" style={{ fontFamily: 'PlusJakartaSans-ExtraBold', color: matchTone.text }}>
+            <Text className="text-[12px]" style={{ fontFamily: SCREEN_FONTS.bold, color: matchTone.text }}>
               {`${matchScore}% ph\u00F9 h\u1EE3p`}
             </Text>
           </View>
@@ -293,7 +294,7 @@ function RequestCard({
           <View className="mt-0.5">
             <AlertTriangle size={16} color={PROFILE_THEME_SEMANTIC.dangerStrong} strokeWidth={ICON_STROKE} />
           </View>
-          <Text className="ml-3 flex-1" style={{ fontSize: 13, lineHeight: 20, fontFamily: 'PlusJakartaSans-Bold', color: PROFILE_THEME_SEMANTIC.dangerText }}>
+          <Text className="ml-3 flex-1" style={{ fontSize: 13, lineHeight: 20, fontFamily: SCREEN_FONTS.cta, color: PROFILE_THEME_SEMANTIC.dangerText }}>
             Trình độ hơi lệch ({diffFromTarget >= 0 ? '+' : ''}
             {diffFromTarget} Elo). {'\u0042\u1EA1\u006E\u0020\u0063\u0068\u1EAF\u0063\u0020\u0063\u0068\u1EE9\u003F'}
           </Text>
@@ -308,11 +309,11 @@ function RequestCard({
           className="absolute left-3 top-0 -translate-y-1/2 rounded-full border px-2 py-1"
           style={{ borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest }}
         >
-          <Text className="text-[10px]" style={{ fontFamily: 'PlusJakartaSans-ExtraBold', color: PROFILE_THEME_COLORS.outline, textTransform: 'uppercase', letterSpacing: 1.2 }}>
+          <Text className="text-[10px]" style={{ fontFamily: SCREEN_FONTS.bold, color: PROFILE_THEME_COLORS.outline, textTransform: 'uppercase', letterSpacing: 1.2 }}>
             {'L\u1EDDi nh\u1EAFn'}
           </Text>
         </View>
-        <Text className="pt-2 text-[14px] leading-6" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Regular' }}>
+        <Text className="pt-2 text-[14px] leading-6" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body }}>
           {applicant.intro_note?.trim() ? applicant.intro_note : 'Người chơi chưa để lại lời nhắn nào.'}
         </Text>
       </View>
@@ -325,7 +326,7 @@ function RequestCard({
           style={{ borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.errorContainer }}
         >
           <UserX size={18} color={PROFILE_THEME_COLORS.onErrorContainer} strokeWidth={ICON_STROKE} />
-          <Text className="ml-2 text-[14px]" style={{ fontFamily: 'PlusJakartaSans-ExtraBold', color: PROFILE_THEME_COLORS.onErrorContainer }}>{'\u0054\u1EEB\u0020\u0063\u0068\u1ED1\u0069'}</Text>
+          <Text className="ml-2 text-[14px]" style={{ fontFamily: SCREEN_FONTS.bold, color: PROFILE_THEME_COLORS.onErrorContainer }}>{'\u0054\u1EEB\u0020\u0063\u0068\u1ED1\u0069'}</Text>
         </Pressable>
 
         <Pressable
@@ -335,7 +336,7 @@ function RequestCard({
           style={{ backgroundColor: PROFILE_THEME_COLORS.primary }}
         >
           <UserCheck size={18} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={ICON_STROKE} />
-          <Text className="ml-2 text-[14px]" style={{ fontFamily: 'PlusJakartaSans-ExtraBold', color: PROFILE_THEME_COLORS.onPrimary }}>{'\u0043\u0068\u1EA5\u0070\u0020\u006E\u0068\u1EAD\u006E'}</Text>
+          <Text className="ml-2 text-[14px]" style={{ fontFamily: SCREEN_FONTS.bold, color: PROFILE_THEME_COLORS.onPrimary }}>{'\u0043\u0068\u1EA5\u0070\u0020\u006E\u0068\u1EAD\u006E'}</Text>
         </Pressable>
       </View>
 
@@ -351,7 +352,7 @@ function RequestCard({
               backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
             }}
           >
-            <Text className="text-[12px]" style={{ fontFamily: 'PlusJakartaSans-SemiBold', color: PROFILE_THEME_SEMANTIC.infoText }}>{template}</Text>
+            <Text className="text-[12px]" style={{ fontFamily: SCREEN_FONTS.label, color: PROFILE_THEME_SEMANTIC.infoText }}>{template}</Text>
           </Pressable>
         ))}
       </View>
@@ -596,7 +597,7 @@ export default function HostReviewCenterScreen() {
   if (!session) {
     return (
       <SafeAreaView className="flex-1 items-center justify-center px-6" style={{ backgroundColor: PROFILE_THEME_COLORS.background }}>
-        <Text style={{ textAlign: 'center', fontSize: 15, fontFamily: 'PlusJakartaSans-SemiBold', color: PROFILE_THEME_SEMANTIC.infoIcon }}>{'\u004B\u0068\u00F4\u006E\u0067\u0020\u0074\u00EC\u006D\u0020\u0074\u0068\u1EA5\u0079\u0020\u0064\u1EEF\u0020\u006C\u0069\u1EC7\u0075\u0020\u0072\u0065\u0076\u0069\u0065\u0077\u0020\u0063\u0068\u006F\u0020\u006B\u00E8\u006F\u0020\u006E\u00E0\u0079\u002E'}</Text>
+        <Text style={{ textAlign: 'center', fontSize: 15, fontFamily: SCREEN_FONTS.label, color: PROFILE_THEME_SEMANTIC.infoIcon }}>{'\u004B\u0068\u00F4\u006E\u0067\u0020\u0074\u00EC\u006D\u0020\u0074\u0068\u1EA5\u0079\u0020\u0064\u1EEF\u0020\u006C\u0069\u1EC7\u0075\u0020\u0072\u0065\u0076\u0069\u0065\u0077\u0020\u0063\u0068\u006F\u0020\u006B\u00E8\u006F\u0020\u006E\u00E0\u0079\u002E'}</Text>
       </SafeAreaView>
     )
   }
@@ -605,7 +606,7 @@ export default function HostReviewCenterScreen() {
     return (
       <SafeAreaView className="flex-1 items-center justify-center px-6" style={{ backgroundColor: PROFILE_THEME_COLORS.background }}>
         <CircleX size={28} color={PROFILE_THEME_SEMANTIC.dangerStrong} strokeWidth={ICON_STROKE} />
-        <Text className="mt-4 text-center" style={{ fontSize: 18, fontFamily: 'PlusJakartaSans-ExtraBold', color: PROFILE_THEME_COLORS.onSurface }}>{'\u0042\u1EA1\u006E\u0020\u006B\u0068\u00F4\u006E\u0067\u0020\u0063\u00F3\u0020\u0071\u0075\u0079\u1EC1\u006E\u0020\u0074\u0072\u0075\u0079\u0020\u0063\u1EAD\u0070'}</Text>
+        <Text className="mt-4 text-center" style={{ fontSize: 18, fontFamily: SCREEN_FONTS.bold, color: PROFILE_THEME_COLORS.onSurface }}>{'\u0042\u1EA1\u006E\u0020\u006B\u0068\u00F4\u006E\u0067\u0020\u0063\u00F3\u0020\u0071\u0075\u0079\u1EC1\u006E\u0020\u0074\u0072\u0075\u0079\u0020\u0063\u1EAD\u0070'}</Text>
         <Text className="mt-2 text-center text-[14px] leading-6" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant }}>
           {'\u0043\u0068\u1EC9\u0020\u0068\u006F\u0073\u0074\u0020\u0063\u1EE7\u0061\u0020\u006B\u00E8\u006F\u0020\u006D\u1EDB\u0069\u0020\u0063\u00F3\u0020\u0074\u0068\u1EC3\u0020\u0078\u0065\u006D\u0020\u0076\u00E0\u0020\u0078\u1EED\u0020\u006C\u00FD\u0020\u0074\u0072\u0075\u006E\u0067\u0020\u0074\u00E2\u006D\u0020\u0064\u0075\u0079\u1EC7\u0074\u0020\u0079\u00EA\u0075\u0020\u0063\u1EA7\u0075\u0020\u006E\u00E0\u0079\u002E'}
         </Text>
@@ -614,7 +615,7 @@ export default function HostReviewCenterScreen() {
           className="mt-6 active:scale-95 rounded-2xl px-5 py-3.5"
           style={{ backgroundColor: PROFILE_THEME_COLORS.primary }}
         >
-          <Text style={{ fontSize: 14, fontFamily: 'PlusJakartaSans-ExtraBold', color: PROFILE_THEME_COLORS.onPrimary }}>{'\u0051\u0075\u0061\u0079\u0020\u006C\u1EA1\u0069'}</Text>
+          <Text style={{ fontSize: 14, fontFamily: SCREEN_FONTS.bold, color: PROFILE_THEME_COLORS.onPrimary }}>{'\u0051\u0075\u0061\u0079\u0020\u006C\u1EA1\u0069'}</Text>
         </Pressable>
       </SafeAreaView>
     )
@@ -678,10 +679,10 @@ export default function HostReviewCenterScreen() {
                 <View className="h-14 w-14 items-center justify-center rounded-full" style={{ backgroundColor: PROFILE_THEME_SEMANTIC.successBg }}>
                   <ShieldCheck size={24} color={PROFILE_THEME_COLORS.surfaceTint} strokeWidth={ICON_STROKE} />
                 </View>
-                <Text className="mt-4 text-center" style={{ fontSize: 22, fontFamily: 'PlusJakartaSans-ExtraBold', color: PROFILE_THEME_COLORS.onSurface }}>{'\u004B\u0068\u00F4\u006E\u0067\u0020\u0063\u00F2\u006E\u0020\u0079\u00EA\u0075\u0020\u0063\u1EA7\u0075\u0020\u0063\u0068\u1EDD\u0020\u0064\u0075\u0079\u1EC7\u0074'}</Text>
+                <Text className="mt-4 text-center" style={{ fontSize: 22, fontFamily: SCREEN_FONTS.bold, color: PROFILE_THEME_COLORS.onSurface }}>{'\u004B\u0068\u00F4\u006E\u0067\u0020\u0063\u00F2\u006E\u0020\u0079\u00EA\u0075\u0020\u0063\u1EA7\u0075\u0020\u0063\u0068\u1EDD\u0020\u0064\u0075\u0079\u1EC7\u0074'}</Text>
                 <Text
                   className="mt-2 text-center"
-                  style={{ fontSize: 14, lineHeight: 24, fontFamily: 'PlusJakartaSans-Regular', color: PROFILE_THEME_SEMANTIC.infoIcon }}
+                  style={{ fontSize: 14, lineHeight: 24, fontFamily: SCREEN_FONTS.body, color: PROFILE_THEME_SEMANTIC.infoIcon }}
                 >
                   {'\u0052\u0065\u0076\u0069\u0065\u0077\u0020\u0063\u0065\u006E\u0074\u0065\u0072\u0020\u0111\u0061\u006E\u0067\u0020\u0074\u0072\u1ED1\u006E\u0067\u002E\u0020\u004B\u0068\u0069\u0020\u0063\u00F3\u0020\u006E\u0067\u01B0\u1EDD\u0069\u0020\u006D\u0075\u1ED1\u006E\u0020\u0074\u0068\u0061\u006D\u0020\u0067\u0069\u0061\u002C\u0020\u0068\u1ED3\u0020\u0073\u01A1\u0020\u0063\u1EE7\u0061\u0020\u0068\u1ECD\u0020\u0073\u1EBD\u0020\u0078\u0075\u1EA5\u0074\u0020\u0068\u0069\u1EC7\u006E\u0020\u0074\u1EA1\u0069\u0020\u0111\u00E2\u0079\u002E'}
                 </Text>
@@ -714,7 +715,7 @@ export default function HostReviewCenterScreen() {
               ) : (
                 <CircleX size={18} color={PROFILE_THEME_COLORS.onErrorContainer} strokeWidth={ICON_STROKE} />
               )}
-              <Text className="ml-2 text-[14px]" style={{ fontFamily: 'PlusJakartaSans-ExtraBold', color: PROFILE_THEME_COLORS.onErrorContainer }}>
+              <Text className="ml-2 text-[14px]" style={{ fontFamily: SCREEN_FONTS.bold, color: PROFILE_THEME_COLORS.onErrorContainer }}>
                 {cancelling ? '\u0110\u0061\u006E\u0067\u0020\u0068\u1EE7\u0079\u002E\u002E\u002E' : '\u0048\u1EE7\u0079\u0020\u006B\u00E8\u006F'}
               </Text>
             </Pressable>
@@ -729,7 +730,7 @@ export default function HostReviewCenterScreen() {
               className="active:scale-95 h-14 flex-[1.2] flex-row items-center justify-center rounded-[20px]" style={{ backgroundColor: PROFILE_THEME_COLORS.primary }}
             >
               <PencilLine size={18} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={ICON_STROKE} />
-              <Text className="ml-2 text-[14px]" style={{ fontFamily: 'PlusJakartaSans-ExtraBold', color: PROFILE_THEME_COLORS.onPrimary }}>{'\u0043\u0068\u1EC9\u006E\u0068\u0020\u0073\u1EED\u0061\u0020\u006B\u00E8\u006F'}</Text>
+              <Text className="ml-2 text-[14px]" style={{ fontFamily: SCREEN_FONTS.bold, color: PROFILE_THEME_COLORS.onPrimary }}>{'\u0043\u0068\u1EC9\u006E\u0068\u0020\u0073\u1EED\u0061\u0020\u006B\u00E8\u006F'}</Text>
             </Pressable>
           </View>
         </View>

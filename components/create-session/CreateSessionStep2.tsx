@@ -1,5 +1,6 @@
 import { ScreenHeader } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { SCREEN_FONTS } from '@/constants/screenFonts'
 import { UserRound, Users } from 'lucide-react-native'
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native'
 
@@ -54,7 +55,7 @@ function formatCurrencyLabel(value: number) {
 function SectionDivider({ index, title }: { index: string; title: string }) {
   return (
     <View style={{ marginBottom: 12, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-      <Text style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 11, textTransform: 'uppercase', letterSpacing: 2.8, color: PROFILE_THEME_COLORS.outline }}>
+      <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 11, textTransform: 'uppercase', letterSpacing: 2.8, color: PROFILE_THEME_COLORS.outline }}>
         {index} / {title}
       </Text>
       <View style={{ height: 1, flex: 1, backgroundColor: PROFILE_THEME_COLORS.outlineVariant }} />
@@ -86,7 +87,7 @@ function SkillRangeSelector({
   return (
     <View style={{ gap: 12 }}>
       <View>
-        <Text style={{ fontSize: 11, color: '#7A8884', marginBottom: 6 }}>Tối thiểu</Text>
+        <Text style={{ fontSize: 11, color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, marginBottom: 6 }}>Tối thiểu</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={{ flexDirection: 'row', gap: 6 }}>
             {CREATE_SESSION_SKILL_OPTIONS.map((option) => {
@@ -98,12 +99,12 @@ function SkillRangeSelector({
                   style={{
                     paddingHorizontal: 12, paddingVertical: 6,
                     borderRadius: 999,
-                    backgroundColor: isSelected ? '#0F6E56' : 'white',
+                    backgroundColor: isSelected ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surface,
                     borderWidth: 1,
-                    borderColor: isSelected ? '#0F6E56' : '#E5E3DC',
+                    borderColor: isSelected ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
                   }}
                 >
-                  <Text style={{ fontSize: 12, fontWeight: '600', color: isSelected ? 'white' : '#1A2E2A' }}>
+                  <Text style={{ fontSize: 12, fontFamily: SCREEN_FONTS.label, color: isSelected ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurface }}>
                     {option.label}
                   </Text>
                 </TouchableOpacity>
@@ -114,7 +115,7 @@ function SkillRangeSelector({
       </View>
 
       <View>
-        <Text style={{ fontSize: 11, color: '#7A8884', marginBottom: 6 }}>Tối đa</Text>
+        <Text style={{ fontSize: 11, color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, marginBottom: 6 }}>Tối đa</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={{ flexDirection: 'row', gap: 6 }}>
             {CREATE_SESSION_SKILL_OPTIONS.map((option) => {
@@ -126,12 +127,12 @@ function SkillRangeSelector({
                   style={{
                     paddingHorizontal: 12, paddingVertical: 6,
                     borderRadius: 999,
-                    backgroundColor: isSelected ? '#0F6E56' : 'white',
+                    backgroundColor: isSelected ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surface,
                     borderWidth: 1,
-                    borderColor: isSelected ? '#0F6E56' : '#E5E3DC',
+                    borderColor: isSelected ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
                   }}
                 >
-                  <Text style={{ fontSize: 12, fontWeight: '600', color: isSelected ? 'white' : '#1A2E2A' }}>
+                  <Text style={{ fontSize: 12, fontFamily: SCREEN_FONTS.label, color: isSelected ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurface }}>
                     {option.label}
                   </Text>
                 </TouchableOpacity>
@@ -141,7 +142,7 @@ function SkillRangeSelector({
         </ScrollView>
       </View>
 
-      <Text style={{ fontFamily: 'PlusJakartaSans-Regular', fontSize: 11, color: PROFILE_THEME_COLORS.onSecondaryContainer }}>
+      <Text style={{ fontFamily: SCREEN_FONTS.body, fontSize: 11, color: PROFILE_THEME_COLORS.onSecondaryContainer }}>
         Bạn có thể chọn cùng một mức ở cả hai dòng để chỉ nhận đúng một trình độ.
       </Text>
     </View>
@@ -209,18 +210,18 @@ export function CreateSessionStep2({
           />
 
           {/* Progress bar */}
-          <View style={{ height: 3, backgroundColor: '#E5E3DC', borderRadius: 999, marginTop: 12, marginBottom: 16, overflow: 'hidden' }}>
-            <View style={{ height: '100%', width: '66%', backgroundColor: '#0F6E56', borderRadius: 999 }} />
+          <View style={{ height: 3, backgroundColor: PROFILE_THEME_COLORS.outlineVariant, borderRadius: 999, marginTop: 12, marginBottom: 16, overflow: 'hidden' }}>
+            <View style={{ height: '100%', width: '66%', backgroundColor: PROFILE_THEME_COLORS.primary, borderRadius: 999 }} />
           </View>
 
           {/* Step title */}
           <View style={{ marginBottom: 20 }}>
             <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8, marginBottom: 6 }}>
-              <Text style={{ fontFamily: 'BarlowCondensed-BoldItalic', fontSize: 52, color: '#0F6E56', lineHeight: 44, opacity: 0.2, letterSpacing: -1 }}>
+              <Text style={{ fontFamily: SCREEN_FONTS.headlineItalic, fontSize: 52, color: PROFILE_THEME_COLORS.primary, lineHeight: 44, opacity: 0.2, letterSpacing: -1 }}>
                 02
               </Text>
               <Text
-                style={{ fontFamily: 'BarlowCondensed-BoldItalic', fontSize: 28, color: '#0F6E56', lineHeight: 30, letterSpacing: -0.3, flex: 1, paddingBottom: 2 }}
+                style={{ fontFamily: SCREEN_FONTS.headlineItalic, fontSize: 28, color: PROFILE_THEME_COLORS.primary, lineHeight: 30, letterSpacing: -0.3, flex: 1, paddingBottom: 2 }}
                 numberOfLines={1}
                 adjustsFontSizeToFit
                 minimumFontScale={0.8}
@@ -228,14 +229,14 @@ export function CreateSessionStep2({
                 Cấu hình Trận đấu
               </Text>
             </View>
-            <View style={{ width: 32, height: 3, backgroundColor: '#5DCAA5', borderRadius: 2 }} />
+            <View style={{ width: 32, height: 3, backgroundColor: PROFILE_THEME_COLORS.tertiary, borderRadius: 2 }} />
           </View>
 
           <SectionDivider index="01" title="Cấu hình trận đấu" />
 
           {/* Player count */}
-          <View style={{ borderRadius: 14, borderWidth: 0.5, borderColor: '#E5E3DC', backgroundColor: 'white', padding: 14, marginBottom: 16 }}>
-            <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 12, letterSpacing: 1.2, color: PROFILE_THEME_COLORS.primary, marginBottom: 10 }}>
+          <View style={{ borderRadius: 14, borderWidth: 0.5, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surface, padding: 14, marginBottom: 16 }}>
+            <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 12, letterSpacing: 1.2, color: PROFILE_THEME_COLORS.primary, marginBottom: 10 }}>
               {'SỐ LƯỢNG NGƯỜI CHƠI'}
             </Text>
             <View style={{ flexDirection: 'row', gap: 8 }}>
@@ -254,17 +255,17 @@ export function CreateSessionStep2({
                     >
                       <View style={{
                         flex: 1, borderRadius: 10,
-                        backgroundColor: isSelected ? '#0F6E56' : 'white',
+                        backgroundColor: isSelected ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surface,
                         paddingVertical: 12, paddingHorizontal: 8,
                         alignItems: 'center', justifyContent: 'center', gap: 4,
                         borderWidth: 1.5,
-                        borderColor: isSelected ? '#0F6E56' : '#E5E3DC',
+                        borderColor: isSelected ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
                       }}>
-                        <Icon size={20} color={isSelected ? 'white' : '#7A8884'} />
-                        <Text style={{ fontFamily: 'BarlowCondensed-Black', fontSize: 24, lineHeight: 28, color: isSelected ? 'white' : '#7A8884' }}>
+                        <Icon size={20} color={isSelected ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant} />
+                        <Text style={{ fontFamily: SCREEN_FONTS.headlineBlack, fontSize: 24, lineHeight: 28, color: isSelected ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant }}>
                           {playerCount}
                         </Text>
-                        <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 11, color: isSelected ? 'white' : '#7A8884' }}>
+                        <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 11, color: isSelected ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant }}>
                           {label}
                         </Text>
                       </View>
@@ -279,8 +280,8 @@ export function CreateSessionStep2({
           <View style={{ borderRadius: 22, borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, padding: 18, marginBottom: 16 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
               <View style={{ flex: 1, paddingRight: 12 }}>
-                <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 16, color: PROFILE_THEME_COLORS.primary }}>{'Tính điểm xếp hạng'}</Text>
-                <Text style={{ fontFamily: 'PlusJakartaSans-Regular', fontSize: 12, color: PROFILE_THEME_COLORS.onSecondaryContainer, marginTop: 2 }}>{'Kết quả sẽ ảnh hưởng đến ELO của bạn'}</Text>
+                <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 16, color: PROFILE_THEME_COLORS.primary }}>{'Tính điểm xếp hạng'}</Text>
+                <Text style={{ fontFamily: SCREEN_FONTS.body, fontSize: 12, color: PROFILE_THEME_COLORS.onSecondaryContainer, marginTop: 2 }}>{'Kết quả sẽ ảnh hưởng đến ELO của bạn'}</Text>
               </View>
               <Switch
                 value={isRanked}
@@ -293,8 +294,8 @@ export function CreateSessionStep2({
 
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
               <View style={{ flex: 1, paddingRight: 12 }}>
-                <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 16, color: PROFILE_THEME_COLORS.primary }}>{'Yêu cầu phê duyệt'}</Text>
-                <Text style={{ fontFamily: 'PlusJakartaSans-Regular', fontSize: 12, color: PROFILE_THEME_COLORS.onSecondaryContainer, marginTop: 2 }}>{'Chủ sân cần duyệt người tham gia'}</Text>
+                <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 16, color: PROFILE_THEME_COLORS.primary }}>{'Yêu cầu phê duyệt'}</Text>
+                <Text style={{ fontFamily: SCREEN_FONTS.body, fontSize: 12, color: PROFILE_THEME_COLORS.onSecondaryContainer, marginTop: 2 }}>{'Chủ sân cần duyệt người tham gia'}</Text>
               </View>
               <Switch
                 value={requireApproval}
@@ -305,20 +306,20 @@ export function CreateSessionStep2({
             </View>
 
             {!canToggleRanked && rankedHelperText ? (
-              <Text style={{ marginTop: 10, fontFamily: 'PlusJakartaSans-Regular', fontSize: 12, color: PROFILE_THEME_COLORS.onPrimaryFixedVariant }}>{rankedHelperText}</Text>
+              <Text style={{ marginTop: 10, fontFamily: SCREEN_FONTS.body, fontSize: 12, color: PROFILE_THEME_COLORS.onPrimaryFixedVariant }}>{rankedHelperText}</Text>
             ) : null}
           </View>
 
           {/* Skill range */}
           <View style={{ borderRadius: 22, borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, padding: 18, marginBottom: 14 }}>
-            <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 12, letterSpacing: 1.2, color: PROFILE_THEME_COLORS.primary, marginBottom: 10 }}>
+            <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 12, letterSpacing: 1.2, color: PROFILE_THEME_COLORS.primary, marginBottom: 10 }}>
               {'PHẠM VI TRÌNH ĐỘ'}
             </Text>
 
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-              <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 18, color: PROFILE_THEME_COLORS.primary }}>{minSkillOption?.label}</Text>
-              <Text style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 16, color: PROFILE_THEME_COLORS.secondaryFixedDim }}>{'→'}</Text>
-              <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 18, color: PROFILE_THEME_COLORS.primary }}>{maxSkillOption?.label}</Text>
+              <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 18, color: PROFILE_THEME_COLORS.primary }}>{minSkillOption?.label}</Text>
+              <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 16, color: PROFILE_THEME_COLORS.secondaryFixedDim }}>{'→'}</Text>
+              <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 18, color: PROFILE_THEME_COLORS.primary }}>{maxSkillOption?.label}</Text>
             </View>
 
             <SkillRangeSelector
@@ -333,7 +334,7 @@ export function CreateSessionStep2({
 
           {/* Cost input */}
           <View style={{ borderRadius: 22, borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, padding: 18, marginBottom: 16 }}>
-            <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 12, letterSpacing: 1.2, color: PROFILE_THEME_COLORS.primary, marginBottom: 10 }}>
+            <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 12, letterSpacing: 1.2, color: PROFILE_THEME_COLORS.primary, marginBottom: 10 }}>
               CHI PHÍ TRẬN ĐẤU
             </Text>
             <View style={{ gap: 8 }}>
@@ -342,19 +343,19 @@ export function CreateSessionStep2({
                   value={totalCostStr}
                   onChangeText={(value) => setTotalCostStr(formatCurrencyInput(value))}
                   placeholder="Tổng chi phí sân (vd: 240000)"
-                  placeholderTextColor="#B4B2A9"
+                  placeholderTextColor={PROFILE_THEME_COLORS.outline}
                   keyboardType="number-pad"
                   style={{
-                    flex: 1, backgroundColor: '#F5F1E8',
+                    flex: 1, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
                     borderRadius: 8, padding: 10,
-                    fontSize: 14, color: '#1A2E2A',
-                    fontFamily: 'PlusJakartaSans-Regular',
+                    fontSize: 14, color: PROFILE_THEME_COLORS.onSurface,
+                    fontFamily: SCREEN_FONTS.body,
                   }}
                 />
-                <Text style={{ fontSize: 12, color: '#7A8884' }}>VNĐ</Text>
+                <Text style={{ fontSize: 12, color: PROFILE_THEME_COLORS.onSurfaceVariant }}>VNĐ</Text>
               </View>
-              <View style={{ backgroundColor: '#E1F5EE', borderRadius: 8, padding: 10 }}>
-                <Text style={{ fontSize: 13, color: '#0F6E56', fontWeight: '600' }}>
+              <View style={{ backgroundColor: PROFILE_THEME_COLORS.primaryContainer, borderRadius: 8, padding: 10 }}>
+                <Text style={{ fontSize: 13, color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.label }}>
                   {costPerPerson > 0
                     ? `Chi phí / người: ${formatCurrencyLabel(costPerPerson)}`
                     : 'Chi phí / người: Chưa có'}
@@ -365,10 +366,10 @@ export function CreateSessionStep2({
 
           {/* Deadline */}
           <View style={{ borderRadius: 22, borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, padding: 18, marginBottom: 16 }}>
-            <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 12, letterSpacing: 1.2, color: PROFILE_THEME_COLORS.primary, marginBottom: 10 }}>
+            <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 12, letterSpacing: 1.2, color: PROFILE_THEME_COLORS.primary, marginBottom: 10 }}>
               HẠN CHỐT VÀO KÈO
             </Text>
-            <Text style={{ fontFamily: 'PlusJakartaSans-Regular', fontSize: 12, color: PROFILE_THEME_COLORS.onSecondaryContainer, marginBottom: 8 }}>
+            <Text style={{ fontFamily: SCREEN_FONTS.body, fontSize: 12, color: PROFILE_THEME_COLORS.onSecondaryContainer, marginBottom: 8 }}>
               Chọn mốc trước giờ bắt đầu
             </Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
@@ -386,12 +387,12 @@ export function CreateSessionStep2({
                     style={{
                       paddingHorizontal: 16, paddingVertical: 8,
                       borderRadius: 999,
-                      backgroundColor: active ? '#0F6E56' : 'white',
+                      backgroundColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surface,
                       borderWidth: 1.5,
-                      borderColor: active ? '#0F6E56' : '#E5E3DC',
+                      borderColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
                     }}
                   >
-                    <Text style={{ fontSize: 12, fontWeight: '600', color: active ? 'white' : '#1A2E2A' }}>
+                    <Text style={{ fontSize: 12, fontFamily: SCREEN_FONTS.label, color: active ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurface }}>
                       {option.label}
                     </Text>
                   </TouchableOpacity>
@@ -402,10 +403,10 @@ export function CreateSessionStep2({
 
           {/* Booking status */}
           <View style={{ borderRadius: 22, borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, padding: 18, marginBottom: 14 }}>
-            <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 12, letterSpacing: 1.2, color: PROFILE_THEME_COLORS.primary, marginBottom: 10 }}>
+            <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 12, letterSpacing: 1.2, color: PROFILE_THEME_COLORS.primary, marginBottom: 10 }}>
               TÌNH TRẠNG SÂN
             </Text>
-            <Text style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 12, color: PROFILE_THEME_COLORS.onSecondaryContainer, marginBottom: 8 }}>
+            <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 12, color: PROFILE_THEME_COLORS.onSecondaryContainer, marginBottom: 8 }}>
               Trạng thái đặt sân
             </Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
@@ -426,7 +427,7 @@ export function CreateSessionStep2({
                       backgroundColor: active ? PROFILE_THEME_COLORS.primaryContainer : PROFILE_THEME_COLORS.surfaceContainerLowest,
                       paddingHorizontal: 14, paddingVertical: 11, alignItems: 'center',
                     }}>
-                      <Text style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 13, color: active ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSecondaryContainer }}>
+                      <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 13, color: active ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSecondaryContainer }}>
                         {item.label}
                       </Text>
                     </View>
@@ -437,7 +438,7 @@ export function CreateSessionStep2({
 
             {bookingStatus === 'unconfirmed' ? (
               <View style={{ marginBottom: 12 }}>
-                <Text style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 12, color: PROFILE_THEME_COLORS.onSecondaryContainer, marginBottom: 8 }}>
+                <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 12, color: PROFILE_THEME_COLORS.onSecondaryContainer, marginBottom: 8 }}>
                   Bạn có muốn đặt ngay bây giờ không?
                 </Text>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
@@ -458,7 +459,7 @@ export function CreateSessionStep2({
                           backgroundColor: active ? PROFILE_THEME_COLORS.surfaceTint : PROFILE_THEME_COLORS.surfaceContainerLowest,
                           paddingHorizontal: 14, paddingVertical: 9, alignItems: 'center',
                         }}>
-                          <Text style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 13, color: active ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSecondaryContainer }}>
+                          <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 13, color: active ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSecondaryContainer }}>
                             {item.label}
                           </Text>
                         </View>
@@ -472,14 +473,14 @@ export function CreateSessionStep2({
             {showBookingLinkCta ? (
               <Pressable onPress={onOpenBookingLink} style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1, marginBottom: 12 })}>
                 <View style={{ borderRadius: 12, borderWidth: 1, borderColor: PROFILE_THEME_COLORS.secondaryFixedDim, backgroundColor: PROFILE_THEME_COLORS.secondaryContainer, paddingVertical: 10, alignItems: 'center' }}>
-                  <Text style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 13, color: PROFILE_THEME_COLORS.surfaceTint }}>Mở link đặt sân</Text>
+                  <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 13, color: PROFILE_THEME_COLORS.surfaceTint }}>Mở link đặt sân</Text>
                 </View>
               </Pressable>
             ) : null}
 
             {shouldShowBookingDetails ? (
               <View style={{ gap: 10 }}>
-                <Text style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 12, color: PROFILE_THEME_COLORS.onSecondaryContainer }}>
+                <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 12, color: PROFILE_THEME_COLORS.onSecondaryContainer }}>
                   Thông tin booking
                 </Text>
                 <View style={{ borderRadius: 12, borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest, paddingHorizontal: 12, paddingVertical: 9 }}>
@@ -488,7 +489,7 @@ export function CreateSessionStep2({
                     onChangeText={setBookingReference}
                     placeholder="Mã đặt sân"
                     placeholderTextColor={PROFILE_THEME_COLORS.outline}
-                    style={{ fontFamily: 'PlusJakartaSans-Regular', fontSize: 14, color: PROFILE_THEME_COLORS.primary, padding: 0 }}
+                    style={{ fontFamily: SCREEN_FONTS.body, fontSize: 14, color: PROFILE_THEME_COLORS.primary, padding: 0 }}
                   />
                 </View>
                 <View style={{ borderRadius: 12, borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest, paddingHorizontal: 12, paddingVertical: 9 }}>
@@ -497,7 +498,7 @@ export function CreateSessionStep2({
                     onChangeText={setBookingName}
                     placeholder="Tên người đặt sân"
                     placeholderTextColor={PROFILE_THEME_COLORS.outline}
-                    style={{ fontFamily: 'PlusJakartaSans-Regular', fontSize: 14, color: PROFILE_THEME_COLORS.primary, padding: 0 }}
+                    style={{ fontFamily: SCREEN_FONTS.body, fontSize: 14, color: PROFILE_THEME_COLORS.primary, padding: 0 }}
                   />
                 </View>
                 <View style={{ borderRadius: 12, borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest, paddingHorizontal: 12, paddingVertical: 9 }}>
@@ -507,7 +508,7 @@ export function CreateSessionStep2({
                     placeholder="Số điện thoại"
                     placeholderTextColor={PROFILE_THEME_COLORS.outline}
                     keyboardType="phone-pad"
-                    style={{ fontFamily: 'PlusJakartaSans-Regular', fontSize: 14, color: PROFILE_THEME_COLORS.primary, padding: 0 }}
+                    style={{ fontFamily: SCREEN_FONTS.body, fontSize: 14, color: PROFILE_THEME_COLORS.primary, padding: 0 }}
                   />
                 </View>
                 <View style={{ borderRadius: 12, borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest, paddingHorizontal: 12, paddingVertical: 10 }}>
@@ -518,7 +519,7 @@ export function CreateSessionStep2({
                     placeholderTextColor={PROFILE_THEME_COLORS.outline}
                     multiline
                     textAlignVertical="top"
-                    style={{ minHeight: 68, fontFamily: 'PlusJakartaSans-Regular', fontSize: 14, color: PROFILE_THEME_COLORS.primary, padding: 0 }}
+                    style={{ minHeight: 68, fontFamily: SCREEN_FONTS.body, fontSize: 14, color: PROFILE_THEME_COLORS.primary, padding: 0 }}
                   />
                 </View>
               </View>
@@ -527,18 +528,18 @@ export function CreateSessionStep2({
         </ScrollView>
 
         {/* Bottom bar */}
-        <View style={{ flexDirection: 'row', gap: 10, marginHorizontal: -20, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 28, backgroundColor: '#F2F0E8', borderTopWidth: 0.5, borderTopColor: '#E5E3DC' }}>
+        <View style={{ flexDirection: 'row', gap: 10, marginHorizontal: -20, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 28, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, borderTopWidth: 0.5, borderTopColor: PROFILE_THEME_COLORS.outlineVariant }}>
           <TouchableOpacity
             onPress={onBack}
-            style={{ flex: 1, borderRadius: 999, borderWidth: 1.5, borderColor: '#E5E3DC', paddingVertical: 13, alignItems: 'center', backgroundColor: 'white' }}
+            style={{ flex: 1, borderRadius: 999, borderWidth: 1.5, borderColor: PROFILE_THEME_COLORS.outlineVariant, paddingVertical: 13, alignItems: 'center', backgroundColor: PROFILE_THEME_COLORS.surface }}
           >
-            <Text style={{ fontSize: 14, fontWeight: '700', color: '#1A2E2A', fontFamily: 'PlusJakartaSans-Bold' }}>Quay lại</Text>
+            <Text style={{ fontSize: 14, color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.cta }}>Quay lại</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={onContinue}
-            style={{ flex: 2, borderRadius: 999, backgroundColor: '#0F6E56', paddingVertical: 13, alignItems: 'center' }}
+            style={{ flex: 2, borderRadius: 999, backgroundColor: PROFILE_THEME_COLORS.primary, paddingVertical: 13, alignItems: 'center' }}
           >
-            <Text style={{ fontSize: 14, fontWeight: '700', color: 'white', fontFamily: 'PlusJakartaSans-Bold' }}>Tiếp tục →</Text>
+            <Text style={{ fontSize: 14, color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta }}>Tiếp tục →</Text>
           </TouchableOpacity>
         </View>
       </View>

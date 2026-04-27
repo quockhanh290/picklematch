@@ -27,6 +27,7 @@ import {
     type OnboardingQuestionId,
 } from '@/lib/onboardingAssessment'
 import { supabase } from '@/lib/supabase'
+import { SCREEN_FONTS } from '@/constants/screenFonts'
 
 type AnswerLabels = Partial<Record<OnboardingQuestionId, string>>
 type AnswerScores = Partial<Record<OnboardingQuestionId, number>>
@@ -278,7 +279,7 @@ export default function OnboardingScreen() {
                 className="rounded-full px-4 py-2"
                 style={{ backgroundColor: 'rgba(236,253,245,0.18)', borderWidth: 1, borderColor: 'rgba(236,253,245,0.38)' }}
               >
-                <Text style={{ color: PROFILE_THEME_COLORS.onPrimaryContainer, fontSize: 11, letterSpacing: 1.2, fontFamily: 'PlusJakartaSans-Bold' }}>
+                <Text style={{ color: PROFILE_THEME_COLORS.onPrimaryContainer, fontSize: 11, letterSpacing: 1.2, fontFamily: SCREEN_FONTS.cta }}>
                   ELECTRIC COURT
                 </Text>
               </View>
@@ -290,7 +291,7 @@ export default function OnboardingScreen() {
                   color: PROFILE_THEME_COLORS.onPrimaryContainer,
                   fontSize: 28,
                   lineHeight: 30,
-                  fontFamily: 'PlusJakartaSans-ExtraBoldItalic',
+                  fontFamily: SCREEN_FONTS.boldItalic,
                 }}
               >
                 BUILD YOUR LEVEL
@@ -301,7 +302,7 @@ export default function OnboardingScreen() {
                   color: PROFILE_THEME_COLORS.onPrimary,
                   fontSize: 12,
                   letterSpacing: 0.5,
-                  fontFamily: 'PlusJakartaSans-Bold',
+                  fontFamily: SCREEN_FONTS.cta,
                 }}
               >
                 KINETIC ENERGY • PLAYER FIT
@@ -312,7 +313,7 @@ export default function OnboardingScreen() {
                   color: 'rgba(255,255,255,0.78)',
                   fontSize: 14,
                   lineHeight: 22,
-                  fontFamily: 'PlusJakartaSans-Regular',
+                  fontFamily: SCREEN_FONTS.body,
                 }}
               >
                 7 câu ngắn để hệ thống ước lượng mức khởi điểm và ghép kèo dễ chịu hơn cho bạn.
@@ -328,10 +329,10 @@ export default function OnboardingScreen() {
                   <Sparkles size={18} color={ELECTRIC.white} />
                 </View>
                 <View>
-                  <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontSize: 14, fontFamily: 'PlusJakartaSans-Bold' }}>
+                  <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontSize: 14, fontFamily: SCREEN_FONTS.cta }}>
                     Bước {stepIndex + 1}/{ONBOARDING_QUESTIONS.length}
                   </Text>
-                  <Text style={{ color: 'rgba(255,255,255,0.66)', fontSize: 12, fontFamily: 'PlusJakartaSans-Regular' }}>
+                  <Text style={{ color: 'rgba(255,255,255,0.66)', fontSize: 12, fontFamily: SCREEN_FONTS.body }}>
                     Hiệu chỉnh ban đầu
                   </Text>
                 </View>
@@ -344,7 +345,7 @@ export default function OnboardingScreen() {
                     marginLeft: 6,
                     color: 'rgba(255,255,255,0.72)',
                     fontSize: 12,
-                    fontFamily: 'PlusJakartaSans-Bold',
+                    fontFamily: SCREEN_FONTS.cta,
                   }}
                 >
                   ~1 phút
@@ -389,13 +390,13 @@ export default function OnboardingScreen() {
           >
             <View className="mb-4 flex-row items-center justify-between">
               <View className="rounded-full px-4 py-2" style={{ backgroundColor: ELECTRIC.surfaceTint }}>
-                <Text style={{ color: ELECTRIC.emeraldDark, fontSize: 12, letterSpacing: 0.8, fontFamily: 'PlusJakartaSans-Bold' }}>
+                <Text style={{ color: ELECTRIC.emeraldDark, fontSize: 12, letterSpacing: 0.8, fontFamily: SCREEN_FONTS.cta }}>
                   CÂU HỎI {stepIndex + 1}
                 </Text>
               </View>
               <View className="flex-row items-center rounded-full px-3 py-2" style={{ backgroundColor: ELECTRIC.panel }}>
                 <Swords size={14} color={ELECTRIC.emeraldDark} />
-                <Text style={{ marginLeft: 6, color: ELECTRIC.muted, fontSize: 12, fontFamily: 'PlusJakartaSans-Bold' }}>
+                <Text style={{ marginLeft: 6, color: ELECTRIC.muted, fontSize: 12, fontFamily: SCREEN_FONTS.cta }}>
                   Match Fit
                 </Text>
               </View>
@@ -406,7 +407,7 @@ export default function OnboardingScreen() {
                 color: ELECTRIC.textStrong,
                 fontSize: 28,
                 lineHeight: 34,
-                fontFamily: 'PlusJakartaSans-Bold',
+                fontFamily: SCREEN_FONTS.cta,
               }}
             >
               {currentQuestion.question}
@@ -419,7 +420,7 @@ export default function OnboardingScreen() {
                   color: ELECTRIC.muted,
                   fontSize: 14,
                   lineHeight: 22,
-                  fontFamily: 'PlusJakartaSans-Regular',
+                  fontFamily: SCREEN_FONTS.body,
                 }}
               >
                 {currentQuestion.subtitle}
@@ -454,7 +455,7 @@ export default function OnboardingScreen() {
                           color: isSelected ? ELECTRIC.emeraldDark : ELECTRIC.textStrong,
                           fontSize: 15,
                           lineHeight: 22,
-                          fontFamily: 'PlusJakartaSans-Bold',
+                          fontFamily: SCREEN_FONTS.cta,
                           paddingRight: 12,
                         }}
                       >
@@ -494,7 +495,7 @@ export default function OnboardingScreen() {
                 opacity: stepIndex === 0 ? 0.45 : 1,
               }}
             >
-              <Text style={{ color: ELECTRIC.emeraldDark, fontSize: 15, fontFamily: 'PlusJakartaSans-Bold' }}>Quay lại</Text>
+              <Text style={{ color: ELECTRIC.emeraldDark, fontSize: 15, fontFamily: SCREEN_FONTS.cta }}>Quay lại</Text>
             </TouchableOpacity>
 
             {isLastQuestion ? (
@@ -517,7 +518,7 @@ export default function OnboardingScreen() {
                   elevation: 5,
                 }}
               >
-                <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontSize: 16, fontFamily: 'PlusJakartaSans-Bold' }}>Xem kết quả</Text>
+                <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontSize: 16, fontFamily: SCREEN_FONTS.cta }}>Xem kết quả</Text>
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
@@ -539,7 +540,7 @@ export default function OnboardingScreen() {
                   elevation: 5,
                 }}
               >
-                <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontSize: 16, fontFamily: 'PlusJakartaSans-Bold' }}>Tiếp theo</Text>
+                <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontSize: 16, fontFamily: SCREEN_FONTS.cta }}>Tiếp theo</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -557,7 +558,7 @@ export default function OnboardingScreen() {
                 justifyContent: 'space-between',
               }}
             >
-              <Text style={{ color: PROFILE_THEME_COLORS.error, fontSize: 14, fontFamily: 'PlusJakartaSans-Bold' }}>Có lỗi xảy ra, thử lại nhé</Text>
+              <Text style={{ color: PROFILE_THEME_COLORS.error, fontSize: 14, fontFamily: SCREEN_FONTS.cta }}>Có lỗi xảy ra, thử lại nhé</Text>
               <TouchableOpacity
                 activeOpacity={0.92}
                 onPress={openResultPreview}
@@ -568,7 +569,7 @@ export default function OnboardingScreen() {
                   paddingVertical: 8,
                 }}
               >
-                <Text style={{ color: ELECTRIC.white, fontSize: 13, fontFamily: 'PlusJakartaSans-Bold' }}>Thử lại</Text>
+                <Text style={{ color: ELECTRIC.white, fontSize: 13, fontFamily: SCREEN_FONTS.cta }}>Thử lại</Text>
               </TouchableOpacity>
             </View>
           ) : null}
@@ -603,7 +604,7 @@ export default function OnboardingScreen() {
                 color: ELECTRIC.emeraldDark,
                 fontSize: 12,
                 letterSpacing: 1,
-                fontFamily: 'PlusJakartaSans-Bold',
+                fontFamily: SCREEN_FONTS.cta,
               }}
             >
               KẾT QUẢ TỰ ĐÁNH GIÁ
@@ -615,7 +616,7 @@ export default function OnboardingScreen() {
                 fontSize: 28,
                 lineHeight: 34,
                 textAlign: 'center',
-                fontFamily: 'PlusJakartaSans-Bold',
+                fontFamily: SCREEN_FONTS.cta,
               }}
             >
               {resultPreview.tierLabel}
@@ -627,7 +628,7 @@ export default function OnboardingScreen() {
                 fontSize: 15,
                 lineHeight: 22,
                 textAlign: 'center',
-                fontFamily: 'PlusJakartaSans-Regular',
+                fontFamily: SCREEN_FONTS.body,
               }}
             >
               {resultPreview.description}
@@ -639,7 +640,7 @@ export default function OnboardingScreen() {
                 fontSize: 14,
                 lineHeight: 22,
                 textAlign: 'center',
-                fontFamily: 'PlusJakartaSans-Regular',
+                fontFamily: SCREEN_FONTS.body,
               }}
             >
               Đây là mức khởi điểm để hệ thống ghép kèo dễ chịu hơn cho bạn. Bạn có thể xác nhận mức này hoặc làm lại quiz nếu thấy chưa đúng.
@@ -654,7 +655,7 @@ export default function OnboardingScreen() {
                   color: ELECTRIC.muted,
                   fontSize: 12,
                   letterSpacing: 0.6,
-                  fontFamily: 'PlusJakartaSans-Bold',
+                  fontFamily: SCREEN_FONTS.cta,
                   textTransform: 'uppercase',
                   textAlign: 'center',
                 }}
@@ -667,7 +668,7 @@ export default function OnboardingScreen() {
                   color: ELECTRIC.textStrong,
                   fontSize: 24,
                   textAlign: 'center',
-                  fontFamily: 'PlusJakartaSans-Bold',
+                  fontFamily: SCREEN_FONTS.cta,
                 }}
               >
                 {resultPreview.elo}
@@ -682,7 +683,7 @@ export default function OnboardingScreen() {
                   fontSize: 14,
                   lineHeight: 20,
                   textAlign: 'center',
-                  fontFamily: 'PlusJakartaSans-Bold',
+                  fontFamily: SCREEN_FONTS.cta,
                 }}
               >
                 Không thể lưu kết quả lúc này. Vui lòng thử lại sau ít phút.
@@ -706,7 +707,7 @@ export default function OnboardingScreen() {
                   opacity: submitting ? 0.65 : 1,
                 }}
               >
-                <Text style={{ color: ELECTRIC.textStrong, fontSize: 15, fontFamily: 'PlusJakartaSans-Bold' }}>Làm lại quiz</Text>
+                <Text style={{ color: ELECTRIC.textStrong, fontSize: 15, fontFamily: SCREEN_FONTS.cta }}>Làm lại quiz</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -726,7 +727,7 @@ export default function OnboardingScreen() {
                 {submitting ? (
                   <ActivityIndicator color={PROFILE_THEME_COLORS.onPrimary} />
                 ) : (
-                  <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontSize: 15, fontFamily: 'PlusJakartaSans-Bold' }}>Xác nhận mức này</Text>
+                  <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontSize: 15, fontFamily: SCREEN_FONTS.cta }}>Xác nhận mức này</Text>
                 )}
               </TouchableOpacity>
             </View>

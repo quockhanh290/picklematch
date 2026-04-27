@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { AppDialog, type AppDialogConfig } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { supabase } from '@/lib/supabase'
+import { SCREEN_FONTS } from '@/constants/screenFonts'
 
 function withAlpha(hex: string, alpha: number) {
   const clean = hex.replace('#', '')
@@ -163,15 +164,15 @@ function TeamPlayerRow({
           borderColor: PROFILE_THEME_COLORS.surfaceTint,
         }}
       >
-        <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 14, color: PROFILE_THEME_COLORS.onPrimary }}>
+        <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 14, color: PROFILE_THEME_COLORS.onPrimary }}>
           {getInitials(player.player?.name)}
         </Text>
       </Pressable>
       <View style={{ marginLeft: 12, flex: 1 }}>
-        <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 16, color: PROFILE_THEME_COLORS.primary }}>
+        <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 16, color: PROFILE_THEME_COLORS.primary }}>
           {player.player?.name ?? 'Người chơi'}
         </Text>
-        <Text style={{ marginTop: 2, fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 12, color: PROFILE_THEME_COLORS.onSecondaryContainer }}>
+        <Text style={{ marginTop: 2, fontFamily: SCREEN_FONTS.label, fontSize: 12, color: PROFILE_THEME_COLORS.onSecondaryContainer }}>
           {`ELO ${player.player?.current_elo ?? player.player?.elo ?? '--'}`}
         </Text>
       </View>
@@ -193,7 +194,7 @@ function TeamBlock({
   return (
     <View style={{ marginTop: 12 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-        <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 20, color: PROFILE_THEME_COLORS.primary }}>{title}</Text>
+        <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 20, color: PROFILE_THEME_COLORS.primary }}>{title}</Text>
         <View
           style={{
             width: 28,
@@ -204,7 +205,7 @@ function TeamBlock({
             justifyContent: 'center',
           }}
         >
-          <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 13, color: CONFIRM_THEME.cardBg }}>{badge}</Text>
+          <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 13, color: CONFIRM_THEME.cardBg }}>{badge}</Text>
         </View>
       </View>
       <View style={{ gap: 8 }}>
@@ -223,7 +224,7 @@ function TeamBlock({
               paddingVertical: 12,
             }}
           >
-            <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13, color: PROFILE_THEME_COLORS.onSecondaryContainer }}>
+            <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 13, color: PROFILE_THEME_COLORS.onSecondaryContainer }}>
               Chưa có người chơi ở đội này
             </Text>
           </View>
@@ -455,10 +456,10 @@ export default function ConfirmSessionResultScreen() {
   if (!session || !myEntry) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: CONFIRM_THEME.pageBg, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 }}>
-        <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 22, color: CONFIRM_THEME.pageTitle, textAlign: 'center' }}>
+        <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 22, color: CONFIRM_THEME.pageTitle, textAlign: 'center' }}>
           Không tìm thấy dữ liệu xác nhận
         </Text>
-        <Text style={{ marginTop: 8, fontFamily: 'PlusJakartaSans-Regular', fontSize: 14, lineHeight: 20, color: CONFIRM_THEME.pageSubtitle, textAlign: 'center' }}>
+        <Text style={{ marginTop: 8, fontFamily: SCREEN_FONTS.body, fontSize: 14, lineHeight: 20, color: CONFIRM_THEME.pageSubtitle, textAlign: 'center' }}>
           Kèo này có thể chưa có kết quả cần xác nhận hoặc bạn không thuộc danh sách người chơi.
         </Text>
       </SafeAreaView>
@@ -488,7 +489,7 @@ export default function ConfirmSessionResultScreen() {
           >
             <ArrowLeft size={18} color={PROFILE_THEME_COLORS.onSecondaryContainer} />
           </Pressable>
-          <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 30, color: CONFIRM_THEME.pageTitle }}>
+          <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 30, color: CONFIRM_THEME.pageTitle }}>
             Xác nhận kết quả
           </Text>
         </View>
@@ -496,7 +497,7 @@ export default function ConfirmSessionResultScreen() {
         <View style={{ marginTop: 10, alignItems: 'center' }}>
           <Text
             style={{
-              fontFamily: 'PlusJakartaSans-Bold',
+              fontFamily: SCREEN_FONTS.cta,
               fontSize: 11,
               letterSpacing: 1.2,
               color: CONFIRM_THEME.muted,
@@ -510,7 +511,7 @@ export default function ConfirmSessionResultScreen() {
             style={{
               marginTop: 4,
               textAlign: 'center',
-              fontFamily: 'PlusJakartaSans-ExtraBold',
+              fontFamily: SCREEN_FONTS.bold,
               fontSize: 30,
               lineHeight: 36,
               color: CONFIRM_THEME.pageTitle,
@@ -521,7 +522,7 @@ export default function ConfirmSessionResultScreen() {
           <Text
             style={{
               marginTop: 4,
-              fontFamily: 'PlusJakartaSans-Bold',
+              fontFamily: SCREEN_FONTS.cta,
               fontSize: 13,
               color: CONFIRM_THEME.pageSubtitle,
             }}
@@ -568,7 +569,7 @@ export default function ConfirmSessionResultScreen() {
 
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <View style={{ borderRadius: 999, backgroundColor: CONFIRM_THEME.heroBadgeBg, paddingHorizontal: 12, paddingVertical: 6 }}>
-              <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 10, letterSpacing: 1.1, color: CONFIRM_THEME.heroBadgeText }}>
+              <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 10, letterSpacing: 1.1, color: CONFIRM_THEME.heroBadgeText }}>
                 KẾT QUẢ TRẬN ĐẤU
               </Text>
             </View>
@@ -577,7 +578,7 @@ export default function ConfirmSessionResultScreen() {
           <Text
             style={{
               marginTop: 16,
-              fontFamily: 'PlusJakartaSans-ExtraBold',
+              fontFamily: SCREEN_FONTS.bold,
               fontSize: 70,
               lineHeight: 108,
               color: CONFIRM_THEME.cardBg,
@@ -588,13 +589,13 @@ export default function ConfirmSessionResultScreen() {
 
           <View style={{ marginTop: 18, flexDirection: 'row', alignItems: 'flex-end', gap: 16 }}>
             <View style={{ alignItems: 'center' }}>
-              <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 54, color: CONFIRM_THEME.heroText }}>{heroScore.a}</Text>
-              <Text style={{ marginTop: -4, fontFamily: 'PlusJakartaSans-Bold', fontSize: 12, letterSpacing: 1.2, color: CONFIRM_THEME.heroTextSoft }}>ĐỘI A</Text>
+              <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 54, color: CONFIRM_THEME.heroText }}>{heroScore.a}</Text>
+              <Text style={{ marginTop: -4, fontFamily: SCREEN_FONTS.cta, fontSize: 12, letterSpacing: 1.2, color: CONFIRM_THEME.heroTextSoft }}>ĐỘI A</Text>
             </View>
-            <Text style={{ marginBottom: 22, fontFamily: 'PlusJakartaSans-Bold', fontSize: 34, color: CONFIRM_THEME.heroTextSoft }}>|</Text>
+            <Text style={{ marginBottom: 22, fontFamily: SCREEN_FONTS.cta, fontSize: 34, color: CONFIRM_THEME.heroTextSoft }}>|</Text>
             <View style={{ alignItems: 'center' }}>
-              <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 54, color: CONFIRM_THEME.heroText }}>{heroScore.b}</Text>
-              <Text style={{ marginTop: -4, fontFamily: 'PlusJakartaSans-Bold', fontSize: 12, letterSpacing: 1.2, color: CONFIRM_THEME.heroTextSoft }}>ĐỘI B</Text>
+              <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 54, color: CONFIRM_THEME.heroText }}>{heroScore.b}</Text>
+              <Text style={{ marginTop: -4, fontFamily: SCREEN_FONTS.cta, fontSize: 12, letterSpacing: 1.2, color: CONFIRM_THEME.heroTextSoft }}>ĐỘI B</Text>
             </View>
           </View>
         </View>
@@ -609,7 +610,7 @@ export default function ConfirmSessionResultScreen() {
             padding: 14,
           }}
         >
-          <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 14, color: CONFIRM_THEME.pageTitle, letterSpacing: 0.8 }}>
+          <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 14, color: CONFIRM_THEME.pageTitle, letterSpacing: 0.8 }}>
             • ĐỘI HÌNH THI ĐẤU
           </Text>
 
@@ -637,10 +638,10 @@ export default function ConfirmSessionResultScreen() {
             padding: 14,
           }}
         >
-          <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 15, color: CONFIRM_THEME.pageTitle, textTransform: 'uppercase', letterSpacing: 0.8 }}>
+          <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 15, color: CONFIRM_THEME.pageTitle, textTransform: 'uppercase', letterSpacing: 0.8 }}>
             Khiếu nại kết quả
           </Text>
-          <Text style={{ marginTop: 8, fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13, lineHeight: 20, color: CONFIRM_THEME.pageSubtitle }}>
+          <Text style={{ marginTop: 8, fontFamily: SCREEN_FONTS.label, fontSize: 13, lineHeight: 20, color: CONFIRM_THEME.pageSubtitle }}>
             Nếu kết quả không chính xác hoặc có tranh chấp trong trận đấu, vui lòng nhập lý do chi tiết bên dưới.
             {' '}
             {isMemberFallbackFlow
@@ -668,7 +669,7 @@ export default function ConfirmSessionResultScreen() {
               minHeight: 120,
               paddingHorizontal: 12,
               paddingVertical: 10,
-              fontFamily: 'PlusJakartaSans-Regular',
+              fontFamily: SCREEN_FONTS.body,
               fontSize: 14,
               color: CONFIRM_THEME.inputText,
             }}
@@ -697,7 +698,7 @@ export default function ConfirmSessionResultScreen() {
               ) : (
                 <>
                   <ShieldAlert size={16} color={CONFIRM_THEME.dangerText} />
-                  <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 16, color: CONFIRM_THEME.dangerText }}>
+                  <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 16, color: CONFIRM_THEME.dangerText }}>
                     {isMemberFallbackFlow ? 'Gửi báo cáo' : 'Gửi khiếu nại'}
                   </Text>
                 </>
@@ -708,10 +709,10 @@ export default function ConfirmSessionResultScreen() {
 
         {myEntry.result_confirmation_status === 'disputed' && myEntry.result_dispute_note ? (
           <View style={{ marginTop: 12, borderRadius: 18, borderWidth: 1, borderColor: CONFIRM_THEME.warningBorder, backgroundColor: CONFIRM_THEME.warningBg, padding: 12 }}>
-            <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 14, color: CONFIRM_THEME.warningText }}>
+            <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 14, color: CONFIRM_THEME.warningText }}>
               Bạn đã gửi tranh chấp trước đó
             </Text>
-            <Text style={{ marginTop: 4, fontFamily: 'PlusJakartaSans-Regular', fontSize: 13, lineHeight: 19, color: CONFIRM_THEME.warningText }}>
+            <Text style={{ marginTop: 4, fontFamily: SCREEN_FONTS.body, fontSize: 13, lineHeight: 19, color: CONFIRM_THEME.warningText }}>
               {myEntry.result_dispute_note}
             </Text>
           </View>
@@ -740,7 +741,7 @@ export default function ConfirmSessionResultScreen() {
                 ) : (
                   <>
                     <CheckCheck size={18} color={CONFIRM_THEME.primaryCtaText} />
-                    <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 18, color: CONFIRM_THEME.cardBg }}>
+                    <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 18, color: CONFIRM_THEME.cardBg }}>
                       Xác nhận kết quả
                     </Text>
                   </>
@@ -758,7 +759,7 @@ export default function ConfirmSessionResultScreen() {
                   justifyContent: 'center',
                 }}
               >
-                <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 18, color: CONFIRM_THEME.secondaryCtaText }}>
+                <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 18, color: CONFIRM_THEME.secondaryCtaText }}>
                   Chia sẻ trận đấu
                 </Text>
               </View>

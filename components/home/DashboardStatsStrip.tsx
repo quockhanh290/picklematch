@@ -3,6 +3,7 @@ import { ShieldCheck, TrendingUp, Zap } from 'lucide-react-native'
 import { Text, View } from 'react-native'
 
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { SCREEN_FONTS } from '@/constants/screenFonts'
 import { getShadowStyle } from '@/lib/designSystem'
 import { useAppTheme } from '@/lib/theme-context'
 
@@ -61,11 +62,11 @@ export function DashboardStatsStrip({ items }: { items: DashboardStatItem[] }) {
             <View className="flex-1 px-3">
               <View className="flex-row items-center justify-center">
                 <Icon size={15} color={iconColor} strokeWidth={iconStroke} />
-                <Text className="ml-2 text-[11px] uppercase tracking-[1px]" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Bold' }}>
+                <Text className="ml-2 text-[11px] uppercase tracking-[1px]" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.cta }}>
                   {item.label}
                 </Text>
               </View>
-              <Text className="mt-4 text-center text-[28px]" style={{ color: valueColor, fontFamily: 'PlusJakartaSans-ExtraBold', lineHeight: 36 }}>
+              <Text className="mt-4 text-center text-[28px]" style={{ color: valueColor, fontFamily: SCREEN_FONTS.bold, lineHeight: 36 }}>
                 {item.value}
               </Text>
             </View>

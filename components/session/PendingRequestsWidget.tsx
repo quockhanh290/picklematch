@@ -41,7 +41,7 @@ export function PendingRequestsWidget({ count, avatars, onPress }: Props) {
       style={{
         backgroundColor: PROFILE_THEME_COLORS.primaryContainer,
         shadowColor: PROFILE_THEME_COLORS.onBackground,
-        shadowOpacity: 0.2,
+        shadowOpacity: 0.08,
         shadowRadius: 18,
         shadowOffset: { width: 0, height: 10 },
         elevation: 7,

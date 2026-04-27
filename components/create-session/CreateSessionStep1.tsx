@@ -1,5 +1,6 @@
 import { ScreenHeader } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { SCREEN_FONTS } from '@/constants/screenFonts'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Calendar, Clock3, CreditCard, Link2, MapPin, Search, ShieldAlert, ShieldCheck, SlidersHorizontal } from 'lucide-react-native'
@@ -112,14 +113,14 @@ function CourtRow({ court, onPress }: { court: NearByCourt; onPress: (court: Nea
         </View>
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
-            <Text style={{ flex: 1, fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 15, color: PROFILE_THEME_COLORS.onSurface }} numberOfLines={1}>
+            <Text style={{ flex: 1, fontFamily: SCREEN_FONTS.bold, fontSize: 15, color: PROFILE_THEME_COLORS.onSurface }} numberOfLines={1}>
               {court.name}
             </Text>
             {distanceLabel ? (
-              <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 11, color: PROFILE_THEME_COLORS.outline }}>{distanceLabel}</Text>
+              <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 11, color: PROFILE_THEME_COLORS.outline }}>{distanceLabel}</Text>
             ) : null}
           </View>
-          <Text style={{ fontFamily: 'PlusJakartaSans-Regular', fontSize: 12, lineHeight: 18, color: PROFILE_THEME_COLORS.onSurfaceVariant, marginTop: 3 }} numberOfLines={2}>
+          <Text style={{ fontFamily: SCREEN_FONTS.body, fontSize: 12, lineHeight: 18, color: PROFILE_THEME_COLORS.onSurfaceVariant, marginTop: 3 }} numberOfLines={2}>
             {court.address}{court.city ? ` · ${court.city}` : ''}
           </Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 }}>
@@ -131,7 +132,7 @@ function CourtRow({ court, onPress }: { court: NearByCourt; onPress: (court: Nea
               paddingHorizontal: 10,
               paddingVertical: 4,
             }}>
-              <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8, color: isOpen ? PROFILE_THEME_COLORS.surfaceTint : PROFILE_THEME_COLORS.error }}>
+              <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8, color: isOpen ? PROFILE_THEME_COLORS.surfaceTint : PROFILE_THEME_COLORS.error }}>
                 {isOpen ? 'Đang mở' : 'Đã đóng'}
               </Text>
             </View>
@@ -166,7 +167,7 @@ const pickerHeader = {
 function SectionDivider({ index, title }: { index: string; title: string }) {
   return (
     <View style={{ marginBottom: 12, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-      <Text style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 11, textTransform: 'uppercase', letterSpacing: 2.8, color: PROFILE_THEME_COLORS.outline }}>
+      <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 11, textTransform: 'uppercase', letterSpacing: 2.8, color: PROFILE_THEME_COLORS.outline }}>
         {index} / {title}
       </Text>
       <View style={{ height: 1, flex: 1, backgroundColor: PROFILE_THEME_COLORS.outlineVariant }} />
@@ -321,7 +322,7 @@ export function CreateSessionStep1({
             style={{ marginHorizontal: -20, marginTop: -12 }}
             rightSlot={
               <View style={{ width: 32, height: 32, borderRadius: 999, backgroundColor: PROFILE_THEME_COLORS.primaryContainer, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant }}>
-                <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 11, color: PROFILE_THEME_COLORS.surfaceTint }}>QK</Text>
+                <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 11, color: PROFILE_THEME_COLORS.surfaceTint }}>QK</Text>
               </View>
             }
           />
@@ -334,11 +335,11 @@ export function CreateSessionStep1({
           {/* Step title */}
           <View style={{ marginBottom: 20 }}>
             <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8, marginBottom: 6 }}>
-              <Text style={{ fontFamily: 'BarlowCondensed-BoldItalic', fontSize: 52, color: '#0F6E56', lineHeight: 44, opacity: 0.2, letterSpacing: -1 }}>
+              <Text style={{ fontFamily: SCREEN_FONTS.headlineItalic, fontSize: 52, color: '#0F6E56', lineHeight: 44, opacity: 0.2, letterSpacing: -1 }}>
                 01
               </Text>
               <Text
-                style={{ fontFamily: 'BarlowCondensed-BoldItalic', fontSize: 28, color: '#0F6E56', lineHeight: 30, letterSpacing: -0.3, flex: 1, paddingBottom: 2 }}
+                style={{ fontFamily: SCREEN_FONTS.headlineItalic, fontSize: 28, color: '#0F6E56', lineHeight: 30, letterSpacing: -0.3, flex: 1, paddingBottom: 2 }}
                 numberOfLines={1}
                 adjustsFontSizeToFit
                 minimumFontScale={0.8}
@@ -368,7 +369,7 @@ export function CreateSessionStep1({
               }}
               placeholder="Tìm tên sân hoặc khu vực..."
               placeholderTextColor="#B4B2A9"
-              style={{ flex: 1, fontFamily: 'PlusJakartaSans-Regular', fontSize: 13, color: PROFILE_THEME_COLORS.onSurface, padding: 0 }}
+              style={{ flex: 1, fontFamily: SCREEN_FONTS.body, fontSize: 13, color: PROFILE_THEME_COLORS.onSurface, padding: 0 }}
               returnKeyType="search"
             />
             <View style={{ width: 34, height: 34, borderRadius: 999, backgroundColor: '#0F6E56', alignItems: 'center', justifyContent: 'center', opacity: isCourtScheduleLocked ? 0.45 : 1 }}>
@@ -381,9 +382,9 @@ export function CreateSessionStep1({
           {selectedCourt ? (
             <>
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 15, color: PROFILE_THEME_COLORS.onSurface }}>Sân đã chọn</Text>
+                <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 15, color: PROFILE_THEME_COLORS.onSurface }}>Sân đã chọn</Text>
                 {isCourtScheduleLocked ? (
-                  <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 12, color: PROFILE_THEME_COLORS.outline }}>Đã khóa vì đã đặt sân</Text>
+                  <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 12, color: PROFILE_THEME_COLORS.outline }}>Đã khóa vì đã đặt sân</Text>
                 ) : (
                   <Pressable
                     onPress={() => {
@@ -396,7 +397,7 @@ export function CreateSessionStep1({
                     }}
                     style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
                   >
-                    <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13, color: PROFILE_THEME_COLORS.primary }}>
+                    <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 13, color: PROFILE_THEME_COLORS.primary }}>
                       {showCourtPicker ? 'Đóng chọn sân' : 'Đổi sân'}
                     </Text>
                   </Pressable>
@@ -418,7 +419,7 @@ export function CreateSessionStep1({
                       numberOfLines={2}
                       adjustsFontSizeToFit
                       minimumFontScale={0.7}
-                      style={{ flex: 1, color: PROFILE_THEME_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-ExtraBoldItalic', fontSize: 36, lineHeight: 41, letterSpacing: 0.8, textTransform: 'uppercase' }}
+                      style={{ flex: 1, color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.boldItalic, fontSize: 36, lineHeight: 41, letterSpacing: 0.8, textTransform: 'uppercase' }}
                     >
                       {selectedCourt.name}
                     </Text>
@@ -426,7 +427,7 @@ export function CreateSessionStep1({
                       {selectedCourtOpen
                         ? <ShieldCheck size={12} color={withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.84)} strokeWidth={2.5} />
                         : <ShieldAlert size={12} color={withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.84)} strokeWidth={2.5} />}
-                      <Text style={{ marginLeft: 6, color: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.9), fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 12 }}>
+                      <Text style={{ marginLeft: 6, color: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.9), fontFamily: SCREEN_FONTS.label, fontSize: 12 }}>
                         {selectedCourtOpen ? 'Đang mở' : 'Tạm đóng'}
                       </Text>
                     </View>
@@ -435,13 +436,13 @@ export function CreateSessionStep1({
                   <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6, backgroundColor: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.14), maxWidth: '100%' }}>
                       <MapPin size={12} color={withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.84)} strokeWidth={2.5} />
-                      <Text numberOfLines={1} style={{ marginLeft: 6, color: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.9), fontFamily: 'PlusJakartaSans-Regular', fontSize: 15, lineHeight: 20, letterSpacing: 0.2, flexShrink: 1 }}>
+                      <Text numberOfLines={1} style={{ marginLeft: 6, color: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.9), fontFamily: SCREEN_FONTS.body, fontSize: 15, lineHeight: 20, letterSpacing: 0.2, flexShrink: 1 }}>
                         {selectedCourtAddress}
                       </Text>
                     </View>
                     {selectedCourtDistanceLabel ? (
                       <View style={{ borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6, backgroundColor: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.14) }}>
-                        <Text style={{ color: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.9), fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13 }}>
+                        <Text style={{ color: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.9), fontFamily: SCREEN_FONTS.label, fontSize: 13 }}>
                           {selectedCourtDistanceLabel}
                         </Text>
                       </View>
@@ -451,7 +452,7 @@ export function CreateSessionStep1({
                   {/* Price row */}
                   <View style={{ marginTop: 12, paddingTop: 10, borderTopWidth: 0.5, borderTopColor: 'rgba(255,255,255,0.2)', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                     <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>💳 Giá sân</Text>
-                    <Text style={{ marginLeft: 'auto', fontFamily: 'BarlowCondensed-Bold', fontSize: 16, color: 'white', fontWeight: '700' }}>
+                    <Text style={{ marginLeft: 'auto', fontFamily: SCREEN_FONTS.headlineBlack, fontSize: 16, color: 'white', fontWeight: '700' }}>
                       {selectedCourtPriceLabel ?? '—'}
                     </Text>
                   </View>
@@ -466,10 +467,10 @@ export function CreateSessionStep1({
                             <row.icon size={16} color={PROFILE_THEME_COLORS.primary} strokeWidth={2.4} />
                           </View>
                           <View style={{ marginLeft: 12, flex: 1 }}>
-                            <Text style={{ fontSize: 10, fontFamily: 'PlusJakartaSans-ExtraBold', textTransform: 'uppercase', letterSpacing: 1.6, color: PROFILE_THEME_COLORS.outline }}>
+                            <Text style={{ fontSize: 10, fontFamily: SCREEN_FONTS.bold, textTransform: 'uppercase', letterSpacing: 1.6, color: PROFILE_THEME_COLORS.outline }}>
                               {row.label}
                             </Text>
-                            <Text style={{ marginTop: 2, fontSize: 13, fontFamily: 'PlusJakartaSans-SemiBold', color: PROFILE_THEME_COLORS.onSurface, lineHeight: 19 }}>
+                            <Text style={{ marginTop: 2, fontSize: 13, fontFamily: SCREEN_FONTS.label, color: PROFILE_THEME_COLORS.onSurface, lineHeight: 19 }}>
                               {row.value}
                             </Text>
                           </View>
@@ -484,7 +485,7 @@ export function CreateSessionStep1({
               </View>
             </>
           ) : (
-            <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 15, color: PROFILE_THEME_COLORS.onSurface, marginBottom: 12 }}>Gợi ý sân</Text>
+            <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 15, color: PROFILE_THEME_COLORS.onSurface, marginBottom: 12 }}>Gợi ý sân</Text>
           )}
 
           {showCourtPicker ? (
@@ -492,7 +493,7 @@ export function CreateSessionStep1({
               {loadingCourts ? (
                 <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 32 }}>
                   <ActivityIndicator color={PROFILE_THEME_COLORS.primary} />
-                  <Text style={{ fontFamily: 'PlusJakartaSans-Regular', fontSize: 13, color: PROFILE_THEME_COLORS.onSurfaceVariant, marginTop: 12 }}>
+                  <Text style={{ fontFamily: SCREEN_FONTS.body, fontSize: 13, color: PROFILE_THEME_COLORS.onSurfaceVariant, marginTop: 12 }}>
                     Đang tìm sân gần bạn...
                   </Text>
                 </View>
@@ -515,7 +516,7 @@ export function CreateSessionStep1({
                 ))
               ) : (
                 <View style={{ alignItems: 'center', justifyContent: 'center', borderRadius: 20, borderWidth: 1.5, borderStyle: 'dashed', borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, paddingVertical: 32, paddingHorizontal: 16 }}>
-                  <Text style={{ fontFamily: 'PlusJakartaSans-Regular', fontSize: 13, lineHeight: 20, color: PROFILE_THEME_COLORS.onSurfaceVariant, textAlign: 'center' }}>
+                  <Text style={{ fontFamily: SCREEN_FONTS.body, fontSize: 13, lineHeight: 20, color: PROFILE_THEME_COLORS.onSurfaceVariant, textAlign: 'center' }}>
                     {fallbackMode ? 'Nhập tên sân để tìm kiếm' : 'Không tìm thấy sân nào'}
                   </Text>
                 </View>
@@ -544,7 +545,7 @@ export function CreateSessionStep1({
               <View style={{ width: 28, height: 28, borderRadius: 999, backgroundColor: PROFILE_THEME_COLORS.secondaryContainer, alignItems: 'center', justifyContent: 'center' }}>
                 <Calendar size={14} color={PROFILE_THEME_COLORS.surfaceTint} strokeWidth={2.6} />
               </View>
-              <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 11, textTransform: 'uppercase', letterSpacing: 1.2, color: PROFILE_THEME_COLORS.outline }}>
+              <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 11, textTransform: 'uppercase', letterSpacing: 1.2, color: PROFILE_THEME_COLORS.outline }}>
                 Ngày chơi
               </Text>
             </View>
@@ -575,11 +576,11 @@ export function CreateSessionStep1({
                         opacity: isCourtScheduleLocked ? 0.55 : pressed ? 0.85 : 1,
                       })}
                     >
-                      <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 11, textTransform: 'uppercase', color: active ? PROFILE_THEME_COLORS.primary : weekend ? PROFILE_THEME_COLORS.error : PROFILE_THEME_COLORS.outline }}>
+                      <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 11, textTransform: 'uppercase', color: active ? PROFILE_THEME_COLORS.primary : weekend ? PROFILE_THEME_COLORS.error : PROFILE_THEME_COLORS.outline }}>
                         {WEEKDAY_LABELS[day.getDay()]}
                       </Text>
                       <View style={{ marginTop: 4, width: 30, height: 30, borderRadius: 999, alignItems: 'center', justifyContent: 'center', backgroundColor: active ? PROFILE_THEME_COLORS.primary : 'transparent' }}>
-                        <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 18, lineHeight: 20, color: active ? PROFILE_THEME_COLORS.onPrimary : weekend ? PROFILE_THEME_COLORS.error : PROFILE_THEME_COLORS.onSurface }}>
+                        <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 18, lineHeight: 20, color: active ? PROFILE_THEME_COLORS.onPrimary : weekend ? PROFILE_THEME_COLORS.error : PROFILE_THEME_COLORS.onSurface }}>
                           {day.getDate().toString().padStart(2, '0')}
                         </Text>
                       </View>
@@ -588,7 +589,7 @@ export function CreateSessionStep1({
                 })}
               </ScrollView>
             ) : null}
-            <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 32, color: PROFILE_THEME_COLORS.surfaceTint, marginTop: 12, lineHeight: 36 }}>
+            <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 32, color: PROFILE_THEME_COLORS.surfaceTint, marginTop: 12, lineHeight: 36 }}>
               {formatHeroDateLabel(selectedDate)}
             </Text>
           </Pressable>
@@ -609,9 +610,9 @@ export function CreateSessionStep1({
                 <View style={{ width: 28, height: 28, borderRadius: 999, backgroundColor: PROFILE_THEME_COLORS.secondaryContainer, alignItems: 'center', justifyContent: 'center' }}>
                   <Clock3 size={14} color={PROFILE_THEME_COLORS.surfaceTint} strokeWidth={2.6} />
                 </View>
-                <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 11, textTransform: 'uppercase', letterSpacing: 1.2, color: PROFILE_THEME_COLORS.outline }}>Bắt đầu</Text>
+                <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 11, textTransform: 'uppercase', letterSpacing: 1.2, color: PROFILE_THEME_COLORS.outline }}>Bắt đầu</Text>
               </View>
-              <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 32, color: PROFILE_THEME_COLORS.surfaceTint, marginTop: 12, lineHeight: 36 }}>
+              <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 32, color: PROFILE_THEME_COLORS.surfaceTint, marginTop: 12, lineHeight: 36 }}>
                 {formatTime(startTime)}
               </Text>
             </Pressable>
@@ -631,9 +632,9 @@ export function CreateSessionStep1({
                 <View style={{ width: 28, height: 28, borderRadius: 999, backgroundColor: PROFILE_THEME_COLORS.secondaryContainer, alignItems: 'center', justifyContent: 'center' }}>
                   <Clock3 size={14} color={PROFILE_THEME_COLORS.surfaceTint} strokeWidth={2.6} />
                 </View>
-                <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 11, textTransform: 'uppercase', letterSpacing: 1.2, color: PROFILE_THEME_COLORS.outline }}>Kết thúc</Text>
+                <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 11, textTransform: 'uppercase', letterSpacing: 1.2, color: PROFILE_THEME_COLORS.outline }}>Kết thúc</Text>
               </View>
-              <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 32, color: PROFILE_THEME_COLORS.surfaceTint, marginTop: 12, lineHeight: 36 }}>
+              <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 32, color: PROFILE_THEME_COLORS.surfaceTint, marginTop: 12, lineHeight: 36 }}>
                 {formatTime(endTime)}
               </Text>
             </Pressable>
@@ -650,12 +651,12 @@ export function CreateSessionStep1({
           ) : null}
 
           {timeError ? (
-            <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13, color: PROFILE_THEME_COLORS.error, marginTop: 10 }}>
+            <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 13, color: PROFILE_THEME_COLORS.error, marginTop: 10 }}>
               {timeError}
             </Text>
           ) : null}
           {isCourtScheduleLocked ? (
-            <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 12, color: PROFILE_THEME_COLORS.outline, marginTop: 8 }}>
+            <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 12, color: PROFILE_THEME_COLORS.outline, marginTop: 8 }}>
               Kèo đã đặt sân nên không thể đổi sân và ngày giờ.
             </Text>
           ) : null}
@@ -667,13 +668,13 @@ export function CreateSessionStep1({
           <View style={{ marginBottom: 14, borderRadius: 18, overflow: 'hidden', borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, alignItems: 'center' }}>
             <View style={pickerHeader}>
               <Pressable onPress={() => setShowDatePicker(false)} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
-                <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13, color: PROFILE_THEME_COLORS.onSurfaceVariant }}>Hủy</Text>
+                <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 13, color: PROFILE_THEME_COLORS.onSurfaceVariant }}>Hủy</Text>
               </Pressable>
-              <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 13, color: PROFILE_THEME_COLORS.onSurface }}>
+              <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 13, color: PROFILE_THEME_COLORS.onSurface }}>
                 {MONTH_LABELS[draftDate.getMonth()]}
               </Text>
               <Pressable onPress={confirmDraftDate} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
-                <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 13, color: PROFILE_THEME_COLORS.primary }}>Xong</Text>
+                <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 13, color: PROFILE_THEME_COLORS.primary }}>Xong</Text>
               </Pressable>
             </View>
             <DateTimePicker
@@ -693,11 +694,11 @@ export function CreateSessionStep1({
           <View style={{ marginBottom: 14, borderRadius: 18, overflow: 'hidden', borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest, alignItems: 'center' }}>
             <View style={pickerHeader}>
               <Pressable onPress={onCloseStartPicker} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
-                <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13, color: PROFILE_THEME_COLORS.onSurfaceVariant }}>Hủy</Text>
+                <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 13, color: PROFILE_THEME_COLORS.onSurfaceVariant }}>Hủy</Text>
               </Pressable>
-              <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 13, color: PROFILE_THEME_COLORS.onSurface }}>Giờ bắt đầu</Text>
+              <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 13, color: PROFILE_THEME_COLORS.onSurface }}>Giờ bắt đầu</Text>
               <Pressable onPress={confirmDraftStartTime} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
-                <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 13, color: PROFILE_THEME_COLORS.primary }}>Xong</Text>
+                <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 13, color: PROFILE_THEME_COLORS.primary }}>Xong</Text>
               </Pressable>
             </View>
             <DateTimePicker
@@ -717,11 +718,11 @@ export function CreateSessionStep1({
           <View style={{ marginBottom: 14, borderRadius: 18, overflow: 'hidden', borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest, alignItems: 'center' }}>
             <View style={pickerHeader}>
               <Pressable onPress={onCloseEndPicker} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
-                <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13, color: PROFILE_THEME_COLORS.onSurfaceVariant }}>Hủy</Text>
+                <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 13, color: PROFILE_THEME_COLORS.onSurfaceVariant }}>Hủy</Text>
               </Pressable>
-              <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 13, color: PROFILE_THEME_COLORS.onSurface }}>Giờ kết thúc</Text>
+              <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 13, color: PROFILE_THEME_COLORS.onSurface }}>Giờ kết thúc</Text>
               <Pressable onPress={confirmDraftEndTime} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
-                <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 13, color: PROFILE_THEME_COLORS.primary }}>Xong</Text>
+                <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 13, color: PROFILE_THEME_COLORS.primary }}>Xong</Text>
               </Pressable>
             </View>
             <DateTimePicker
@@ -752,13 +753,13 @@ export function CreateSessionStep1({
           onPress={onBack}
           style={{ flex: 1, borderRadius: 999, borderWidth: 1.5, borderColor: '#E5E3DC', paddingVertical: 13, alignItems: 'center', backgroundColor: 'white' }}
         >
-          <Text style={{ fontSize: 14, fontWeight: '700', color: '#1A2E2A', fontFamily: 'PlusJakartaSans-Bold' }}>Quay lại</Text>
+          <Text style={{ fontSize: 14, fontWeight: '700', color: '#1A2E2A', fontFamily: SCREEN_FONTS.cta }}>Quay lại</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={onContinue}
           style={{ flex: 2, borderRadius: 999, backgroundColor: '#0F6E56', paddingVertical: 13, alignItems: 'center' }}
         >
-          <Text style={{ fontSize: 14, fontWeight: '700', color: 'white', fontFamily: 'PlusJakartaSans-Bold' }}>Tiếp tục →</Text>
+          <Text style={{ fontSize: 14, fontWeight: '700', color: 'white', fontFamily: SCREEN_FONTS.cta }}>Tiếp tục →</Text>
         </TouchableOpacity>
       </View>
     </View>

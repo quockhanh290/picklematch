@@ -10,6 +10,7 @@ import { MapPin, Menu } from 'lucide-react-native'
 import { useEffect, useRef, useState } from 'react'
 import { ActivityIndicator, Alert, FlatList, ImageBackground, Keyboard, ScrollView, Switch, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { SCREEN_FONTS } from '@/constants/screenFonts'
 
 const CITIES = ['Hồ Chí Minh', 'Hà Nội', 'Đà Nẵng', 'Cần Thơ', 'Hải Phòng']
 const HERO_IMAGE = require('../assets/images/login-electric-court-hero.png')
@@ -269,7 +270,7 @@ export default function EditProfile() {
               className="h-10 w-10 items-center justify-center rounded-full border-2"
               style={{ borderColor: EDIT_PROFILE_COLORS.primaryFixed, backgroundColor: EDIT_PROFILE_COLORS.primary }}
             >
-              <Text className="text-sm" style={{ color: EDIT_PROFILE_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-Bold' }}>
+              <Text className="text-sm" style={{ color: EDIT_PROFILE_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta }}>
                 {(name || 'U').charAt(0).toUpperCase()}
               </Text>
             </View>
@@ -282,7 +283,7 @@ export default function EditProfile() {
             <Text
               style={{
                 color: EDIT_PROFILE_COLORS.primary,
-                fontFamily: 'PlusJakartaSans-ExtraBold',
+                fontFamily: SCREEN_FONTS.bold,
                 fontSize: heroTitleSize,
                 lineHeight: heroTitleLineHeight,
                 letterSpacing: -2,
@@ -293,7 +294,7 @@ export default function EditProfile() {
             <Text
               style={{
                 color: EDIT_PROFILE_COLORS.onPrimaryContainer,
-                fontFamily: 'PlusJakartaSans-ExtraBold',
+                fontFamily: SCREEN_FONTS.bold,
                 fontSize: heroTitleSize,
                 lineHeight: heroTitleLineHeight,
                 letterSpacing: -2,
@@ -303,7 +304,7 @@ export default function EditProfile() {
               HỒ SƠ.
             </Text>
           </View>
-          <Text className="mb-8 mt-4 text-base leading-6" style={{ color: EDIT_PROFILE_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Medium' }}>
+          <Text className="mb-8 mt-4 text-base leading-6" style={{ color: EDIT_PROFILE_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.medium }}>
             Cập nhật thông tin cá nhân và trình độ để kết nối với cộng đồng Pickleball Việt Nam.
           </Text>
 
@@ -331,7 +332,7 @@ export default function EditProfile() {
                   }}
                 >
                   <View style={{ flex: 1, backgroundColor: EDIT_PROFILE_COLORS.secondaryFixed, alignItems: 'center', justifyContent: 'center' }}>
-                    <Text style={{ color: EDIT_PROFILE_COLORS.primary, fontSize: 44, fontFamily: 'PlusJakartaSans-Bold' }}>
+                    <Text style={{ color: EDIT_PROFILE_COLORS.primary, fontSize: 44, fontFamily: SCREEN_FONTS.cta }}>
                       {(name || 'U').charAt(0).toUpperCase()}
                     </Text>
                   </View>
@@ -343,7 +344,7 @@ export default function EditProfile() {
                 >
                   <Text
                     className="text-[11px] uppercase tracking-[2px]"
-                    style={{ color: EDIT_PROFILE_COLORS.onPrimaryFixed, fontFamily: 'PlusJakartaSans-SemiBold' }}
+                    style={{ color: EDIT_PROFILE_COLORS.onPrimaryFixed, fontFamily: SCREEN_FONTS.label }}
                   >
                     Thay ảnh
                   </Text>
@@ -357,7 +358,7 @@ export default function EditProfile() {
           {/* Basic Info Section */}
           <View>
             <View className="mb-6 flex-row items-center gap-4">
-              <Text className="text-[11px] uppercase tracking-[4px]" style={{ color: EDIT_PROFILE_COLORS.outline, fontFamily: 'PlusJakartaSans-Bold' }}>
+              <Text className="text-[11px] uppercase tracking-[4px]" style={{ color: EDIT_PROFILE_COLORS.outline, fontFamily: SCREEN_FONTS.cta }}>
                 01 / THÔNG TIN
               </Text>
               <View className="h-px flex-1" style={{ backgroundColor: EDIT_PROFILE_COLORS.outlineVariant }} />
@@ -369,7 +370,7 @@ export default function EditProfile() {
               <View>
                 <Text
                   className="text-xs font-bold uppercase tracking-wider px-1 mb-2"
-                  style={{ color: EDIT_PROFILE_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Bold' }}
+                  style={{ color: EDIT_PROFILE_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.cta }}
                 >
                   Thành phố
                 </Text>
@@ -390,7 +391,7 @@ export default function EditProfile() {
                           className="text-sm font-bold"
                           style={{
                             color: isActive ? EDIT_PROFILE_COLORS.onPrimary : EDIT_PROFILE_COLORS.onSurface,
-                            fontFamily: 'PlusJakartaSans-Bold',
+                            fontFamily: SCREEN_FONTS.cta,
                           }}
                         >
                           {item}
@@ -406,7 +407,7 @@ export default function EditProfile() {
           {/* Skill Level Section */}
           <View>
             <View className="mb-6 flex-row items-center gap-4">
-              <Text className="text-[11px] uppercase tracking-[4px]" style={{ color: EDIT_PROFILE_COLORS.outline, fontFamily: 'PlusJakartaSans-Bold' }}>
+              <Text className="text-[11px] uppercase tracking-[4px]" style={{ color: EDIT_PROFILE_COLORS.outline, fontFamily: SCREEN_FONTS.cta }}>
                 02 / KỸ NĂNG
               </Text>
               <View className="h-px flex-1" style={{ backgroundColor: EDIT_PROFILE_COLORS.outlineVariant }} />
@@ -431,14 +432,14 @@ export default function EditProfile() {
             >
               <Text
                 className="text-center text-base font-extrabold"
-                style={{ color: EDIT_PROFILE_COLORS.onError, fontFamily: 'PlusJakartaSans-Bold' }}
+                style={{ color: EDIT_PROFILE_COLORS.onError, fontFamily: SCREEN_FONTS.cta }}
               >
                 Làm lại bài đánh giá
               </Text>
             </TouchableOpacity>
             <Text
               className="text-center text-sm leading-6 mb-4"
-              style={{ color: EDIT_PROFILE_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Regular' }}
+              style={{ color: EDIT_PROFILE_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body }}
             >
               Dùng lại 7 câu hỏi onboarding để hệ thống ước lượng mức khởi điểm mới cho bạn.
             </Text>
@@ -447,7 +448,7 @@ export default function EditProfile() {
           {/* Quick Match Section */}
           <View>
             <View className="mb-6 flex-row items-center gap-4">
-              <Text className="text-[11px] uppercase tracking-[4px]" style={{ color: EDIT_PROFILE_COLORS.outline, fontFamily: 'PlusJakartaSans-Bold' }}>
+              <Text className="text-[11px] uppercase tracking-[4px]" style={{ color: EDIT_PROFILE_COLORS.outline, fontFamily: SCREEN_FONTS.cta }}>
                 03 / KẾT NỐI
               </Text>
               <View className="h-px flex-1" style={{ backgroundColor: EDIT_PROFILE_COLORS.outlineVariant }} />
@@ -455,10 +456,10 @@ export default function EditProfile() {
             
             <View className="flex-row items-center gap-3 rounded-2xl p-4" style={{ backgroundColor: EDIT_PROFILE_COLORS.secondaryContainer }}>
               <View className="flex-1">
-                <Text className="text-sm font-extrabold" style={{ color: EDIT_PROFILE_COLORS.onSecondaryContainer, fontFamily: 'PlusJakartaSans-Bold' }}>
+                <Text className="text-sm font-extrabold" style={{ color: EDIT_PROFILE_COLORS.onSecondaryContainer, fontFamily: SCREEN_FONTS.cta }}>
                   Tự động ghép kèo nhanh
                 </Text>
-                <Text className="mt-2 text-sm leading-6" style={{ color: EDIT_PROFILE_COLORS.secondary, fontFamily: 'PlusJakartaSans-Regular' }}>
+                <Text className="mt-2 text-sm leading-6" style={{ color: EDIT_PROFILE_COLORS.secondary, fontFamily: SCREEN_FONTS.body }}>
                   Khi bật, người chơi được hệ thống đánh giá là phù hợp sẽ vào kèo ngay.
                 </Text>
               </View>
@@ -474,7 +475,7 @@ export default function EditProfile() {
           {/* Favorite Courts Section */}
           <View>
             <View className="mb-6 flex-row items-center gap-4">
-              <Text className="text-[11px] uppercase tracking-[4px]" style={{ color: EDIT_PROFILE_COLORS.outline, fontFamily: 'PlusJakartaSans-Bold' }}>
+              <Text className="text-[11px] uppercase tracking-[4px]" style={{ color: EDIT_PROFILE_COLORS.outline, fontFamily: SCREEN_FONTS.cta }}>
                 04 / SÂN ĐẤU
               </Text>
               <View className="h-px flex-1" style={{ backgroundColor: EDIT_PROFILE_COLORS.outlineVariant }} />
@@ -493,15 +494,15 @@ export default function EditProfile() {
                         <MapPin size={20} color={EDIT_PROFILE_COLORS.surfaceTint} />
                       </View>
                       <View className="flex-1">
-                        <Text className="text-base font-bold" style={{ color: EDIT_PROFILE_COLORS.onSurface, fontFamily: 'PlusJakartaSans-Bold' }}>{court.name}</Text>
-                        <Text className="text-sm mt-1" style={{ color: EDIT_PROFILE_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Regular' }}>{court.address} · {court.city}</Text>
+                        <Text className="text-base font-bold" style={{ color: EDIT_PROFILE_COLORS.onSurface, fontFamily: SCREEN_FONTS.cta }}>{court.name}</Text>
+                        <Text className="text-sm mt-1" style={{ color: EDIT_PROFILE_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body }}>{court.address} · {court.city}</Text>
                       </View>
                       <TouchableOpacity
                         activeOpacity={0.7}
                         className="w-10 h-10 items-center justify-center"
                         onPress={() => removeFavCourt(court.id)}
                       >
-                        <Text className="text-xl font-black" style={{ color: EDIT_PROFILE_COLORS.outline, fontFamily: 'PlusJakartaSans-Bold' }}>×</Text>
+                        <Text className="text-xl font-black" style={{ color: EDIT_PROFILE_COLORS.outline, fontFamily: SCREEN_FONTS.cta }}>×</Text>
                       </TouchableOpacity>
                     </View>
                   ))}
@@ -521,7 +522,7 @@ export default function EditProfile() {
                   {searching ? <ActivityIndicator color={EDIT_PROFILE_COLORS.primary} style={{ marginTop: 12 }} /> : null}
 
                   {!searching && keyword.length > 0 && courts.length === 0 ? (
-                    <Text className="mt-3 text-sm" style={{ color: EDIT_PROFILE_COLORS.outline, fontFamily: 'PlusJakartaSans-Regular' }}>Không tìm thấy sân nào</Text>
+                    <Text className="mt-3 text-sm" style={{ color: EDIT_PROFILE_COLORS.outline, fontFamily: SCREEN_FONTS.body }}>Không tìm thấy sân nào</Text>
                   ) : null}
 
                   <FlatList
@@ -549,8 +550,8 @@ export default function EditProfile() {
                             <MapPin size={20} color={EDIT_PROFILE_COLORS.surfaceTint} />
                           </View>
                           <View className="flex-1">
-                            <Text className="text-sm font-bold" style={{ color: EDIT_PROFILE_COLORS.onSurface, fontFamily: 'PlusJakartaSans-Bold' }}>{item.name}</Text>
-                            <Text className="text-xs mt-1" style={{ color: EDIT_PROFILE_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Regular' }}>{item.address} · {item.city}</Text>
+                            <Text className="text-sm font-bold" style={{ color: EDIT_PROFILE_COLORS.onSurface, fontFamily: SCREEN_FONTS.cta }}>{item.name}</Text>
+                            <Text className="text-xs mt-1" style={{ color: EDIT_PROFILE_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body }}>{item.address} · {item.city}</Text>
                           </View>
                           <StatusBadge label={alreadyAdded ? 'Đã thêm' : 'Thêm'} tone={alreadyAdded ? 'neutral' : 'success'} />
                         </TouchableOpacity>
@@ -560,7 +561,7 @@ export default function EditProfile() {
                 </>
               ) : (
                 <View className="mt-4 rounded-2xl px-4 py-3" style={{ backgroundColor: EDIT_PROFILE_COLORS.errorContainer }}>
-                  <Text className="text-sm leading-6" style={{ color: EDIT_PROFILE_COLORS.onErrorContainer, fontFamily: 'PlusJakartaSans-Regular' }}>
+                  <Text className="text-sm leading-6" style={{ color: EDIT_PROFILE_COLORS.onErrorContainer, fontFamily: SCREEN_FONTS.body }}>
                     Bạn đã chọn đủ 5 sân. Xóa bớt một sân nếu muốn thêm sân mới.
                   </Text>
                 </View>
@@ -598,7 +599,7 @@ export default function EditProfile() {
           >
             <Text
               className="text-[13px] tracking-[0.5px] uppercase"
-              style={{ color: EDIT_PROFILE_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Bold' }}
+              style={{ color: EDIT_PROFILE_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.cta }}
             >
               Hủy thay đổi
             </Text>
@@ -616,7 +617,7 @@ export default function EditProfile() {
                 <ActivityIndicator color={EDIT_PROFILE_COLORS.onPrimary} />
                 <Text
                   className="ml-2 text-[13px] tracking-[0.5px] uppercase"
-                  style={{ color: EDIT_PROFILE_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-Bold' }}
+                  style={{ color: EDIT_PROFILE_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta }}
                 >
                   Đang xử lý...
                 </Text>
@@ -624,7 +625,7 @@ export default function EditProfile() {
             ) : (
               <Text
                 className="text-[13px] tracking-[0.5px] uppercase"
-                style={{ color: EDIT_PROFILE_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-Bold' }}
+                style={{ color: EDIT_PROFILE_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta }}
               >
                 Lưu thay đổi
               </Text>

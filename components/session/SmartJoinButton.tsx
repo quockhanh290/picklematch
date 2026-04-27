@@ -1,4 +1,5 @@
 import { Text, View } from 'react-native'
+import { SCREEN_FONTS } from '@/constants/screenFonts'
 import { AlertCircle, Clock3 } from 'lucide-react-native'
 
 import { AppButton } from '@/components/design'
@@ -36,7 +37,7 @@ export function SmartJoinButton({
             style={{
               marginLeft: 8,
               fontSize: 14,
-              fontFamily: 'PlusJakartaSans-SemiBold',
+              fontFamily: SCREEN_FONTS.label,
               color: PROFILE_THEME_COLORS.onPrimaryFixedVariant,
             }}
           >
@@ -47,7 +48,7 @@ export function SmartJoinButton({
           style={{
             marginTop: 8,
             fontSize: 14,
-            fontFamily: 'PlusJakartaSans-Regular',
+            fontFamily: SCREEN_FONTS.body,
             lineHeight: 22,
             color: PROFILE_THEME_COLORS.onPrimaryFixedVariant,
           }}
@@ -67,7 +68,7 @@ export function SmartJoinButton({
             <Text
               style={{
                 fontSize: 11,
-                fontFamily: 'PlusJakartaSans-ExtraBold',
+                fontFamily: SCREEN_FONTS.bold,
                 textTransform: 'uppercase',
                 letterSpacing: 1,
                 color: PROFILE_THEME_COLORS.onPrimaryFixedVariant,
@@ -79,7 +80,7 @@ export function SmartJoinButton({
               style={{
                 marginTop: 8,
                 fontSize: 14,
-                fontFamily: 'PlusJakartaSans-Regular',
+                fontFamily: SCREEN_FONTS.body,
                 lineHeight: 22,
                 color: PROFILE_THEME_COLORS.onPrimaryFixedVariant,
               }}
@@ -108,7 +109,7 @@ export function SmartJoinButton({
             style={{
               marginLeft: 8,
               fontSize: 14,
-              fontFamily: 'PlusJakartaSans-SemiBold',
+              fontFamily: SCREEN_FONTS.label,
               color: PROFILE_THEME_COLORS.error,
             }}
           >
@@ -128,7 +129,7 @@ export function SmartJoinButton({
             <Text
               style={{
                 fontSize: 11,
-                fontFamily: 'PlusJakartaSans-ExtraBold',
+                fontFamily: SCREEN_FONTS.bold,
                 textTransform: 'uppercase',
                 letterSpacing: 1,
                 color: PROFILE_THEME_COLORS.error,
@@ -140,7 +141,7 @@ export function SmartJoinButton({
               style={{
                 marginTop: 8,
                 fontSize: 14,
-                fontFamily: 'PlusJakartaSans-Regular',
+                fontFamily: SCREEN_FONTS.body,
                 lineHeight: 22,
                 color: PROFILE_THEME_COLORS.error,
               }}

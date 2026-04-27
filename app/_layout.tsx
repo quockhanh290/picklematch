@@ -2,7 +2,6 @@ import { NotificationsProvider } from '@/lib/NotificationsContext'
 import { AppThemeProvider } from '@/lib/theme-context'
 import { useAuth } from '@/lib/useAuth'
 import { BarlowCondensed_700Bold, BarlowCondensed_700Bold_Italic } from '@expo-google-fonts/barlow-condensed'
-import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter'
 import { PlusJakartaSans_400Regular } from '@expo-google-fonts/plus-jakarta-sans/400Regular'
 import { PlusJakartaSans_500Medium } from '@expo-google-fonts/plus-jakarta-sans/500Medium'
 import { PlusJakartaSans_600SemiBold } from '@expo-google-fonts/plus-jakarta-sans/600SemiBold'
@@ -15,6 +14,7 @@ import * as SplashScreen from 'expo-splash-screen'
 import { useEffect } from 'react'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import '../global.css'
+import { SCREEN_FONTS } from '@/constants/screenFonts'
 
 void SplashScreen.preventAutoHideAsync()
 
@@ -23,18 +23,14 @@ export default function RootLayout() {
   const segments = useSegments()
   const router = useRouter()
   const [fontsLoaded] = useFonts({
-    'BarlowCondensed-Bold': BarlowCondensed_700Bold,
-    'BarlowCondensed-BoldItalic': BarlowCondensed_700Bold_Italic,
-    'Inter-Regular': Inter_400Regular,
-    'Inter-Medium': Inter_500Medium,
-    'Inter-SemiBold': Inter_600SemiBold,
-    'Inter-Bold': Inter_700Bold,
-    'PlusJakartaSans-Regular': PlusJakartaSans_400Regular,
-    'PlusJakartaSans-Medium': PlusJakartaSans_500Medium,
-    'PlusJakartaSans-SemiBold': PlusJakartaSans_600SemiBold,
-    'PlusJakartaSans-Bold': PlusJakartaSans_700Bold,
-    'PlusJakartaSans-ExtraBold': PlusJakartaSans_800ExtraBold,
-    'PlusJakartaSans-ExtraBoldItalic': PlusJakartaSans_800ExtraBold_Italic,
+    [SCREEN_FONTS.headline]: BarlowCondensed_700Bold,
+    [SCREEN_FONTS.headlineItalic]: BarlowCondensed_700Bold_Italic,
+    [SCREEN_FONTS.body]: PlusJakartaSans_400Regular,
+    [SCREEN_FONTS.medium]: PlusJakartaSans_500Medium,
+    [SCREEN_FONTS.label]: PlusJakartaSans_600SemiBold,
+    [SCREEN_FONTS.cta]: PlusJakartaSans_700Bold,
+    [SCREEN_FONTS.bold]: PlusJakartaSans_800ExtraBold,
+    [SCREEN_FONTS.boldItalic]: PlusJakartaSans_800ExtraBold_Italic,
   })
 
   useEffect(() => {

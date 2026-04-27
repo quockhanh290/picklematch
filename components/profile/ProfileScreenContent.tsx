@@ -8,6 +8,7 @@ import {
     ProfileWinStreak,
 } from '@/components/profile/ProfileSections'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { SCREEN_FONTS } from '@/constants/screenFonts'
 import type { TrophyBadge } from '@/components/profile/TrophyRoom'
 import TrophyRoomSection from '@/components/profile/TrophyRoom'
 import {
@@ -42,7 +43,7 @@ const PROFILE_PAGE_COLORS = PROFILE_THEME_COLORS
 function ProfileSectionDivider({ index, title }: { index: string; title: string }) {
   return (
     <View className="mb-6 flex-row items-center gap-4">
-      <Text className="text-[11px] uppercase tracking-[4px]" style={{ color: PROFILE_PAGE_COLORS.outline, fontFamily: 'PlusJakartaSans-Bold' }}>
+      <Text className="text-[11px] uppercase tracking-[4px]" style={{ color: PROFILE_PAGE_COLORS.outline, fontFamily: SCREEN_FONTS.cta }}>
         {index} / {title}
       </Text>
       <View className="h-px flex-1" style={{ backgroundColor: PROFILE_PAGE_COLORS.outlineVariant }} />
@@ -306,7 +307,7 @@ export default function ProfileScreenContent() {
               className="h-10 w-10 items-center justify-center rounded-full border-2"
               style={{ borderColor: PROFILE_PAGE_COLORS.primaryFixed, backgroundColor: PROFILE_PAGE_COLORS.primary }}
             >
-              <Text style={{ color: PROFILE_PAGE_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-Bold' }}>
+              <Text style={{ color: PROFILE_PAGE_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta }}>
                 {player.name?.charAt(0).toUpperCase() ?? 'U'}
               </Text>
             </View>
@@ -339,7 +340,7 @@ export default function ProfileScreenContent() {
                     left: 0,
                     right: 0,
                     color: PROFILE_PAGE_COLORS.primary,
-                    fontFamily: 'PlusJakartaSans-ExtraBold',
+                    fontFamily: SCREEN_FONTS.bold,
                     fontSize: editorialNameSize,
                     lineHeight: editorialNameLineHeight,
                     letterSpacing: -2,
@@ -354,7 +355,7 @@ export default function ProfileScreenContent() {
                   <Text
                     style={{
                       color: PROFILE_PAGE_COLORS.primary,
-                      fontFamily: 'PlusJakartaSans-ExtraBold',
+                      fontFamily: SCREEN_FONTS.bold,
                       fontSize: editorialNameSize,
                       lineHeight: editorialNameLineHeight,
                       letterSpacing: -2,
@@ -366,7 +367,7 @@ export default function ProfileScreenContent() {
                     style={{
                       color: PROFILE_PAGE_COLORS.outlineVariant,
                       opacity: 0.55,
-                      fontFamily: 'PlusJakartaSans-ExtraBoldItalic',
+                      fontFamily: SCREEN_FONTS.boldItalic,
                       fontSize: editorialNameSize,
                       lineHeight: editorialNameLineHeight,
                       letterSpacing: -2,
@@ -380,7 +381,7 @@ export default function ProfileScreenContent() {
                 <Text
                   style={{
                     color: PROFILE_PAGE_COLORS.primary,
-                    fontFamily: 'PlusJakartaSans-ExtraBold',
+                    fontFamily: SCREEN_FONTS.bold,
                     fontSize: editorialNameSize,
                     lineHeight: editorialNameLineHeight,
                     letterSpacing: -2,
@@ -394,11 +395,11 @@ export default function ProfileScreenContent() {
             <View className="mt-3 flex-row flex-wrap items-center gap-3">
               <Text
                 className="rounded-full px-4 py-1 text-[10px] uppercase tracking-[2px]"
-                style={{ color: PROFILE_PAGE_COLORS.onPrimaryFixed, backgroundColor: PROFILE_PAGE_COLORS.primaryFixed, fontFamily: 'PlusJakartaSans-Bold' }}
+                style={{ color: PROFILE_PAGE_COLORS.onPrimaryFixed, backgroundColor: PROFILE_PAGE_COLORS.primaryFixed, fontFamily: SCREEN_FONTS.cta }}
               >
                 {player.is_provisional ? `${placementPlayed}/5 placement` : 'Verified Player'}
               </Text>
-              <Text className="text-sm" style={{ color: PROFILE_PAGE_COLORS.primary, fontFamily: 'PlusJakartaSans-Bold' }}>
+              <Text className="text-sm" style={{ color: PROFILE_PAGE_COLORS.primary, fontFamily: SCREEN_FONTS.cta }}>
                 Thành viên từ {joinedYear ?? 'N/A'}
               </Text>
             </View>
@@ -406,14 +407,14 @@ export default function ProfileScreenContent() {
             <View className="mt-3">
               <Text
                 className="self-start rounded-full px-4 py-1 text-[10px] uppercase tracking-[2px]"
-                style={{ color: PROFILE_PAGE_COLORS.onPrimaryContainer, backgroundColor: PROFILE_PAGE_COLORS.primaryContainer, fontFamily: 'PlusJakartaSans-Bold' }}
+                style={{ color: PROFILE_PAGE_COLORS.onPrimaryContainer, backgroundColor: PROFILE_PAGE_COLORS.primaryContainer, fontFamily: SCREEN_FONTS.cta }}
               >
                 Độ tin cậy · {' '}
                 {reliability === null ? '--' : `${reliability}%`}
               </Text>
             </View>
 
-            <Text className="mt-4 text-base leading-7" style={{ color: PROFILE_PAGE_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Regular' }}>
+            <Text className="mt-4 text-base leading-7" style={{ color: PROFILE_PAGE_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body }}>
               Đam mê Pickleball với phong cách chơi năng lượng cao. Luôn tìm kiếm những trận đấu kịch tính và phù hợp trình độ.
             </Text>
 
@@ -436,20 +437,20 @@ export default function ProfileScreenContent() {
             <View className="flex-row justify-between gap-4">
               <View className="flex-1 rounded-[24px] p-4" style={{ backgroundColor: PROFILE_PAGE_COLORS.surfaceContainerLow }}>
                 <Swords size={22} color={PROFILE_PAGE_COLORS.primary} />
-                <Text className="mt-4 text-[28px]" style={{ color: PROFILE_PAGE_COLORS.primary, fontFamily: 'PlusJakartaSans-Bold' }}>
+                <Text className="mt-4 text-[28px]" style={{ color: PROFILE_PAGE_COLORS.primary, fontFamily: SCREEN_FONTS.cta }}>
                   {player.sessions_joined ?? 0}
                 </Text>
-                <Text className="mt-1 text-[12px] uppercase tracking-[2px]" style={{ color: PROFILE_PAGE_COLORS.outline, fontFamily: 'PlusJakartaSans-Bold' }}>
+                <Text className="mt-1 text-[12px] uppercase tracking-[2px]" style={{ color: PROFILE_PAGE_COLORS.outline, fontFamily: SCREEN_FONTS.cta }}>
                   Trận đấu
                 </Text>
               </View>
 
               <View className="flex-1 rounded-[24px] p-4" style={{ backgroundColor: PROFILE_PAGE_COLORS.secondaryContainer }}>
                 <CalendarDays size={22} color={PROFILE_PAGE_COLORS.surfaceTint} />
-                <Text className="mt-4 text-[28px]" style={{ color: PROFILE_PAGE_COLORS.surfaceTint, fontFamily: 'PlusJakartaSans-Bold' }}>
+                <Text className="mt-4 text-[28px]" style={{ color: PROFILE_PAGE_COLORS.surfaceTint, fontFamily: SCREEN_FONTS.cta }}>
                   {hostedCount}
                 </Text>
-                <Text className="mt-1 text-[12px] uppercase tracking-[2px]" style={{ color: PROFILE_PAGE_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Bold' }}>
+                <Text className="mt-1 text-[12px] uppercase tracking-[2px]" style={{ color: PROFILE_PAGE_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.cta }}>
                   Đã host
                 </Text>
               </View>
@@ -490,7 +491,7 @@ export default function ProfileScreenContent() {
                 onPress={() => router.push('/edit-profile' as any)}
                 activeOpacity={0.9}
               >
-                <Text style={{ color: PROFILE_PAGE_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-Bold' }}>Sửa hồ sơ</Text>
+                <Text style={{ color: PROFILE_PAGE_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta }}>Sửa hồ sơ</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 className="flex-1 rounded-full py-4 items-center"
@@ -498,7 +499,7 @@ export default function ProfileScreenContent() {
                 onPress={logout}
                 activeOpacity={0.9}
               >
-                <Text style={{ color: PROFILE_PAGE_COLORS.primary, fontFamily: 'PlusJakartaSans-Bold' }}>Đăng xuất</Text>
+                <Text style={{ color: PROFILE_PAGE_COLORS.primary, fontFamily: SCREEN_FONTS.cta }}>Đăng xuất</Text>
               </TouchableOpacity>
             </View>
           </View>

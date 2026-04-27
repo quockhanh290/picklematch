@@ -2,7 +2,9 @@ import { router } from 'expo-router'
 import { useMemo } from 'react'
 import { Pressable, Text, View } from 'react-native'
 
-import { colors } from '@/constants/colors'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
+import { RADIUS, SHADOW, SPACING, BORDER } from '@/constants/screenLayout'
+import { SCREEN_FONTS } from '@/constants/screenFonts'
 import type { PendingMatch, PostMatchAction } from '@/lib/homeFeed'
 import { formatTimeRange } from '@/utils/formatters'
 
@@ -107,8 +109,8 @@ function getDeadlineInfo(deadlineAt?: string) {
   const deadlineMs = Date.parse(deadlineAt ?? '')
   if (Number.isNaN(deadlineMs)) {
     return {
-      dotColor: colors.warning,
-      textColor: colors.warningDark,
+      dotColor: PROFILE_THEME_SEMANTIC.warningIcon,
+      textColor: PROFILE_THEME_SEMANTIC.warningText,
       label: 'Hạn nhập: đang chờ',
     }
   }
@@ -121,16 +123,16 @@ function getDeadlineInfo(deadlineAt?: string) {
   if (diffMs < 0) {
     const overdue = hours >= 1 ? `${hours} tiếng` : `${absMinutes} phút`
     return {
-      dotColor: '#E53E3E',
-      textColor: '#C53030',
+      dotColor: PROFILE_THEME_SEMANTIC.dangerIcon,
+      textColor: PROFILE_THEME_SEMANTIC.dangerText,
       label: `Quá hạn ${overdue}`,
     }
   }
 
   const remaining = hours >= 1 ? `${hours} tiếng` : `${minutes || absMinutes} phút`
   return {
-    dotColor: colors.warning,
-    textColor: colors.warningDark,
+    dotColor: PROFILE_THEME_SEMANTIC.warningIcon,
+    textColor: PROFILE_THEME_SEMANTIC.warningText,
     label: `Hạn nhập: còn ${remaining}`,
   }
 }
@@ -155,23 +157,30 @@ export function PostMatchInboxSection({
 
   return (
     <View className={marginTopClassName}>
-      <View className="mb-2 flex-row items-baseline justify-between" style={{ marginHorizontal: 16 }}>
-        <Text className="text-[15px]" style={{ color: colors.text, fontFamily: 'PlusJakartaSans-Bold', lineHeight: 20 }}>
+      <View className="mb-2 flex-row items-baseline justify-between" style={{ marginHorizontal: SPACING.lg }}>
+        <Text className="text-[15px]" style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.cta, lineHeight: 20 }}>
           Việc cần chốt
         </Text>
-        <Text className="text-[11px]" style={{ color: colors.textSecondary, fontFamily: 'PlusJakartaSans-Regular', lineHeight: 15 }}>
+        <Text className="text-[11px]" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, lineHeight: 15 }}>
           {countLabel}
         </Text>
       </View>
 
       <View
-        className="overflow-hidden rounded-[12px] border"
-        style={{ marginHorizontal: 16, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 0.5 }}
+        className="overflow-hidden"
+        style={{
+          marginHorizontal: SPACING.lg,
+          backgroundColor: PROFILE_THEME_COLORS.surface,
+          borderColor: PROFILE_THEME_COLORS.outlineVariant,
+          borderWidth: BORDER.hairline,
+          borderRadius: RADIUS.md,
+          ...SHADOW.xs,
+        }}
       >
-        <View style={{ borderLeftColor: colors.warning, borderLeftWidth: 3, paddingHorizontal: 14, paddingVertical: 12 }}>
+        <View style={{ borderLeftColor: PROFILE_THEME_SEMANTIC.warningIcon, borderLeftWidth: 3, paddingHorizontal: SPACING.md, paddingVertical: 12 }}>
           <View className="mb-1.5 flex-row items-center">
-            <View className="rounded-[4px] px-2 py-0.5" style={{ backgroundColor: colors.warningLight }}>
-              <Text className="text-[10px]" style={{ color: colors.warningDark, fontFamily: 'PlusJakartaSans-SemiBold', lineHeight: 14 }}>
+            <View className="rounded-[4px] px-2 py-0.5" style={{ backgroundColor: PROFILE_THEME_SEMANTIC.warningBg }}>
+              <Text className="text-[10px]" style={{ color: PROFILE_THEME_SEMANTIC.warningText, fontFamily: SCREEN_FONTS.label, lineHeight: 14 }}>
                 {presentation.chip}
               </Text>
             </View>
@@ -181,28 +190,28 @@ export function PostMatchInboxSection({
             className="mb-0.5 text-[17px] uppercase"
             numberOfLines={1}
             ellipsizeMode="tail"
-            style={{ color: colors.text, fontFamily: 'BarlowCondensed-Bold', lineHeight: 21 }}
+            style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.headline, lineHeight: 21 }}
           >
             {currentTask.courtName}
           </Text>
-          <Text className="text-[11px]" numberOfLines={1} style={{ color: colors.textSecondary, fontFamily: 'PlusJakartaSans-Regular', lineHeight: 15 }}>
+          <Text className="text-[11px]" numberOfLines={1} style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, lineHeight: 15 }}>
             {formatMatchMeta(currentTask)}
           </Text>
         </View>
 
         <View
           className="flex-row items-center justify-between"
-          style={{ borderTopColor: '#F0EDE5', borderTopWidth: 0.5, paddingHorizontal: 14, paddingVertical: 10 }}
+          style={{ borderTopColor: PROFILE_THEME_COLORS.surfaceVariant, borderTopWidth: BORDER.hairline, paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm }}
         >
           <View className="min-w-0 flex-1 flex-row items-center pr-3" style={{ columnGap: 5 }}>
             <View className="h-[5px] w-[5px] rounded-full" style={{ backgroundColor: deadline.dotColor }} />
-            <Text className="text-[11px]" numberOfLines={1} style={{ color: deadline.textColor, fontFamily: 'PlusJakartaSans-SemiBold', lineHeight: 15 }}>
+            <Text className="text-[11px]" numberOfLines={1} style={{ color: deadline.textColor, fontFamily: SCREEN_FONTS.label, lineHeight: 15 }}>
               {deadline.label}
             </Text>
           </View>
 
-          <Pressable onPress={() => presentation.onPress(currentTask.id)} className="rounded-full px-4 py-[7px]" style={{ backgroundColor: colors.warning }}>
-            <Text className="text-[12px]" style={{ color: colors.surface, fontFamily: 'PlusJakartaSans-Bold', lineHeight: 16 }}>
+          <Pressable onPress={() => presentation.onPress(currentTask.id)} className="rounded-full px-4 py-[7px]" style={{ backgroundColor: PROFILE_THEME_SEMANTIC.warningIcon }}>
+            <Text className="text-[12px]" style={{ color: PROFILE_THEME_COLORS.surface, fontFamily: SCREEN_FONTS.cta, lineHeight: 16 }}>
               {presentation.cta}
             </Text>
           </Pressable>

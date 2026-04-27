@@ -12,6 +12,8 @@ import { AppFontSet } from '@/constants/typography'
 import type { MatchSession } from '@/lib/homeFeed'
 import { getSkillLevelUi } from '@/lib/skillLevelUi'
 import { formatDistance, getAvatarColor } from '@/utils/formatters'
+import { RADIUS, SHADOW, SPACING, BORDER } from '@/constants/screenLayout'
+import { SCREEN_FONTS } from '@/constants/screenFonts'
 
 export const SMART_MATCH_CARD_HEIGHT = 380
 
@@ -247,7 +249,7 @@ function MiniBadgeLight({
         className="ml-1.5"
         style={{
           color: palette.text,
-          fontFamily: 'PlusJakartaSans-SemiBold',
+          fontFamily: SCREEN_FONTS.label,
           fontSize: 12,
           lineHeight: 18,
         }}
@@ -339,7 +341,7 @@ function HeroMatchSessionCard({ item }: { item: MatchSession; actionLabel: strin
             <Text
               style={{
                 color: '#A8D9C8',
-                fontFamily: 'PlusJakartaSans-SemiBold',
+                fontFamily: SCREEN_FONTS.label,
                 fontSize: 12,
                 lineHeight: 16,
                 letterSpacing: 0.8,
@@ -361,7 +363,7 @@ function HeroMatchSessionCard({ item }: { item: MatchSession; actionLabel: strin
               <Text
                 style={{
                   color: headerTimeLabel.pill ? '#FFD580' : '#A8D9C8',
-                  fontFamily: 'PlusJakartaSans-Bold',
+                  fontFamily: SCREEN_FONTS.cta,
                   fontSize: 12,
                   lineHeight: 16,
                 }}
@@ -374,13 +376,13 @@ function HeroMatchSessionCard({ item }: { item: MatchSession; actionLabel: strin
 
         <View style={{ flexDirection: 'row', alignItems: 'flex-end', columnGap: 16 }}>
           <View>
-            <Text style={{ color: '#A8D9C8', fontFamily: 'PlusJakartaSans-Regular', fontSize: 10, lineHeight: 14, marginBottom: 2 }}>
+            <Text style={{ color: '#A8D9C8', fontFamily: SCREEN_FONTS.body, fontSize: 10, lineHeight: 14, marginBottom: 2 }}>
               {'B\u1eaft \u0111\u1ea7u l\u00fac'}
             </Text>
             <Text
               style={{
                 color: '#FFFFFF',
-                fontFamily: 'BarlowCondensed-Bold',
+                fontFamily: SCREEN_FONTS.headline,
                 fontSize: 52,
                 lineHeight: 54,
                 letterSpacing: 0,
@@ -388,7 +390,7 @@ function HeroMatchSessionCard({ item }: { item: MatchSession; actionLabel: strin
             >
               {startClock}
             </Text>
-            <Text style={{ color: '#A8D9C8', fontFamily: 'PlusJakartaSans-Regular', fontSize: 12, lineHeight: 16 }}>
+            <Text style={{ color: '#A8D9C8', fontFamily: SCREEN_FONTS.body, fontSize: 12, lineHeight: 16 }}>
               {startSubLabel}
             </Text>
           </View>
@@ -418,14 +420,14 @@ function HeroMatchSessionCard({ item }: { item: MatchSession; actionLabel: strin
                 marginBottom: 8,
               }}
             >
-              <Text style={{ color: '#FFFFFF', fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 12, lineHeight: 16 }}>
+              <Text style={{ color: '#FFFFFF', fontFamily: SCREEN_FONTS.label, fontSize: 12, lineHeight: 16 }}>
                 {item.skillLabel}
               </Text>
             </View>
             <Text
               numberOfLines={1}
               ellipsizeMode="tail"
-              style={{ color: '#A8D9C8', fontFamily: 'PlusJakartaSans-Regular', fontSize: 12, lineHeight: 16 }}
+              style={{ color: '#A8D9C8', fontFamily: SCREEN_FONTS.body, fontSize: 12, lineHeight: 16 }}
             >
               {compactAddress || item.address}
             </Text>
@@ -463,7 +465,7 @@ function HeroMatchSessionCard({ item }: { item: MatchSession; actionLabel: strin
                   zIndex: 4 - index,
                 }}
               >
-                <Text style={{ color: avatar.fg, fontFamily: 'PlusJakartaSans-Bold', fontSize: 10, lineHeight: 13 }}>
+                <Text style={{ color: avatar.fg, fontFamily: SCREEN_FONTS.cta, fontSize: 10, lineHeight: 13 }}>
                   {player.initials}
                 </Text>
               </Pressable>
@@ -486,7 +488,7 @@ function HeroMatchSessionCard({ item }: { item: MatchSession; actionLabel: strin
                 zIndex: 4 - visiblePlayers.length - index,
               }}
             >
-              <Text style={{ color: 'rgba(255,255,255,0.4)', fontFamily: 'PlusJakartaSans-Bold', fontSize: 13, lineHeight: 16 }}>
+              <Text style={{ color: 'rgba(255,255,255,0.4)', fontFamily: SCREEN_FONTS.cta, fontSize: 13, lineHeight: 16 }}>
                 ?
               </Text>
             </View>
@@ -495,7 +497,7 @@ function HeroMatchSessionCard({ item }: { item: MatchSession; actionLabel: strin
 
         <Text
           numberOfLines={1}
-          style={{ color: '#A8D9C8', fontFamily: 'PlusJakartaSans-Regular', fontSize: 11, lineHeight: 15, marginHorizontal: 12, flexShrink: 1 }}
+          style={{ color: '#A8D9C8', fontFamily: SCREEN_FONTS.body, fontSize: 11, lineHeight: 15, marginHorizontal: 12, flexShrink: 1 }}
         >
           {playersLabel}
         </Text>
@@ -507,7 +509,7 @@ function HeroMatchSessionCard({ item }: { item: MatchSession; actionLabel: strin
           }}
           style={{ backgroundColor: '#FFFFFF', borderRadius: 999, paddingHorizontal: 16, paddingVertical: 8, flexShrink: 0 }}
         >
-          <Text style={{ color: '#0F6E56', fontFamily: 'PlusJakartaSans-Bold', fontSize: 12, lineHeight: 16 }}>
+          <Text style={{ color: '#0F6E56', fontFamily: SCREEN_FONTS.cta, fontSize: 12, lineHeight: 16 }}>
             {'Xem \u2192'}
           </Text>
         </Pressable>
@@ -555,7 +557,7 @@ function SuggestedSessionCard({ item }: { item: MatchSession }) {
           <Text
             style={{
               color: '#FFFFFF',
-              fontFamily: 'PlusJakartaSans-Bold',
+              fontFamily: SCREEN_FONTS.cta,
               fontSize: 11,
               lineHeight: 15,
               letterSpacing: 0.5,
@@ -568,7 +570,7 @@ function SuggestedSessionCard({ item }: { item: MatchSession }) {
         <Text
           style={{
             color: 'rgba(255,255,255,0.6)',
-            fontFamily: 'PlusJakartaSans-SemiBold',
+            fontFamily: SCREEN_FONTS.label,
             fontSize: 11,
             lineHeight: 15,
           }}
@@ -596,13 +598,13 @@ function SuggestedSessionCard({ item }: { item: MatchSession }) {
         </Text>
 
         <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 6 }}>
-          <Text numberOfLines={1} ellipsizeMode="tail" style={{ color: '#7A8884', fontFamily: 'PlusJakartaSans-Regular', fontSize: 12, lineHeight: 16, flexShrink: 1 }}>
+          <Text numberOfLines={1} ellipsizeMode="tail" style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 12, lineHeight: 16, flexShrink: 1 }}>
             {addressLabel}
           </Text>
           {levelMatchesUser ? (
             <>
               <View style={{ width: 3, height: 3, borderRadius: 999, backgroundColor: '#B4B2A9' }} />
-              <Text style={{ color: '#0F6E56', fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 11, lineHeight: 15 }}>
+              <Text style={{ color: '#0F6E56', fontFamily: SCREEN_FONTS.label, fontSize: 11, lineHeight: 15 }}>
                 {'\u2713 kh\u1edbp v\u1edbi b\u1ea1n'}
               </Text>
             </>
@@ -613,7 +615,7 @@ function SuggestedSessionCard({ item }: { item: MatchSession }) {
       <View style={{ backgroundColor: '#F5F1E8', paddingTop: 10, paddingHorizontal: 16, paddingBottom: 12 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 8, marginBottom: 4 }}>
           <View style={{ backgroundColor: dayInfo.badgeColor, borderRadius: 3, paddingHorizontal: 7, paddingVertical: 2 }}>
-            <Text style={{ color: '#FFFFFF', fontFamily: 'PlusJakartaSans-Bold', fontSize: 9, lineHeight: 12 }}>
+            <Text style={{ color: '#FFFFFF', fontFamily: SCREEN_FONTS.cta, fontSize: 9, lineHeight: 12 }}>
               {dayInfo.badgeLabel}
             </Text>
           </View>
@@ -632,7 +634,7 @@ function SuggestedSessionCard({ item }: { item: MatchSession }) {
             >
               {formatClock(startDate)}
             </Text>
-            <Text style={{ color: '#7A8884', fontFamily: 'PlusJakartaSans-Regular', fontSize: 11, lineHeight: 15, marginTop: 3 }}>
+            <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 11, lineHeight: 15, marginTop: 3 }}>
               {`\u0111\u1ebfn ${formatClock(endDate)}`}
             </Text>
           </View>
@@ -641,7 +643,7 @@ function SuggestedSessionCard({ item }: { item: MatchSession }) {
             <Text style={{ color: '#1A2E2A', fontFamily: AppFontSet.headline, fontSize: 25, lineHeight: 25 }}>
               {item.priceLabel}
             </Text>
-            <Text style={{ color: '#7A8884', fontFamily: 'PlusJakartaSans-Regular', fontSize: 11, lineHeight: 15 }}>
+            <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 11, lineHeight: 15 }}>
               {'/ng\u01b0\u1eddi'}
             </Text>
           </View>
@@ -649,12 +651,12 @@ function SuggestedSessionCard({ item }: { item: MatchSession }) {
 
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <View style={{ backgroundColor: '#FFFFFF', borderRadius: 4, paddingHorizontal: 9, paddingVertical: 3 }}>
-            <Text style={{ color: '#2C2C2A', fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 12, lineHeight: 16 }}>
+            <Text style={{ color: '#2C2C2A', fontFamily: SCREEN_FONTS.label, fontSize: 12, lineHeight: 16 }}>
               {item.skillLabel}
             </Text>
           </View>
 
-          <Text style={{ color: '#7A8884', fontFamily: 'PlusJakartaSans-Regular', fontSize: 12, lineHeight: 16 }}>
+          <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 12, lineHeight: 16 }}>
             {`${item.activePlayers}/${item.maxPlayers} ng\u01b0\u1eddi`}
           </Text>
 
@@ -665,7 +667,7 @@ function SuggestedSessionCard({ item }: { item: MatchSession }) {
             }}
             style={{ backgroundColor: '#0F6E56', borderRadius: 999, paddingHorizontal: 16, paddingVertical: 8 }}
           >
-            <Text style={{ color: '#FFFFFF', fontFamily: 'PlusJakartaSans-Bold', fontSize: 13, lineHeight: 17 }}>
+            <Text style={{ color: '#FFFFFF', fontFamily: SCREEN_FONTS.cta, fontSize: 13, lineHeight: 17 }}>
               {'V\u00e0o k\u00e8o'}
             </Text>
           </Pressable>
@@ -726,7 +728,7 @@ function UrgentFillCard({ item }: { item: MatchSession }) {
             numberOfLines={1}
             style={{
               color: '#FFFFFF',
-              fontFamily: 'PlusJakartaSans-Bold',
+              fontFamily: SCREEN_FONTS.cta,
               fontSize: 11,
               lineHeight: 15,
               letterSpacing: 0.5,
@@ -742,7 +744,7 @@ function UrgentFillCard({ item }: { item: MatchSession }) {
             numberOfLines={1}
             style={{
               color: '#FFD580',
-              fontFamily: 'PlusJakartaSans-Bold',
+              fontFamily: SCREEN_FONTS.cta,
               fontSize: 11,
               lineHeight: 15,
               marginLeft: 10,
@@ -771,13 +773,13 @@ function UrgentFillCard({ item }: { item: MatchSession }) {
         </Text>
 
         <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 6 }}>
-          <Text numberOfLines={1} ellipsizeMode="tail" style={{ color: '#7A8884', fontFamily: 'PlusJakartaSans-Regular', fontSize: 12, lineHeight: 16, flexShrink: 1 }}>
+          <Text numberOfLines={1} ellipsizeMode="tail" style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 12, lineHeight: 16, flexShrink: 1 }}>
             {addressLabel}
           </Text>
           {waitingPlayers > 0 ? (
             <>
               <View style={{ width: 3, height: 3, borderRadius: 999, backgroundColor: '#B4B2A9' }} />
-              <Text style={{ color: '#D85A30', fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 11, lineHeight: 15 }}>
+              <Text style={{ color: '#D85A30', fontFamily: SCREEN_FONTS.label, fontSize: 11, lineHeight: 15 }}>
                 {urgentText}
               </Text>
             </>
@@ -788,11 +790,11 @@ function UrgentFillCard({ item }: { item: MatchSession }) {
       <View style={{ backgroundColor: '#F5F1E8', paddingTop: 10, paddingHorizontal: 16, paddingBottom: 12 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 8, marginBottom: 4 }}>
           <View style={{ backgroundColor: '#D85A30', borderRadius: 3, paddingHorizontal: 7, paddingVertical: 2 }}>
-            <Text style={{ color: '#FFFFFF', fontFamily: 'PlusJakartaSans-Bold', fontSize: 9, lineHeight: 12 }}>
+            <Text style={{ color: '#FFFFFF', fontFamily: SCREEN_FONTS.cta, fontSize: 9, lineHeight: 12 }}>
               {dayInfo.badgeLabel}
             </Text>
           </View>
-          <Text style={{ color: '#7A8884', fontFamily: 'PlusJakartaSans-Regular', fontSize: 11, lineHeight: 15 }}>
+          <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 11, lineHeight: 15 }}>
             {dayInfo.label}
           </Text>
         </View>
@@ -810,7 +812,7 @@ function UrgentFillCard({ item }: { item: MatchSession }) {
             >
               {formatClock(startDate)}
             </Text>
-            <Text style={{ color: '#7A8884', fontFamily: 'PlusJakartaSans-Regular', fontSize: 11, lineHeight: 15, marginTop: 3 }}>
+            <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 11, lineHeight: 15, marginTop: 3 }}>
               {`\u0111\u1ebfn ${formatClock(endDate)}`}
             </Text>
           </View>
@@ -819,7 +821,7 @@ function UrgentFillCard({ item }: { item: MatchSession }) {
             <Text style={{ color: '#1A2E2A', fontFamily: AppFontSet.headline, fontSize: 25, lineHeight: 25 }}>
               {item.priceLabel}
             </Text>
-            <Text style={{ color: '#7A8884', fontFamily: 'PlusJakartaSans-Regular', fontSize: 11, lineHeight: 15 }}>
+            <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 11, lineHeight: 15 }}>
               {'/ng\u01b0\u1eddi'}
             </Text>
           </View>
@@ -827,12 +829,12 @@ function UrgentFillCard({ item }: { item: MatchSession }) {
 
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <View style={{ backgroundColor: '#FFFFFF', borderRadius: 4, paddingHorizontal: 8, paddingVertical: 2 }}>
-            <Text style={{ color: '#2C2C2A', fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 12, lineHeight: 16 }}>
+            <Text style={{ color: '#2C2C2A', fontFamily: SCREEN_FONTS.label, fontSize: 12, lineHeight: 16 }}>
               {item.skillLabel}
             </Text>
           </View>
 
-          <Text style={{ color: '#993C1D', fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 12, lineHeight: 16 }}>
+          <Text style={{ color: '#993C1D', fontFamily: SCREEN_FONTS.label, fontSize: 12, lineHeight: 16 }}>
             {`${item.activePlayers}/${item.maxPlayers} ng\u01b0\u1eddi`}
           </Text>
 
@@ -843,7 +845,7 @@ function UrgentFillCard({ item }: { item: MatchSession }) {
             }}
             style={{ backgroundColor: '#D85A30', borderRadius: 999, paddingHorizontal: 16, paddingVertical: 8 }}
           >
-            <Text style={{ color: '#FFFFFF', fontFamily: 'PlusJakartaSans-Bold', fontSize: 13, lineHeight: 17 }}>
+            <Text style={{ color: '#FFFFFF', fontFamily: SCREEN_FONTS.cta, fontSize: 13, lineHeight: 17 }}>
               {'V\u00e0o ngay'}
             </Text>
           </Pressable>
@@ -903,19 +905,18 @@ function SessionListCard({
   return (
     <Pressable
       onPress={() => router.push({ pathname: '/session/[id]' as never, params: { id: item.id } })}
-      className="overflow-hidden rounded-[32px] p-5"
+      className="overflow-hidden"
       style={{
+        padding: SPACING.xl,
         minHeight: 300,
+        borderRadius: RADIUS.hero,
         backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
-        shadowColor: PROFILE_THEME_COLORS.onBackground,
-        shadowOpacity: 0.06,
-        shadowRadius: 14,
-        shadowOffset: { width: 0, height: 6 },
-        elevation: 3,
+        ...SHADOW.sm,
       }}
     >
       <View
-        className="relative -mx-5 -mt-5 overflow-hidden px-5 pt-5 pb-4"
+        className="relative overflow-hidden"
+        style={{ marginHorizontal: -SPACING.xl, marginTop: -SPACING.xl, paddingHorizontal: SPACING.xl, paddingTop: SPACING.xl, paddingBottom: SPACING.lg, borderTopLeftRadius: RADIUS.hero, borderTopRightRadius: RADIUS.hero }}
       >
         <LinearGradient
           colors={[accentColor, accentSurfaceColor]}
@@ -973,7 +974,7 @@ function SessionListCard({
               ellipsizeMode="tail"
               style={{
                 color: withAlpha(onAccentColor, 0.86),
-                fontFamily: 'PlusJakartaSans-SemiBold',
+                fontFamily: SCREEN_FONTS.label,
                 fontSize: 13,
                 lineHeight: 18,
               }}
@@ -993,7 +994,7 @@ function SessionListCard({
               className="ml-1.5"
               style={{
                 color: withAlpha(onAccentColor, 0.86),
-                fontFamily: 'PlusJakartaSans-SemiBold',
+                fontFamily: SCREEN_FONTS.label,
                 fontSize: 13,
                 lineHeight: 18,
               }}
@@ -1011,7 +1012,7 @@ function SessionListCard({
               className="ml-1.5"
               style={{
                 color: withAlpha(onAccentColor, 0.86),
-                fontFamily: 'PlusJakartaSans-SemiBold',
+                fontFamily: SCREEN_FONTS.label,
                 fontSize: 13,
                 lineHeight: 18,
               }}
@@ -1034,7 +1035,7 @@ function SessionListCard({
             className="ml-1.5"
             style={{
               color: PROFILE_THEME_COLORS.onSurfaceVariant,
-              fontFamily: 'PlusJakartaSans-SemiBold',
+              fontFamily: SCREEN_FONTS.label,
               fontSize: 12,
               lineHeight: 18,
             }}
@@ -1078,7 +1079,7 @@ function SessionListCard({
                   numberOfLines={1}
                   style={{
                     color: PROFILE_THEME_COLORS.onSurface,
-                    fontFamily: 'PlusJakartaSans-SemiBold',
+                    fontFamily: SCREEN_FONTS.label,
                     fontSize: 13,
                   }}
                 >
@@ -1090,7 +1091,7 @@ function SessionListCard({
                     className="ml-1"
                     style={{
                       color: PROFILE_THEME_COLORS.onSurface,
-                      fontFamily: 'PlusJakartaSans-SemiBold',
+                      fontFamily: SCREEN_FONTS.label,
                       fontSize: 11,
                     }}
                   >
@@ -1104,7 +1105,7 @@ function SessionListCard({
                 ellipsizeMode="tail"
                 style={{
                   color: PROFILE_THEME_COLORS.onSurfaceVariant,
-                  fontFamily: 'PlusJakartaSans-Regular',
+                  fontFamily: SCREEN_FONTS.body,
                   fontSize: 11,
                   lineHeight: 16,
                 }}
@@ -1127,7 +1128,7 @@ function SessionListCard({
             <Text
               style={{
                 color: PROFILE_THEME_COLORS.onSurfaceVariant,
-                fontFamily: 'PlusJakartaSans-Regular',
+                fontFamily: SCREEN_FONTS.body,
                 fontSize: 10,
               }}
             >
@@ -1163,7 +1164,7 @@ function SessionListCard({
                 <Text
                   style={{
                     color: onAccentColor,
-                    fontFamily: 'PlusJakartaSans-Bold',
+                    fontFamily: SCREEN_FONTS.cta,
                     fontSize: 10,
                   }}
                 >
@@ -1211,7 +1212,7 @@ function SessionListCard({
                 <Text
                   style={{
                     color: PROFILE_THEME_COLORS.onSurfaceVariant,
-                    fontFamily: 'PlusJakartaSans-SemiBold',
+                    fontFamily: SCREEN_FONTS.label,
                     fontSize: 10,
                   }}
                 >

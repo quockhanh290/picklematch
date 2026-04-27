@@ -6,6 +6,7 @@ import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { StatusBar } from 'expo-status-bar'
 import { useState } from 'react'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { SCREEN_FONTS } from '@/constants/screenFonts'
 import {
   Alert,
   ImageBackground,
@@ -324,7 +325,7 @@ export default function LoginScreen() {
                   color: ELECTRIC.lime,
                   fontSize: 32,
                   lineHeight: 34,
-                  fontFamily: 'PlusJakartaSans-ExtraBoldItalic',
+                  fontFamily: SCREEN_FONTS.boldItalic,
                   letterSpacing: -0.8,
                 }}
               >
@@ -335,7 +336,7 @@ export default function LoginScreen() {
                   marginTop: 14,
                   color: PROFILE_THEME_COLORS.onPrimary,
                   fontSize: 10,
-                  fontFamily: 'PlusJakartaSans-Bold',
+                  fontFamily: SCREEN_FONTS.cta,
                   letterSpacing: 0.4,
                 }}
               >
@@ -347,7 +348,7 @@ export default function LoginScreen() {
                   color: 'rgba(255,255,255,0.74)',
                   fontSize: 14,
                   lineHeight: 22,
-                  fontFamily: 'PlusJakartaSans-Regular',
+                  fontFamily: SCREEN_FONTS.body,
                 }}
               >
                 Đăng nhập để vào sân nhanh hơn, nhận mã OTP và tiếp tục hành trình pickleball của bạn.
@@ -372,8 +373,8 @@ export default function LoginScreen() {
             }}
           >
             <View className="mb-6">
-              <Text style={{ color: ELECTRIC.ink, fontSize: 28, fontFamily: 'PlusJakartaSans-Bold' }}>Chào mừng trở lại</Text>
-              <Text style={{ marginTop: 6, color: PROFILE_THEME_COLORS.onSurfaceVariant, fontSize: 14, lineHeight: 22, fontFamily: 'PlusJakartaSans-Regular' }}>
+              <Text style={{ color: ELECTRIC.ink, fontSize: 28, fontFamily: SCREEN_FONTS.cta }}>Chào mừng trở lại</Text>
+              <Text style={{ marginTop: 6, color: PROFILE_THEME_COLORS.onSurfaceVariant, fontSize: 14, lineHeight: 22, fontFamily: SCREEN_FONTS.body }}>
                 Đăng nhập để bắt đầu trận đấu của bạn
               </Text>
             </View>
@@ -387,7 +388,7 @@ export default function LoginScreen() {
                 borderColor: PROFILE_THEME_COLORS.outlineVariant,
               }}
             >
-              <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontSize: 12, fontFamily: 'PlusJakartaSans-Bold', letterSpacing: 0.8, marginBottom: 10 }}>
+              <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontSize: 12, fontFamily: SCREEN_FONTS.cta, letterSpacing: 0.8, marginBottom: 10 }}>
                 SỐ ĐIỆN THOẠI
               </Text>
               <View
@@ -403,7 +404,7 @@ export default function LoginScreen() {
                 >
                   <Smartphone size={18} color={ELECTRIC.emeraldDark} />
                 </View>
-                <Text style={{ color: ELECTRIC.ink, fontSize: 16, fontFamily: 'PlusJakartaSans-Bold' }}>+84</Text>
+                <Text style={{ color: ELECTRIC.ink, fontSize: 16, fontFamily: SCREEN_FONTS.cta }}>+84</Text>
                 <View style={{ width: 1, height: 24, backgroundColor: PROFILE_THEME_COLORS.outline, marginHorizontal: 12 }} />
                 <TextInput
                   value={phone}
@@ -416,7 +417,7 @@ export default function LoginScreen() {
                     flex: 1,
                     color: ELECTRIC.ink,
                     fontSize: 16,
-                    fontFamily: 'PlusJakartaSans-Regular',
+                    fontFamily: SCREEN_FONTS.body,
                     paddingVertical: 0,
                   }}
                 />
@@ -425,13 +426,13 @@ export default function LoginScreen() {
 
             <View className="mt-7">
               <View className="mb-3 flex-row items-center justify-between">
-                <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontSize: 12, fontFamily: 'PlusJakartaSans-Bold', letterSpacing: 0.8 }}>Mã OTP (6 CHỮ SỐ)</Text>
+                <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontSize: 12, fontFamily: SCREEN_FONTS.cta, letterSpacing: 0.8 }}>Mã OTP (6 CHỮ SỐ)</Text>
                 {step === 'otp' ? (
                   <Pressable onPress={sendOTP} disabled={loading}>
-                    <Text style={{ color: ELECTRIC.emerald, fontSize: 13, fontFamily: 'PlusJakartaSans-Bold' }}>Gửi lại mã</Text>
+                    <Text style={{ color: ELECTRIC.emerald, fontSize: 13, fontFamily: SCREEN_FONTS.cta }}>Gửi lại mã</Text>
                   </Pressable>
                 ) : (
-                  <Text style={{ color: PROFILE_THEME_COLORS.outline, fontSize: 13, fontFamily: 'PlusJakartaSans-Bold' }}>6 số xác thực</Text>
+                  <Text style={{ color: PROFILE_THEME_COLORS.outline, fontSize: 13, fontFamily: SCREEN_FONTS.cta }}>6 số xác thực</Text>
                 )}
               </View>
 
@@ -471,10 +472,10 @@ export default function LoginScreen() {
                 <ShieldCheck size={19} color={ELECTRIC.emeraldDark} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={{ color: PROFILE_THEME_COLORS.onSurface, fontSize: 12, fontFamily: 'PlusJakartaSans-Bold', letterSpacing: 0.6 }}>
+                <Text style={{ color: PROFILE_THEME_COLORS.onSurface, fontSize: 12, fontFamily: SCREEN_FONTS.cta, letterSpacing: 0.6 }}>
                   BẢO MẬT TUYỆT ĐỐI
                 </Text>
-                <Text style={{ marginTop: 4, color: PROFILE_THEME_COLORS.onSurfaceVariant, fontSize: 13, lineHeight: 22, fontFamily: 'PlusJakartaSans-Regular' }}>
+                <Text style={{ marginTop: 4, color: PROFILE_THEME_COLORS.onSurfaceVariant, fontSize: 13, lineHeight: 22, fontFamily: SCREEN_FONTS.body }}>
                   Thông tin cá nhân và số điện thoại của bạn được mã hóa theo tiêu chuẩn quốc tế.
                 </Text>
               </View>
@@ -498,7 +499,7 @@ export default function LoginScreen() {
                 elevation: 7,
               }}
             >
-              <Text style={{ color: ELECTRIC.white, fontSize: 16, fontFamily: 'PlusJakartaSans-Bold' }}>
+              <Text style={{ color: ELECTRIC.white, fontSize: 16, fontFamily: SCREEN_FONTS.cta }}>
                 {loading ? 'Đang xử lý...' : 'Xác nhận'}
               </Text>
             </Pressable>
@@ -516,16 +517,16 @@ export default function LoginScreen() {
                 opacity: loading ? 0.72 : 1,
               }}
             >
-              <Text style={{ color: ELECTRIC.emeraldDark, fontSize: 15, fontFamily: 'PlusJakartaSans-Bold' }}>
+              <Text style={{ color: ELECTRIC.emeraldDark, fontSize: 15, fontFamily: SCREEN_FONTS.cta }}>
                 {step === 'phone' ? 'Gửi mã OTP' : 'Đổi số điện thoại'}
               </Text>
             </Pressable>
           </View>
 
           <View className="mt-8 items-center">
-            <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontSize: 14, fontFamily: 'PlusJakartaSans-Regular' }}>
+            <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontSize: 14, fontFamily: SCREEN_FONTS.body }}>
               Chưa có tài khoản?{' '}
-              <Text style={{ color: ELECTRIC.emerald, fontFamily: 'PlusJakartaSans-Bold' }}>Đăng ký ngay</Text>
+              <Text style={{ color: ELECTRIC.emerald, fontFamily: SCREEN_FONTS.cta }}>Đăng ký ngay</Text>
             </Text>
 
             <Text
@@ -533,7 +534,7 @@ export default function LoginScreen() {
                 marginTop: 16,
                 color: PROFILE_THEME_COLORS.outline,
                 fontSize: 11,
-                fontFamily: 'PlusJakartaSans-Bold',
+                fontFamily: SCREEN_FONTS.cta,
                 letterSpacing: 1.2,
               }}
             >

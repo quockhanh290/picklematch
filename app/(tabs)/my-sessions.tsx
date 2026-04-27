@@ -1,4 +1,5 @@
-﻿import { colors } from '@/constants/colors'
+import { colors } from '@/constants/colors'
+import { SCREEN_FONTS } from '@/constants/screenFonts'
 import { resolveTab, type SessionRequestStatus, type SessionRole } from '@/lib/mySessionsLogic'
 import { getSessionSkillLabel } from '@/lib/sessionDetail'
 import { supabase } from '@/lib/supabase'
@@ -30,12 +31,6 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
-const SCREEN_FONTS = {
-  headline: 'BarlowCondensed-Bold',
-  body: 'PlusJakartaSans-Regular',
-  label: 'PlusJakartaSans-SemiBold',
-  cta: 'PlusJakartaSans-Bold',
-} as const
 
 const PROFILE_THEME_COLORS = {
   primary: colors.primary,
@@ -428,7 +423,7 @@ function MySessionCard({
                 marginRight: 8,
               }}
             >
-              <Text style={{ color: '#FFFFFF', fontFamily: SCREEN_FONTS.cta, fontSize: 10, lineHeight: 12 }}>
+              <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta, fontSize: 10, lineHeight: 12 }}>
                 {dateBadgeLabel}
               </Text>
             </View>

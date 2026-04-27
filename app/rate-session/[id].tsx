@@ -22,6 +22,7 @@ import {
 import { useCallback, useEffect, useState } from 'react'
 import { ActivityIndicator, LayoutAnimation, Platform, Pressable, ScrollView, Text, UIManager, View } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
+import { SCREEN_FONTS } from '@/constants/screenFonts'
 
 type SkillValidation = 'weaker' | 'matched' | 'outclass'
 
@@ -127,7 +128,7 @@ function StepProgress({ total, current }: { total: number; current: number }) {
       <Text
         style={{
           fontSize: 11,
-          fontFamily: 'PlusJakartaSans-ExtraBold',
+          fontFamily: SCREEN_FONTS.bold,
           letterSpacing: 1.2,
           color: PROFILE_THEME_COLORS.outline,
           textTransform: 'uppercase',
@@ -145,7 +146,7 @@ function SectionLabel({ title, subtitle }: { title: string; subtitle?: string })
       <Text
         style={{
           fontSize: 10,
-          fontFamily: 'PlusJakartaSans-ExtraBold',
+          fontFamily: SCREEN_FONTS.bold,
           letterSpacing: 1.8,
           textTransform: 'uppercase',
           color: PROFILE_THEME_COLORS.outline,
@@ -159,7 +160,7 @@ function SectionLabel({ title, subtitle }: { title: string; subtitle?: string })
             marginTop: 6,
             fontSize: 18,
             lineHeight: 24,
-            fontFamily: 'PlusJakartaSans-ExtraBold',
+            fontFamily: SCREEN_FONTS.bold,
             color: PROFILE_THEME_COLORS.onSurface,
           }}
         >
@@ -242,7 +243,7 @@ function SkillChip({
           textAlign: 'center',
           fontSize: 13,
           lineHeight: 18,
-          fontFamily: 'PlusJakartaSans-ExtraBold',
+          fontFamily: SCREEN_FONTS.bold,
           color: active ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurface,
         }}
       >
@@ -253,7 +254,7 @@ function SkillChip({
           textAlign: 'center',
           fontSize: 11,
           lineHeight: 15,
-          fontFamily: 'PlusJakartaSans-Regular',
+          fontFamily: SCREEN_FONTS.body,
           color: active ? withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.75) : PROFILE_THEME_COLORS.onSurfaceVariant,
         }}
       >
@@ -342,7 +343,7 @@ function TagChip({
           textAlign: 'center',
           fontSize: 12,
           lineHeight: 16,
-          fontFamily: 'PlusJakartaSans-Bold',
+          fontFamily: SCREEN_FONTS.cta,
           color: textColor,
         }}
       >
@@ -620,7 +621,7 @@ export default function RateSessionScreen() {
                   justifyContent: 'center',
                 }}
               >
-                <Text style={{ fontSize: 38, fontFamily: 'PlusJakartaSans-ExtraBold', color: PROFILE_THEME_COLORS.primary }}>
+                <Text style={{ fontSize: 38, fontFamily: SCREEN_FONTS.bold, color: PROFILE_THEME_COLORS.primary }}>
                   {getAvatarLetter(currentPlayer.name)}
                 </Text>
               </View>
@@ -629,7 +630,7 @@ export default function RateSessionScreen() {
                   marginTop: 14,
                   fontSize: 26,
                   lineHeight: 30,
-                  fontFamily: 'PlusJakartaSans-ExtraBold',
+                  fontFamily: SCREEN_FONTS.bold,
                   color: PROFILE_THEME_COLORS.onSurface,
                   textAlign: 'center',
                 }}
@@ -649,7 +650,7 @@ export default function RateSessionScreen() {
                   <Text
                     style={{
                       fontSize: 10,
-                      fontFamily: 'PlusJakartaSans-Bold',
+                      fontFamily: SCREEN_FONTS.cta,
                       letterSpacing: 1.4,
                       color: PROFILE_THEME_COLORS.outline,
                       textTransform: 'uppercase',
@@ -670,7 +671,7 @@ export default function RateSessionScreen() {
                   paddingVertical: 8,
                 }}
               >
-                <Text style={{ fontSize: 12, fontFamily: 'PlusJakartaSans-Bold', color: PROFILE_THEME_COLORS.primary }}>{skillLabel}</Text>
+                <Text style={{ fontSize: 12, fontFamily: SCREEN_FONTS.cta, color: PROFILE_THEME_COLORS.primary }}>{skillLabel}</Text>
               </View>
             </View>
           </View>
@@ -718,7 +719,7 @@ export default function RateSessionScreen() {
               <Text
                 style={{
                   fontSize: 11,
-                  fontFamily: 'PlusJakartaSans-Bold',
+                  fontFamily: SCREEN_FONTS.cta,
                   letterSpacing: 1.2,
                   textTransform: 'uppercase',
                   color: PROFILE_THEME_COLORS.onSurfaceVariant,
@@ -747,7 +748,7 @@ export default function RateSessionScreen() {
               <Text
                 style={{
                   fontSize: 11,
-                  fontFamily: 'PlusJakartaSans-Bold',
+                  fontFamily: SCREEN_FONTS.cta,
                   letterSpacing: 1.2,
                   textTransform: 'uppercase',
                   color: PROFILE_THEME_COLORS.onSurfaceVariant,
@@ -810,7 +811,7 @@ export default function RateSessionScreen() {
                   style={{
                     fontSize: 15,
                     lineHeight: 20,
-                    fontFamily: 'PlusJakartaSans-ExtraBold',
+                    fontFamily: SCREEN_FONTS.bold,
                     color: currentEntry.no_show ? PROFILE_THEME_COLORS.onErrorContainer : PROFILE_THEME_COLORS.onSurface,
                   }}
                 >
@@ -821,7 +822,7 @@ export default function RateSessionScreen() {
                     marginTop: 3,
                     fontSize: 12,
                     lineHeight: 18,
-                    fontFamily: 'PlusJakartaSans-Regular',
+                    fontFamily: SCREEN_FONTS.body,
                     color: currentEntry.no_show ? PROFILE_THEME_COLORS.onErrorContainer : PROFILE_THEME_COLORS.onSurfaceVariant,
                   }}
                 >
@@ -851,7 +852,7 @@ export default function RateSessionScreen() {
                   flex: 1,
                   fontSize: 12,
                   lineHeight: 18,
-                  fontFamily: 'PlusJakartaSans-Regular',
+                  fontFamily: SCREEN_FONTS.body,
                   color: PROFILE_THEME_COLORS.onSurfaceVariant,
                 }}
               >

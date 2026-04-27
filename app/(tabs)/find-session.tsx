@@ -3,8 +3,9 @@ import {
     AdvancedFilter,
     AdvancedSessionFilterModal,
 } from '@/components/find-session/AdvancedSessionFilterModal'
+import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import SessionCard from '@/components/sessions/SessionCard'
-import { colors } from '@/constants/colors'
+import { SCREEN_FONTS } from '@/constants/screenFonts'
 import { getSkillLevelFromEloRange, getSkillLevelFromPlayer, getSkillScoreFromLevelId } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
 import AsyncStorage from '@react-native-async-storage/async-storage'
@@ -70,21 +71,6 @@ type PlayerQueueProfile = {
 }
 
 const SMART_QUEUE_STORAGE_PREFIX = '@picklematch/smart-queue:'
-const PROFILE_THEME_COLORS = {
-  primary: colors.primary,
-  onPrimary: '#FFFFFF',
-  background: colors.background,
-  onBackground: colors.text,
-  onSurface: colors.text,
-  onSurfaceVariant: colors.textSecondary,
-  outline: colors.textSecondary,
-  outlineVariant: colors.border,
-  surfaceContainerLow: colors.surface,
-  surfaceContainerLowest: colors.surface,
-  surfaceContainerHighest: colors.surfaceAlt,
-  secondaryContainer: colors.primaryLight,
-  onSecondaryContainer: colors.primaryDark,
-} as const
 
 function getSmartQueueKey(userId: string) {
   return `${SMART_QUEUE_STORAGE_PREFIX}${userId}`
@@ -147,11 +133,6 @@ function computeMatchScore(session: Session, rescueMode: boolean, level3Mode: bo
   return Math.max(78, Math.min(score, 99))
 }
 
-const SCREEN_FONTS = {
-  headline: 'BarlowCondensed-Bold',
-  body: 'PlusJakartaSans-Regular',
-  label: 'PlusJakartaSans-SemiBold',
-} as const
 
 function getCardStatus(session: Session): 'open' | 'starting_soon' | 'full' | 'past' {
   const startTime = new Date(session.slot?.start_time ?? 0).getTime()

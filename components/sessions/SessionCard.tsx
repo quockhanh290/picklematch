@@ -1,4 +1,6 @@
-﻿import { colors } from '@/constants/colors'
+import { colors } from '@/constants/colors'
+import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { SCREEN_FONTS } from '@/constants/screenFonts'
 import { typography } from '@/constants/typography'
 import {
   formatDistance,
@@ -39,6 +41,14 @@ interface SessionCardProps {
 type ChipVariant = 'urgent' | 'warn' | 'neutral'
 
 const CARD_HEIGHT = 271
+
+// Decorative avatar tones — intentionally static palette, not theme-sensitive
+const AVATAR_PALETTE = [
+  { bg: '#E1F5EE', text: '#0F6E56' },
+  { bg: '#FAECE7', text: '#993C1D' },
+  { bg: '#FAEEDA', text: '#854F0B' },
+  { bg: '#EAF2FF', text: '#2256A7' },
+]
 
 type ChipState = {
   variant: ChipVariant
@@ -97,8 +107,9 @@ function getDayBadgeBackground(startTime: Date) {
 
 export default function SessionCard({ session, onPress, onJoinPress }: SessionCardProps) {
   const disabled = session.status === 'full' || session.status === 'past'
+  const isFull = session.status === 'full'
   const chip = getStatusChip(session.status, session.enrolledCount, session.capacity)
-  const avatar = getAvatarColor(session.host.id)
+  const avatarTone = AVATAR_PALETTE[Math.abs(session.host.id.split('').reduce((a, b) => a + b.charCodeAt(0), 0)) % AVATAR_PALETTE.length]
   const distance = formatDistance(session.distanceKm)
   const addressLine = distance ? `${session.courtAddress} · ${distance}` : session.courtAddress
 
@@ -169,8 +180,8 @@ export default function SessionCard({ session, onPress, onJoinPress }: SessionCa
 
       <View style={styles.footerSection}>
         <View style={styles.hostRow}>
-          <View style={[styles.avatar, { backgroundColor: avatar.bg }]}>
-            <Text style={[styles.avatarInitial, { color: avatar.fg }]}>{session.host.initial}</Text>
+          <View style={[styles.avatar, { backgroundColor: avatarTone.bg }]}>
+            <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 18, color: avatarTone.text }}>{session.host.initial}</Text>
           </View>
           <View style={styles.hostMeta}>
             <Text numberOfLines={1} style={[styles.hostName, { color: disabled ? colors.textMuted : colors.text }]}>
@@ -197,7 +208,7 @@ export default function SessionCard({ session, onPress, onJoinPress }: SessionCa
           }}
           style={[styles.ctaButton, disabled ? styles.ctaButtonDisabled : styles.ctaButtonActive]}
         >
-          <Text style={[styles.ctaText, { color: '#FFFFFF' }]}>{ctaLabel.toLocaleUpperCase('vi-VN')}</Text>
+          <Text style={[styles.ctaText, { color: colors.surface }]}>{ctaLabel.toLocaleUpperCase('vi-VN')}</Text>
         </Pressable>
       </View>
     </Pressable>
@@ -225,7 +236,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   courtName: {
-    fontFamily: 'BarlowCondensed-Bold',
+    fontFamily: SCREEN_FONTS.headline,
     letterSpacing: 0.3,
     textTransform: 'uppercase',
   },
@@ -268,13 +279,13 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   dayBadgeText: {
-    fontFamily: 'PlusJakartaSans-Bold',
+    fontFamily: SCREEN_FONTS.cta,
     fontSize: 10,
     lineHeight: 12,
-    color: '#FFFFFF',
+    color: colors.surface,
   },
   timeText: {
-    fontFamily: 'BarlowCondensed-Bold',
+    fontFamily: SCREEN_FONTS.headline,
     fontSize: 19,
     lineHeight: 22,
     letterSpacing: 0.3,
@@ -298,7 +309,7 @@ const styles = StyleSheet.create({
     columnGap: 10,
   },
   levelLabel: {
-    fontFamily: 'PlusJakartaSans-Regular',
+    fontFamily: SCREEN_FONTS.body,
     fontSize: 12,
     lineHeight: 16,
   },
@@ -309,12 +320,12 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   levelChipText: {
-    fontFamily: 'PlusJakartaSans-SemiBold',
+    fontFamily: SCREEN_FONTS.label,
     fontSize: 12,
     lineHeight: 16,
   },
   levelMatchHint: {
-    fontFamily: 'PlusJakartaSans-Regular',
+    fontFamily: SCREEN_FONTS.body,
     fontSize: 11,
     lineHeight: 14,
     marginLeft: 'auto',
@@ -343,12 +354,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   avatarInitial: {
-    fontFamily: 'BarlowCondensed-Bold',
+    fontFamily: SCREEN_FONTS.headline,
     fontSize: 16,
     lineHeight: 16,
   },
   hostName: {
-    fontFamily: 'PlusJakartaSans-SemiBold',
+    fontFamily: SCREEN_FONTS.label,
     fontSize: 13,
     lineHeight: 18,
   },
@@ -360,7 +371,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   priceValue: {
-    fontFamily: 'BarlowCondensed-Bold',
+    fontFamily: SCREEN_FONTS.headline,
     fontSize: 26,
     lineHeight: 26,
     letterSpacing: 0.3,
@@ -385,7 +396,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: colors.primaryDark,
-    shadowOpacity: 0.18,
+    shadowOpacity: 0.06,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
     elevation: 2,
@@ -395,11 +406,11 @@ const styles = StyleSheet.create({
     borderColor: colors.primaryDark,
   },
   ctaButtonDisabled: {
-    backgroundColor: '#6B7280',
-    borderColor: '#6B7280',
+    backgroundColor: PROFILE_THEME_COLORS.outline,
+    borderColor: PROFILE_THEME_COLORS.outline,
   },
   ctaText: {
-    fontFamily: 'PlusJakartaSans-Bold',
+    fontFamily: SCREEN_FONTS.cta,
     fontSize: 14,
     lineHeight: 20,
     letterSpacing: 0.2,

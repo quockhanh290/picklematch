@@ -40,6 +40,7 @@ import {
 } from '@/lib/sessionDetail'
 import { getSkillLevelUi } from '@/lib/skillLevelUi'
 import { useAuth } from '@/lib/useAuth'
+import { SCREEN_FONTS } from '@/constants/screenFonts'
 
 export default function SessionDetailScreen() {
   const { id, updated } = useLocalSearchParams<{ id: string; updated?: string }>()
@@ -234,7 +235,7 @@ export default function SessionDetailScreen() {
             <Text
               style={{
                 fontSize: 18,
-                fontFamily: 'PlusJakartaSans-ExtraBold',
+                fontFamily: SCREEN_FONTS.bold,
                 color: PROFILE_THEME_COLORS.onPrimary,
               }}
             >
@@ -261,7 +262,7 @@ export default function SessionDetailScreen() {
 
           <View style={{ flex: 1 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <Text style={{ fontSize: 18, fontFamily: 'PlusJakartaSans-ExtraBold', color: PROFILE_THEME_COLORS.onSurface }}>
+              <Text style={{ fontSize: 18, fontFamily: SCREEN_FONTS.bold, color: PROFILE_THEME_COLORS.onSurface }}>
                 {player.name}
               </Text>
               {isHostPlayer ? (
@@ -270,14 +271,14 @@ export default function SessionDetailScreen() {
             </View>
 
             <View style={{ marginTop: 6, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}>
-              <Text style={{ fontSize: 13, fontFamily: 'PlusJakartaSans-ExtraBold', color: PROFILE_THEME_COLORS.surfaceTint }}>
+              <Text style={{ fontSize: 13, fontFamily: SCREEN_FONTS.bold, color: PROFILE_THEME_COLORS.surfaceTint }}>
                 {player.skillTag}
               </Text>
 
               {mode === 'normal' &&
               player.reliability !== null &&
               player.reliability !== undefined ? (
-                <Text style={{ fontSize: 12, fontFamily: 'PlusJakartaSans-SemiBold', color: PROFILE_THEME_COLORS.primary }}>
+                <Text style={{ fontSize: 12, fontFamily: SCREEN_FONTS.label, color: PROFILE_THEME_COLORS.primary }}>
                   {`${player.reliability}% uy tín`}
                 </Text>
               ) : null}
@@ -334,7 +335,7 @@ export default function SessionDetailScreen() {
             style={{
               flex: 1,
               fontSize: 13,
-              fontFamily: 'PlusJakartaSans-ExtraBold',
+              fontFamily: SCREEN_FONTS.bold,
               color: PROFILE_THEME_COLORS.primaryContainer,
             }}
           >
@@ -521,7 +522,7 @@ export default function SessionDetailScreen() {
                   <Text
                     style={{
                       fontSize: 15,
-                      fontFamily: 'PlusJakartaSans-ExtraBold',
+                      fontFamily: SCREEN_FONTS.bold,
                       color: PROFILE_THEME_COLORS.onPrimary,
                     }}
                   >
@@ -561,7 +562,7 @@ export default function SessionDetailScreen() {
                   ) : (
                     <LogOut size={16} strokeWidth={2.5} color={PROFILE_THEME_COLORS.onPrimary} />
                   )}
-                  <Text style={{ fontSize: 15, fontFamily: 'PlusJakartaSans-ExtraBold', color: PROFILE_THEME_COLORS.onPrimary }}>
+                  <Text style={{ fontSize: 15, fontFamily: SCREEN_FONTS.bold, color: PROFILE_THEME_COLORS.onPrimary }}>
                     {leaving ? '\u0110ang h\u1EE7y...' : 'H\u1EE7y k\u00E8o'}
                   </Text>
                 </View>
@@ -593,7 +594,7 @@ export default function SessionDetailScreen() {
                   ) : (
                     <LogOut size={18} strokeWidth={2.5} color={PROFILE_THEME_COLORS.onPrimary} />
                   )}
-                  <Text style={{ fontSize: 15, fontFamily: 'PlusJakartaSans-ExtraBold', color: PROFILE_THEME_COLORS.onPrimary }}>
+                  <Text style={{ fontSize: 15, fontFamily: SCREEN_FONTS.bold, color: PROFILE_THEME_COLORS.onPrimary }}>
                     {leaving ? '\u0110ang r\u1EDDi...' : 'R\u1EDDi k\u00E8o'}
                   </Text>
                 </View>

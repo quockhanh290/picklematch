@@ -1,4 +1,5 @@
 import { KeyboardAvoidingView, Modal, Platform, ScrollView, Text, TextInput, View } from 'react-native'
+import { SCREEN_FONTS } from '@/constants/screenFonts'
 import { AlertCircle, Clock3, Send, Users } from 'lucide-react-native'
 
 import { AppButton } from '@/components/design'
@@ -81,7 +82,7 @@ export function JoinRequestModal({
                   <Text
                     style={{
                       fontSize: 10,
-                      fontFamily: 'PlusJakartaSans-ExtraBold',
+                      fontFamily: SCREEN_FONTS.bold,
                       letterSpacing: 1.8,
                       textTransform: 'uppercase',
                       color: PROFILE_THEME_COLORS.outline,
@@ -96,7 +97,7 @@ export function JoinRequestModal({
                       lineHeight: 36,
                       letterSpacing: 0.4,
                       color: PROFILE_THEME_COLORS.primary,
-                      fontFamily: 'PlusJakartaSans-ExtraBold',
+                      fontFamily: SCREEN_FONTS.bold,
                       textTransform: 'uppercase',
                     }}
                   >
@@ -126,7 +127,7 @@ export function JoinRequestModal({
                   fontSize: 14,
                   lineHeight: 22,
                   color: PROFILE_THEME_COLORS.onSurfaceVariant,
-                  fontFamily: 'PlusJakartaSans-Regular',
+                  fontFamily: SCREEN_FONTS.body,
                 }}
               >
                 {description}
@@ -150,7 +151,7 @@ export function JoinRequestModal({
                       style={{
                         marginLeft: 7,
                         fontSize: 12,
-                        fontFamily: 'PlusJakartaSans-ExtraBold',
+                        fontFamily: SCREEN_FONTS.bold,
                         textTransform: 'uppercase',
                         letterSpacing: 1,
                         color: PROFILE_THEME_COLORS.onPrimaryFixedVariant,
@@ -165,7 +166,7 @@ export function JoinRequestModal({
                       fontSize: 13,
                       lineHeight: 20,
                       color: PROFILE_THEME_COLORS.onPrimaryFixedVariant,
-                      fontFamily: 'PlusJakartaSans-Regular',
+                      fontFamily: SCREEN_FONTS.body,
                     }}
                   >
                     Trình độ hiện tại của bạn đang thấp hơn mặt bằng kèo này. Nếu được chủ kèo chấp nhận, Elo có thể biến động mạnh hơn sau trận.
@@ -177,7 +178,7 @@ export function JoinRequestModal({
                 <Text
                   style={{
                     fontSize: 10,
-                    fontFamily: 'PlusJakartaSans-ExtraBold',
+                    fontFamily: SCREEN_FONTS.bold,
                     textTransform: 'uppercase',
                     letterSpacing: 1.8,
                     color: PROFILE_THEME_COLORS.outline,
@@ -191,7 +192,7 @@ export function JoinRequestModal({
                     fontSize: 13,
                     lineHeight: 20,
                     color: PROFILE_THEME_COLORS.onSurfaceVariant,
-                    fontFamily: 'PlusJakartaSans-Regular',
+                    fontFamily: SCREEN_FONTS.body,
                   }}
                 >
                   Bạn có thể giới thiệu ngắn về lối chơi, thái độ trên sân, hoặc thời gian có mặt.
@@ -220,7 +221,7 @@ export function JoinRequestModal({
                     color: PROFILE_THEME_COLORS.onSurface,
                     fontSize: 14,
                     lineHeight: 22,
-                    fontFamily: 'PlusJakartaSans-Regular',
+                    fontFamily: SCREEN_FONTS.body,
                   }}
                 />
               </View>
@@ -242,7 +243,7 @@ export function JoinRequestModal({
                     style={{
                       marginLeft: 7,
                       fontSize: 11,
-                      fontFamily: 'PlusJakartaSans-ExtraBold',
+                      fontFamily: SCREEN_FONTS.bold,
                       textTransform: 'uppercase',
                       letterSpacing: 1.3,
                       color: PROFILE_THEME_COLORS.primary,
@@ -257,7 +258,7 @@ export function JoinRequestModal({
                     fontSize: 13,
                     lineHeight: 20,
                     color: PROFILE_THEME_COLORS.onSurfaceVariant,
-                    fontFamily: 'PlusJakartaSans-Regular',
+                    fontFamily: SCREEN_FONTS.body,
                   }}
                 >
                   Chủ kèo chỉ thấy lời nhắn này khi xem yêu cầu. Bạn có thể chỉnh lại ở lần gửi sau nếu trạng thái thay đổi.

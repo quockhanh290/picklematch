@@ -4,6 +4,7 @@ import { Check, Lock } from 'lucide-react-native'
 import { ScrollView, Text, View } from 'react-native'
 
 import { PROFILE_THEME_COLORS, getTrophyBadgePalette, type ProfileBadgeTone } from '@/components/profile/profileTheme'
+import { SCREEN_FONTS } from '@/constants/screenFonts'
 
 type BadgeTone = ProfileBadgeTone
 
@@ -52,8 +53,8 @@ export function TrophyRoom({ badges = [], hideHeader = false, flushBottom = fals
     <View className={flushBottom ? '' : 'mb-6'}>
       {!hideHeader ? (
         <View className="mb-4">
-          <Text className="text-[24px]" style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: 'PlusJakartaSans-Bold' }}>Kho Danh Hiệu</Text>
-          <Text className="mt-1 text-[13px]" style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-Regular' }}>
+          <Text className="text-[24px]" style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.cta }}>Kho Danh Hiệu</Text>
+          <Text className="mt-1 text-[13px]" style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: SCREEN_FONTS.body }}>
             {earnedCount}/{badges.length} danh hiệu đã mở khóa
           </Text>
         </View>
@@ -95,7 +96,7 @@ export function TrophyRoom({ badges = [], hideHeader = false, flushBottom = fals
                   style={{
                     color: badge.earned ? palette.text : PROFILE_THEME_COLORS.outline,
                     backgroundColor: badge.earned ? palette.card : PROFILE_THEME_COLORS.surfaceContainerHigh,
-                    fontFamily: 'PlusJakartaSans-Bold',
+                    fontFamily: SCREEN_FONTS.cta,
                   }}
                 >
                   {categoryLabel(badge.category)}
@@ -104,7 +105,7 @@ export function TrophyRoom({ badges = [], hideHeader = false, flushBottom = fals
                   className="mt-3 text-[16px] leading-tight"
                   style={{
                     color: badge.earned ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant,
-                    fontFamily: 'PlusJakartaSans-Bold',
+                    fontFamily: SCREEN_FONTS.cta,
                   }}
                 >
                   {badge.title}
@@ -113,7 +114,7 @@ export function TrophyRoom({ badges = [], hideHeader = false, flushBottom = fals
                   className="mt-2 text-[12px] leading-5"
                   style={{
                     color: badge.earned ? PROFILE_THEME_COLORS.inverseOnSurface : PROFILE_THEME_COLORS.outline,
-                    fontFamily: 'PlusJakartaSans-Regular',
+                    fontFamily: SCREEN_FONTS.body,
                   }}
                 >
                   {badge.earned ? badge.requirement : 'Chưa mở khóa'}

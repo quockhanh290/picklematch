@@ -2,6 +2,7 @@ import type { LucideIcon } from 'lucide-react-native'
 import { Text, View } from 'react-native'
 
 import { PROFILE_THEME_COLORS, getCommunityFeedbackPalette } from '@/components/profile/profileTheme'
+import { SCREEN_FONTS } from '@/constants/screenFonts'
 
 type FeedbackTone = 'positive' | 'negative'
 
@@ -33,7 +34,7 @@ export function CommunityFeedbackSection({ title = 'Đánh giá từ cộng đ�
     <View className={flushBottom ? '' : 'mb-6'}>
       {title ? (
         <View className="mb-0">
-          <Text className="text-[24px]" style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: 'PlusJakartaSans-Bold' }}>{title}</Text>
+          <Text className="text-[24px]" style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.cta }}>{title}</Text>
         </View>
       ) : null}
 
@@ -50,7 +51,7 @@ export function CommunityFeedbackSection({ title = 'Đánh giá từ cộng đ�
               style={{ backgroundColor: palette.backgroundColor }}
             >
               <Icon size={14} color={palette.iconColor} strokeWidth={2.2} />
-              <Text className="ml-2 text-[15px]" style={{ color: palette.textColor, fontFamily: 'PlusJakartaSans-Bold' }}>
+              <Text className="ml-2 text-[15px]" style={{ color: palette.textColor, fontFamily: SCREEN_FONTS.cta }}>
                 {trait.label} <Text style={{ opacity: 0.7 }}>({count})</Text>
               </Text>
             </View>

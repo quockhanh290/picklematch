@@ -1,4 +1,5 @@
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { SCREEN_FONTS } from '@/constants/screenFonts'
 import { getSkillLevelUi } from '@/lib/skillLevelUi'
 import { LinearGradient } from 'expo-linear-gradient'
 import { CreditCard, MapPin, MessageSquareText, ShieldAlert, ShieldCheck, Trophy } from 'lucide-react-native'
@@ -93,7 +94,7 @@ export function SessionMetaCard({
               style={{
                 flex: 1,
                 color: onAccent,
-                fontFamily: 'PlusJakartaSans-ExtraBold',
+                fontFamily: SCREEN_FONTS.bold,
                 fontSize: 40,
                 lineHeight: 46,
                 letterSpacing: 0.8,
@@ -107,7 +108,7 @@ export function SessionMetaCard({
           <Text
             style={{
               color: withAlpha(onAccent, 0.62),
-              fontFamily: 'PlusJakartaSans-ExtraBoldItalic',
+              fontFamily: SCREEN_FONTS.boldItalic,
               fontSize: 31,
               lineHeight: 39,
               marginTop: 2,
@@ -120,7 +121,7 @@ export function SessionMetaCard({
             <Text
               style={{
                 color: withAlpha(onAccent, 0.62),
-                fontFamily: 'PlusJakartaSans-ExtraBoldItalic',
+                fontFamily: SCREEN_FONTS.boldItalic,
                 fontSize: 22,
                 lineHeight: 29,
                 marginTop: 2,
@@ -150,7 +151,7 @@ export function SessionMetaCard({
                 style={{
                   marginLeft: 6,
                   color: withAlpha(onAccent, 0.9),
-                  fontFamily: 'PlusJakartaSans-SemiBold',
+                  fontFamily: SCREEN_FONTS.label,
                   fontSize: 14,
                 }}
               >
@@ -179,7 +180,7 @@ export function SessionMetaCard({
                   style={{
                     marginLeft: 6,
                     color: withAlpha(onAccent, 0.9),
-                    fontFamily: 'PlusJakartaSans-SemiBold',
+                    fontFamily: SCREEN_FONTS.label,
                     fontSize: 13,
                   }}
                 >
@@ -203,7 +204,7 @@ export function SessionMetaCard({
                   style={{
                     marginLeft: 6,
                     color: withAlpha(onAccent, 0.9),
-                    fontFamily: 'PlusJakartaSans-SemiBold',
+                    fontFamily: SCREEN_FONTS.label,
                     fontSize: 14,
                   }}
                 >
@@ -233,7 +234,7 @@ export function SessionMetaCard({
             <Text
               style={{
                 fontSize: 11,
-                fontFamily: 'PlusJakartaSans-ExtraBold',
+                fontFamily: SCREEN_FONTS.bold,
                 textTransform: 'uppercase',
                 letterSpacing: 1.8,
                 color: PROFILE_THEME_COLORS.outline,
@@ -245,7 +246,7 @@ export function SessionMetaCard({
               style={{
                 marginTop: 3,
                 fontSize: 15,
-                fontFamily: 'PlusJakartaSans-SemiBold',
+                fontFamily: SCREEN_FONTS.label,
                 color: PROFILE_THEME_COLORS.onSurface,
               }}
             >
@@ -273,7 +274,7 @@ export function SessionMetaCard({
             <Text
               style={{
                 fontSize: 11,
-                fontFamily: 'PlusJakartaSans-ExtraBold',
+                fontFamily: SCREEN_FONTS.bold,
                 textTransform: 'uppercase',
                 letterSpacing: 1.8,
                 color: PROFILE_THEME_COLORS.outline,
@@ -285,7 +286,7 @@ export function SessionMetaCard({
               style={{
                 marginTop: 3,
                 fontSize: 15,
-                fontFamily: 'PlusJakartaSans-SemiBold',
+                fontFamily: SCREEN_FONTS.label,
                 color: PROFILE_THEME_COLORS.onSurface,
               }}
             >
@@ -295,7 +296,7 @@ export function SessionMetaCard({
               style={{
                 marginTop: 2,
                 fontSize: 12,
-                fontFamily: 'PlusJakartaSans-Regular',
+                fontFamily: SCREEN_FONTS.body,
                 color: PROFILE_THEME_COLORS.onSurfaceVariant,
               }}
             >
@@ -325,7 +326,7 @@ export function SessionMetaCard({
             <Text
               style={{
                 fontSize: 11,
-                fontFamily: 'PlusJakartaSans-ExtraBold',
+                fontFamily: SCREEN_FONTS.bold,
                 textTransform: 'uppercase',
                 letterSpacing: 1.8,
                 color: PROFILE_THEME_COLORS.outline,
@@ -337,7 +338,7 @@ export function SessionMetaCard({
               style={{
                 marginTop: 3,
                 fontSize: 15,
-                fontFamily: 'PlusJakartaSans-SemiBold',
+                fontFamily: SCREEN_FONTS.label,
                 color: PROFILE_THEME_COLORS.onSurface,
               }}
             >

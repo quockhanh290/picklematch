@@ -10,6 +10,7 @@ import { HomeGreetingHeader } from '@/components/home/HomeGreetingHeader'
 import { MatchSessionCard } from '@/components/home/MatchSessionCard'
 import { PostMatchInboxSection } from '@/components/home/PostMatchInboxSection'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { SCREEN_FONTS } from '@/constants/screenFonts'
 import { useHomeFeedData } from '@/hooks/useHomeFeedData'
 import type { FamiliarCourt, MatchSession } from '@/lib/homeFeed'
 import { useAppTheme } from '@/lib/theme-context'
@@ -17,6 +18,12 @@ import { useAuth } from '@/lib/useAuth'
 
 const CAROUSEL_SECTION_HEIGHT = 430
 const COURT_CAROUSEL_HEIGHT = 272
+
+function withAlpha(hex: string, alpha: number) {
+  const clean = hex.replace('#', '')
+  const n = Number.parseInt(clean.length === 3 ? clean.split('').map((c) => c + c).join('') : clean, 16)
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`
+}
 
 const SmartMatchCard = memo(function SmartMatchCard({ item, accentMode = 'default' }: { item: MatchSession; accentMode?: 'default' | 'rescue' }) {
   return <MatchSessionCard item={item} variant="standard" actionLabel={item.joined ? 'Xem kèo' : 'Vào kèo'} accentMode={accentMode} />
@@ -45,15 +52,15 @@ const HomeStreakCard = memo(function HomeStreakCard({ current }: { current: numb
     return (
       <View
         className="mt-4 flex-row items-center rounded-[10px] border"
-        style={{ marginHorizontal: 16, paddingHorizontal: 14, paddingVertical: 9, borderColor: '#C5DDD3', backgroundColor: '#FFFFFF', columnGap: 8 }}
+        style={{ marginHorizontal: 16, paddingHorizontal: 14, paddingVertical: 9, borderColor: PROFILE_THEME_COLORS.secondaryFixedDim, backgroundColor: PROFILE_THEME_COLORS.surface, columnGap: 8 }}
       >
         <Text style={{ fontSize: 15, lineHeight: 18 }}>🔥</Text>
-        <Text className="min-w-0 flex-1 text-[12px]" style={{ color: '#1A2E2A', fontFamily: 'PlusJakartaSans-SemiBold', lineHeight: 17 }}>
+        <Text className="min-w-0 flex-1 text-[12px]" style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.label, lineHeight: 17 }}>
           Chuỗi{' '}
-          <Text style={{ color: '#0F6E56', fontFamily: 'PlusJakartaSans-Bold' }}>{current}</Text>
+          <Text style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.cta }}>{current}</Text>
           {' '}ngày · {remaining} ngày nữa lên huy hiệu
         </Text>
-        <Text style={{ color: '#7A8884', fontFamily: 'PlusJakartaSans-Regular', fontSize: 14, lineHeight: 18 }}>›</Text>
+        <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, fontSize: 14, lineHeight: 18 }}>›</Text>
       </View>
     )
   }
@@ -63,14 +70,14 @@ const HomeStreakCard = memo(function HomeStreakCard({ current }: { current: numb
   return (
     <View
       className="mt-4 flex-row items-center rounded-[10px]"
-      style={{ marginHorizontal: 16, paddingHorizontal: 14, paddingVertical: 10, backgroundColor: '#0F6E56', columnGap: 12 }}
+      style={{ marginHorizontal: 16, paddingHorizontal: 14, paddingVertical: 10, backgroundColor: PROFILE_THEME_COLORS.primary, columnGap: 12 }}
     >
       <Text style={{ fontSize: 22, lineHeight: 26 }}>🔥</Text>
 
       <View className="min-w-0 flex-1">
         <Text
           className="mb-1 text-[10px] uppercase"
-          style={{ color: '#A8D9C8', fontFamily: 'PlusJakartaSans-SemiBold', letterSpacing: 0.5, lineHeight: 14 }}
+          style={{ color: PROFILE_THEME_COLORS.secondaryFixed, fontFamily: SCREEN_FONTS.label, letterSpacing: 0.5, lineHeight: 14 }}
         >
           CHUỖI RA SÂN
         </Text>
@@ -79,17 +86,17 @@ const HomeStreakCard = memo(function HomeStreakCard({ current }: { current: numb
             <View
               key={index}
               className="h-1 flex-1 rounded-full"
-              style={{ backgroundColor: index < filledPips ? '#5DCAA5' : 'rgba(255,255,255,0.15)' }}
+              style={{ backgroundColor: index < filledPips ? PROFILE_THEME_COLORS.tertiary : withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.15) }}
             />
           ))}
         </View>
       </View>
 
       <View className="items-center">
-        <Text style={{ color: '#FFFFFF', fontFamily: 'BarlowCondensed-Bold', fontSize: 24, lineHeight: 24 }}>
+        <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.headline, fontSize: 24, lineHeight: 24 }}>
           {current}
         </Text>
-        <Text className="mt-px text-[9px]" style={{ color: '#A8D9C8', fontFamily: 'PlusJakartaSans-Regular', lineHeight: 12, textAlign: 'center' }}>
+        <Text className="mt-px text-[9px]" style={{ color: PROFILE_THEME_COLORS.secondaryFixed, fontFamily: SCREEN_FONTS.body, lineHeight: 12, textAlign: 'center' }}>
           ngày
         </Text>
       </View>
@@ -163,10 +170,10 @@ export default function HomeScreen() {
           {upcomingMatch ? (
             <View className="mt-4">
               <View className="mb-5">
-                <Text className="mb-3 text-[11px] uppercase tracking-[0.16em]" style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-ExtraBold' }}>
+                <Text className="mb-3 text-[11px] uppercase tracking-[0.16em]" style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: SCREEN_FONTS.bold }}>
                   Sắp diễn ra
                 </Text>
-                <Text className="text-[24px]" style={{ color: PROFILE_THEME_COLORS.onBackground, fontFamily: 'PlusJakartaSans-ExtraBold', lineHeight: 32 }}>
+                <Text className="text-[24px]" style={{ color: PROFILE_THEME_COLORS.onBackground, fontFamily: SCREEN_FONTS.bold, lineHeight: 32 }}>
                   Trận của bạn
                 </Text>
               </View>
@@ -180,7 +187,7 @@ export default function HomeScreen() {
               style={{ borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest }}
             >
               <ActivityIndicator color={theme.primary} />
-              <Text className="mt-4 text-sm" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-ExtraBold' }}>
+              <Text className="mt-4 text-sm" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.bold }}>
                 Đang tải dữ liệu thật từ hệ thống...
               </Text>
             </View>
@@ -237,7 +244,7 @@ export default function HomeScreen() {
           }}
         >
           <Plus size={20} color={PROFILE_THEME_COLORS.onPrimary} />
-          <Text className="ml-3 text-sm uppercase tracking-[2.6px]" style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-ExtraBold' }}>
+          <Text className="ml-3 text-sm uppercase tracking-[2.6px]" style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.bold }}>
             Tạo kèo mới
           </Text>
         </Pressable>

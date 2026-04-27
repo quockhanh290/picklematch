@@ -9,6 +9,7 @@ import Animated, {
 } from 'react-native-reanimated'
 
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { SCREEN_FONTS } from '@/constants/screenFonts'
 
 const screenPadding = 20
 const screenWidth = Dimensions.get('window').width
@@ -136,10 +137,10 @@ function SectionHeader({
 }) {
   return (
     <View className="mb-5">
-      <Text className="mb-3 text-[11px] uppercase tracking-[0.16em]" style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-Bold' }}>
+      <Text className="mb-3 text-[11px] uppercase tracking-[0.16em]" style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: SCREEN_FONTS.cta }}>
         {eyebrow}
       </Text>
-      <Text className="text-[24px]" style={{ color: PROFILE_THEME_COLORS.onBackground, fontFamily: 'PlusJakartaSans-ExtraBold', lineHeight: 32 }}>
+      <Text className="text-[24px]" style={{ color: PROFILE_THEME_COLORS.onBackground, fontFamily: SCREEN_FONTS.bold, lineHeight: 32 }}>
         {title}
       </Text>
     </View>

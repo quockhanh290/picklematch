@@ -19,6 +19,7 @@ import {
 } from 'lucide-react-native'
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { SCREEN_FONTS } from '@/constants/screenFonts'
 
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime()
@@ -140,7 +141,7 @@ export default function NotificationsScreen() {
               className="h-10 w-10 items-center justify-center rounded-full border-2"
               style={{ borderColor: PROFILE_THEME_COLORS.primaryFixed, backgroundColor: PROFILE_THEME_COLORS.primary }}
             >
-              <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-Bold' }}>U</Text>
+              <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta }}>U</Text>
             </View>
           }
           style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow }}
@@ -151,13 +152,13 @@ export default function NotificationsScreen() {
             <View className="mb-10">
               <Text
                 className="mb-2 text-[12px] uppercase tracking-[4px]"
-                style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: 'PlusJakartaSans-Bold' }}
+                style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.cta }}
               >
                 Hộp Thư Đến
               </Text>
               <Text
                 className="text-[44px] leading-[48px]"
-                style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: 'PlusJakartaSans-ExtraBold' }}
+                style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.bold }}
               >
                 Thông báo.
               </Text>
@@ -178,14 +179,14 @@ export default function NotificationsScreen() {
               />
               <Text
                 className="mb-2 text-[12px] uppercase tracking-[4px]"
-                style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: 'PlusJakartaSans-Bold' }}
+                style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.cta }}
               >
                 Hộp Thư Đến
               </Text>
               <View className="flex-row items-end justify-between gap-4">
                 <Text
                   className="flex-1 text-[44px] leading-[48px]"
-                  style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: 'PlusJakartaSans-ExtraBold' }}
+                  style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.bold }}
                 >
                   Thông báo
                   <Text style={{ color: PROFILE_THEME_COLORS.primaryFixedDim }}>.</Text>
@@ -200,7 +201,7 @@ export default function NotificationsScreen() {
                     opacity: unreadCount > 0 ? 1 : 0.5,
                   }}
                 >
-                  <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Bold' }}>
+                  <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.cta }}>
                     {unreadCount} Mới
                   </Text>
                 </TouchableOpacity>
@@ -248,14 +249,14 @@ export default function NotificationsScreen() {
                             className="flex-1 text-lg leading-6"
                             style={{
                               color: PROFILE_THEME_COLORS.onSurface,
-                              fontFamily: item.is_read ? 'PlusJakartaSans-Bold' : 'PlusJakartaSans-ExtraBold',
+                              fontFamily: item.is_read ? SCREEN_FONTS.cta : SCREEN_FONTS.bold,
                             }}
                           >
                             {item.title}
                           </Text>
                           <Text
                             className="text-[10px] uppercase tracking-[1.6px]"
-                            style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-Bold' }}
+                            style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: SCREEN_FONTS.cta }}
                           >
                             {timeAgo(item.created_at)}
                           </Text>
@@ -263,7 +264,7 @@ export default function NotificationsScreen() {
 
                         <Text
                           className="text-sm leading-6"
-                          style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Regular' }}
+                          style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body }}
                           numberOfLines={3}
                         >
                           {item.body}
@@ -279,7 +280,7 @@ export default function NotificationsScreen() {
                             >
                               <Text
                                 className="text-[11px] uppercase tracking-[2px]"
-                                style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-Bold' }}
+                                style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta }}
                               >
                                 Chấp nhận
                               </Text>
@@ -292,7 +293,7 @@ export default function NotificationsScreen() {
                             >
                               <Text
                                 className="text-[11px] uppercase tracking-[2px]"
-                                style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: 'PlusJakartaSans-Bold' }}
+                                style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.cta }}
                               >
                                 Từ chối
                               </Text>

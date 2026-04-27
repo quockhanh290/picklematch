@@ -3,6 +3,7 @@ import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/dat
 import Slider from '@react-native-community/slider'
 import React, { useState } from 'react'
 import { Modal, Platform, Pressable, ScrollView, Text, View } from 'react-native'
+import { SCREEN_FONTS } from '@/constants/screenFonts'
 
 export type AdvancedFilter = {
   district: string | null
@@ -55,10 +56,10 @@ const PROFILE_THEME_COLORS = {
 } as const
 const PRICE_SLIDER_MAX = 300
 const FILTER_FONTS = {
-  headline: 'BarlowCondensed-Bold',
-  body: 'PlusJakartaSans-Regular',
-  label: 'PlusJakartaSans-SemiBold',
-  cta: 'PlusJakartaSans-Bold',
+  headline: SCREEN_FONTS.headline,
+  body: SCREEN_FONTS.body,
+  label: SCREEN_FONTS.label,
+  cta: SCREEN_FONTS.cta,
 } as const
 
 function withAlpha(hex: string, alpha: number) {

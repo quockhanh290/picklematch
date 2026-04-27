@@ -4,6 +4,7 @@ import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { Code2, LockKeyhole, Mail } from 'lucide-react-native'
 import { useState } from 'react'
 import { Alert, Pressable, Text, TextInput, View } from 'react-native'
+import { SCREEN_FONTS } from '@/constants/screenFonts'
 
 const DEV = {
   emerald: PROFILE_THEME_COLORS.surfaceTint,
@@ -71,14 +72,14 @@ export default function DevLoginSection({
           <Code2 size={20} color={DEV.emeraldDark} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={{ color: DEV.ink, fontSize: 16, fontFamily: 'PlusJakartaSans-Bold' }}>Chỉ dành cho phát triển</Text>
+          <Text style={{ color: DEV.ink, fontSize: 16, fontFamily: SCREEN_FONTS.cta }}>Chỉ dành cho phát triển</Text>
           <Text
             style={{
               marginTop: 4,
               color: DEV.textMuted,
               fontSize: 13,
               lineHeight: 21,
-              fontFamily: 'PlusJakartaSans-Regular',
+              fontFamily: SCREEN_FONTS.body,
             }}
           >
             Đăng nhập nhanh bằng email và mật khẩu để kiểm tra luồng nội bộ trong môi trường development.
@@ -94,7 +95,7 @@ export default function DevLoginSection({
               color: DEV.textMuted,
               fontSize: 12,
               letterSpacing: 0.8,
-              fontFamily: 'PlusJakartaSans-Bold',
+              fontFamily: SCREEN_FONTS.cta,
             }}
           >
             EMAIL DEV
@@ -123,7 +124,7 @@ export default function DevLoginSection({
                 flex: 1,
                 color: DEV.ink,
                 fontSize: 15,
-                fontFamily: 'PlusJakartaSans-Regular',
+                fontFamily: SCREEN_FONTS.body,
               }}
             />
           </View>
@@ -136,7 +137,7 @@ export default function DevLoginSection({
               color: DEV.textMuted,
               fontSize: 12,
               letterSpacing: 0.8,
-              fontFamily: 'PlusJakartaSans-Bold',
+              fontFamily: SCREEN_FONTS.cta,
             }}
           >
             MẬT KHẨU DEV
@@ -164,7 +165,7 @@ export default function DevLoginSection({
                 flex: 1,
                 color: DEV.ink,
                 fontSize: 15,
-                fontFamily: 'PlusJakartaSans-Regular',
+                fontFamily: SCREEN_FONTS.body,
               }}
             />
           </View>
@@ -188,7 +189,7 @@ export default function DevLoginSection({
             elevation: 5,
           }}
         >
-          <Text style={{ color: DEV.white, fontSize: 15, fontFamily: 'PlusJakartaSans-Bold' }}>
+          <Text style={{ color: DEV.white, fontSize: 15, fontFamily: SCREEN_FONTS.cta }}>
             {devLoading ? 'Đang đăng nhập...' : 'Đăng nhập nhanh'}
           </Text>
         </Pressable>

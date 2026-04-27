@@ -1,6 +1,7 @@
 ﻿import SessionCard from '@/components/sessions/SessionCard'
 import { colors } from '@/constants/colors'
 import { ScrollView, Text, View } from 'react-native'
+import { SCREEN_FONTS } from '@/constants/screenFonts'
 
 function atTime(base: Date, hour: number, minute: number): Date {
   const d = new Date(base)
@@ -85,8 +86,8 @@ export default function SessionCardPreviewScreen() {
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.background }} contentContainerStyle={{ padding: 16, rowGap: 14 }}>
       <View style={{ marginBottom: 4 }}>
-        <Text style={{ fontFamily: 'BarlowCondensed-Bold', fontSize: 28, color: colors.text }}>Session Card Preview</Text>
-        <Text style={{ fontFamily: 'PlusJakartaSans-Regular', fontSize: 13, color: colors.textSecondary }}>
+        <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 28, color: colors.text }}>Session Card Preview</Text>
+        <Text style={{ fontFamily: SCREEN_FONTS.body, fontSize: 13, color: colors.textSecondary }}>
           4 variants: open, starting soon, full, past
         </Text>
       </View>

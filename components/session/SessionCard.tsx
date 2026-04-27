@@ -1,6 +1,7 @@
 import { colors } from '@/constants/colors'
 import { typography } from '@/constants/typography'
 import { Pressable, Text, View } from 'react-native'
+import { SCREEN_FONTS } from '@/constants/screenFonts'
 
 type SessionCardProps = {
   session: {
@@ -240,7 +241,7 @@ export function SessionCard({ session, onPress, onJoinPress }: SessionCardProps)
               justifyContent: 'center',
             }}
           >
-            <Text style={{ fontFamily: 'BarlowCondensed-Bold', fontSize: 18, color: avatarTone.text }}>{session.host.initial}</Text>
+            <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 18, color: avatarTone.text }}>{session.host.initial}</Text>
           </View>
 
           <View style={{ flex: 1 }}>
@@ -283,7 +284,7 @@ export function SessionCard({ session, onPress, onJoinPress }: SessionCardProps)
             elevation: isFull ? 0 : 2,
           })}
         >
-          <Text style={{ ...typography.cta, color: isFull ? colors.statusWarnText : '#FFFFFF' }}>{isFull ? 'Đã đủ chỗ' : 'Vào kèo'}</Text>
+          <Text style={{ ...typography.cta, color: isFull ? colors.statusWarnText : PROFILE_THEME_COLORS.onPrimary }}>{isFull ? 'Đã đủ chỗ' : 'Vào kèo'}</Text>
         </Pressable>
       </View>
     </Pressable>

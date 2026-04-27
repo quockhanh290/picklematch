@@ -1,4 +1,5 @@
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { SCREEN_FONTS } from '@/constants/screenFonts'
 import { Repeat2, Shuffle } from 'lucide-react-native'
 import { Pressable, Text, View } from 'react-native'
 
@@ -26,7 +27,7 @@ function TeamHeader({ label, badge, avgElo }: { label: string; badge: string; av
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
         <Text
           style={{
-            fontFamily: 'PlusJakartaSans-ExtraBold',
+            fontFamily: SCREEN_FONTS.bold,
             fontSize: 13,
             letterSpacing: 2.4,
             textTransform: 'uppercase',
@@ -46,7 +47,7 @@ function TeamHeader({ label, badge, avgElo }: { label: string; badge: string; av
               borderColor: PROFILE_THEME_COLORS.outlineVariant,
             }}
           >
-            <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 11, color: PROFILE_THEME_COLORS.outline }}>
+            <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 11, color: PROFILE_THEME_COLORS.outline }}>
               TB {avgElo} ELO
             </Text>
           </View>
@@ -62,7 +63,7 @@ function TeamHeader({ label, badge, avgElo }: { label: string; badge: string; av
           justifyContent: 'center',
         }}
       >
-        <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 14, color: PROFILE_THEME_COLORS.onPrimary }}>
+        <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 14, color: PROFILE_THEME_COLORS.onPrimary }}>
           {badge}
         </Text>
       </View>
@@ -98,15 +99,15 @@ function EmptySlot() {
           marginRight: 14,
         }}
       >
-        <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 20, color: PROFILE_THEME_COLORS.outlineVariant }}>
+        <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 20, color: PROFILE_THEME_COLORS.outlineVariant }}>
           +
         </Text>
       </View>
       <View>
-        <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 14, color: PROFILE_THEME_COLORS.outline }}>
+        <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 14, color: PROFILE_THEME_COLORS.outline }}>
           Đang chờ...
         </Text>
-        <Text style={{ fontFamily: 'PlusJakartaSans-Regular', fontSize: 11, color: PROFILE_THEME_COLORS.outlineVariant, marginTop: 2 }}>
+        <Text style={{ fontFamily: SCREEN_FONTS.body, fontSize: 11, color: PROFILE_THEME_COLORS.outlineVariant, marginTop: 2 }}>
           Vị trí trống
         </Text>
       </View>
@@ -134,12 +135,12 @@ export function PlayerRosterSection({
       {/* Section header */}
       <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 16 }}>
         <View>
-          <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 20, color: PROFILE_THEME_COLORS.onBackground }}>
+          <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 20, color: PROFILE_THEME_COLORS.onBackground }}>
             Danh sách thi đấu
           </Text>
           <Text
             style={{
-              fontFamily: 'PlusJakartaSans-SemiBold',
+              fontFamily: SCREEN_FONTS.label,
               fontSize: 13,
               color: sessionStatus === 'open' && spotsLeft > 0
                 ? PROFILE_THEME_COLORS.surfaceTint
@@ -173,7 +174,7 @@ export function PlayerRosterSection({
             />
             <Text
               style={{
-                fontFamily: 'PlusJakartaSans-ExtraBold',
+                fontFamily: SCREEN_FONTS.bold,
                 fontSize: 12,
                 letterSpacing: 0.5,
                 color: isArranging ? PROFILE_THEME_COLORS.surfaceContainerLowest : PROFILE_THEME_COLORS.onSurface,
@@ -199,7 +200,7 @@ export function PlayerRosterSection({
               borderColor: PROFILE_THEME_COLORS.outlineVariant,
             }}
           >
-            <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 13, lineHeight: 20, color: PROFILE_THEME_COLORS.surfaceTint }}>
+            <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 13, lineHeight: 20, color: PROFILE_THEME_COLORS.surfaceTint }}>
               Nhấn icon đổi đội để chuyển người chơi giữa Đội A và Đội B.
             </Text>
           </View>
@@ -218,7 +219,7 @@ export function PlayerRosterSection({
             })}
           >
             <Shuffle size={14} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.5} />
-            <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 12, letterSpacing: 0.5, color: PROFILE_THEME_COLORS.onPrimary }}>
+            <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 12, letterSpacing: 0.5, color: PROFILE_THEME_COLORS.onPrimary }}>
               Chia đội tự động
             </Text>
           </Pressable>

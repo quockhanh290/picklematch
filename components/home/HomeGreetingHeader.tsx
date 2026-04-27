@@ -1,3 +1,5 @@
+import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { SCREEN_FONTS } from '@/constants/screenFonts'
 import { router } from 'expo-router'
 import { Image, Pressable, Text, View } from 'react-native'
 
@@ -27,7 +29,7 @@ export function HomeGreetingHeader({
       <View className="min-w-0 flex-1 pr-4">
         <Text
           className="mb-[3px] text-[11px]"
-          style={{ color: '#7A8884', fontFamily: 'PlusJakartaSans-SemiBold', lineHeight: 15 }}
+          style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.label, lineHeight: 15 }}
         >
           {getGreetingLabel()}
         </Text>
@@ -36,7 +38,7 @@ export function HomeGreetingHeader({
           className="text-[32px] uppercase"
           numberOfLines={1}
           ellipsizeMode="tail"
-          style={{ color: '#1A2E2A', fontFamily: 'BarlowCondensed-Bold', lineHeight: 34, letterSpacing: 0 }}
+          style={{ color: PROFILE_THEME_COLORS.onBackground, fontFamily: SCREEN_FONTS.headline, lineHeight: 34, letterSpacing: 0 }}
         >
           {displayName.toUpperCase()}
         </Text>
@@ -45,7 +47,7 @@ export function HomeGreetingHeader({
           className="mt-1 text-[12px]"
           numberOfLines={1}
           ellipsizeMode="tail"
-          style={{ color: '#7A8884', fontFamily: 'PlusJakartaSans-Regular', lineHeight: 17 }}
+          style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, lineHeight: 17 }}
         >
           {statusPrompt}
         </Text>
@@ -54,12 +56,12 @@ export function HomeGreetingHeader({
       <Pressable
         onPress={() => router.push('/(tabs)/profile' as never)}
         className="h-[42px] w-[42px] items-center justify-center overflow-hidden rounded-full border-2"
-        style={{ backgroundColor: '#E1F5EE', borderColor: '#C5DDD3' }}
+        style={{ backgroundColor: PROFILE_THEME_COLORS.secondaryContainer, borderColor: PROFILE_THEME_COLORS.outlineVariant }}
       >
         {profilePhotoUrl ? (
           <Image source={{ uri: profilePhotoUrl }} className="h-full w-full" resizeMode="cover" />
         ) : (
-          <Text style={{ color: '#0F6E56', fontFamily: 'BarlowCondensed-Bold', fontSize: 18, lineHeight: 22 }}>
+          <Text style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.headline, fontSize: 18, lineHeight: 22 }}>
             {initial}
           </Text>
         )}

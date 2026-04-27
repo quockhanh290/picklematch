@@ -2,6 +2,7 @@ import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { FileText, Hash, Phone, ShieldAlert, ShieldCheck, User } from 'lucide-react-native'
 import type { ComponentType } from 'react'
 import { Text, View } from 'react-native'
+import { SCREEN_FONTS } from '@/constants/screenFonts'
 
 type Props = {
   courtBookingStatus: 'confirmed' | 'unconfirmed'
@@ -41,7 +42,7 @@ function InfoRow({
           <Text
             style={{
               fontSize: 10,
-              fontFamily: 'PlusJakartaSans-ExtraBold',
+              fontFamily: SCREEN_FONTS.bold,
               textTransform: 'uppercase',
               letterSpacing: 1.8,
               color: PROFILE_THEME_COLORS.outline,
@@ -53,7 +54,7 @@ function InfoRow({
             style={{
               marginTop: 3,
               fontSize: 14,
-              fontFamily: 'PlusJakartaSans-SemiBold',
+              fontFamily: SCREEN_FONTS.label,
               color: PROFILE_THEME_COLORS.onSurface,
               lineHeight: 20,
             }}
@@ -119,7 +120,7 @@ export function BookingDetailsCard({
           <Text
             style={{
               fontSize: 10,
-              fontFamily: 'PlusJakartaSans-ExtraBold',
+              fontFamily: SCREEN_FONTS.bold,
               textTransform: 'uppercase',
               letterSpacing: 1.8,
               color: PROFILE_THEME_COLORS.outline,
@@ -131,7 +132,7 @@ export function BookingDetailsCard({
             style={{
               marginTop: 3,
               fontSize: 13,
-              fontFamily: 'PlusJakartaSans-SemiBold',
+              fontFamily: SCREEN_FONTS.label,
               color: PROFILE_THEME_COLORS.onSurfaceVariant,
             }}
           >
@@ -157,7 +158,7 @@ export function BookingDetailsCard({
             style={{
               marginLeft: 6,
               fontSize: 12,
-              fontFamily: 'PlusJakartaSans-ExtraBold',
+              fontFamily: SCREEN_FONTS.bold,
               color: isConfirmed ? PROFILE_THEME_COLORS.surfaceTint : PROFILE_THEME_COLORS.outline,
             }}
           >

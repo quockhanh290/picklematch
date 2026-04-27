@@ -1,4 +1,5 @@
 import { Text, View } from 'react-native'
+import { SCREEN_FONTS } from '@/constants/screenFonts'
 
 import { appRadii, getTonePalette, type BadgeTone } from '@/lib/designSystem'
 import { useAppTheme } from '@/lib/theme-context'
@@ -17,7 +18,7 @@ export function StatusBadge({ label, tone = 'neutral' }: Props) {
       className={`${appRadii.sm} border px-3 py-1.5`}
       style={{ backgroundColor: palette.backgroundColor, borderColor: palette.borderColor }}
     >
-      <Text className="text-xs font-bold" style={{ color: palette.textColor, fontFamily: 'PlusJakartaSans-Bold' }}>
+      <Text className="text-xs font-bold" style={{ color: palette.textColor, fontFamily: SCREEN_FONTS.cta }}>
         {label}
       </Text>
     </View>

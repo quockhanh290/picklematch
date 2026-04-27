@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { AppDialog, type AppDialogConfig } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { supabase } from '@/lib/supabase'
+import { SCREEN_FONTS } from '@/constants/screenFonts'
 
 function withAlpha(hex: string, alpha: number) {
   const clean = hex.replace('#', '')
@@ -153,7 +154,7 @@ function PlayerTag({ name, dark }: { name: string; dark: boolean }) {
       <Text
         numberOfLines={1}
         style={{
-          fontFamily: 'PlusJakartaSans-Bold',
+          fontFamily: SCREEN_FONTS.cta,
           fontSize: 11,
           color: dark ? PROFILE_THEME_COLORS.secondaryContainer : PROFILE_THEME_COLORS.onSecondaryContainer,
         }}
@@ -200,7 +201,7 @@ function ScoreCard({
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <Text
           style={{
-            fontFamily: 'PlusJakartaSans-ExtraBold',
+            fontFamily: SCREEN_FONTS.bold,
             fontSize: 13,
             color: label,
             textTransform: 'uppercase',
@@ -219,7 +220,7 @@ function ScoreCard({
         style={{
           marginTop: 12,
           textAlign: 'center',
-          fontFamily: 'PlusJakartaSans-ExtraBold',
+          fontFamily: SCREEN_FONTS.bold,
           fontSize: 92,
           lineHeight: 98,
           color: text,
@@ -411,7 +412,7 @@ export default function MatchResultEntryScreen() {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: RESULT_THEME.pageBg, alignItems: 'center', justifyContent: 'center' }}>
         <ActivityIndicator color={PROFILE_THEME_COLORS.primary} />
-        <Text style={{ marginTop: 10, fontFamily: 'PlusJakartaSans-Bold', color: RESULT_THEME.subtitle }}>Đang tải trận đấu...</Text>
+        <Text style={{ marginTop: 10, fontFamily: SCREEN_FONTS.cta, color: RESULT_THEME.subtitle }}>Đang tải trận đấu...</Text>
       </SafeAreaView>
     )
   }
@@ -419,9 +420,9 @@ export default function MatchResultEntryScreen() {
   if (!session) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: RESULT_THEME.pageBg, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 }}>
-        <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 22, color: RESULT_THEME.title }}>Không tìm thấy trận đấu</Text>
+        <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 22, color: RESULT_THEME.title }}>Không tìm thấy trận đấu</Text>
         <Pressable onPress={() => router.back()} style={{ marginTop: 14 }}>
-          <Text style={{ fontFamily: 'PlusJakartaSans-Bold', color: PROFILE_THEME_COLORS.primary }}>Quay lại</Text>
+          <Text style={{ fontFamily: SCREEN_FONTS.cta, color: PROFILE_THEME_COLORS.primary }}>Quay lại</Text>
         </Pressable>
       </SafeAreaView>
     )
@@ -452,20 +453,20 @@ export default function MatchResultEntryScreen() {
           >
             <ArrowLeft size={18} color={RESULT_THEME.headerIcon} />
           </Pressable>
-          <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 28, color: RESULT_THEME.title }}>Kết quả trận đấu</Text>
+          <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 28, color: RESULT_THEME.title }}>Kết quả trận đấu</Text>
         </View>
 
         <View style={{ marginTop: 8, alignItems: 'center' }}>
-          <Text style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 11, letterSpacing: 1.2, color: RESULT_THEME.muted, textTransform: 'uppercase' }}>
+          <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 11, letterSpacing: 1.2, color: RESULT_THEME.muted, textTransform: 'uppercase' }}>
             Thông tin trận đấu
           </Text>
           <Text
             numberOfLines={2}
-            style={{ marginTop: 4, textAlign: 'center', fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 30, lineHeight: 36, color: RESULT_THEME.title }}
+            style={{ marginTop: 4, textAlign: 'center', fontFamily: SCREEN_FONTS.bold, fontSize: 30, lineHeight: 36, color: RESULT_THEME.title }}
           >
             {session.slot?.court?.name ?? 'Sân thi đấu'}
           </Text>
-          <Text style={{ marginTop: 4, fontFamily: 'PlusJakartaSans-Bold', fontSize: 13, color: RESULT_THEME.subtitle }}>
+          <Text style={{ marginTop: 4, fontFamily: SCREEN_FONTS.cta, fontSize: 13, color: RESULT_THEME.subtitle }}>
             {formatMatchDateTime(session.slot?.start_time, session.slot?.end_time)}
           </Text>
         </View>
@@ -483,7 +484,7 @@ export default function MatchResultEntryScreen() {
         <View style={{ marginVertical: 16, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           <View style={{ flex: 1, height: 1, backgroundColor: RESULT_THEME.line }} />
           <View style={{ width: 42, height: 42, borderRadius: 999, backgroundColor: RESULT_THEME.vsBg, borderWidth: 1, borderColor: RESULT_THEME.line, alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBoldItalic', fontSize: 15, color: RESULT_THEME.vsText }}>VS</Text>
+            <Text style={{ fontFamily: SCREEN_FONTS.boldItalic, fontSize: 15, color: RESULT_THEME.vsText }}>VS</Text>
           </View>
           <View style={{ flex: 1, height: 1, backgroundColor: RESULT_THEME.line }} />
         </View>
@@ -506,12 +507,12 @@ export default function MatchResultEntryScreen() {
             padding: 16,
           }}
         >
-          <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 14, color: RESULT_THEME.subtitle, textTransform: 'uppercase' }}>
+          <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 14, color: RESULT_THEME.subtitle, textTransform: 'uppercase' }}>
             Chi tiết trận đấu
           </Text>
 
           <View style={{ marginTop: 12, borderRadius: 16, borderWidth: 1, borderColor: RESULT_THEME.sectionBorder, backgroundColor: RESULT_THEME.sectionCardBg, padding: 12 }}>
-            <Text style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 10, color: RESULT_THEME.vsText, textTransform: 'uppercase' }}>
+            <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 10, color: RESULT_THEME.vsText, textTransform: 'uppercase' }}>
               Thời lượng (phút)
             </Text>
             <TextInput
@@ -522,7 +523,7 @@ export default function MatchResultEntryScreen() {
               placeholderTextColor={RESULT_THEME.inputPlaceholder}
               style={{
                 marginTop: 6,
-                fontFamily: 'PlusJakartaSans-ExtraBold',
+                fontFamily: SCREEN_FONTS.bold,
                 fontSize: 30,
                 color: RESULT_THEME.inputText,
                 padding: 0,
@@ -531,7 +532,7 @@ export default function MatchResultEntryScreen() {
           </View>
 
           <View style={{ marginTop: 10, borderRadius: 16, borderWidth: 1, borderColor: RESULT_THEME.sectionBorder, backgroundColor: RESULT_THEME.sectionCardBg, padding: 12 }}>
-            <Text style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 10, color: RESULT_THEME.vsText, textTransform: 'uppercase' }}>
+            <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 10, color: RESULT_THEME.vsText, textTransform: 'uppercase' }}>
               Ghi chú trọng tài
             </Text>
             <TextInput
@@ -544,7 +545,7 @@ export default function MatchResultEntryScreen() {
               style={{
                 marginTop: 6,
                 minHeight: 74,
-                fontFamily: 'PlusJakartaSans-SemiBold',
+                fontFamily: SCREEN_FONTS.label,
                 fontSize: 14,
                 lineHeight: 20,
                 color: RESULT_THEME.subtitle,
@@ -572,7 +573,7 @@ export default function MatchResultEntryScreen() {
             }}
           >
             <Save size={18} color={RESULT_THEME.primaryCtaText} />
-            <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 18, color: RESULT_THEME.primaryCtaText }}>
+            <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 18, color: RESULT_THEME.primaryCtaText }}>
               {submitting ? 'Đang lưu...' : 'Lưu kết quả'}
             </Text>
           </View>
