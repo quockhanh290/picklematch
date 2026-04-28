@@ -4,6 +4,7 @@ import { AppFontSet } from '@/constants/typography'
 
 import { useAppTheme } from '@/lib/theme-context'
 
+import { RADIUS, BORDER, SHADOW, SPACING, BUTTON } from '@/constants/screenLayout'
 type Props = {
   label: string
   onPress: () => void
@@ -25,23 +26,17 @@ export function AppButton({
   const isPrimary = variant === 'primary'
   const isSecondary = variant === 'secondary'
 
-  const buttonStyle = isPrimary
-    ? {
-        backgroundColor: theme.primary,
-        borderColor: theme.primary,
-        borderRadius: theme.radiusMd,
-      }
+  const baseStyle = isPrimary
+    ? BUTTON.primary
     : isSecondary
-      ? {
-          backgroundColor: theme.surface,
-          borderColor: theme.primary,
-          borderWidth: 1,
-          borderRadius: theme.radiusMd,
-        }
-      : {
-          backgroundColor: 'transparent',
-          borderRadius: theme.radiusMd,
-        }
+      ? BUTTON.secondary
+      : { borderRadius: RADIUS.full, paddingVertical: 13, paddingHorizontal: SPACING.xl }
+
+  const buttonStyle = {
+    ...baseStyle,
+    backgroundColor: isPrimary ? theme.primary : isSecondary ? theme.surface : 'transparent',
+    borderColor: theme.primary,
+  }
 
   const textStyle = isPrimary
     ? { color: theme.primaryContrast }
@@ -54,7 +49,7 @@ export function AppButton({
       activeOpacity={0.92}
       onPress={onPress}
       disabled={disabled || loading}
-      className={`${fullWidth ? 'w-full' : ''} h-14 items-center justify-center px-5 ${disabled || loading ? 'opacity-70' : ''}`}
+      className={`${fullWidth ? 'w-full' : ''} flex-row items-center justify-center ${disabled || loading ? 'opacity-70' : ''}`}
       style={buttonStyle}
     >
       {loading ? (

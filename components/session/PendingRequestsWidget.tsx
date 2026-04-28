@@ -37,7 +37,7 @@ export function PendingRequestsWidget({ count, avatars, onPress }: Props) {
   return (
     <Pressable
       onPress={onPress}
-      className="mt-6 overflow-hidden rounded-[32px] p-5 active:scale-[0.98]"
+      className="mt-6 overflow-hidden rounded-[24px] p-5 active:scale-[0.98]"
       style={{
         backgroundColor: PROFILE_THEME_COLORS.primaryContainer,
         shadowColor: PROFILE_THEME_COLORS.onBackground,

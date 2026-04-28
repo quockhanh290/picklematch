@@ -15,7 +15,7 @@ import { AppDialog, type AppDialogConfig } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { supabase } from '@/lib/supabase'
 import { SCREEN_FONTS } from '@/constants/screenFonts'
-import { RADIUS, SPACING } from '@/constants/screenLayout'
+import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
 
 function withAlpha(hex: string, alpha: number) {
   const clean = hex.replace('#', '')
@@ -147,7 +147,7 @@ function PlayerTag({ name, dark }: { name: string; dark: boolean }) {
         paddingHorizontal: SPACING.sm,
         paddingVertical: 5,
         backgroundColor: dark ? withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.14) : PROFILE_THEME_COLORS.surfaceContainerLowest,
-        borderWidth: 1,
+        borderWidth: BORDER.base,
         borderColor: dark ? withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.22) : PROFILE_THEME_COLORS.outlineVariant,
         marginLeft: 6,
       }}
@@ -190,8 +190,8 @@ function ScoreCard({
   return (
     <View
       style={{
-        borderRadius: 30,
-        borderWidth: 1,
+        borderRadius: RADIUS.hero,
+        borderWidth: BORDER.base,
         borderColor: dark ? PROFILE_THEME_COLORS.surfaceTint : PROFILE_THEME_COLORS.outlineVariant,
         backgroundColor: bg,
         paddingHorizontal: 16,
@@ -484,7 +484,7 @@ export default function MatchResultEntryScreen() {
 
         <View style={{ marginVertical: 16, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           <View style={{ flex: 1, height: 1, backgroundColor: RESULT_THEME.line }} />
-          <View style={{ width: 42, height: 42, borderRadius: RADIUS.full, backgroundColor: RESULT_THEME.vsBg, borderWidth: 1, borderColor: RESULT_THEME.line, alignItems: 'center', justifyContent: 'center' }}>
+          <View style={{ width: 42, height: 42, borderRadius: RADIUS.full, backgroundColor: RESULT_THEME.vsBg, borderWidth: BORDER.base, borderColor: RESULT_THEME.line, alignItems: 'center', justifyContent: 'center' }}>
             <Text style={{ fontFamily: SCREEN_FONTS.boldItalic, fontSize: 15, color: RESULT_THEME.vsText }}>VS</Text>
           </View>
           <View style={{ flex: 1, height: 1, backgroundColor: RESULT_THEME.line }} />
@@ -502,7 +502,7 @@ export default function MatchResultEntryScreen() {
           style={{
             marginTop: 18,
             borderRadius: RADIUS.xl,
-            borderWidth: 1,
+            borderWidth: BORDER.base,
             borderColor: RESULT_THEME.sectionBorder,
             backgroundColor: RESULT_THEME.sectionBg,
             padding: 16,
@@ -512,7 +512,7 @@ export default function MatchResultEntryScreen() {
             Chi tiết trận đấu
           </Text>
 
-          <View style={{ marginTop: 12, borderRadius: 16, borderWidth: 1, borderColor: RESULT_THEME.sectionBorder, backgroundColor: RESULT_THEME.sectionCardBg, padding: 12 }}>
+          <View style={{ marginTop: 12, borderRadius: RADIUS.lg, borderWidth: BORDER.base, borderColor: RESULT_THEME.sectionBorder, backgroundColor: RESULT_THEME.sectionCardBg, padding: 12 }}>
             <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 10, color: RESULT_THEME.vsText, textTransform: 'uppercase' }}>
               Thời lượng (phút)
             </Text>
@@ -532,7 +532,7 @@ export default function MatchResultEntryScreen() {
             />
           </View>
 
-          <View style={{ marginTop: 10, borderRadius: 16, borderWidth: 1, borderColor: RESULT_THEME.sectionBorder, backgroundColor: RESULT_THEME.sectionCardBg, padding: 12 }}>
+          <View style={{ marginTop: 10, borderRadius: RADIUS.lg, borderWidth: BORDER.base, borderColor: RESULT_THEME.sectionBorder, backgroundColor: RESULT_THEME.sectionCardBg, padding: 12 }}>
             <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 10, color: RESULT_THEME.vsText, textTransform: 'uppercase' }}>
               Ghi chú trọng tài
             </Text>

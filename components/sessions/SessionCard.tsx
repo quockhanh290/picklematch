@@ -11,7 +11,7 @@ import {
   getCourtNameSize,
 } from '@/utils/formatters'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
-import { RADIUS, SPACING } from '@/constants/screenLayout'
+import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
 
 interface SessionCardProps {
   session: {
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
     height: CARD_HEIGHT,
     marginBottom: 12,
     borderRadius: RADIUS.md,
-    borderWidth: 0.5,
+    borderWidth: BORDER.hairline,
     borderColor: colors.border,
     backgroundColor: colors.surface,
     overflow: 'hidden',
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
   },
   timeBlock: {
     backgroundColor: colors.surfaceAlt,
-    borderRadius: 8,
+    borderRadius: RADIUS.sm,
     paddingVertical: 8,
     paddingHorizontal: 12,
     marginBottom: 8,
@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
   avatar: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: RADIUS.lg,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
   ctaButton: {
     width: '100%',
     height: 48,
-    borderWidth: 1,
+    borderWidth: BORDER.base,
     borderColor: colors.primaryDark,
     borderRadius: RADIUS.sm,
     paddingVertical: 12,

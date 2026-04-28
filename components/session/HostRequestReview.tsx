@@ -69,7 +69,7 @@ export function HostRequestReview({
         return (
           <View
             key={request.id}
-            className="mb-4 rounded-[28px] border p-4"
+            className="mb-4 rounded-[24px] border p-4"
             style={{
               borderColor: PROFILE_THEME_COLORS.outlineVariant,
               backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,

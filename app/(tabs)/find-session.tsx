@@ -30,7 +30,7 @@ import {
     View,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { SPACING } from '@/constants/screenLayout'
+import { SPACING, BORDER } from '@/constants/screenLayout'
 
 type Session = {
   id: string
@@ -498,7 +498,7 @@ export default function FindSession() {
           className="h-14 flex-row items-center rounded-[24px] px-4"
           style={{
             backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
-            borderWidth: 1,
+            borderWidth: BORDER.base,
             borderColor: PROFILE_THEME_COLORS.outlineVariant,
           }}
         >
@@ -532,7 +532,7 @@ export default function FindSession() {
           style={{
             minWidth: 152,
             backgroundColor: activeAdvancedFiltersCount > 0 ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surfaceContainerLow,
-            borderWidth: 1,
+            borderWidth: BORDER.base,
             borderColor: activeAdvancedFiltersCount > 0 ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
           }}
         >
@@ -557,7 +557,7 @@ export default function FindSession() {
           className="flex-1 flex-row items-center rounded-full p-1"
           style={{
             backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
-            borderWidth: 1,
+            borderWidth: BORDER.base,
             borderColor: PROFILE_THEME_COLORS.outlineVariant,
           }}
         >
@@ -645,7 +645,7 @@ export default function FindSession() {
     <View className="px-5 pb-10">
       {!loading && filteredSessions.length === 0 ? (
         <View
-          className="mb-4 rounded-[28px] px-6 py-7"
+          className="mb-4 rounded-[24px] px-6 py-7"
           style={{
             backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
             borderLeftWidth: 3,
@@ -670,7 +670,7 @@ export default function FindSession() {
       ) : null}
 
       <View
-        className="rounded-[28px] px-6 py-6"
+        className="rounded-[24px] px-6 py-6"
         style={{
           backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
           borderLeftWidth: 3,

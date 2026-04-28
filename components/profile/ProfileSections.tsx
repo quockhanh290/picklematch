@@ -83,7 +83,7 @@ export function ProfileIdentityCard({
 
   return (
     <View
-      className="rounded-[32px] p-6 shadow-sm mb-4"
+      className="rounded-[24px] p-6 shadow-sm mb-4"
       style={{
         backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
         shadowColor: PROFILE_THEME_COLORS.onBackground,
@@ -168,7 +168,7 @@ export function ProfileSkillHero({
   }
 
   return (
-    <View className={`relative overflow-hidden shadow-sm mb-4 ${miniTitleOnly ? 'rounded-[24px] p-4' : 'rounded-[32px] p-6'}`}>
+    <View className={`relative overflow-hidden shadow-sm mb-4 ${miniTitleOnly ? 'rounded-[24px] p-4' : 'rounded-[24px] p-6'}`}>
       <LinearGradient
         colors={[heroColors.gradientStart, heroColors.gradientEnd]}
         start={{ x: 0, y: 0 }}

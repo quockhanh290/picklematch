@@ -5,7 +5,7 @@ import { Code2, LockKeyhole, Mail } from 'lucide-react-native'
 import { useState } from 'react'
 import { Alert, Pressable, Text, TextInput, View } from 'react-native'
 import { SCREEN_FONTS } from '@/constants/screenFonts'
-import { SPACING } from '@/constants/screenLayout'
+import { SPACING, RADIUS } from '@/constants/screenLayout'
 
 const DEV = {
   emerald: PROFILE_THEME_COLORS.surfaceTint,
@@ -60,7 +60,7 @@ export default function DevLoginSection({
   return (
     <View
       style={{
-        borderRadius: 28,
+        borderRadius: RADIUS.hero,
         backgroundColor: DEV.panel,
         padding: SPACING.lg,
       }}
@@ -178,7 +178,7 @@ export default function DevLoginSection({
           style={{
             marginTop: 6,
             height: 56,
-            borderRadius: 28,
+            borderRadius: RADIUS.hero,
             backgroundColor: DEV.emerald,
             alignItems: 'center',
             justifyContent: 'center',

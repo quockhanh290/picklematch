@@ -4,7 +4,7 @@ import { Repeat2, Shuffle } from 'lucide-react-native'
 import { Pressable, Text, View } from 'react-native'
 
 import type { ArrangementPlayer } from '@/lib/sessionDetail'
-import { RADIUS, SPACING } from '@/constants/screenLayout'
+import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
 
 type Props = {
   arrangedPlayers: ArrangementPlayer[]
@@ -44,7 +44,7 @@ function TeamHeader({ label, badge, avgElo }: { label: string; badge: string; av
               paddingHorizontal: SPACING.sm,
               paddingVertical: 4,
               backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
-              borderWidth: 1,
+              borderWidth: BORDER.base,
               borderColor: PROFILE_THEME_COLORS.outlineVariant,
             }}
           >
@@ -79,7 +79,7 @@ function EmptySlot() {
         flexDirection: 'row',
         alignItems: 'center',
         borderRadius: RADIUS.xl,
-        borderWidth: 1.5,
+        borderWidth: BORDER.medium,
         borderStyle: 'dashed',
         borderColor: PROFILE_THEME_COLORS.outlineVariant,
         backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
@@ -92,7 +92,7 @@ function EmptySlot() {
           width: 48,
           height: 48,
           borderRadius: RADIUS.full,
-          borderWidth: 1.5,
+          borderWidth: BORDER.medium,
           borderStyle: 'dashed',
           borderColor: PROFILE_THEME_COLORS.outlineVariant,
           alignItems: 'center',
@@ -196,7 +196,7 @@ export function PlayerRosterSection({
               paddingHorizontal: 16,
               paddingVertical: 12,
               backgroundColor: PROFILE_THEME_COLORS.secondaryContainer,
-              borderWidth: 1,
+              borderWidth: BORDER.base,
               borderStyle: 'dashed',
               borderColor: PROFILE_THEME_COLORS.outlineVariant,
             }}

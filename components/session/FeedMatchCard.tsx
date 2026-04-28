@@ -14,7 +14,7 @@ import { Pressable, Text, View } from 'react-native'
 
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { SCREEN_FONTS } from '@/constants/screenFonts'
-import { RADIUS } from '@/constants/screenLayout'
+import { RADIUS, BORDER } from '@/constants/screenLayout'
 
 type Props = {
   courtName: string
@@ -72,7 +72,7 @@ function compactPriceLabel(label: string, divisor?: number) {
 
 const BADGE_STYLE = {
   backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
-  borderWidth: 1,
+  borderWidth: BORDER.base,
   borderColor: PROFILE_THEME_COLORS.outlineVariant,
 } as const
 
@@ -125,10 +125,10 @@ export function FeedMatchCard({
     <Pressable
       onPress={onPress}
       disabled={disabled}
-      className={`${containerClassName} overflow-hidden rounded-[34px] px-6 pt-6 pb-4`}
+      className={`${containerClassName} overflow-hidden rounded-[24px] px-6 pt-6 pb-4`}
       style={{
         backgroundColor: 'transparent',
-        borderWidth: 1,
+        borderWidth: BORDER.base,
         borderColor: PROFILE_THEME_COLORS.primary,
         borderLeftWidth: 3,
         borderLeftColor: PROFILE_THEME_COLORS.primary,
@@ -295,7 +295,7 @@ export function FeedMatchCard({
               className="mr-3 h-11 w-11 items-center justify-center rounded-full"
               style={{
                 backgroundColor: PROFILE_THEME_COLORS.primary,
-                borderWidth: 1,
+                borderWidth: BORDER.base,
                 borderColor: withAlpha(PROFILE_THEME_COLORS.primary, 0.14),
               }}
             >
@@ -366,7 +366,7 @@ export function FeedMatchCard({
                 backgroundColor: isFull
                   ? PROFILE_THEME_COLORS.errorContainer
                   : PROFILE_THEME_COLORS.surfaceContainerHighest,
-                borderWidth: 1,
+                borderWidth: BORDER.base,
                 borderColor: isFull ? PROFILE_THEME_COLORS.error : PROFILE_THEME_COLORS.outlineVariant,
               }}
             >

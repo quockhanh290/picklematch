@@ -4,8 +4,8 @@ import type { AppTheme } from '@/constants/theme'
 
 export const appRadii = {
   sm: 'rounded-2xl',
-  md: 'rounded-[28px]',
-  lg: 'rounded-[32px]',
+  md: 'rounded-[24px]',
+  lg: 'rounded-[24px]',
 } as const
 
 export const appRadiusValues = {

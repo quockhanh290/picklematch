@@ -109,7 +109,7 @@ function getDeadlineInfo(deadlineAt?: string) {
   const deadlineMs = Date.parse(deadlineAt ?? '')
   if (Number.isNaN(deadlineMs)) {
     return {
-      dotColor: PROFILE_THEME_SEMANTIC.warningIcon,
+      dotColor: PROFILE_THEME_SEMANTIC.warningStrong,
       textColor: PROFILE_THEME_SEMANTIC.warningText,
       label: 'Hạn nhập: đang chờ',
     }
@@ -123,7 +123,7 @@ function getDeadlineInfo(deadlineAt?: string) {
   if (diffMs < 0) {
     const overdue = hours >= 1 ? `${hours} tiếng` : `${absMinutes} phút`
     return {
-      dotColor: PROFILE_THEME_SEMANTIC.dangerIcon,
+      dotColor: PROFILE_THEME_SEMANTIC.dangerStrong,
       textColor: PROFILE_THEME_SEMANTIC.dangerText,
       label: `Quá hạn ${overdue}`,
     }
@@ -131,7 +131,7 @@ function getDeadlineInfo(deadlineAt?: string) {
 
   const remaining = hours >= 1 ? `${hours} tiếng` : `${minutes || absMinutes} phút`
   return {
-    dotColor: PROFILE_THEME_SEMANTIC.warningIcon,
+    dotColor: PROFILE_THEME_SEMANTIC.warningStrong,
     textColor: PROFILE_THEME_SEMANTIC.warningText,
     label: `Hạn nhập: còn ${remaining}`,
   }
@@ -157,7 +157,7 @@ export function PostMatchInboxSection({
 
   return (
     <View className={marginTopClassName}>
-      <View className="mb-2 flex-row items-baseline justify-between" style={{ marginHorizontal: SPACING.lg }}>
+      <View className="mb-2 flex-row items-baseline justify-between">
         <Text className="text-[15px]" style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.cta, lineHeight: 20 }}>
           Việc cần chốt
         </Text>
@@ -169,7 +169,6 @@ export function PostMatchInboxSection({
       <View
         className="overflow-hidden"
         style={{
-          marginHorizontal: SPACING.lg,
           backgroundColor: PROFILE_THEME_COLORS.surface,
           borderColor: PROFILE_THEME_COLORS.outlineVariant,
           borderWidth: BORDER.hairline,
@@ -177,7 +176,7 @@ export function PostMatchInboxSection({
           ...SHADOW.xs,
         }}
       >
-        <View style={{ borderLeftColor: PROFILE_THEME_SEMANTIC.warningIcon, borderLeftWidth: 3, paddingHorizontal: SPACING.md, paddingVertical: 12 }}>
+        <View style={{ borderLeftColor: PROFILE_THEME_SEMANTIC.warningStrong, borderLeftWidth: 3, paddingHorizontal: SPACING.md, paddingVertical: 12 }}>
           <View className="mb-1.5 flex-row items-center">
             <View className="rounded-[4px] px-2 py-0.5" style={{ backgroundColor: PROFILE_THEME_SEMANTIC.warningBg }}>
               <Text className="text-[10px]" style={{ color: PROFILE_THEME_SEMANTIC.warningText, fontFamily: SCREEN_FONTS.label, lineHeight: 14 }}>
@@ -210,7 +209,7 @@ export function PostMatchInboxSection({
             </Text>
           </View>
 
-          <Pressable onPress={() => presentation.onPress(currentTask.id)} className="rounded-full px-4 py-[7px]" style={{ backgroundColor: PROFILE_THEME_SEMANTIC.warningIcon }}>
+          <Pressable onPress={() => presentation.onPress(currentTask.id)} className="rounded-full px-4 py-[7px]" style={{ backgroundColor: PROFILE_THEME_SEMANTIC.warningStrong }}>
             <Text className="text-[12px]" style={{ color: PROFILE_THEME_COLORS.surface, fontFamily: SCREEN_FONTS.cta, lineHeight: 16 }}>
               {presentation.cta}
             </Text>

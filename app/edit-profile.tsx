@@ -11,7 +11,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ActivityIndicator, Alert, FlatList, ImageBackground, Keyboard, ScrollView, Switch, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { SCREEN_FONTS } from '@/constants/screenFonts'
-import { RADIUS } from '@/constants/screenLayout'
+import { RADIUS, BORDER } from '@/constants/screenLayout'
 
 const CITIES = ['Hồ Chí Minh', 'Hà Nội', 'Đà Nẵng', 'Cần Thơ', 'Hải Phòng']
 const HERO_IMAGE = require('../assets/images/login-electric-court-hero.png')
@@ -488,7 +488,7 @@ export default function EditProfile() {
                   {favCourts.map((court) => (
                     <View
                       key={court.id}
-                      className="flex-row items-center gap-4 p-4 rounded-[28px] border"
+                      className="flex-row items-center gap-4 p-4 rounded-[24px] border"
                       style={{ backgroundColor: EDIT_PROFILE_COLORS.surfaceContainerLowest, borderColor: EDIT_PROFILE_COLORS.outlineVariant }}
                     >
                       <View className="w-12 h-12 rounded-full items-center justify-center" style={{ backgroundColor: EDIT_PROFILE_COLORS.secondaryContainer }}>
@@ -538,7 +538,7 @@ export default function EditProfile() {
                       return (
                         <TouchableOpacity
                           activeOpacity={0.85}
-                          className="mb-3 flex-row items-center gap-4 p-4 rounded-[28px] border"
+                          className="mb-3 flex-row items-center gap-4 p-4 rounded-[24px] border"
                           style={{
                             borderColor: EDIT_PROFILE_COLORS.outlineVariant,
                             backgroundColor: alreadyAdded ? EDIT_PROFILE_COLORS.surfaceContainerHigh : EDIT_PROFILE_COLORS.surfaceContainerLowest,
@@ -593,7 +593,7 @@ export default function EditProfile() {
             className="flex-1 rounded-full overflow-hidden flex-row items-center justify-center py-4"
             style={{
               backgroundColor: EDIT_PROFILE_COLORS.surfaceContainerLow,
-              borderWidth: 1,
+              borderWidth: BORDER.base,
               borderColor: EDIT_PROFILE_COLORS.outlineVariant,
               opacity: saving || !hasUnsavedChanges ? 0.55 : 1,
             }}

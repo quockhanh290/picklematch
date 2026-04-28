@@ -12,7 +12,7 @@ import { AppFontSet } from '@/constants/typography'
 import type { MatchSession } from '@/lib/homeFeed'
 import { getSkillLevelUi } from '@/lib/skillLevelUi'
 import { formatDistance, getAvatarColor } from '@/utils/formatters'
-import { RADIUS, SHADOW, SPACING, BORDER } from '@/constants/screenLayout'
+import { RADIUS, SHADOW, SPACING, BORDER, BUTTON } from '@/constants/screenLayout'
 import { SCREEN_FONTS } from '@/constants/screenFonts'
 
 export const SMART_MATCH_CARD_HEIGHT = 380
@@ -242,7 +242,7 @@ function MiniBadgeLight({
   return (
     <View
       className={`flex-row items-center rounded-full ${isLarge ? 'px-3.5 py-2' : 'px-3 py-1.5'}`}
-      style={{ backgroundColor: palette.bg, borderWidth: 1, borderColor: palette.border }}
+      style={{ backgroundColor: palette.bg, borderWidth: BORDER.base, borderColor: palette.border }}
     >
       <Icon size={isLarge ? 15 : 14} color={palette.icon} strokeWidth={2.5} />
       <Text
@@ -459,7 +459,7 @@ function HeroMatchSessionCard({ item }: { item: MatchSession; actionLabel: strin
                   alignItems: 'center',
                   justifyContent: 'center',
                   backgroundColor: avatar.bg,
-                  borderWidth: 2,
+                  borderWidth: BORDER.thick,
                   borderColor: 'rgba(255,255,255,0.3)',
                   marginRight: index === visiblePlayers.length + emptySlots - 1 ? 0 : -8,
                   zIndex: 4 - index,
@@ -482,7 +482,7 @@ function HeroMatchSessionCard({ item }: { item: MatchSession; actionLabel: strin
                 alignItems: 'center',
                 justifyContent: 'center',
                 backgroundColor: 'rgba(255,255,255,0.12)',
-                borderWidth: 2,
+                borderWidth: BORDER.thick,
                 borderColor: 'rgba(255,255,255,0.3)',
                 marginRight: index === emptySlots - 1 ? 0 : -8,
                 zIndex: 4 - visiblePlayers.length - index,
@@ -507,7 +507,7 @@ function HeroMatchSessionCard({ item }: { item: MatchSession; actionLabel: strin
             event.stopPropagation()
             router.push({ pathname: '/session/[id]' as never, params: { id: item.id } })
           }}
-          style={{ backgroundColor: '#FFFFFF', borderRadius: RADIUS.full, paddingHorizontal: 16, paddingVertical: 8, flexShrink: 0 }}
+          style={{ backgroundColor: '#FFFFFF', ...BUTTON.pill, flexShrink: 0 }}
         >
           <Text style={{ color: '#0F6E56', fontFamily: SCREEN_FONTS.cta, fontSize: 12, lineHeight: 16 }}>
             {'Xem \u2192'}
@@ -538,7 +538,7 @@ function SuggestedSessionCard({ item }: { item: MatchSession }) {
       className="overflow-hidden rounded-[16px]"
       style={{
         backgroundColor: colors.surface,
-        borderWidth: 0.5,
+        borderWidth: BORDER.hairline,
         borderColor: colors.border,
       }}
     >
@@ -665,7 +665,7 @@ function SuggestedSessionCard({ item }: { item: MatchSession }) {
               event.stopPropagation()
               router.push({ pathname: '/session/[id]' as never, params: { id: item.id } })
             }}
-            style={{ backgroundColor: '#0F6E56', borderRadius: RADIUS.full, paddingHorizontal: 16, paddingVertical: 8 }}
+            style={{ backgroundColor: '#0F6E56', ...BUTTON.pill }}
           >
             <Text style={{ color: '#FFFFFF', fontFamily: SCREEN_FONTS.cta, fontSize: 13, lineHeight: 17 }}>
               {'V\u00e0o k\u00e8o'}
@@ -708,7 +708,7 @@ function UrgentFillCard({ item }: { item: MatchSession }) {
       className="overflow-hidden rounded-[16px]"
       style={{
         backgroundColor: colors.surface,
-        borderWidth: 1,
+        borderWidth: BORDER.base,
         borderColor: '#F5D5CB',
       }}
     >
@@ -843,7 +843,7 @@ function UrgentFillCard({ item }: { item: MatchSession }) {
               event.stopPropagation()
               router.push({ pathname: '/session/[id]' as never, params: { id: item.id } })
             }}
-            style={{ backgroundColor: '#D85A30', borderRadius: RADIUS.full, paddingHorizontal: 16, paddingVertical: 8 }}
+            style={{ backgroundColor: '#D85A30', ...BUTTON.pill }}
           >
             <Text style={{ color: '#FFFFFF', fontFamily: SCREEN_FONTS.cta, fontSize: 13, lineHeight: 17 }}>
               {'V\u00e0o ngay'}
@@ -909,7 +909,7 @@ function SessionListCard({
       style={{
         padding: SPACING.xl,
         minHeight: 300,
-        borderRadius: 16,
+        borderRadius: RADIUS.lg,
         backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
         ...SHADOW.sm,
       }}
@@ -1028,7 +1028,7 @@ function SessionListCard({
         <MiniBadgeLight icon={BookingStatusIcon} label={item.statusLabel} tone="neutral" size="lg" />
         <View
           className="flex-row items-center rounded-full px-3 py-2"
-          style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant }}
+          style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, borderWidth: BORDER.base, borderColor: PROFILE_THEME_COLORS.outlineVariant }}
         >
           <DollarSign size={15} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.5} />
           <Text
@@ -1049,7 +1049,7 @@ function SessionListCard({
         className="mt-4"
         style={{
           padding: SPACING.md,
-          borderRadius: 16,
+          borderRadius: RADIUS.lg,
           backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
         }}
       >
@@ -1060,7 +1060,7 @@ function SessionListCard({
               className="mr-3 h-11 w-11 items-center justify-center rounded-full"
               style={{
                 backgroundColor: accentColor,
-                borderWidth: 1,
+                borderWidth: BORDER.base,
                 borderColor: withAlpha(accentColor, 0.14),
               }}
             >
@@ -1159,7 +1159,7 @@ function SessionListCard({
                   position: 'relative',
                   zIndex: 20 - index,
                   backgroundColor: accentColor,
-                  borderWidth: 2,
+                  borderWidth: BORDER.thick,
                   borderColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
                 }}
               >
@@ -1183,7 +1183,7 @@ function SessionListCard({
                   position: 'relative',
                   zIndex: 1,
                   backgroundColor: 'transparent',
-                  borderWidth: 1.5,
+                  borderWidth: BORDER.medium,
                   borderStyle: 'dashed',
                   borderColor: PROFILE_THEME_COLORS.outlineVariant,
                 }}
@@ -1207,7 +1207,7 @@ function SessionListCard({
                   position: 'relative',
                   zIndex: 2,
                   backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHighest,
-                  borderWidth: 2,
+                  borderWidth: BORDER.thick,
                   borderColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
                 }}
               >

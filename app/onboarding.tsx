@@ -28,7 +28,7 @@ import {
 } from '@/lib/onboardingAssessment'
 import { supabase } from '@/lib/supabase'
 import { SCREEN_FONTS } from '@/constants/screenFonts'
-import { RADIUS, SPACING } from '@/constants/screenLayout'
+import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
 
 type AnswerLabels = Partial<Record<OnboardingQuestionId, string>>
 type AnswerScores = Partial<Record<OnboardingQuestionId, number>>
@@ -243,7 +243,7 @@ export default function OnboardingScreen() {
               width: 320,
               height: 320,
               borderRadius: RADIUS.full,
-              borderWidth: 1,
+              borderWidth: BORDER.base,
               borderColor: 'rgba(255,255,255,0.28)',
             }}
           />
@@ -255,7 +255,7 @@ export default function OnboardingScreen() {
               width: 228,
               height: 228,
               borderRadius: RADIUS.full,
-              borderWidth: 1,
+              borderWidth: BORDER.base,
               borderColor: 'rgba(255,255,255,0.24)',
             }}
           />
@@ -268,7 +268,7 @@ export default function OnboardingScreen() {
                 className="h-12 w-12 items-center justify-center rounded-full"
                 style={{
                   backgroundColor: 'rgba(255,255,255,0.08)',
-                  borderWidth: 1,
+                  borderWidth: BORDER.base,
                   borderColor: 'rgba(255,255,255,0.14)',
                   opacity: submitting ? 0.5 : 1,
                 }}
@@ -278,7 +278,7 @@ export default function OnboardingScreen() {
 
               <View
                 className="rounded-full px-4 py-2"
-                style={{ backgroundColor: 'rgba(236,253,245,0.18)', borderWidth: 1, borderColor: 'rgba(236,253,245,0.38)' }}
+                style={{ backgroundColor: 'rgba(236,253,245,0.18)', borderWidth: BORDER.base, borderColor: 'rgba(236,253,245,0.38)' }}
               >
                 <Text style={{ color: PROFILE_THEME_COLORS.onPrimaryContainer, fontSize: 11, letterSpacing: 1.2, fontFamily: SCREEN_FONTS.cta }}>
                   ELECTRIC COURT
@@ -489,7 +489,7 @@ export default function OnboardingScreen() {
               style={{
                 width: 96,
                 height: 56,
-                borderRadius: 28,
+                borderRadius: RADIUS.hero,
                 alignItems: 'center',
                 justifyContent: 'center',
                 backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
@@ -507,7 +507,7 @@ export default function OnboardingScreen() {
                 style={{
                   flex: 1,
                   height: 56,
-                  borderRadius: 28,
+                  borderRadius: RADIUS.hero,
                   alignItems: 'center',
                   justifyContent: 'center',
                   backgroundColor: ELECTRIC.emerald,
@@ -529,7 +529,7 @@ export default function OnboardingScreen() {
                 style={{
                   flex: 1,
                   height: 56,
-                  borderRadius: 28,
+                  borderRadius: RADIUS.hero,
                   alignItems: 'center',
                   justifyContent: 'center',
                   backgroundColor: ELECTRIC.emerald,
@@ -550,7 +550,7 @@ export default function OnboardingScreen() {
             <View
               style={{
                 marginTop: 14,
-                borderRadius: 22,
+                borderRadius: RADIUS.xl,
                 backgroundColor: PROFILE_THEME_COLORS.errorContainer,
                 paddingHorizontal: 16,
                 paddingVertical: SPACING.md,
@@ -649,7 +649,7 @@ export default function OnboardingScreen() {
 
             <View
               className="mt-4 rounded-2xl px-4 py-3"
-              style={{ backgroundColor: ELECTRIC.panel, borderWidth: 1, borderColor: ELECTRIC.border, width: '100%' }}
+              style={{ backgroundColor: ELECTRIC.panel, borderWidth: BORDER.base, borderColor: ELECTRIC.border, width: '100%' }}
             >
               <Text
                 style={{
@@ -703,7 +703,7 @@ export default function OnboardingScreen() {
                   alignItems: 'center',
                   justifyContent: 'center',
                   backgroundColor: ELECTRIC.panel,
-                  borderWidth: 1,
+                  borderWidth: BORDER.base,
                   borderColor: ELECTRIC.borderStrong,
                   opacity: submitting ? 0.65 : 1,
                 }}

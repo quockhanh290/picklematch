@@ -7,7 +7,7 @@ import { StatusBar } from 'expo-status-bar'
 import { useState } from 'react'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { SCREEN_FONTS } from '@/constants/screenFonts'
-import { RADIUS, SPACING } from '@/constants/screenLayout'
+import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
 import {
   Alert,
   ImageBackground,
@@ -242,7 +242,7 @@ export default function LoginScreen() {
               width: 392,
               height: 392,
               borderRadius: RADIUS.full,
-              borderWidth: 1,
+              borderWidth: BORDER.base,
               borderColor: 'rgba(173,255,47,0.36)',
             }}
           />
@@ -254,7 +254,7 @@ export default function LoginScreen() {
               width: 286,
               height: 286,
               borderRadius: RADIUS.full,
-              borderWidth: 1,
+              borderWidth: BORDER.base,
               borderColor: 'rgba(6,182,212,0.32)',
             }}
           />
@@ -305,7 +305,7 @@ export default function LoginScreen() {
             <View className="flex-row justify-end">
               <View
                 className="rounded-full px-4 py-2"
-                style={{ backgroundColor: 'rgba(173,255,47,0.12)', borderWidth: 1, borderColor: 'rgba(173,255,47,0.28)' }}
+                style={{ backgroundColor: 'rgba(173,255,47,0.12)', borderWidth: BORDER.base, borderColor: 'rgba(173,255,47,0.28)' }}
               >
                 <Text
                   style={{
@@ -382,10 +382,10 @@ export default function LoginScreen() {
 
             <View
               style={{
-                borderRadius: 28,
+                borderRadius: RADIUS.hero,
                 backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
                 padding: 16,
-                borderWidth: 1,
+                borderWidth: BORDER.base,
                 borderColor: PROFILE_THEME_COLORS.outlineVariant,
               }}
             >
@@ -488,7 +488,7 @@ export default function LoginScreen() {
               style={{
                 marginTop: 28,
                 height: 58,
-                borderRadius: 29,
+                borderRadius: RADIUS.hero,
                 backgroundColor: PROFILE_THEME_COLORS.surfaceTint,
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -511,7 +511,7 @@ export default function LoginScreen() {
               style={{
                 marginTop: 20,
                 height: 58,
-                borderRadius: 29,
+                borderRadius: RADIUS.hero,
                 backgroundColor: ELECTRIC.skySoft,
                 alignItems: 'center',
                 justifyContent: 'center',

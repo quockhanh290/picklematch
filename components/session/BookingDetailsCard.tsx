@@ -94,7 +94,7 @@ export function BookingDetailsCard({
     <View
       style={{
         marginTop: 16,
-        borderRadius: 28,
+        borderRadius: RADIUS.hero,
         backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
         shadowColor: PROFILE_THEME_COLORS.onBackground,
         shadowOpacity: 0.06,

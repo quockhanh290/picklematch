@@ -223,10 +223,8 @@ export default function CreateSession() {
   const validateEnd = useCallback((end: Date, start: Date): string | null => {
     const closeMins = toMins(selectedCourt?.hours_close ?? '22:00')
     const endMins = end.getHours() * 60 + end.getMinutes()
-    const diffMins = (end.getTime() - start.getTime()) / 60_000
 
     if (end <= start) return '\u0047i\u1edd k\u1ebft th\u00fac ph\u1ea3i sau gi\u1edd b\u1eaft \u0111\u1ea7u'
-    if (diffMins > 180) return 'T\u1ed1i \u0111a 3 gi\u1edd m\u1ed7i k\u00e8o'
     if (endMins > closeMins) return `S\u00e2n \u0111\u00f3ng c\u1eeda l\u00fac ${selectedCourt?.hours_close ?? '22:00'}`
     return null
   }, [selectedCourt?.hours_close])

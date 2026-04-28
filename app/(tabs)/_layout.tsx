@@ -4,7 +4,7 @@ import { useNotificationsContext } from '@/lib/NotificationsContext'
 import { Tabs } from 'expo-router'
 import { Bell, Calendar, House, MagnifyingGlass, User } from 'phosphor-react-native'
 import { Text, View } from 'react-native'
-import { RADIUS } from '@/constants/screenLayout'
+import { RADIUS, SHADOW } from '@/constants/screenLayout'
 
 function TabIcon({
   focused,
@@ -78,11 +78,7 @@ export default function TabLayout() {
           paddingTop: 12,
           paddingBottom: 12,
           backgroundColor: PROFILE_THEME_COLORS.background,
-          shadowColor: PROFILE_THEME_COLORS.onBackground,
-          shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: 0.10,
-          shadowRadius: 18,
-          elevation: 12,
+          ...SHADOW.sm,
           borderRadius: RADIUS.xl,
           marginHorizontal: 16,
           marginBottom: 20,

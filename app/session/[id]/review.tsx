@@ -30,7 +30,7 @@ import {
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { SCREEN_FONTS } from '@/constants/screenFonts'
-import { SPACING } from '@/constants/screenLayout'
+import { SPACING, BORDER } from '@/constants/screenLayout'
 
 const ICON_STROKE = 2.5
 const QUICK_REPLY_TEMPLATES = [
@@ -228,9 +228,9 @@ function RequestCard({
 
   return (
     <View
-      className="mb-4 overflow-hidden rounded-[28px] p-4"
+      className="mb-4 overflow-hidden rounded-[24px] p-4"
       style={{
-        borderWidth: 1,
+        borderWidth: BORDER.base,
         borderColor: PROFILE_THEME_COLORS.outlineVariant,
         backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
         ...premiumShadow(),
@@ -324,7 +324,7 @@ function RequestCard({
           onPress={() => onReject(applicant.id, applicant.player_id)}
           disabled={busy}
           className="active:scale-95 h-14 flex-1 flex-row items-center justify-center rounded-[20px] px-4"
-          style={{ borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.errorContainer }}
+          style={{ borderWidth: BORDER.base, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.errorContainer }}
         >
           <UserX size={18} color={PROFILE_THEME_COLORS.onErrorContainer} strokeWidth={ICON_STROKE} />
           <Text className="ml-2 text-[14px]" style={{ fontFamily: SCREEN_FONTS.bold, color: PROFILE_THEME_COLORS.onErrorContainer }}>{'\u0054\u1EEB\u0020\u0063\u0068\u1ED1\u0069'}</Text>
@@ -670,7 +670,7 @@ export default function HostReviewCenterScreen() {
               ))
             ) : (
               <View
-                className="items-center rounded-[28px] border px-6 py-12"
+                className="items-center rounded-[24px] border px-6 py-12"
                 style={{
                   borderColor: PROFILE_THEME_COLORS.outlineVariant,
                   backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
@@ -706,7 +706,7 @@ export default function HostReviewCenterScreen() {
               disabled={cancelling}
               className="active:scale-95 h-14 flex-1 flex-row items-center justify-center rounded-[20px]"
               style={{
-                borderWidth: 1,
+                borderWidth: BORDER.base,
                 borderColor: PROFILE_THEME_COLORS.outlineVariant,
                 backgroundColor: PROFILE_THEME_COLORS.errorContainer,
               }}

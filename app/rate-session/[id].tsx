@@ -23,7 +23,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { ActivityIndicator, LayoutAnimation, Platform, Pressable, ScrollView, Text, UIManager, View } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { SCREEN_FONTS } from '@/constants/screenFonts'
-import { RADIUS, SPACING } from '@/constants/screenLayout'
+import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
 
 type SkillValidation = 'weaker' | 'matched' | 'outclass'
 
@@ -600,8 +600,8 @@ export default function RateSessionScreen() {
         >
           <View
             style={{
-              borderRadius: 30,
-              borderWidth: 1,
+              borderRadius: RADIUS.hero,
+              borderWidth: BORDER.base,
               borderColor: PROFILE_THEME_COLORS.primaryFixedDim,
               backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
               paddingHorizontal: SPACING.xl,
@@ -615,7 +615,7 @@ export default function RateSessionScreen() {
                   width: 104,
                   height: 104,
                   borderRadius: RADIUS.full,
-                  borderWidth: 3,
+                  borderWidth: BORDER.heavy,
                   borderColor: PROFILE_THEME_COLORS.primaryFixed,
                   backgroundColor: PROFILE_THEME_COLORS.secondaryContainer,
                   alignItems: 'center',
@@ -665,7 +665,7 @@ export default function RateSessionScreen() {
                 style={{
                   marginTop: 10,
                   borderRadius: RADIUS.full,
-                  borderWidth: 1,
+                  borderWidth: BORDER.base,
                   borderColor: PROFILE_THEME_COLORS.primaryFixedDim,
                   backgroundColor: PROFILE_THEME_COLORS.secondaryContainer,
                   paddingHorizontal: SPACING.md,
@@ -679,8 +679,8 @@ export default function RateSessionScreen() {
 
           <View
             style={{
-              borderRadius: 28,
-              borderWidth: 1,
+              borderRadius: RADIUS.hero,
+              borderWidth: BORDER.base,
               borderColor: PROFILE_THEME_COLORS.outlineVariant,
               backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
               paddingHorizontal: SPACING.xl,
@@ -704,8 +704,8 @@ export default function RateSessionScreen() {
 
           <View
             style={{
-              borderRadius: 28,
-              borderWidth: 1,
+              borderRadius: RADIUS.hero,
+              borderWidth: BORDER.base,
               borderColor: PROFILE_THEME_COLORS.outlineVariant,
               backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
               paddingHorizontal: SPACING.xl,
@@ -774,8 +774,8 @@ export default function RateSessionScreen() {
 
           <View
             style={{
-              borderRadius: 28,
-              borderWidth: 1.5,
+              borderRadius: RADIUS.hero,
+              borderWidth: BORDER.medium,
               borderColor: currentEntry.no_show ? PROFILE_THEME_COLORS.error : PROFILE_THEME_COLORS.outlineVariant,
               backgroundColor: currentEntry.no_show ? PROFILE_THEME_COLORS.errorContainer : PROFILE_THEME_COLORS.surfaceContainerLowest,
               overflow: 'hidden',
@@ -799,7 +799,7 @@ export default function RateSessionScreen() {
                   borderRadius: 21,
                   alignItems: 'center',
                   justifyContent: 'center',
-                  borderWidth: 1,
+                  borderWidth: BORDER.base,
                   borderColor: currentEntry.no_show ? PROFILE_THEME_COLORS.error : PROFILE_THEME_COLORS.outlineVariant,
                   backgroundColor: currentEntry.no_show ? PROFILE_THEME_COLORS.error : PROFILE_THEME_COLORS.surfaceContainerLow,
                 }}
@@ -838,7 +838,7 @@ export default function RateSessionScreen() {
               style={{
                 marginHorizontal: 16,
                 marginBottom: 16,
-                borderRadius: 16,
+                borderRadius: RADIUS.lg,
                 backgroundColor: currentEntry.no_show ? withAlpha(PROFILE_THEME_COLORS.onBackground, 0.04) : PROFILE_THEME_COLORS.surfaceContainerLow,
                 paddingHorizontal: 12,
                 paddingVertical: SPACING.sm,

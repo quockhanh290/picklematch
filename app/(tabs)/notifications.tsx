@@ -218,7 +218,7 @@ export default function NotificationsScreen() {
                     key={item.id}
                     onPress={() => handleTap(item)}
                     activeOpacity={0.9}
-                    className="relative overflow-hidden rounded-[32px] p-6"
+                    className="relative overflow-hidden rounded-[24px] p-6"
                     style={{
                       backgroundColor: item.is_read ? PROFILE_THEME_COLORS.surfaceContainerLow : PROFILE_THEME_COLORS.surfaceContainerLowest,
                       shadowColor: PROFILE_THEME_COLORS.onBackground,

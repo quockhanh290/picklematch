@@ -4,7 +4,7 @@ import Slider from '@react-native-community/slider'
 import React, { useState } from 'react'
 import { Modal, Platform, Pressable, ScrollView, Text, View } from 'react-native'
 import { SCREEN_FONTS } from '@/constants/screenFonts'
-import { RADIUS, SPACING } from '@/constants/screenLayout'
+import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
 
 export type AdvancedFilter = {
   district: string | null
@@ -73,7 +73,7 @@ function withAlpha(hex: string, alpha: number) {
 function chipStyle(active: boolean) {
   return {
     backgroundColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surfaceContainerLow,
-    borderRadius: 16,
+    borderRadius: RADIUS.lg,
     paddingHorizontal: SPACING.md,
     paddingVertical: 8,
     marginRight: 8,
@@ -265,7 +265,7 @@ export function AdvancedSessionFilterModal({
                   alignItems: 'center',
                   backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
                   borderRadius: RADIUS.md,
-                  borderWidth: 1,
+                  borderWidth: BORDER.base,
                   borderColor: PROFILE_THEME_COLORS.outlineVariant,
                   paddingVertical: SPACING.xs,
                 }}
@@ -315,7 +315,7 @@ export function AdvancedSessionFilterModal({
             <View
               style={{
                 backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
-                borderRadius: 16,
+                borderRadius: RADIUS.lg,
                 padding: 12,
                 marginBottom: priceInvalid ? 4 : 16,
               }}
@@ -415,7 +415,7 @@ export function AdvancedSessionFilterModal({
                 backgroundColor: priceInvalid
                   ? PROFILE_THEME_COLORS.surfaceContainerHighest
                   : PROFILE_THEME_COLORS.primary,
-                borderRadius: 16,
+                borderRadius: RADIUS.lg,
                 paddingHorizontal: 32,
                 paddingVertical: 12,
               }}

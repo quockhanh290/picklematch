@@ -1,8 +1,9 @@
 import { colors } from '@/constants/colors'
 import { typography } from '@/constants/typography'
 import { Pressable, Text, View } from 'react-native'
+import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { SCREEN_FONTS } from '@/constants/screenFonts'
-import { RADIUS, SPACING } from '@/constants/screenLayout'
+import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
 
 type SessionCardProps = {
   session: {
@@ -151,7 +152,7 @@ export function SessionCard({ session, onPress, onJoinPress }: SessionCardProps)
         marginBottom: 14,
         backgroundColor: colors.bgCard,
         borderColor: colors.borderSubtle,
-        borderWidth: 1,
+        borderWidth: BORDER.base,
         borderRadius: RADIUS.md,
         overflow: 'hidden',
       }}

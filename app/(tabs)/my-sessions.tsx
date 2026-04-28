@@ -30,7 +30,7 @@ import {
   View,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { RADIUS, SPACING } from '@/constants/screenLayout'
+import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
 
 
 const PROFILE_THEME_COLORS = {
@@ -280,7 +280,7 @@ function MySessionsEmptyStateCard({ activeTab }: { activeTab: SessionTab }) {
 
   return (
     <View
-      className="rounded-[28px] px-6 py-7"
+      className="rounded-[24px] px-6 py-7"
       style={{
         backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
         borderLeftWidth: 3,
@@ -364,7 +364,7 @@ function MySessionCard({
       className="mb-4 overflow-hidden rounded-[14px]"
       style={{
         backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
-        borderWidth: 0.5,
+        borderWidth: BORDER.hairline,
         borderColor: PROFILE_THEME_COLORS.outlineVariant,
         shadowColor: PROFILE_THEME_COLORS.onBackground,
         shadowOpacity: 0.04,
@@ -406,7 +406,7 @@ function MySessionCard({
         <View
           style={{
             backgroundColor: colors.surfaceAlt,
-            borderRadius: 8,
+            borderRadius: RADIUS.sm,
             paddingHorizontal: 12,
             paddingVertical: 8,
             flexDirection: 'row',
@@ -520,7 +520,7 @@ function MySessionCard({
                 width: 32,
                 height: 32,
                 backgroundColor: PROFILE_THEME_COLORS.primaryContainer,
-                borderWidth: 1,
+                borderWidth: BORDER.base,
                 borderColor: withAlpha(PROFILE_THEME_COLORS.primary, 0.22),
                 marginRight: 8,
               }}
@@ -1179,7 +1179,7 @@ export default function MySessions() {
       className="rounded-full px-4 py-2.5 mr-2 mb-2"
       style={{
         backgroundColor: isActive ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surfaceContainerLow,
-        borderWidth: 1,
+        borderWidth: BORDER.base,
         borderColor: isActive ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
       }}
     >
@@ -1253,7 +1253,7 @@ export default function MySessions() {
                   className="rounded-[14px] p-1.5 flex-row gap-1.5"
                   style={{
                     backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
-                    borderWidth: 1,
+                    borderWidth: BORDER.base,
                     borderColor: PROFILE_THEME_COLORS.outlineVariant,
                   }}
                 >
@@ -1311,7 +1311,7 @@ export default function MySessions() {
                         className="flex-row items-center self-start rounded-full px-4 py-2.5"
                         style={{
                           backgroundColor: activeHistoryFiltersCount > 0 ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surfaceContainerLow,
-                          borderWidth: 1,
+                          borderWidth: BORDER.base,
                           borderColor: activeHistoryFiltersCount > 0 ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
                         }}
                       >

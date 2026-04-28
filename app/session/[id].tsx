@@ -41,7 +41,7 @@ import {
 import { getSkillLevelUi } from '@/lib/skillLevelUi'
 import { useAuth } from '@/lib/useAuth'
 import { SCREEN_FONTS } from '@/constants/screenFonts'
-import { RADIUS, SPACING } from '@/constants/screenLayout'
+import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
 
 export default function SessionDetailScreen() {
   const { id, updated } = useLocalSearchParams<{ id: string; updated?: string }>()
@@ -192,8 +192,8 @@ export default function SessionDetailScreen() {
         style={{
           position: 'relative',
           overflow: 'hidden',
-          borderRadius: 28,
-          borderWidth: 1,
+          borderRadius: RADIUS.hero,
+          borderWidth: BORDER.base,
           borderColor: PROFILE_THEME_COLORS.outlineVariant,
           backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
           paddingHorizontal: SPACING.lg,
@@ -228,7 +228,7 @@ export default function SessionDetailScreen() {
               alignItems: 'center',
               justifyContent: 'center',
               borderRadius: RADIUS.full,
-              borderWidth: 1,
+              borderWidth: BORDER.base,
               borderColor: PROFILE_THEME_COLORS.primary,
               backgroundColor: PROFILE_THEME_COLORS.primary,
             }}
@@ -250,7 +250,7 @@ export default function SessionDetailScreen() {
                 width: 24,
                 height: 24,
                 borderRadius: RADIUS.full,
-                borderWidth: 2,
+                borderWidth: BORDER.thick,
                 borderColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
                 backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHighest,
                 alignItems: 'center',
@@ -291,8 +291,8 @@ export default function SessionDetailScreen() {
               style={{
                 width: 52,
                 height: 52,
-                borderRadius: 18,
-                borderWidth: 1,
+                borderRadius: RADIUS.xl,
+                borderWidth: BORDER.base,
                 borderColor: PROFILE_THEME_COLORS.outlineVariant,
                 backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHigh,
                 alignItems: 'center',
@@ -320,8 +320,8 @@ export default function SessionDetailScreen() {
             left: 20,
             right: 20,
             zIndex: 20,
-            borderRadius: 16,
-            borderWidth: 1,
+            borderRadius: RADIUS.lg,
+            borderWidth: BORDER.base,
             borderColor: PROFILE_THEME_COLORS.primaryFixedDim,
             backgroundColor: PROFILE_THEME_SEMANTIC.successBg,
             paddingHorizontal: SPACING.md,
@@ -399,7 +399,7 @@ export default function SessionDetailScreen() {
 
         {canRespondToResult ? (
           <View
-            className="mt-5 rounded-[32px] border px-5 py-5"
+            className="mt-5 rounded-[24px] border px-5 py-5"
             style={{ borderColor: resultBannerTone.border, backgroundColor: resultBannerTone.background }}
           >
             <View className="flex-row items-center">
@@ -487,7 +487,7 @@ export default function SessionDetailScreen() {
                   minHeight: 52,
                   paddingVertical: 11,
                   borderRadius: RADIUS.full,
-                  borderWidth: 1.5,
+                  borderWidth: BORDER.medium,
                   borderColor: PROFILE_THEME_COLORS.primary,
                   backgroundColor: PROFILE_THEME_COLORS.primary,
                   opacity: hostPrimaryDisabled && !savingArrangement ? 0.55 : 1,
@@ -549,7 +549,7 @@ export default function SessionDetailScreen() {
                   minHeight: 52,
                   paddingVertical: 11,
                   borderRadius: RADIUS.full,
-                  borderWidth: 1.5,
+                  borderWidth: BORDER.medium,
                   borderColor: PROFILE_THEME_SEMANTIC.dangerStrong,
                   backgroundColor: PROFILE_THEME_SEMANTIC.dangerStrong,
                   opacity: hostActionBusy ? 0.55 : 1,
@@ -581,7 +581,7 @@ export default function SessionDetailScreen() {
                   minHeight: 52,
                   paddingVertical: 11,
                   borderRadius: RADIUS.full,
-                  borderWidth: 2,
+                  borderWidth: BORDER.thick,
                   borderColor: PROFILE_THEME_SEMANTIC.dangerStrong,
                   backgroundColor: PROFILE_THEME_SEMANTIC.dangerStrong,
                   opacity: leaving ? 0.55 : 1,

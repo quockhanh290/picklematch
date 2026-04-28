@@ -6,7 +6,7 @@ import { AppButton } from '@/components/design'
 import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
 import type { MatchStatus } from '@/lib/matchmaking'
 import { useAppTheme } from '@/lib/theme-context'
-import { RADIUS, SPACING } from '@/constants/screenLayout'
+import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
 
 type Props = {
   visible: boolean
@@ -59,7 +59,7 @@ export function JoinRequestModal({
             style={{
               maxHeight: '90%',
               borderRadius: RADIUS.hero,
-              borderWidth: 1,
+              borderWidth: BORDER.base,
               borderColor: PROFILE_THEME_COLORS.outlineVariant,
               backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
               paddingHorizontal: SPACING.xl,
@@ -139,7 +139,7 @@ export function JoinRequestModal({
                   style={{
                     marginTop: 14,
                     borderRadius: RADIUS.lg,
-                    borderWidth: 1,
+                    borderWidth: BORDER.base,
                     borderColor: PROFILE_THEME_COLORS.secondaryFixedDim,
                     backgroundColor: PROFILE_THEME_SEMANTIC.warningBg,
                     paddingHorizontal: SPACING.md,
@@ -214,7 +214,7 @@ export function JoinRequestModal({
                     marginTop: 10,
                     minHeight: 128,
                     borderRadius: RADIUS.lg,
-                    borderWidth: 1,
+                    borderWidth: BORDER.base,
                     borderColor: PROFILE_THEME_COLORS.outlineVariant,
                     backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
                     paddingHorizontal: SPACING.md,
@@ -232,7 +232,7 @@ export function JoinRequestModal({
                   marginTop: 14,
                   borderRadius: RADIUS.lg,
                   backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
-                  borderWidth: 1,
+                  borderWidth: BORDER.base,
                   borderColor: PROFILE_THEME_COLORS.outlineVariant,
                   paddingHorizontal: SPACING.md,
                   paddingVertical: 12,

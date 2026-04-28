@@ -41,7 +41,7 @@ function CourtRow({ court, onPress }: { court: NearByCourt; onPress: (court: Nea
   return (
     <TouchableOpacity
       activeOpacity={0.92}
-      className="rounded-[18px] border p-3.5"
+      className="rounded-[20px] border p-3.5"
       style={{ borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest }}
       onPress={() => onPress(court)}
     >
@@ -156,7 +156,7 @@ export function CourtSelectorCard({
           <View className="mt-3 gap-3">
             {loadingCourts ? (
               <View
-                className="items-center justify-center rounded-[18px] border px-4 py-8"
+                className="items-center justify-center rounded-[20px] border px-4 py-8"
                 style={{ borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow }}
               >
                 <ActivityIndicator color={PROFILE_THEME_COLORS.primary} />
@@ -166,7 +166,7 @@ export function CourtSelectorCard({
               </View>
             ) : searching ? (
               <View
-                className="items-center justify-center rounded-[18px] border px-4 py-8"
+                className="items-center justify-center rounded-[20px] border px-4 py-8"
                 style={{ borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow }}
               >
                 <ActivityIndicator color={PROFILE_THEME_COLORS.primary} />
@@ -183,7 +183,7 @@ export function CourtSelectorCard({
               ))
             ) : fallbackMode ? null : (
               <View
-                className="items-center justify-center rounded-[18px] border border-dashed px-4 py-8"
+                className="items-center justify-center rounded-[20px] border border-dashed px-4 py-8"
                 style={{ borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow }}
               >
                 <Text className="text-center text-[13px] leading-[20px]" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant }}>

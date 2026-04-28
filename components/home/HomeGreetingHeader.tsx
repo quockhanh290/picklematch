@@ -25,7 +25,7 @@ export function HomeGreetingHeader({
   const initial = displayName.charAt(0).toUpperCase()
 
   return (
-    <View className="flex-row items-start justify-between" style={{ paddingHorizontal: 16, paddingTop: 4 }}>
+    <View className="flex-row items-start justify-between" style={{ paddingTop: 4 }}>
       <View className="min-w-0 flex-1 pr-4">
         <Text
           className="mb-[3px] text-[11px]"

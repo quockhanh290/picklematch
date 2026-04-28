@@ -3,7 +3,7 @@ import { Modal, Pressable, Text, View } from 'react-native'
 
 import { AppButton } from '@/components/design/AppButton'
 import { useAppTheme } from '@/lib/theme-context'
-import { RADIUS, SPACING } from '@/constants/screenLayout'
+import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
 
 export type AppDialogAction = {
   label: string
@@ -41,8 +41,8 @@ export function AppDialog({ visible, config, onClose }: Props) {
 
         <View
           style={{
-            borderRadius: 28,
-            borderWidth: 1,
+            borderRadius: RADIUS.hero,
+            borderWidth: BORDER.base,
             borderColor: theme.border,
             backgroundColor: theme.surface,
             paddingHorizontal: SPACING.lg,

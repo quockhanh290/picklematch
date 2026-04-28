@@ -62,7 +62,7 @@ export function SessionMetaCard({
   return (
     <View
       style={{
-        borderRadius: 34,
+        borderRadius: RADIUS.hero,
         overflow: 'hidden',
         backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
         shadowColor: PROFILE_THEME_COLORS.onBackground,

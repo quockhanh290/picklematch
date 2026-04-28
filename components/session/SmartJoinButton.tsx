@@ -60,7 +60,7 @@ export function SmartJoinButton({
           <View
             style={{
               marginTop: 12,
-              borderRadius: 16,
+              borderRadius: RADIUS.lg,
               backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
               paddingHorizontal: 16,
               paddingVertical: 12,
@@ -121,7 +121,7 @@ export function SmartJoinButton({
           <View
             style={{
               marginTop: 12,
-              borderRadius: 16,
+              borderRadius: RADIUS.lg,
               backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
               paddingHorizontal: 16,
               paddingVertical: 12,

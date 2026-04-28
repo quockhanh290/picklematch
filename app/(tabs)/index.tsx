@@ -53,7 +53,7 @@ const HomeStreakCard = memo(function HomeStreakCard({ current }: { current: numb
     return (
       <View
         className="mt-4 flex-row items-center rounded-[10px] border"
-        style={{ marginHorizontal: 16, paddingHorizontal: SPACING.md, paddingVertical: 9, borderColor: PROFILE_THEME_COLORS.secondaryFixedDim, backgroundColor: PROFILE_THEME_COLORS.surface, columnGap: 8 }}
+        style={{ paddingHorizontal: SPACING.md, paddingVertical: 9, borderColor: PROFILE_THEME_COLORS.secondaryFixedDim, backgroundColor: PROFILE_THEME_COLORS.surface, columnGap: 8 }}
       >
         <Text style={{ fontSize: 15, lineHeight: 18 }}>🔥</Text>
         <Text className="min-w-0 flex-1 text-[12px]" style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.label, lineHeight: 17 }}>
@@ -71,7 +71,7 @@ const HomeStreakCard = memo(function HomeStreakCard({ current }: { current: numb
   return (
     <View
       className="mt-4 flex-row items-center rounded-[10px]"
-      style={{ marginHorizontal: 16, paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm, backgroundColor: PROFILE_THEME_COLORS.primary, columnGap: 12 }}
+      style={{ paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm, backgroundColor: PROFILE_THEME_COLORS.primary, columnGap: 12 }}
     >
       <Text style={{ fontSize: 22, lineHeight: 26 }}>🔥</Text>
 

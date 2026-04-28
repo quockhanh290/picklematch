@@ -35,7 +35,7 @@ export function DashboardStatsStrip({ items }: { items: DashboardStatItem[] }) {
 
   return (
     <View
-      className="mt-6 flex-row rounded-[32px] border px-4 py-6"
+      className="mt-6 flex-row rounded-[24px] border px-4 py-6"
       style={{
         backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
         borderColor: PROFILE_THEME_COLORS.outlineVariant,

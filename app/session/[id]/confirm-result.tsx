@@ -16,7 +16,7 @@ import { AppDialog, type AppDialogConfig } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { supabase } from '@/lib/supabase'
 import { SCREEN_FONTS } from '@/constants/screenFonts'
-import { RADIUS, SPACING } from '@/constants/screenLayout'
+import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
 
 function withAlpha(hex: string, alpha: number) {
   const clean = hex.replace('#', '')
@@ -143,7 +143,7 @@ function TeamPlayerRow({
     <View
       style={{
         borderRadius: RADIUS.lg,
-        borderWidth: 1,
+        borderWidth: BORDER.base,
         borderColor: CONFIRM_THEME.cardBorder,
         backgroundColor: CONFIRM_THEME.cardBg,
         paddingHorizontal: 12,
@@ -161,7 +161,7 @@ function TeamPlayerRow({
           alignItems: 'center',
           justifyContent: 'center',
           backgroundColor: PROFILE_THEME_COLORS.primary,
-          borderWidth: 1,
+          borderWidth: BORDER.base,
           borderColor: PROFILE_THEME_COLORS.surfaceTint,
         }}
       >
@@ -216,8 +216,8 @@ function TeamBlock({
         {players.length === 0 ? (
           <View
             style={{
-              borderRadius: 16,
-              borderWidth: 1,
+              borderRadius: RADIUS.lg,
+              borderWidth: BORDER.base,
               borderStyle: 'dashed',
               borderColor: PROFILE_THEME_COLORS.outlineVariant,
               backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
@@ -535,9 +535,9 @@ export default function ConfirmSessionResultScreen() {
         <View
           style={{
             marginTop: 14,
-            borderRadius: 34,
+            borderRadius: RADIUS.hero,
             backgroundColor: CONFIRM_THEME.heroBg,
-            borderWidth: 1,
+            borderWidth: BORDER.base,
             borderColor: CONFIRM_THEME.heroBorder,
             overflow: 'hidden',
             paddingHorizontal: SPACING.lg,
@@ -605,7 +605,7 @@ export default function ConfirmSessionResultScreen() {
           style={{
             marginTop: 16,
             borderRadius: RADIUS.xl,
-            borderWidth: 1,
+            borderWidth: BORDER.base,
             borderColor: CONFIRM_THEME.sectionBorder,
             backgroundColor: CONFIRM_THEME.sectionBg,
             padding: SPACING.md,
@@ -633,7 +633,7 @@ export default function ConfirmSessionResultScreen() {
           style={{
             marginTop: 16,
             borderRadius: RADIUS.xl,
-            borderWidth: 1,
+            borderWidth: BORDER.base,
             borderColor: CONFIRM_THEME.sectionBorder,
             backgroundColor: CONFIRM_THEME.sectionBg,
             padding: SPACING.md,
@@ -663,8 +663,8 @@ export default function ConfirmSessionResultScreen() {
             placeholderTextColor={CONFIRM_THEME.inputPlaceholder}
             style={{
               marginTop: 10,
-              borderRadius: 18,
-              borderWidth: 1,
+              borderRadius: RADIUS.xl,
+              borderWidth: BORDER.base,
               borderColor: CONFIRM_THEME.inputBorder,
               backgroundColor: CONFIRM_THEME.cardBg,
               minHeight: 120,
@@ -685,7 +685,7 @@ export default function ConfirmSessionResultScreen() {
               style={{
                 height: 50,
                 borderRadius: RADIUS.full,
-                borderWidth: 2,
+                borderWidth: BORDER.thick,
                 borderColor: CONFIRM_THEME.dangerText,
                 backgroundColor: PROFILE_THEME_COLORS.secondaryContainer,
                 alignItems: 'center',
@@ -709,7 +709,7 @@ export default function ConfirmSessionResultScreen() {
         </View>
 
         {myEntry.result_confirmation_status === 'disputed' && myEntry.result_dispute_note ? (
-          <View style={{ marginTop: 12, borderRadius: 18, borderWidth: 1, borderColor: CONFIRM_THEME.warningBorder, backgroundColor: CONFIRM_THEME.warningBg, padding: 12 }}>
+          <View style={{ marginTop: 12, borderRadius: RADIUS.xl, borderWidth: BORDER.base, borderColor: CONFIRM_THEME.warningBorder, backgroundColor: CONFIRM_THEME.warningBg, padding: 12 }}>
             <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 14, color: CONFIRM_THEME.warningText }}>
               Bạn đã gửi tranh chấp trước đó
             </Text>

@@ -10,7 +10,7 @@ export function PostMatchActionsSection({ items }: { items: PostMatchAction[] })
 
   return (
     <View
-      className="mt-6 rounded-[32px] border p-5"
+      className="mt-6 rounded-[24px] border p-5"
       style={{ borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest }}
     >
       <Text className="text-[11px] font-black uppercase tracking-[0.16em]" style={{ color: PROFILE_THEME_COLORS.outline }}>Sau trận</Text>

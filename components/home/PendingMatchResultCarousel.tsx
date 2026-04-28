@@ -38,7 +38,7 @@ function CarouselDots({ count, activeIndex }: { count: number; activeIndex: numb
 function PendingMatchResultCard({ item }: { item: PendingMatch }) {
   return (
     <View
-      className="mb-8 flex-row items-center gap-4 overflow-hidden rounded-[32px] border p-5"
+      className="mb-8 flex-row items-center gap-4 overflow-hidden rounded-[24px] border p-5"
       style={{
         borderColor: PROFILE_THEME_COLORS.secondaryFixedDim,
         backgroundColor: PROFILE_THEME_COLORS.primaryFixed,

@@ -7,7 +7,7 @@ import type { NearByCourt } from '@/lib/useNearbyCourts'
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
 
 import { getCreateSessionSkillOption } from './skillLevelOptions'
-import { RADIUS } from '@/constants/screenLayout'
+import { RADIUS, BORDER } from '@/constants/screenLayout'
 
 type Props = {
   selectedCourt: NearByCourt
@@ -166,7 +166,7 @@ export function CreateSessionStep3({
         </View>
 
         {/* Detail list */}
-        <View style={{ backgroundColor: PROFILE_THEME_COLORS.surface, borderRadius: RADIUS.md, borderWidth: 0.5, borderColor: PROFILE_THEME_COLORS.outlineVariant, overflow: 'hidden', marginBottom: 16 }}>
+        <View style={{ backgroundColor: PROFILE_THEME_COLORS.surface, borderRadius: RADIUS.md, borderWidth: BORDER.hairline, borderColor: PROFILE_THEME_COLORS.outlineVariant, overflow: 'hidden', marginBottom: 16 }}>
           {details.map((item, i) => (
             <View
               key={i}
@@ -177,7 +177,7 @@ export function CreateSessionStep3({
                 borderTopColor: PROFILE_THEME_COLORS.surfaceDim,
               }}
             >
-              <View style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, alignItems: 'center', justifyContent: 'center' }}>
+              <View style={{ width: 32, height: 32, borderRadius: RADIUS.sm, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, alignItems: 'center', justifyContent: 'center' }}>
                 <Text style={{ fontSize: 14 }}>{item.icon}</Text>
               </View>
               <View style={{ flex: 1 }}>
@@ -206,7 +206,7 @@ export function CreateSessionStep3({
         <TouchableOpacity
           onPress={onBack}
           disabled={submitting}
-          style={{ flex: 1, borderRadius: RADIUS.full, borderWidth: 1.5, borderColor: PROFILE_THEME_COLORS.outlineVariant, paddingVertical: 13, alignItems: 'center', backgroundColor: PROFILE_THEME_COLORS.surface, opacity: submitting ? 0.5 : 1 }}
+          style={{ flex: 1, borderRadius: RADIUS.full, borderWidth: BORDER.medium, borderColor: PROFILE_THEME_COLORS.outlineVariant, paddingVertical: 13, alignItems: 'center', backgroundColor: PROFILE_THEME_COLORS.surface, opacity: submitting ? 0.5 : 1 }}
         >
           <Text style={{ fontSize: 14, color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.cta }}>Quay lại</Text>
         </TouchableOpacity>
