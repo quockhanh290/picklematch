@@ -56,7 +56,7 @@ function formatCurrencyLabel(value: number) {
 function SectionDivider({ index, title }: { index: string; title: string }) {
   return (
     <View style={{ marginBottom: 12, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-      <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 11, textTransform: 'uppercase', letterSpacing: 2.8, color: PROFILE_THEME_COLORS.outline }}>
+      <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 16, textTransform: 'uppercase', letterSpacing: 1.5, color: PROFILE_THEME_COLORS.outline }}>
         {index} / {title}
       </Text>
       <View style={{ height: 1, flex: 1, backgroundColor: PROFILE_THEME_COLORS.outlineVariant }} />
@@ -263,7 +263,7 @@ export function CreateSessionStep2({
                         borderColor: isSelected ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
                       }}>
                         <Icon size={20} color={isSelected ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant} />
-                        <Text style={{ fontFamily: SCREEN_FONTS.headlineBlack, fontSize: 24, lineHeight: 28, color: isSelected ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant }}>
+                        <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 32, lineHeight: 36, color: isSelected ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant }}>
                           {playerCount}
                         </Text>
                         <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 11, color: isSelected ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant }}>
@@ -318,9 +318,9 @@ export function CreateSessionStep2({
             </Text>
 
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-              <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 18, color: PROFILE_THEME_COLORS.primary }}>{minSkillOption?.label}</Text>
+              <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 24, color: PROFILE_THEME_COLORS.primary }}>{minSkillOption?.label}</Text>
               <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 16, color: PROFILE_THEME_COLORS.secondaryFixedDim }}>{'→'}</Text>
-              <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 18, color: PROFILE_THEME_COLORS.primary }}>{maxSkillOption?.label}</Text>
+              <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 24, color: PROFILE_THEME_COLORS.primary }}>{maxSkillOption?.label}</Text>
             </View>
 
             <SkillRangeSelector
@@ -340,23 +340,20 @@ export function CreateSessionStep2({
             </Text>
             <View style={{ gap: 8 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                <TextInput
-                  value={totalCostStr}
-                  onChangeText={(value) => setTotalCostStr(formatCurrencyInput(value))}
-                  placeholder="Tổng chi phí sân (vd: 240000)"
-                  placeholderTextColor={PROFILE_THEME_COLORS.outline}
-                  keyboardType="number-pad"
-                  style={{
-                    flex: 1, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
-                    borderRadius: RADIUS.sm, padding: SPACING.sm,
-                    fontSize: 14, color: PROFILE_THEME_COLORS.onSurface,
-                    fontFamily: SCREEN_FONTS.body,
-                  }}
-                />
-                <Text style={{ fontSize: 12, color: PROFILE_THEME_COLORS.onSurfaceVariant }}>VNĐ</Text>
+                <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', borderRadius: RADIUS.md, borderWidth: BORDER.base, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest, paddingHorizontal: 12, paddingVertical: 9 }}>
+                  <TextInput
+                    value={totalCostStr}
+                    onChangeText={(value) => setTotalCostStr(formatCurrencyInput(value))}
+                    placeholder="Tổng chi phí sân (vd: 240000)"
+                    placeholderTextColor={PROFILE_THEME_COLORS.outline}
+                    keyboardType="number-pad"
+                    style={{ flex: 1, fontFamily: SCREEN_FONTS.body, fontSize: 14, color: PROFILE_THEME_COLORS.primary, padding: 0 }}
+                  />
+                  <Text style={{ fontSize: 12, color: PROFILE_THEME_COLORS.outline, marginLeft: 8 }}>VNĐ</Text>
+                </View>
               </View>
-              <View style={{ backgroundColor: PROFILE_THEME_COLORS.primaryContainer, borderRadius: RADIUS.sm, padding: SPACING.sm }}>
-                <Text style={{ fontSize: 13, color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.label }}>
+              <View style={{ backgroundColor: PROFILE_THEME_COLORS.primary, borderRadius: RADIUS.sm, padding: SPACING.sm }}>
+                <Text style={{ fontSize: 13, color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.label }}>
                   {costPerPerson > 0
                     ? `Chi phí / người: ${formatCurrencyLabel(costPerPerson)}`
                     : 'Chi phí / người: Chưa có'}
@@ -424,8 +421,8 @@ export function CreateSessionStep2({
                   >
                     <View style={{
                       borderRadius: RADIUS.full, borderWidth: BORDER.base,
-                      borderColor: active ? PROFILE_THEME_COLORS.primaryContainer : PROFILE_THEME_COLORS.outlineVariant,
-                      backgroundColor: active ? PROFILE_THEME_COLORS.primaryContainer : PROFILE_THEME_COLORS.surfaceContainerLowest,
+                      borderColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
+                      backgroundColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surfaceContainerLowest,
                       paddingHorizontal: SPACING.md, paddingVertical: 11, alignItems: 'center',
                     }}>
                       <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 13, color: active ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSecondaryContainer }}>
@@ -456,8 +453,8 @@ export function CreateSessionStep2({
                       >
                         <View style={{
                           borderRadius: RADIUS.full, borderWidth: BORDER.base,
-                          borderColor: active ? PROFILE_THEME_COLORS.surfaceTint : PROFILE_THEME_COLORS.outlineVariant,
-                          backgroundColor: active ? PROFILE_THEME_COLORS.surfaceTint : PROFILE_THEME_COLORS.surfaceContainerLowest,
+                          borderColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
+                          backgroundColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surfaceContainerLowest,
                           paddingHorizontal: SPACING.md, paddingVertical: 9, alignItems: 'center',
                         }}>
                           <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 13, color: active ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSecondaryContainer }}>
