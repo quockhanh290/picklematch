@@ -2,6 +2,7 @@ import { Check, ChevronRight, MessageSquareText, ShieldAlert, X } from 'lucide-r
 import { Text, TouchableOpacity, View } from 'react-native'
 
 import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
+import { SCREEN_FONTS } from '@/constants/screenFonts'
 
 type RequestItem = {
   id: string
@@ -47,7 +48,15 @@ export function HostRequestReview({
       <Text className="mb-1 text-[11px] font-extrabold uppercase tracking-[1.2px]" style={{ color: PROFILE_THEME_COLORS.outline }}>
         Duyệt yêu cầu
       </Text>
-      <Text className="mb-4 text-2xl font-black" style={{ color: PROFILE_THEME_COLORS.onSurface }}>
+      <Text
+        style={{
+          marginBottom: 16,
+          fontSize: 24,
+          fontFamily: SCREEN_FONTS.headline,
+          color: PROFILE_THEME_COLORS.onSurface,
+          textTransform: 'uppercase',
+        }}
+      >
         Yêu cầu tham gia
       </Text>
 
@@ -86,7 +95,15 @@ export function HostRequestReview({
                   <Text className="text-[11px] font-extrabold uppercase tracking-[1px]" style={{ color: PROFILE_THEME_COLORS.outline }}>
                     Người chơi
                   </Text>
-                  <Text className="mt-2 text-lg font-black" style={{ color: PROFILE_THEME_COLORS.onSurface }}>
+                  <Text
+                    style={{
+                      marginTop: 8,
+                      fontSize: 18,
+                      fontFamily: SCREEN_FONTS.headline,
+                      color: PROFILE_THEME_COLORS.onSurface,
+                      textTransform: 'uppercase',
+                    }}
+                  >
                     {request.player.name}
                   </Text>
                   <Text className="mt-1 text-sm" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant }}>

@@ -98,7 +98,7 @@ export function JoinRequestModal({
                       lineHeight: 36,
                       letterSpacing: 0.4,
                       color: PROFILE_THEME_COLORS.primary,
-                      fontFamily: SCREEN_FONTS.bold,
+                      fontFamily: SCREEN_FONTS.headline,
                       textTransform: 'uppercase',
                     }}
                   >
@@ -152,7 +152,7 @@ export function JoinRequestModal({
                       style={{
                         marginLeft: 7,
                         fontSize: 12,
-                        fontFamily: SCREEN_FONTS.bold,
+                        fontFamily: SCREEN_FONTS.headline,
                         textTransform: 'uppercase',
                         letterSpacing: 1,
                         color: PROFILE_THEME_COLORS.onPrimaryFixedVariant,

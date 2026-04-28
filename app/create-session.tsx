@@ -2,7 +2,7 @@ import { CreateSessionStep1 } from '@/components/create-session/CreateSessionSte
 import { CreateSessionStep2 } from '@/components/create-session/CreateSessionStep2'
 import { CreateSessionStep3 } from '@/components/create-session/CreateSessionStep3'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
-import { CREATE_SESSION_ELO_LEVELS } from '@/lib/eloSystem'
+import { CREATE_SESSION_ELO_LEVELS, ELO_BANDS } from '@/lib/eloSystem'
 import type { SessionDetailRecord } from '@/hooks/useSessionDetail'
 import { supabase } from '@/lib/supabase'
 import { type NearByCourt, useNearbyCourts } from '@/lib/useNearbyCourts'
@@ -348,8 +348,8 @@ export default function CreateSession() {
   }
 
   function goToStep3FromNew() {
-    const minElo = CREATE_SESSION_ELO_LEVELS[minSkill - 1].elo
-    const maxElo = CREATE_SESSION_ELO_LEVELS[maxSkill - 1].elo
+    const minElo = ELO_BANDS[minSkill - 1].eloMin
+    const maxElo = ELO_BANDS[maxSkill - 1].eloMax
 
     if (minElo > maxElo) {
       Alert.alert('L\u1ed7i', 'Tr\u00ecnh \u0111\u1ed9 t\u1ed1i thi\u1ec3u kh\u00f4ng th\u1ec3 cao h\u01a1n tr\u00ecnh \u0111\u1ed9 t\u1ed1i \u0111a.')

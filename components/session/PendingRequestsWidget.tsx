@@ -2,6 +2,7 @@ import { ChevronRight, Users } from 'lucide-react-native'
 import { Image, Pressable, Text, View } from 'react-native'
 
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { SCREEN_FONTS } from '@/constants/screenFonts'
 
 type Props = {
   count: number
@@ -69,7 +70,15 @@ export function PendingRequestsWidget({ count, avatars, onPress }: Props) {
             </View>
           </View>
 
-          <Text className="mt-3 text-[19px] font-black" style={{ color: PROFILE_THEME_COLORS.onPrimary }}>
+          <Text
+            style={{
+              marginTop: 12,
+              fontSize: 19,
+              fontFamily: SCREEN_FONTS.headline,
+              color: PROFILE_THEME_COLORS.onPrimary,
+              textTransform: 'uppercase',
+            }}
+          >
             {count} người đang chờ duyệt
           </Text>
           <Text className="mt-1 text-[12px] font-medium" style={{ color: PROFILE_THEME_COLORS.secondaryContainer }}>

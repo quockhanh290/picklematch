@@ -2,9 +2,9 @@ import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { SCREEN_FONTS } from '@/constants/screenFonts'
 import { getSkillLevelUi } from '@/lib/skillLevelUi'
 import { LinearGradient } from 'expo-linear-gradient'
-import { CreditCard, MapPin, MessageSquareText, ShieldAlert, ShieldCheck, Trophy } from 'lucide-react-native'
+import { CreditCard, MapPin, MessageSquareText } from 'lucide-react-native'
 import { Text, View } from 'react-native'
-import { RADIUS, SPACING, SHADOW } from '@/constants/screenLayout'
+import { RADIUS, SPACING, SHADOW, BORDER } from '@/constants/screenLayout'
 
 type Props = {
   skillLevelId: string
@@ -18,6 +18,7 @@ type Props = {
   isRanked?: boolean | null
   hostNote?: string | null
   sessionStatus?: string | null
+  maxPlayers: number
 }
 
 function withAlpha(hex: string, alpha: number) {
@@ -38,6 +39,7 @@ export function SessionMetaCard({
   isRanked,
   hostNote,
   sessionStatus,
+  maxPlayers,
 }: Props) {
   const levelUi = getSkillLevelUi(skillLevelId as any)
   const LevelIcon = levelUi.icon
@@ -65,283 +67,137 @@ export function SessionMetaCard({
         borderRadius: RADIUS.lg,
         overflow: 'hidden',
         backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
-        ...SHADOW.md,
+        borderWidth: BORDER.hairline,
+        borderColor: PROFILE_THEME_COLORS.outlineVariant,
+        ...SHADOW.sm,
       }}
     >
       <View style={{ position: 'relative' }}>
-        <LinearGradient
-          colors={[PROFILE_THEME_COLORS.primary, PROFILE_THEME_COLORS.surfaceTint]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}
-        />
-
-        <LevelIcon
-          size={128}
-          color={withAlpha(onAccent, 0.14)}
-          style={{ position: 'absolute', right: -18, bottom: -18 }}
-        />
-
-        <View style={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 20 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
+        <View
+          style={{
+            backgroundColor: '#1D9E75',
+            paddingHorizontal: 16,
+            paddingVertical: SPACING.xs,
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 6 }}>
+            <View style={{ width: 5, height: 5, borderRadius: RADIUS.full, backgroundColor: '#FFFFFF' }} />
             <Text
-              numberOfLines={2}
-              adjustsFontSizeToFit
-              minimumFontScale={0.7}
               style={{
-                flex: 1,
-                color: onAccent,
-                fontFamily: SCREEN_FONTS.headline,
-                fontSize: 38,
-                lineHeight: 44,
-                letterSpacing: 0.8,
-                textTransform: 'uppercase',
+                color: '#FFFFFF',
+                fontFamily: SCREEN_FONTS.cta,
+                fontSize: 11,
+                letterSpacing: 0.5,
               }}
             >
-              {courtName}
+              {'THÔNG TIN KÈO'}
             </Text>
           </View>
 
           <Text
             style={{
-              color: withAlpha(onAccent, 0.62),
-              fontFamily: SCREEN_FONTS.headlineItalic,
-              fontSize: 42,
-              lineHeight: 50,
-              marginTop: 2,
+              color: 'rgba(255,255,255,0.8)',
+              fontFamily: SCREEN_FONTS.label,
+              fontSize: 11,
             }}
           >
-            {timeRangeLabel}
+            {maxPlayers === 2 ? 'Đánh đơn' : 'Đánh đôi'}
+          </Text>
+        </View>
+
+        <View style={{ paddingTop: 12, paddingHorizontal: 16, paddingBottom: 12 }}>
+          <Text
+            numberOfLines={2}
+            style={{
+              color: '#1A2E2A',
+              fontFamily: SCREEN_FONTS.headline,
+              fontSize: 31,
+              lineHeight: 36,
+              letterSpacing: 0,
+              marginBottom: 4,
+              textTransform: 'uppercase',
+            }}
+          >
+            {courtName}
           </Text>
 
-          {datePart ? (
-            <Text
-              style={{
-                color: withAlpha(onAccent, 0.62),
-                fontFamily: SCREEN_FONTS.headlineItalic,
-                fontSize: 22,
-                lineHeight: 29,
-                marginTop: 2,
-                textTransform: 'uppercase',
-              }}
-            >
-              {datePart}
+          <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 6 }}>
+            <MapPin size={13} color="#7A8884" strokeWidth={2.5} />
+            <Text numberOfLines={1} ellipsizeMode="tail" style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 13, lineHeight: 18, flexShrink: 1 }}>
+              {compactAddress}
             </Text>
-          ) : null}
-
-          <View style={{ marginTop: 14, gap: 8 }}>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                borderRadius: RADIUS.full,
-                paddingHorizontal: 12,
-                paddingVertical: 7,
-                backgroundColor: withAlpha(onAccent, 0.13),
-                maxWidth: '100%',
-                alignSelf: 'flex-start',
-              }}
-            >
-              <MapPin size={12} color={withAlpha(onAccent, 0.8)} strokeWidth={2.5} />
-              <Text
-                numberOfLines={1}
-                style={{
-                  marginLeft: 6,
-                  color: withAlpha(onAccent, 0.9),
-                  fontFamily: SCREEN_FONTS.label,
-                  fontSize: 14,
-                }}
-              >
-                {compactAddress}
-              </Text>
-            </View>
-
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  borderRadius: RADIUS.full,
-                  paddingHorizontal: 12,
-                  paddingVertical: 7,
-                  backgroundColor: withAlpha(onAccent, 0.13),
-                  alignSelf: 'flex-start',
-                }}
-              >
-                {isClosedRecruitment
-                  ? <ShieldAlert size={12} color={withAlpha(onAccent, 0.8)} strokeWidth={2.5} />
-                  : isConfirmed
-                    ? <ShieldCheck size={12} color={withAlpha(onAccent, 0.8)} strokeWidth={2.5} />
-                    : <ShieldAlert size={12} color={withAlpha(onAccent, 0.8)} strokeWidth={2.5} />}
-                <Text
-                  style={{
-                    marginLeft: 6,
-                    color: withAlpha(onAccent, 0.9),
-                    fontFamily: SCREEN_FONTS.label,
-                    fontSize: 13,
-                  }}
-                >
-                  {bookingStatusLabel}
-                </Text>
-              </View>
-
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  borderRadius: RADIUS.full,
-                  paddingHorizontal: 12,
-                  paddingVertical: 7,
-                  backgroundColor: withAlpha(onAccent, 0.13),
-                  alignSelf: 'flex-start',
-                }}
-              >
-                <LevelIcon size={12} color={withAlpha(onAccent, 0.8)} strokeWidth={2.5} />
-                <Text
-                  style={{
-                    marginLeft: 6,
-                    color: withAlpha(onAccent, 0.9),
-                    fontFamily: SCREEN_FONTS.label,
-                    fontSize: 14,
-                  }}
-                >
-                  {sessionSkillLabel}
-                </Text>
-              </View>
-            </View>
           </View>
         </View>
       </View>
 
-      <View style={{ paddingHorizontal: SPACING.xl, paddingVertical: SPACING.lg }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <View
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: RADIUS.full,
-              backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <CreditCard size={18} color={PROFILE_THEME_COLORS.primary} strokeWidth={2.4} />
-          </View>
-          <View style={{ marginLeft: 14, flex: 1 }}>
-            <Text
-              style={{
-                fontSize: 11,
-                fontFamily: SCREEN_FONTS.bold,
-                textTransform: 'uppercase',
-                letterSpacing: 1.8,
-                color: PROFILE_THEME_COLORS.outline,
-              }}
-            >
-              {'\u0043\u0068\u0069\u0020\u0070\u0068\u00ED'}
+      <View style={{ backgroundColor: '#F5F1E8', paddingTop: 14, paddingHorizontal: 16, paddingBottom: 16 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+          <View>
+            <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.label, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>
+              {'THỜI GIAN'}
             </Text>
             <Text
               style={{
-                marginTop: 3,
-                fontSize: 15,
-                fontFamily: SCREEN_FONTS.label,
-                color: PROFILE_THEME_COLORS.onSurface,
+                color: '#1A2E2A',
+                fontFamily: SCREEN_FONTS.headline,
+                fontSize: 33,
+                lineHeight: 33,
+                letterSpacing: 0,
               }}
             >
+              {clockPart || timeLabel}
+            </Text>
+            <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 13, marginTop: 4 }}>
+              {datePart}
+            </Text>
+          </View>
+
+          <View style={{ alignItems: 'flex-end' }}>
+            <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.label, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>
+              {'CHI PHÍ'}
+            </Text>
+            <Text style={{ color: '#1A2E2A', fontFamily: SCREEN_FONTS.headline, fontSize: 28, lineHeight: 28 }}>
               {priceLabel}
             </Text>
-          </View>
-        </View>
-
-        <View style={{ height: 1, backgroundColor: PROFILE_THEME_COLORS.outlineVariant, marginVertical: 14 }} />
-
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <View
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: RADIUS.full,
-              backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Trophy size={18} color={PROFILE_THEME_COLORS.primary} strokeWidth={2.4} />
-          </View>
-          <View style={{ marginLeft: 14, flex: 1 }}>
-            <Text
-              style={{
-                fontSize: 11,
-                fontFamily: SCREEN_FONTS.bold,
-                textTransform: 'uppercase',
-                letterSpacing: 1.8,
-                color: PROFILE_THEME_COLORS.outline,
-              }}
-            >
-              {'\u004C\u006F\u1EA1\u0069\u0020\u006B\u00E8\u006F'}
-            </Text>
-            <Text
-              style={{
-                marginTop: 3,
-                fontSize: 15,
-                fontFamily: SCREEN_FONTS.label,
-                color: PROFILE_THEME_COLORS.onSurface,
-              }}
-            >
-              {isRankedMatch ? '\u004B\u00E8\u006F\u0020\u0074\u00ED\u006E\u0068\u0020\u0111\u0069\u1EC3\u006D' : '\u004B\u00E8\u006F\u0020\u0063\u0061\u0073\u0075\u0061\u006C'}
-            </Text>
-            <Text
-              style={{
-                marginTop: 2,
-                fontSize: 12,
-                fontFamily: SCREEN_FONTS.body,
-                color: PROFILE_THEME_COLORS.onSurfaceVariant,
-              }}
-            >
-              {isRankedMatch
-                ? '\u004B\u1EBF\u0074\u0020\u0071\u0075\u1EA3\u0020\u0074\u0072\u1EAD\u006E\u0020\u0073\u1EBD\u0020\u1EA3\u006E\u0068\u0020\u0068\u01B0\u1EDF\u006E\u0067\u0020\u0111\u0069\u1EC3\u006D\u0020\u0045\u004C\u004F\u0020\u0063\u1EE7\u0061\u0020\u006E\u0067\u01B0\u1EDD\u0069\u0020\u0063\u0068\u01A1\u0069\u002E'
-                : 'Trận giao lưu, kết quả không làm thay đổi điểm ELO.'}
+            <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 11, marginTop: 2 }}>
+              {'/người'}
             </Text>
           </View>
         </View>
 
-        <View style={{ height: 1, backgroundColor: PROFILE_THEME_COLORS.outlineVariant, marginVertical: 14 }} />
+        <View style={{ height: 1, backgroundColor: 'rgba(0,0,0,0.06)', marginVertical: 8 }} />
 
-        <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
-          <View
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: RADIUS.full,
-              backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <MessageSquareText size={18} color={PROFILE_THEME_COLORS.primary} strokeWidth={2.4} />
+        <View style={{ gap: 12 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ backgroundColor: '#FFFFFF', borderRadius: 4, paddingHorizontal: 9, paddingVertical: 4, borderWidth: 1, borderColor: 'rgba(0,0,0,0.05)' }}>
+              <Text style={{ color: '#2C2C2A', fontFamily: SCREEN_FONTS.label, fontSize: 12 }}>
+                {sessionSkillLabel}
+              </Text>
+            </View>
+            <View style={{ marginLeft: 12, flexDirection: 'row', alignItems: 'center' }}>
+              <View style={{ width: 6, height: 6, borderRadius: RADIUS.full, backgroundColor: isConfirmed ? '#0F6E56' : '#D19900' }} />
+              <Text style={{ marginLeft: 6, color: isConfirmed ? '#0F6E56' : '#7A6400', fontFamily: SCREEN_FONTS.label, fontSize: 12 }}>
+                {bookingStatusLabel}
+              </Text>
+            </View>
           </View>
-          <View style={{ marginLeft: 14, flex: 1 }}>
-            <Text
-              style={{
-                fontSize: 11,
-                fontFamily: SCREEN_FONTS.bold,
-                textTransform: 'uppercase',
-                letterSpacing: 1.8,
-                color: PROFILE_THEME_COLORS.outline,
-              }}
-            >
-              {'\u004C\u1EDD\u0069\u0020\u006E\u0068\u1EAF\u006E\u0020\u0063\u1EE7\u0061\u0020\u0068\u006F\u0073\u0074'}
-            </Text>
-            <Text
-              style={{
-                marginTop: 3,
-                fontSize: 15,
-                fontFamily: SCREEN_FONTS.label,
-                color: PROFILE_THEME_COLORS.onSurface,
-              }}
-            >
-              {hostNote && hostNote.trim().length > 0 ? hostNote.trim() : '\u0043\u0068\u01B0\u0061\u0020\u0063\u00F3\u0020\u006C\u1EDD\u0069\u0020\u006E\u0068\u1EAF\u006E\u0020\u0074\u0068\u00EA\u006D'}
-            </Text>
-          </View>
+
+          {hostNote && hostNote.trim().length > 0 && (
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+              <MessageSquareText size={14} color="#1A2E2A" strokeWidth={2.5} style={{ marginTop: 2 }} />
+              <View style={{ marginLeft: 8, flex: 1 }}>
+                <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.label, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8 }}>
+                  {'LỜI NHẮN'}
+                </Text>
+                <Text style={{ color: '#1A2E2A', fontFamily: SCREEN_FONTS.body, fontSize: 13, marginTop: 2 }}>
+                  {hostNote.trim()}
+                </Text>
+              </View>
+            </View>
+          )}
         </View>
       </View>
     </View>

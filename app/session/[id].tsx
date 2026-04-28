@@ -183,124 +183,106 @@ export default function SessionDetailScreen() {
 
   function renderPlayerRow(player: ArrangementPlayer, mode: 'normal' | 'arranging') {
     const levelUi = getSkillLevelUi(player.levelId)
-    const LevelIcon = levelUi.icon
     const isHostPlayer = player.id === hostId
 
     return (
       <View
         key={`${mode}-${player.id}`}
         style={{
-          position: 'relative',
-          overflow: 'hidden',
+          flexDirection: 'row',
+          alignItems: 'center',
           borderRadius: RADIUS.lg,
           borderWidth: BORDER.base,
           borderColor: PROFILE_THEME_COLORS.outlineVariant,
           backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
-          paddingHorizontal: SPACING.lg,
-          paddingVertical: SPACING.md,
-          ...SHADOW.xs,
+          paddingHorizontal: 16,
+          paddingVertical: 12,
+          gap: 12,
         }}
       >
-        <View
-          pointerEvents="none"
+        <TouchableOpacity
+          onPress={() => router.push({ pathname: '/player/[id]' as never, params: { id: player.id } })}
+          activeOpacity={0.86}
           style={{
-            position: 'absolute',
-            right: -14,
-            top: -8,
-            opacity: 0.12,
+            width: 44,
+            height: 44,
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: RADIUS.full,
+            backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
           }}
         >
-          <LevelIcon size={78} color={PROFILE_THEME_COLORS.primary} />
-        </View>
-
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-          <TouchableOpacity
-            onPress={() => router.push({ pathname: '/player/[id]' as never, params: { id: player.id } })}
-            activeOpacity={0.86}
+          <Text
             style={{
-              position: 'relative',
-              width: 62,
-              height: 62,
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: RADIUS.full,
-              borderWidth: BORDER.base,
-              borderColor: PROFILE_THEME_COLORS.primary,
-              backgroundColor: PROFILE_THEME_COLORS.primary,
+              fontSize: 14,
+              fontFamily: SCREEN_FONTS.bold,
+              color: PROFILE_THEME_COLORS.primary,
             }}
           >
+            {getInitials(player.name)}
+          </Text>
+        </TouchableOpacity>
+
+        <View style={{ flex: 1 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             <Text
+              numberOfLines={1}
               style={{
-                fontSize: 18,
-                fontFamily: SCREEN_FONTS.bold,
-                color: PROFILE_THEME_COLORS.onPrimary,
+                fontSize: 15,
+                fontFamily: SCREEN_FONTS.headline,
+                color: PROFILE_THEME_COLORS.onSurface,
+                textTransform: 'uppercase',
               }}
             >
-              {getInitials(player.name)}
+              {player.name}
             </Text>
-            <View
-              style={{
-                position: 'absolute',
-                right: -3,
-                bottom: -3,
-                width: 24,
-                height: 24,
-                borderRadius: RADIUS.full,
-                borderWidth: BORDER.thick,
-                borderColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
-                backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHighest,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <LevelIcon size={12} color={levelUi.iconColor} strokeWidth={2.5} />
-            </View>
-          </TouchableOpacity>
-
-          <View style={{ flex: 1 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <Text style={{ fontSize: 18, fontFamily: SCREEN_FONTS.bold, color: PROFILE_THEME_COLORS.onSurface }}>
-                {player.name}
-              </Text>
-              {isHostPlayer ? (
-                <KeyRound size={14} color={PROFILE_THEME_COLORS.primary} strokeWidth={2.6} />
-              ) : null}
-            </View>
-
-            <View style={{ marginTop: 6, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}>
-              <Text style={{ fontSize: 13, fontFamily: SCREEN_FONTS.bold, color: PROFILE_THEME_COLORS.surfaceTint }}>
-                {player.skillTag}
-              </Text>
-
-              {mode === 'normal' &&
-              player.reliability !== null &&
-              player.reliability !== undefined ? (
-                <Text style={{ fontSize: 12, fontFamily: SCREEN_FONTS.label, color: PROFILE_THEME_COLORS.primary }}>
-                  {`${player.reliability}% uy tín`}
-                </Text>
-              ) : null}
-            </View>
+            {isHostPlayer && (
+              <KeyRound size={12} color={PROFILE_THEME_COLORS.surfaceTint} strokeWidth={2.5} />
+            )}
           </View>
-
-          {mode === 'arranging' ? (
-            <TouchableOpacity
-              style={{
-                width: 52,
-                height: 52,
-                borderRadius: RADIUS.lg,
-                borderWidth: BORDER.base,
-                borderColor: PROFILE_THEME_COLORS.outlineVariant,
-                backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHigh,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-              onPress={() => switchTeam(player.id)}
-              activeOpacity={0.9}
-            >
-              <Repeat2 size={20} color={PROFILE_THEME_COLORS.primary} strokeWidth={2.5} />
-            </TouchableOpacity>
-          ) : null}
+          <Text style={{ fontSize: 10, fontFamily: SCREEN_FONTS.label, color: PROFILE_THEME_COLORS.outline, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+            {isHostPlayer ? 'Chủ kèo' : 'Thành viên'}
+          </Text>
         </View>
+
+        <View
+          style={{
+            backgroundColor: levelUi.iconColor + '15',
+            borderRadius: 6,
+            paddingHorizontal: 10,
+            paddingVertical: 5,
+            borderWidth: 1,
+            borderColor: levelUi.iconColor + '30',
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 11,
+              fontFamily: SCREEN_FONTS.bold,
+              color: levelUi.iconColor,
+              textTransform: 'uppercase',
+              letterSpacing: 0.5,
+            }}
+          >
+            {levelUi.shortLabel}
+          </Text>
+        </View>
+
+        {mode === 'arranging' && (
+          <TouchableOpacity
+            onPress={() => switchTeam(player.id)}
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: RADIUS.full,
+              backgroundColor: PROFILE_THEME_COLORS.primary,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Repeat2 size={16} color={PROFILE_THEME_COLORS.onPrimary} />
+          </TouchableOpacity>
+        )}
       </View>
     )
   }
@@ -391,7 +373,36 @@ export default function SessionDetailScreen() {
           priceLabel={formatPricePerPerson(session.slot.price, session.max_players)}
           isRanked={session.is_ranked}
           hostNote={session.booking_notes}
+          maxPlayers={session.max_players}
         />
+
+        {session.is_ranked && (
+          <View
+            style={{
+              marginTop: 16,
+              borderRadius: RADIUS.md,
+              padding: 12,
+              backgroundColor: PROFILE_THEME_COLORS.secondaryContainer,
+              flexDirection: 'row',
+              gap: 12,
+              alignItems: 'center',
+            }}
+          >
+            <View style={{ width: 32, height: 32, borderRadius: RADIUS.sm, backgroundColor: PROFILE_THEME_COLORS.onSecondaryContainer, alignItems: 'center', justifyContent: 'center', opacity: 0.1 }}>
+            </View>
+            <View style={{ position: 'absolute', left: 12, width: 32, height: 32, alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontSize: 16 }}>🏆</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 13, fontFamily: SCREEN_FONTS.bold, color: PROFILE_THEME_COLORS.primary }}>
+                Kèo tính điểm ELO
+              </Text>
+              <Text style={{ fontSize: 11, fontFamily: SCREEN_FONTS.body, color: PROFILE_THEME_COLORS.primary, marginTop: 1, opacity: 0.8 }}>
+                Kết quả trận đấu này sẽ được dùng để cập nhật trình độ và bảng xếp hạng.
+              </Text>
+            </View>
+          </View>
+        )}
 
         {canRespondToResult ? (
           <View

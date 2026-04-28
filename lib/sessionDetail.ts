@@ -109,7 +109,11 @@ export function formatTimeRange(start: string, end: string) {
 
 export function formatPricePerPerson(totalPrice: number, maxPlayers: number) {
   if (!totalPrice || !maxPlayers) return 'Miễn phí'
-  return `${Math.ceil(totalPrice / maxPlayers).toLocaleString('vi-VN')}đ/người`
+  const perPerson = Math.ceil(totalPrice / maxPlayers)
+  if (perPerson >= 1000) {
+    return `${Math.round(perPerson / 1000)}K`
+  }
+  return `${perPerson}đ`
 }
 
 export function buildArrangementPlayers(session: ArrangementSession) {

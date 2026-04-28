@@ -84,7 +84,7 @@ function EmptySlot() {
         borderColor: PROFILE_THEME_COLORS.outlineVariant,
         backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
         paddingHorizontal: 16,
-        paddingVertical: SPACING.md,
+        paddingVertical: 12,
       }}
     >
       <View
@@ -143,9 +143,7 @@ export function PlayerRosterSection({
             style={{
               fontFamily: SCREEN_FONTS.label,
               fontSize: 13,
-              color: sessionStatus === 'open' && spotsLeft > 0
-                ? PROFILE_THEME_COLORS.surfaceTint
-                : PROFILE_THEME_COLORS.onSurfaceVariant,
+              color: PROFILE_THEME_COLORS.onSurfaceVariant,
               marginTop: 4,
             }}
           >
@@ -228,12 +226,13 @@ export function PlayerRosterSection({
       )}
 
       {/* Team A */}
-      <View style={{ marginBottom: 20 }}>
+      <View style={{ marginBottom: 24 }}>
         <TeamHeader label="Đội A" badge="A" avgElo={averageTeamA} />
         <View style={{ gap: 10 }}>
-          {teamA.length > 0
-            ? teamA.map((player) => renderPlayerRow(player, isArranging ? 'arranging' : 'normal'))
-            : <EmptySlot />}
+          {teamA.map((player) => renderPlayerRow(player, isArranging ? 'arranging' : 'normal'))}
+          {Array.from({ length: Math.max(0, Math.ceil(maxPlayers / 2) - teamA.length) }).map((_, i) => (
+            <EmptySlot key={`empty-a-${i}`} />
+          ))}
         </View>
       </View>
 
@@ -242,10 +241,9 @@ export function PlayerRosterSection({
         <TeamHeader label="Đội B" badge="B" avgElo={averageTeamB} />
         <View style={{ gap: 10 }}>
           {teamB.map((player) => renderPlayerRow(player, isArranging ? 'arranging' : 'normal'))}
-          {Array.from({ length: spotsLeft }).map((_, i) => (
-            <EmptySlot key={`empty-${i}`} />
+          {Array.from({ length: Math.max(0, Math.floor(maxPlayers / 2) - teamB.length) }).map((_, i) => (
+            <EmptySlot key={`empty-b-${i}`} />
           ))}
-          {teamB.length === 0 && spotsLeft === 0 && <EmptySlot />}
         </View>
       </View>
     </View>

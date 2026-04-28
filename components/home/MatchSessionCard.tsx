@@ -625,8 +625,11 @@ function SuggestedSessionCard({ item, showFullAddress }: { item: MatchSession; s
           </View>
         </View>
 
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 14 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
           <View>
+            <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.label, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>
+              {'THỜI GIAN'}
+            </Text>
             <Text
               style={{
                 color: '#1A2E2A',
@@ -638,17 +641,20 @@ function SuggestedSessionCard({ item, showFullAddress }: { item: MatchSession; s
             >
               {formatClock(startDate)}
             </Text>
-            <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 11, lineHeight: 15, marginTop: 3 }}>
-              {`\u0111\u1ebfn ${formatClock(endDate)}`}
+            <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 11, lineHeight: 15, marginTop: 4 }}>
+              {`đến ${formatClock(endDate)}`}
             </Text>
           </View>
 
           <View style={{ alignItems: 'flex-end' }}>
+            <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.label, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>
+              {'CHI PHÍ'}
+            </Text>
             <Text style={{ color: '#1A2E2A', fontFamily: AppFontSet.headline, fontSize: 25, lineHeight: 25 }}>
               {item.priceLabel}
             </Text>
-            <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 11, lineHeight: 15 }}>
-              {'/ng\u01b0\u1eddi'}
+            <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 11, lineHeight: 15, marginTop: 2 }}>
+              {'/người'}
             </Text>
           </View>
         </View>
@@ -803,8 +809,11 @@ function UrgentFillCard({ item }: { item: MatchSession }) {
           </Text>
         </View>
 
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 14 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
           <View>
+            <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.label, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>
+              {'THỜI GIAN'}
+            </Text>
             <Text
               style={{
                 color: '#1A2E2A',
@@ -816,17 +825,20 @@ function UrgentFillCard({ item }: { item: MatchSession }) {
             >
               {formatClock(startDate)}
             </Text>
-            <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 11, lineHeight: 15, marginTop: 3 }}>
-              {`\u0111\u1ebfn ${formatClock(endDate)}`}
+            <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 11, lineHeight: 15, marginTop: 4 }}>
+              {`đến ${formatClock(endDate)}`}
             </Text>
           </View>
 
           <View style={{ alignItems: 'flex-end' }}>
+            <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.label, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>
+              {'CHI PHÍ'}
+            </Text>
             <Text style={{ color: '#1A2E2A', fontFamily: AppFontSet.headline, fontSize: 25, lineHeight: 25 }}>
               {item.priceLabel}
             </Text>
-            <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 11, lineHeight: 15 }}>
-              {'/ng\u01b0\u1eddi'}
+            <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 11, lineHeight: 15, marginTop: 2 }}>
+              {'/người'}
             </Text>
           </View>
         </View>
