@@ -41,7 +41,7 @@ import {
 import { getSkillLevelUi } from '@/lib/skillLevelUi'
 import { useAuth } from '@/lib/useAuth'
 import { SCREEN_FONTS } from '@/constants/screenFonts'
-import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
+import { RADIUS, SPACING, BORDER, SHADOW } from '@/constants/screenLayout'
 
 export default function SessionDetailScreen() {
   const { id, updated } = useLocalSearchParams<{ id: string; updated?: string }>()
@@ -139,7 +139,7 @@ export default function SessionDetailScreen() {
   if (!session) {
     return (
       <SafeAreaView className="flex-1 items-center justify-center px-6" style={{ backgroundColor: PROFILE_THEME_COLORS.background }}>
-        <Text className="text-center text-base font-semibold" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant }}>Không tìm thấy kèo này.</Text>
+        <Text style={{ textAlign: 'center', fontSize: 15, fontFamily: SCREEN_FONTS.label, color: PROFILE_THEME_COLORS.onSurfaceVariant }}>Không tìm thấy kèo này.</Text>
       </SafeAreaView>
     )
   }
@@ -192,17 +192,13 @@ export default function SessionDetailScreen() {
         style={{
           position: 'relative',
           overflow: 'hidden',
-          borderRadius: RADIUS.hero,
+          borderRadius: RADIUS.lg,
           borderWidth: BORDER.base,
           borderColor: PROFILE_THEME_COLORS.outlineVariant,
           backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
           paddingHorizontal: SPACING.lg,
           paddingVertical: SPACING.md,
-          shadowColor: PROFILE_THEME_COLORS.onBackground,
-          shadowOpacity: 0.05,
-          shadowRadius: 12,
-          shadowOffset: { width: 0, height: 5 },
-          elevation: 2,
+          ...SHADOW.xs,
         }}
       >
         <View
@@ -291,7 +287,7 @@ export default function SessionDetailScreen() {
               style={{
                 width: 52,
                 height: 52,
-                borderRadius: RADIUS.xl,
+                borderRadius: RADIUS.lg,
                 borderWidth: BORDER.base,
                 borderColor: PROFILE_THEME_COLORS.outlineVariant,
                 backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHigh,
@@ -399,8 +395,7 @@ export default function SessionDetailScreen() {
 
         {canRespondToResult ? (
           <View
-            className="mt-5 rounded-[24px] border px-5 py-5"
-            style={{ borderColor: resultBannerTone.border, backgroundColor: resultBannerTone.background }}
+            style={{ marginTop: 20, borderRadius: RADIUS.lg, borderWidth: BORDER.base, padding: SPACING.xl, borderColor: resultBannerTone.border, backgroundColor: resultBannerTone.background }}
           >
             <View className="flex-row items-center">
               {session.results_status === 'disputed' ? (
@@ -409,8 +404,7 @@ export default function SessionDetailScreen() {
                 <CheckCheck size={18} color={PROFILE_THEME_COLORS.onSecondaryFixedVariant} strokeWidth={2.5} />
               )}
               <Text
-                className="ml-2 text-[15px] font-black"
-                style={{ color: resultBannerTone.text }}
+                style={{ marginLeft: 8, fontSize: 15, fontFamily: SCREEN_FONTS.bold, color: resultBannerTone.text }}
               >
                 {session.results_status === 'disputed'
                   ? 'Kết quả đang bị tranh chấp'
@@ -421,8 +415,7 @@ export default function SessionDetailScreen() {
             </View>
 
             <Text
-              className="mt-3 text-sm leading-6"
-              style={{ color: resultBannerTone.text }}
+              style={{ marginTop: 12, fontSize: 14, lineHeight: 22, fontFamily: SCREEN_FONTS.body, color: resultBannerTone.text }}
             >
               {session.results_status === 'disputed'
                 ? 'Vào màn xác nhận để xem lại kết quả chủ kèo đã gửi và cập nhật phản hồi của bạn.'
@@ -437,7 +430,7 @@ export default function SessionDetailScreen() {
               onPress={() => router.push({ pathname: '/session/[id]/confirm-result' as never, params: { id } })}
               activeOpacity={0.9}
             >
-              <Text className="text-[14px] font-black uppercase tracking-[0.08em]" style={{ color: PROFILE_THEME_COLORS.onPrimary }}>
+              <Text style={{ fontSize: 14, fontFamily: SCREEN_FONTS.cta, textTransform: 'uppercase', letterSpacing: 1.1, color: PROFILE_THEME_COLORS.onPrimary }}>
                 {session.results_status === 'pending_confirmation' || session.results_status === 'disputed'
                   ? 'Xác nhận kết quả'
                   : 'Báo kết quả'}
@@ -487,8 +480,6 @@ export default function SessionDetailScreen() {
                   minHeight: 52,
                   paddingVertical: 11,
                   borderRadius: RADIUS.full,
-                  borderWidth: BORDER.medium,
-                  borderColor: PROFILE_THEME_COLORS.primary,
                   backgroundColor: PROFILE_THEME_COLORS.primary,
                   opacity: hostPrimaryDisabled && !savingArrangement ? 0.55 : 1,
                   alignItems: 'center',
@@ -523,7 +514,7 @@ export default function SessionDetailScreen() {
                   <Text
                     style={{
                       fontSize: 15,
-                      fontFamily: SCREEN_FONTS.bold,
+                      fontFamily: SCREEN_FONTS.cta,
                       color: PROFILE_THEME_COLORS.onPrimary,
                     }}
                   >
@@ -549,8 +540,6 @@ export default function SessionDetailScreen() {
                   minHeight: 52,
                   paddingVertical: 11,
                   borderRadius: RADIUS.full,
-                  borderWidth: BORDER.medium,
-                  borderColor: PROFILE_THEME_SEMANTIC.dangerStrong,
                   backgroundColor: PROFILE_THEME_SEMANTIC.dangerStrong,
                   opacity: hostActionBusy ? 0.55 : 1,
                   alignItems: 'center',
@@ -563,7 +552,7 @@ export default function SessionDetailScreen() {
                   ) : (
                     <LogOut size={16} strokeWidth={2.5} color={PROFILE_THEME_COLORS.onPrimary} />
                   )}
-                  <Text style={{ fontSize: 15, fontFamily: SCREEN_FONTS.bold, color: PROFILE_THEME_COLORS.onPrimary }}>
+                  <Text style={{ fontSize: 15, fontFamily: SCREEN_FONTS.cta, color: PROFILE_THEME_COLORS.onPrimary }}>
                     {leaving ? '\u0110ang h\u1EE7y...' : 'H\u1EE7y k\u00E8o'}
                   </Text>
                 </View>
@@ -581,8 +570,6 @@ export default function SessionDetailScreen() {
                   minHeight: 52,
                   paddingVertical: 11,
                   borderRadius: RADIUS.full,
-                  borderWidth: BORDER.thick,
-                  borderColor: PROFILE_THEME_SEMANTIC.dangerStrong,
                   backgroundColor: PROFILE_THEME_SEMANTIC.dangerStrong,
                   opacity: leaving ? 0.55 : 1,
                   alignItems: 'center',
@@ -595,7 +582,7 @@ export default function SessionDetailScreen() {
                   ) : (
                     <LogOut size={18} strokeWidth={2.5} color={PROFILE_THEME_COLORS.onPrimary} />
                   )}
-                  <Text style={{ fontSize: 15, fontFamily: SCREEN_FONTS.bold, color: PROFILE_THEME_COLORS.onPrimary }}>
+                  <Text style={{ fontSize: 15, fontFamily: SCREEN_FONTS.cta, color: PROFILE_THEME_COLORS.onPrimary }}>
                     {leaving ? '\u0110ang r\u1EDDi...' : 'R\u1EDDi k\u00E8o'}
                   </Text>
                 </View>

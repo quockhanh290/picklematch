@@ -78,7 +78,7 @@ function EmptySlot() {
       style={{
         flexDirection: 'row',
         alignItems: 'center',
-        borderRadius: RADIUS.xl,
+        borderRadius: RADIUS.lg,
         borderWidth: BORDER.medium,
         borderStyle: 'dashed',
         borderColor: PROFILE_THEME_COLORS.outlineVariant,

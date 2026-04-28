@@ -68,10 +68,10 @@ export function SmartJoinButton({
           >
             <Text
               style={{
-                fontSize: 11,
+                fontSize: 10,
                 fontFamily: SCREEN_FONTS.bold,
                 textTransform: 'uppercase',
-                letterSpacing: 1,
+                letterSpacing: 1.5,
                 color: PROFILE_THEME_COLORS.onPrimaryFixedVariant,
               }}
             >
@@ -129,10 +129,10 @@ export function SmartJoinButton({
           >
             <Text
               style={{
-                fontSize: 11,
+                fontSize: 10,
                 fontFamily: SCREEN_FONTS.bold,
                 textTransform: 'uppercase',
-                letterSpacing: 1,
+                letterSpacing: 1.5,
                 color: PROFILE_THEME_COLORS.error,
               }}
             >

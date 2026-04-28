@@ -4,7 +4,7 @@ import { getSkillLevelUi } from '@/lib/skillLevelUi'
 import { LinearGradient } from 'expo-linear-gradient'
 import { CreditCard, MapPin, MessageSquareText, ShieldAlert, ShieldCheck, Trophy } from 'lucide-react-native'
 import { Text, View } from 'react-native'
-import { RADIUS, SPACING } from '@/constants/screenLayout'
+import { RADIUS, SPACING, SHADOW } from '@/constants/screenLayout'
 
 type Props = {
   skillLevelId: string
@@ -62,14 +62,10 @@ export function SessionMetaCard({
   return (
     <View
       style={{
-        borderRadius: RADIUS.hero,
+        borderRadius: RADIUS.lg,
         overflow: 'hidden',
         backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
-        shadowColor: PROFILE_THEME_COLORS.onBackground,
-        shadowOpacity: 0.08,
-        shadowRadius: 18,
-        shadowOffset: { width: 0, height: 8 },
-        elevation: 4,
+        ...SHADOW.md,
       }}
     >
       <View style={{ position: 'relative' }}>
@@ -95,9 +91,9 @@ export function SessionMetaCard({
               style={{
                 flex: 1,
                 color: onAccent,
-                fontFamily: SCREEN_FONTS.bold,
-                fontSize: 40,
-                lineHeight: 46,
+                fontFamily: SCREEN_FONTS.headline,
+                fontSize: 38,
+                lineHeight: 44,
                 letterSpacing: 0.8,
                 textTransform: 'uppercase',
               }}
@@ -109,9 +105,9 @@ export function SessionMetaCard({
           <Text
             style={{
               color: withAlpha(onAccent, 0.62),
-              fontFamily: SCREEN_FONTS.boldItalic,
-              fontSize: 31,
-              lineHeight: 39,
+              fontFamily: SCREEN_FONTS.headlineItalic,
+              fontSize: 42,
+              lineHeight: 50,
               marginTop: 2,
             }}
           >
@@ -122,7 +118,7 @@ export function SessionMetaCard({
             <Text
               style={{
                 color: withAlpha(onAccent, 0.62),
-                fontFamily: SCREEN_FONTS.boldItalic,
+                fontFamily: SCREEN_FONTS.headlineItalic,
                 fontSize: 22,
                 lineHeight: 29,
                 marginTop: 2,
