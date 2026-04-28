@@ -26,6 +26,7 @@ import {
     Pressable,
     ScrollView,
     Text,
+    TextInput,
     View,
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -190,9 +191,8 @@ type RequestCardProps = {
   eloMin: number
   eloMax: number
   onOpenPlayer: (playerId: string) => void
-  onAccept: (requestId: string, playerId: string) => void
-  onReject: (requestId: string, playerId: string) => void
-  onQuickReply: (requestId: string, playerId: string, template: string) => void
+  onAccept: (requestId: string, playerId: string, message: string) => void
+  onReject: (requestId: string, playerId: string, message: string) => void
   busy?: boolean
 }
 
@@ -213,149 +213,144 @@ function RequestCard({
   onOpenPlayer,
   onAccept,
   onReject,
-  onQuickReply,
   busy = false,
 }: RequestCardProps) {
+  const colors = PROFILE_THEME_COLORS
+  const [message, setMessage] = useState('')
   const playerElo = applicant.player.current_elo ?? applicant.player.elo ?? 0
   const reliability = getReliabilityScore(applicant.player)
   const reliabilityTone = getReliabilityTone(reliability)
   const matchScore = getMatchScore(playerElo, eloMin, eloMax)
   const lowMatch = matchScore < 50
   const diffFromTarget = playerElo - Math.round((eloMin + eloMax) / 2)
-  const matchTone = lowMatch
-    ? { bg: PROFILE_THEME_SEMANTIC.dangerBg, border: PROFILE_THEME_SEMANTIC.dangerBorderSoft, text: PROFILE_THEME_SEMANTIC.dangerText }
-    : { bg: PROFILE_THEME_COLORS.secondaryContainer, border: PROFILE_THEME_COLORS.outlineVariant, text: PROFILE_THEME_COLORS.surfaceTint }
 
   return (
     <View
-      className="mb-4 overflow-hidden rounded-[24px] p-4"
+      className="mb-4 overflow-hidden rounded-[14px]"
       style={{
-        borderWidth: BORDER.base,
-        borderColor: PROFILE_THEME_COLORS.outlineVariant,
-        backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
-        ...premiumShadow(),
+        borderWidth: 1,
+        borderColor: colors.outlineVariant,
+        backgroundColor: colors.surfaceContainerLowest,
       }}
     >
-      {lowMatch ? (
-        <View
-          className="absolute inset-x-0 top-0 h-1"
-          style={{ backgroundColor: PROFILE_THEME_SEMANTIC.dangerStrong }}
-        />
-      ) : null}
-
-      <Pressable onPress={() => onOpenPlayer(applicant.player_id)} className="active:scale-95">
-        <View className="flex-row items-start">
-          <View className="relative">
+      <Pressable onPress={() => onOpenPlayer(applicant.player_id)} className="p-4">
+        <View className="flex-row items-center justify-between">
+          <View className="flex-row items-center flex-1">
             <View
-              className="h-14 w-14 items-center justify-center rounded-2xl"
-              style={{ backgroundColor: PROFILE_THEME_COLORS.primary }}
+              className="h-12 w-12 items-center justify-center rounded-full"
+              style={{ backgroundColor: colors.primaryContainer }}
             >
-              <Text style={{ fontSize: 18, fontFamily: SCREEN_FONTS.bold, color: PROFILE_THEME_COLORS.onPrimary }}>{getInitials(applicant.player.name)}</Text>
+              <Text style={{ fontSize: 16, fontFamily: SCREEN_FONTS.bold, color: colors.onPrimaryContainer }}>
+                {getInitials(applicant.player.name)}
+              </Text>
             </View>
-            <View
-              className="absolute -bottom-1 -right-1 h-6 w-6 items-center justify-center rounded-full border-2"
-              style={{
-                backgroundColor: reliabilityTone.badgeBg,
-                borderColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
-              }}
-            >
-              <ShieldCheck size={12} color={reliabilityTone.badgeIcon} strokeWidth={ICON_STROKE} />
+            <View className="ml-3 flex-1">
+              <Text numberOfLines={1} style={{ fontSize: 16, fontFamily: SCREEN_FONTS.bold, color: colors.onSurface }}>
+                {applicant.player.name}
+              </Text>
+              <View className="flex-row items-center mt-0.5">
+                <Text style={{ fontSize: 12, fontFamily: SCREEN_FONTS.label, color: colors.onSurfaceVariant }}>
+                  {`Elo ${playerElo} • ${applicant.player.sessions_joined ?? 0} kèo`}
+                </Text>
+                <View className="mx-2 h-1 w-1 rounded-full bg-neutral-300" />
+                <Text style={{ fontSize: 12, fontFamily: SCREEN_FONTS.cta, color: reliabilityTone.badgeText }}>
+                  {reliability != null ? `${reliability}% uy tín` : 'Mới chơi'}
+                </Text>
+              </View>
             </View>
-          </View>
-
-          <View className="ml-4 min-w-0 flex-1">
-            <Text style={{ fontSize: 17, fontFamily: SCREEN_FONTS.bold, color: PROFILE_THEME_COLORS.onSurface }}>{applicant.player.name}</Text>
-            <Text className="mt-1" style={{ fontSize: 13, fontFamily: SCREEN_FONTS.label, color: PROFILE_THEME_COLORS.onSurfaceVariant }}>
-              {`Elo ${playerElo} • ${applicant.player.sessions_joined ?? 0} kèo đã chơi`}
-            </Text>
-            <Text className="mt-1" style={{ fontSize: 12, fontFamily: SCREEN_FONTS.cta, color: reliabilityTone.badgeText }}>
-              {reliability != null ? `${reliability}% uy tín` : 'Chưa đủ dữ liệu uy tín'}
-            </Text>
           </View>
 
           <View
-            className="rounded-2xl border px-3 py-1.5"
-            style={{ backgroundColor: matchTone.bg, borderColor: matchTone.border }}
+            className="rounded-lg px-2 py-1"
+            style={{ 
+              backgroundColor: lowMatch ? PROFILE_THEME_SEMANTIC.dangerBg : colors.secondaryContainer,
+              borderWidth: 1,
+              borderColor: lowMatch ? PROFILE_THEME_SEMANTIC.dangerBorderSoft : colors.outlineVariant,
+            }}
           >
-            <Text className="text-[12px]" style={{ fontFamily: SCREEN_FONTS.bold, color: matchTone.text }}>
-              {`${matchScore}% ph\u00F9 h\u1EE3p`}
+            <Text style={{ fontSize: 13, fontFamily: SCREEN_FONTS.headline, color: lowMatch ? PROFILE_THEME_SEMANTIC.dangerText : colors.primary }}>
+              {`${matchScore}%`}
             </Text>
           </View>
         </View>
+
+        {lowMatch && (
+          <View
+            className="mt-3 flex-row items-center rounded-lg px-3 py-2"
+            style={{ backgroundColor: PROFILE_THEME_SEMANTIC.dangerBg }}
+          >
+            <AlertTriangle size={14} color={PROFILE_THEME_SEMANTIC.dangerStrong} />
+            <Text className="ml-2 flex-1" style={{ fontSize: 12, fontFamily: SCREEN_FONTS.medium, color: PROFILE_THEME_SEMANTIC.dangerText }}>
+              Lệch {diffFromTarget >= 0 ? '+' : ''}{diffFromTarget} Elo. Cân nhắc kỹ!
+            </Text>
+          </View>
+        )}
+
+        <View className="mt-4">
+          <Text style={{ fontSize: 10, fontFamily: SCREEN_FONTS.headline, color: colors.outline, textTransform: 'uppercase', letterSpacing: 1 }}>
+            LỜI NHẮN
+          </Text>
+          <Text className="mt-1 text-[14px] leading-5" style={{ color: colors.onSurfaceVariant, fontFamily: SCREEN_FONTS.body }}>
+            {applicant.intro_note?.trim() ? applicant.intro_note : 'Người chơi này không để lại lời nhắn.'}
+          </Text>
+        </View>
       </Pressable>
 
-      {lowMatch ? (
-        <View
-          className="mt-4 flex-row rounded-2xl border px-4 py-3"
-          style={{
-            borderColor: PROFILE_THEME_SEMANTIC.dangerBorderSoft,
-            backgroundColor: PROFILE_THEME_SEMANTIC.dangerBg,
-          }}
-        >
-          <View className="mt-0.5">
-            <AlertTriangle size={16} color={PROFILE_THEME_SEMANTIC.dangerStrong} strokeWidth={ICON_STROKE} />
-          </View>
-          <Text className="ml-3 flex-1" style={{ fontSize: 13, lineHeight: 20, fontFamily: SCREEN_FONTS.cta, color: PROFILE_THEME_SEMANTIC.dangerText }}>
-            Trình độ hơi lệch ({diffFromTarget >= 0 ? '+' : ''}
-            {diffFromTarget} Elo). {'\u0042\u1EA1\u006E\u0020\u0063\u0068\u1EAF\u0063\u0020\u0063\u0068\u1EE9\u003F'}
-          </Text>
-        </View>
-      ) : null}
-
       <View
-        className="relative mt-4 rounded-2xl border p-4"
-        style={{ borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow }}
+        style={{
+          paddingHorizontal: 16,
+          paddingVertical: 12,
+          backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
+          borderTopWidth: 1,
+          borderColor: colors.outlineVariant,
+        }}
       >
-        <View
-          className="absolute left-3 top-0 -translate-y-1/2 rounded-full border px-2 py-1"
-          style={{ borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest }}
-        >
-          <Text className="text-[10px]" style={{ fontFamily: SCREEN_FONTS.bold, color: PROFILE_THEME_COLORS.outline, textTransform: 'uppercase', letterSpacing: 1.2 }}>
-            {'L\u1EDDi nh\u1EAFn'}
+        <View className="mt-1">
+          <Text style={{ fontSize: 10, fontFamily: SCREEN_FONTS.headline, color: colors.outline, textTransform: 'uppercase', letterSpacing: 1 }}>
+            PHẢN HỒI CỦA BẠN
           </Text>
-        </View>
-        <Text className="pt-2 text-[14px] leading-6" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body }}>
-          {applicant.intro_note?.trim() ? applicant.intro_note : 'Người chơi chưa để lại lời nhắn nào.'}
-        </Text>
-      </View>
-
-      <View className="mt-4 flex-row gap-3">
-        <Pressable
-          onPress={() => onReject(applicant.id, applicant.player_id)}
-          disabled={busy}
-          className="active:scale-95 h-14 flex-1 flex-row items-center justify-center rounded-[20px] px-4"
-          style={{ borderWidth: BORDER.base, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.errorContainer }}
-        >
-          <UserX size={18} color={PROFILE_THEME_COLORS.onErrorContainer} strokeWidth={ICON_STROKE} />
-          <Text className="ml-2 text-[14px]" style={{ fontFamily: SCREEN_FONTS.bold, color: PROFILE_THEME_COLORS.onErrorContainer }}>{'\u0054\u1EEB\u0020\u0063\u0068\u1ED1\u0069'}</Text>
-        </Pressable>
-
-        <Pressable
-          onPress={() => onAccept(applicant.id, applicant.player_id)}
-          disabled={busy}
-          className="active:scale-95 h-14 flex-[1.5] flex-row items-center justify-center rounded-[20px] px-4"
-          style={{ backgroundColor: PROFILE_THEME_COLORS.primary }}
-        >
-          <UserCheck size={18} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={ICON_STROKE} />
-          <Text className="ml-2 text-[14px]" style={{ fontFamily: SCREEN_FONTS.bold, color: PROFILE_THEME_COLORS.onPrimary }}>{'\u0043\u0068\u1EA5\u0070\u0020\u006E\u0068\u1EAD\u006E'}</Text>
-        </Pressable>
-      </View>
-
-      <View className="mt-4 flex-row flex-wrap gap-2">
-        {QUICK_REPLY_TEMPLATES.map((template) => (
-          <Pressable
-            key={template}
-            onPress={() => onQuickReply(applicant.id, applicant.player_id, template)}
-            disabled={busy}
-            className="active:scale-95 rounded-full border px-3 py-2"
-            style={{
-              borderColor: PROFILE_THEME_COLORS.outlineVariant,
-              backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
-            }}
+          <View 
+            className="mt-2 rounded-[10px] border px-3 py-2"
+            style={{ borderColor: colors.outlineVariant, backgroundColor: colors.surfaceContainerLowest }}
           >
-            <Text className="text-[12px]" style={{ fontFamily: SCREEN_FONTS.label, color: PROFILE_THEME_SEMANTIC.infoText }}>{template}</Text>
+            <TextInput
+              placeholder="Nhập lời nhắn cho người chơi (không bắt buộc)..."
+              placeholderTextColor={colors.outline}
+              value={message}
+              onChangeText={setMessage}
+              multiline
+              style={{
+                fontFamily: SCREEN_FONTS.body,
+                fontSize: 14,
+                color: colors.onSurface,
+                minHeight: 60,
+                textAlignVertical: 'top',
+              }}
+            />
+          </View>
+        </View>
+
+        <View className="mt-4 flex-row gap-3">
+          <Pressable
+            onPress={() => onReject(applicant.id, applicant.player_id, message)}
+            disabled={busy}
+            className="active:opacity-70 h-12 flex-1 flex-row items-center justify-center rounded-[10px]"
+            style={{ backgroundColor: colors.surfaceContainerLowest, borderWidth: 1, borderColor: colors.outlineVariant }}
+          >
+            <UserX size={16} color={colors.onSurfaceVariant} strokeWidth={2.3} />
+            <Text className="ml-2" style={{ fontSize: 13, fontFamily: SCREEN_FONTS.headline, color: colors.onSurfaceVariant }}>TỪ CHỐI</Text>
           </Pressable>
-        ))}
+
+          <Pressable
+            onPress={() => onAccept(applicant.id, applicant.player_id, message)}
+            disabled={busy}
+            className="active:opacity-90 h-12 flex-[1.5] flex-row items-center justify-center rounded-[10px]"
+            style={{ backgroundColor: colors.primary }}
+          >
+            <UserCheck size={16} color={colors.onPrimary} strokeWidth={2.3} />
+            <Text className="ml-2" style={{ fontSize: 13, fontFamily: SCREEN_FONTS.headline, color: colors.onPrimary }}>CHẤP NHẬN</Text>
+          </Pressable>
+        </View>
       </View>
     </View>
   )
@@ -434,10 +429,19 @@ export default function HostReviewCenterScreen() {
     void fetchData()
   }, [fetchData])
 
-  async function approveRequest(requestId: string, playerId: string) {
+  async function approveRequest(requestId: string, playerId: string, message: string) {
     if (!session) return
 
     setSubmittingId(requestId)
+
+    // Save host response if provided
+    if (message.trim()) {
+      await supabase
+        .from('join_requests')
+        .update({ host_response_template: message.trim() })
+        .eq('id', requestId)
+    }
+
     const { error } = await supabase.rpc('approve_join_request', { p_request_id: requestId })
 
     if (error) {
@@ -464,7 +468,7 @@ export default function HostReviewCenterScreen() {
     await insertNotification(
       playerId,
       '\u0110\u01B0\u1EE3\u0063\u0020\u0064\u0075\u0079\u1EC7\u0074\u0021',
-      `\u0042\u1EA1\u006E\u0020\u0111\u00E3\u0020\u0111\u01B0\u1EE3\u0063\u0020\u0063\u0068\u1EA5\u0070\u0020\u006E\u0068\u1EAD\u006E\u0020\u0076\u00E0\u006F\u0020\u006B\u00E8\u006F\u0020\u006C\u00FA\u0063\u0020${slotTime}.`,
+      message.trim() || `\u0042\u1EA1\u006E\u0020\u0111\u00E3\u0020\u0111\u01B0\u1EE3\u0063\u0020\u0063\u0068\u1EA5\u0070\u0020\u006E\u0068\u1EAD\u006E\u0020\u0076\u00E0\u006F\u0020\u006B\u00E8\u006F\u0020\u006C\u00FA\u0063\u0020${slotTime}.`,
       'join_approved',
       `/session/${session.id}`,
     )
@@ -473,13 +477,16 @@ export default function HostReviewCenterScreen() {
     router.replace({ pathname: '/session/[id]' as any, params: { id: session.id } })
   }
 
-  async function rejectRequest(requestId: string, playerId: string) {
+  async function rejectRequest(requestId: string, playerId: string, message: string) {
     if (!session) return
 
     setSubmittingId(requestId)
     const { error } = await supabase
       .from('join_requests')
-      .update({ status: 'rejected' })
+      .update({ 
+        status: 'rejected',
+        host_response_template: message.trim() || null 
+      })
       .eq('id', requestId)
 
     if (error) {
@@ -493,7 +500,7 @@ export default function HostReviewCenterScreen() {
     await insertNotification(
       playerId,
       'Chưa phù hợp',
-      '\u0048\u006F\u0073\u0074\u0020\u0111\u00E3\u0020\u0074\u1EEB\u0020\u0063\u0068\u1ED1\u0069\u0020\u0079\u00EA\u0075\u0020\u0063\u1EA7\u0075\u0020\u0074\u0068\u0061\u006D\u0020\u0067\u0069\u0061\u0020\u0063\u1EE7\u0061\u0020\u0062\u1EA1\u006E\u002E',
+      message.trim() || '\u0048\u006F\u0073\u0074\u0020\u0111\u00E3\u0020\u0074\u1EEB\u0020\u0063\u0068\u1ED1\u0069\u0020\u0079\u00EA\u0075\u0020\u0063\u1EA7\u0075\u0020\u0074\u0068\u0061\u006D\u0020\u0067\u0069\u0061\u0020\u0063\u1EE7\u0061\u0020\u0062\u1EA1\u006E\u002E',
       'join_rejected',
       `/session/${session.id}`,
     )
@@ -502,36 +509,6 @@ export default function HostReviewCenterScreen() {
     router.replace({ pathname: '/session/[id]' as any, params: { id: session.id } })
   }
 
-  async function replyWithTemplate(requestId: string, playerId: string, template: string) {
-    if (!session) return
-
-    setSubmittingId(requestId)
-    const { error } = await supabase
-      .from('join_requests')
-      .update({ host_response_template: template })
-      .eq('id', requestId)
-
-    if (error) {
-      setSubmittingId(null)
-      Alert.alert('Lỗi', error.message)
-      return
-    }
-
-    setApplicants((prev) =>
-      prev.map((item) => (item.id === requestId ? { ...item, host_response_template: template } : item))
-    )
-
-    await insertNotification(
-      playerId,
-      'Host đã phản hồi yêu cầu',
-      template,
-      'join_request_reply',
-      `/session/${session.id}`,
-    )
-
-    Alert.alert('Đã gửi phản hồi', 'Phản hồi nhanh đã được lưu và gửi cho người chơi.')
-    setSubmittingId(null)
-  }
 
   function cancelSession() {
     if (!session) return
@@ -664,7 +641,6 @@ export default function HostReviewCenterScreen() {
                   onOpenPlayer={(playerId) => router.push({ pathname: '/player/[id]' as any, params: { id: playerId } })}
                   onAccept={approveRequest}
                   onReject={rejectRequest}
-                  onQuickReply={replyWithTemplate}
                   busy={submittingId === applicant.id}
                 />
               ))
@@ -716,8 +692,8 @@ export default function HostReviewCenterScreen() {
               ) : (
                 <CircleX size={18} color={PROFILE_THEME_COLORS.onErrorContainer} strokeWidth={ICON_STROKE} />
               )}
-              <Text className="ml-2 text-[14px]" style={{ fontFamily: SCREEN_FONTS.bold, color: PROFILE_THEME_COLORS.onErrorContainer }}>
-                {cancelling ? '\u0110\u0061\u006E\u0067\u0020\u0068\u1EE7\u0079\u002E\u002E\u002E' : '\u0048\u1EE7\u0079\u0020\u006B\u00E8\u006F'}
+              <Text className="ml-2 text-[14px]" style={{ fontFamily: SCREEN_FONTS.headline, color: PROFILE_THEME_COLORS.onErrorContainer }}>
+                {cancelling ? 'ĐANG HỦY...' : 'HỦY KÈO'}
               </Text>
             </Pressable>
 
@@ -731,7 +707,7 @@ export default function HostReviewCenterScreen() {
               className="active:scale-95 h-14 flex-[1.2] flex-row items-center justify-center rounded-[20px]" style={{ backgroundColor: PROFILE_THEME_COLORS.primary }}
             >
               <PencilLine size={18} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={ICON_STROKE} />
-              <Text className="ml-2 text-[14px]" style={{ fontFamily: SCREEN_FONTS.bold, color: PROFILE_THEME_COLORS.onPrimary }}>{'\u0043\u0068\u1EC9\u006E\u0068\u0020\u0073\u1EED\u0061\u0020\u006B\u00E8\u006F'}</Text>
+              <Text className="ml-2 text-[14px]" style={{ fontFamily: SCREEN_FONTS.headline, color: PROFILE_THEME_COLORS.onPrimary }}>CHỈNH SỬA KÈO</Text>
             </Pressable>
           </View>
         </View>

@@ -545,8 +545,9 @@ export default function FindSession() {
             className="ml-1.5"
             style={{
               color: activeAdvancedFiltersCount > 0 ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant,
-              fontFamily: SCREEN_FONTS.label,
-              fontSize: 12,
+              fontFamily: SCREEN_FONTS.cta,
+              fontSize: 13,
+              textTransform: 'uppercase',
             }}
           >
             {activeAdvancedFiltersCount > 0 ? `Bộ lọc (${activeAdvancedFiltersCount})` : 'Bộ lọc nâng cao'}
@@ -571,8 +572,9 @@ export default function FindSession() {
             <Text
               style={{
                 color: sortMode === 'match' ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant,
-                fontFamily: SCREEN_FONTS.label,
+                fontFamily: SCREEN_FONTS.cta,
                 fontSize: 12,
+                textTransform: 'uppercase',
               }}
             >
               Độ phù hợp
@@ -589,8 +591,9 @@ export default function FindSession() {
             <Text
               style={{
                 color: sortMode === 'time' ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant,
-                fontFamily: SCREEN_FONTS.label,
+                fontFamily: SCREEN_FONTS.cta,
                 fontSize: 12,
+                textTransform: 'uppercase',
               }}
             >
               Giờ chơi

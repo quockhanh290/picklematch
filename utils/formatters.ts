@@ -1,4 +1,4 @@
-﻿const AVATAR_COLORS = [
+const AVATAR_COLORS = [
   { bg: '#E1F5EE', fg: '#0F6E56' },
   { bg: '#FAECE7', fg: '#993C1D' },
   { bg: '#FAEEDA', fg: '#854F0B' },
@@ -21,6 +21,7 @@ export function formatTimeRange(startTime: Date, endTime: Date): string {
 }
 
 export function formatVND(value: number): string {
+  if (value <= 0) return 'Miễn phí'
   return `${Math.round(value / 1000)}K`
 }
 

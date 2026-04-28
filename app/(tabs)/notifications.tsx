@@ -201,7 +201,7 @@ export default function NotificationsScreen() {
                     opacity: unreadCount > 0 ? 1 : 0.5,
                   }}
                 >
-                  <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.cta }}>
+                  <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.headline, fontSize: 15 }}>
                     {unreadCount} Mới
                   </Text>
                 </TouchableOpacity>
@@ -279,8 +279,8 @@ export default function NotificationsScreen() {
                               style={{ backgroundColor: PROFILE_THEME_COLORS.primary }}
                             >
                               <Text
-                                className="text-[11px] uppercase tracking-[2px]"
-                                style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta }}
+                                className="text-[15px] uppercase tracking-[1.3px]"
+                                style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.headline }}
                               >
                                 Chấp nhận
                               </Text>
@@ -292,8 +292,8 @@ export default function NotificationsScreen() {
                               style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHigh }}
                             >
                               <Text
-                                className="text-[11px] uppercase tracking-[2px]"
-                                style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.cta }}
+                                className="text-[15px] uppercase tracking-[1.3px]"
+                                style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.headline }}
                               >
                                 Từ chối
                               </Text>

@@ -29,5 +29,5 @@ export const typography = {
   labelSm: { fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 11, lineHeight: 14 },
 
   // CTA
-  cta: { fontFamily: 'PlusJakartaSans-Bold', fontSize: 15, lineHeight: 20, letterSpacing: 0.2 },
+  cta: { fontFamily: 'BarlowCondensed-Bold', fontSize: 15, lineHeight: 20, letterSpacing: 1.3, textTransform: 'uppercase' },
 } as const

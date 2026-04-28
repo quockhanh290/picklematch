@@ -404,7 +404,7 @@ export function CreateSessionStep2({
             <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 12, letterSpacing: 1.2, color: PROFILE_THEME_COLORS.primary, marginBottom: 10 }}>
               TÌNH TRẠNG SÂN
             </Text>
-            <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 12, color: PROFILE_THEME_COLORS.onSecondaryContainer, marginBottom: 8 }}>
+            <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 12, color: PROFILE_THEME_COLORS.onSecondaryContainer, marginBottom: 8 }}>
               Trạng thái đặt sân
             </Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
@@ -425,7 +425,7 @@ export function CreateSessionStep2({
                       backgroundColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surfaceContainerLowest,
                       paddingHorizontal: SPACING.md, paddingVertical: 11, alignItems: 'center',
                     }}>
-                      <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 13, color: active ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSecondaryContainer }}>
+                      <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 13, color: active ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSecondaryContainer }}>
                         {item.label}
                       </Text>
                     </View>
@@ -436,7 +436,7 @@ export function CreateSessionStep2({
 
             {bookingStatus === 'unconfirmed' ? (
               <View style={{ marginBottom: 12 }}>
-                <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 12, color: PROFILE_THEME_COLORS.onSecondaryContainer, marginBottom: 8 }}>
+                <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 12, color: PROFILE_THEME_COLORS.onSecondaryContainer, marginBottom: 8 }}>
                   Bạn có muốn đặt ngay bây giờ không?
                 </Text>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
@@ -457,7 +457,7 @@ export function CreateSessionStep2({
                           backgroundColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surfaceContainerLowest,
                           paddingHorizontal: SPACING.md, paddingVertical: 9, alignItems: 'center',
                         }}>
-                          <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 13, color: active ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSecondaryContainer }}>
+                          <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 13, color: active ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSecondaryContainer }}>
                             {item.label}
                           </Text>
                         </View>
@@ -471,14 +471,14 @@ export function CreateSessionStep2({
             {showBookingLinkCta ? (
               <Pressable onPress={onOpenBookingLink} style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1, marginBottom: 12 })}>
                 <View style={{ borderRadius: RADIUS.md, borderWidth: BORDER.base, borderColor: PROFILE_THEME_COLORS.secondaryFixedDim, backgroundColor: PROFILE_THEME_COLORS.secondaryContainer, paddingVertical: SPACING.sm, alignItems: 'center' }}>
-                  <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 13, color: PROFILE_THEME_COLORS.surfaceTint }}>Mở link đặt sân</Text>
+                  <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 13, color: PROFILE_THEME_COLORS.surfaceTint }}>Mở link đặt sân</Text>
                 </View>
               </Pressable>
             ) : null}
 
             {shouldShowBookingDetails ? (
               <View style={{ gap: 10 }}>
-                <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 12, color: PROFILE_THEME_COLORS.onSecondaryContainer }}>
+                <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 12, color: PROFILE_THEME_COLORS.onSecondaryContainer }}>
                   Thông tin booking
                 </Text>
                 <View style={{ borderRadius: RADIUS.md, borderWidth: BORDER.base, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest, paddingHorizontal: 12, paddingVertical: 9 }}>
@@ -531,13 +531,13 @@ export function CreateSessionStep2({
             onPress={onBack}
             style={{ flex: 1, borderRadius: RADIUS.full, borderWidth: BORDER.medium, borderColor: PROFILE_THEME_COLORS.outlineVariant, paddingVertical: 13, alignItems: 'center', backgroundColor: PROFILE_THEME_COLORS.surface }}
           >
-            <Text style={{ fontSize: 14, color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.cta }}>Quay lại</Text>
+            <Text style={{ fontSize: 15, color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.cta, textTransform: 'uppercase' }}>Quay lại</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={onContinue}
             style={{ flex: 2, borderRadius: RADIUS.full, backgroundColor: PROFILE_THEME_COLORS.primary, paddingVertical: 13, alignItems: 'center' }}
           >
-            <Text style={{ fontSize: 14, color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta }}>Tiếp tục →</Text>
+            <Text style={{ fontSize: 15, color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta, textTransform: 'uppercase' }}>Tiếp tục →</Text>
           </TouchableOpacity>
         </View>
       </View>

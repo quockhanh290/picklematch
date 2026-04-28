@@ -28,7 +28,6 @@ export default function RootLayout() {
     [SCREEN_FONTS.body]: PlusJakartaSans_400Regular,
     [SCREEN_FONTS.medium]: PlusJakartaSans_500Medium,
     [SCREEN_FONTS.label]: PlusJakartaSans_600SemiBold,
-    [SCREEN_FONTS.cta]: PlusJakartaSans_700Bold,
     [SCREEN_FONTS.bold]: PlusJakartaSans_800ExtraBold,
     [SCREEN_FONTS.boldItalic]: PlusJakartaSans_800ExtraBold_Italic,
   })

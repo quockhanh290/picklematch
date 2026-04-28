@@ -1,8 +1,9 @@
-﻿import { colors } from '@/constants/colors'
+import { colors } from '@/constants/colors'
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker'
 import Slider from '@react-native-community/slider'
 import React, { useState } from 'react'
 import { Modal, Platform, Pressable, ScrollView, Text, View } from 'react-native'
+import { X } from 'lucide-react-native'
 import { SCREEN_FONTS } from '@/constants/screenFonts'
 import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
 
@@ -73,10 +74,12 @@ function withAlpha(hex: string, alpha: number) {
 function chipStyle(active: boolean) {
   return {
     backgroundColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surfaceContainerLow,
-    borderRadius: RADIUS.lg,
+    borderRadius: RADIUS.full,
     paddingHorizontal: SPACING.md,
-    paddingVertical: 8,
+    paddingVertical: 9,
     marginRight: 8,
+    borderWidth: BORDER.base,
+    borderColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
   }
 }
 
@@ -84,14 +87,16 @@ function chipTextStyle(active: boolean) {
   return {
     color: active ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant,
     fontFamily: FILTER_FONTS.label,
-    fontSize: 13,
+    fontSize: 12,
   }
 }
 
 const sectionLabel = {
-  fontFamily: FILTER_FONTS.label,
-  fontSize: 13,
-  color: PROFILE_THEME_COLORS.onSurface,
+  fontFamily: FILTER_FONTS.cta,
+  fontSize: 10,
+  letterSpacing: 1.4,
+  textTransform: 'uppercase',
+  color: PROFILE_THEME_COLORS.outline,
   marginBottom: 8,
 } as const
 
@@ -188,24 +193,43 @@ export function AdvancedSessionFilterModal({
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View style={{ flex: 1, backgroundColor: withAlpha(PROFILE_THEME_COLORS.onBackground, 0.18), justifyContent: 'flex-end' }}>
+      <View style={{ flex: 1, backgroundColor: withAlpha(PROFILE_THEME_COLORS.onBackground, 0.36), justifyContent: 'flex-end' }}>
         <Pressable style={{ flex: 1 }} onPress={onClose} />
         <View
           style={{
             backgroundColor: PROFILE_THEME_COLORS.background,
-            borderTopLeftRadius: 24,
-            borderTopRightRadius: 24,
-            padding: 24,
+            borderTopLeftRadius: 28,
+            borderTopRightRadius: 28,
+            borderTopWidth: 1,
+            borderColor: PROFILE_THEME_COLORS.outlineVariant,
+            paddingHorizontal: 20,
+            paddingTop: 20,
+            paddingBottom: 32,
             maxHeight: '92%',
           }}
         >
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
-            <Text style={{ fontFamily: FILTER_FONTS.headline, fontSize: 24, letterSpacing: 0.8, color: PROFILE_THEME_COLORS.onBackground }}>
+            <Text style={{ fontFamily: FILTER_FONTS.cta, fontSize: 18, color: PROFILE_THEME_COLORS.onBackground }}>
               BỘ LỌC NÂNG CAO
             </Text>
-            <Pressable onPress={onClose} hitSlop={12}>
-              <Text style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: FILTER_FONTS.cta }}>Đóng</Text>
-            </Pressable>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              <Pressable onPress={onReset} hitSlop={8}>
+                <Text style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: FILTER_FONTS.cta, fontSize: 13, textTransform: 'uppercase' }}>Đặt lại</Text>
+              </Pressable>
+              <Pressable
+                onPress={onClose}
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 18,
+                  backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <X size={16} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.6} />
+              </Pressable>
+            </View>
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
@@ -231,7 +255,7 @@ export function AdvancedSessionFilterModal({
               horizontal
               showsHorizontalScrollIndicator={false}
               style={{ marginBottom: 12 }}
-              contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingRight: 8 }}
+              contentContainerStyle={{ paddingRight: 8 }}
             >
               {dateChips.map((chip) => (
                 <Pressable
@@ -284,7 +308,7 @@ export function AdvancedSessionFilterModal({
             )}
 
             <Text style={sectionLabel}>Khung giờ</Text>
-            <View style={{ flexDirection: 'row', marginBottom: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <View style={{ flexDirection: 'row', marginBottom: 16, justifyContent: 'flex-start', flexWrap: 'wrap', gap: 2 }}>
               {['Sáng', 'Chiều', 'Tối'].map((slot) => (
                 <Pressable
                   key={slot}
@@ -318,6 +342,8 @@ export function AdvancedSessionFilterModal({
                 borderRadius: RADIUS.lg,
                 padding: 12,
                 marginBottom: priceInvalid ? 4 : 16,
+                borderWidth: BORDER.base,
+                borderColor: PROFILE_THEME_COLORS.outlineVariant,
               }}
             >
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 2 }}>
@@ -404,10 +430,7 @@ export function AdvancedSessionFilterModal({
             </View>
           </ScrollView>
 
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 12 }}>
-            <Pressable onPress={onReset} style={{ padding: 12 }}>
-              <Text style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: FILTER_FONTS.cta }}>Đặt lại</Text>
-            </Pressable>
+          <View style={{ marginTop: 12 }}>
             <Pressable
               onPress={onApply}
               disabled={priceInvalid}
@@ -415,15 +438,18 @@ export function AdvancedSessionFilterModal({
                 backgroundColor: priceInvalid
                   ? PROFILE_THEME_COLORS.surfaceContainerHighest
                   : PROFILE_THEME_COLORS.primary,
-                borderRadius: RADIUS.lg,
-                paddingHorizontal: 32,
-                paddingVertical: 12,
+                borderRadius: RADIUS.full,
+                height: 48,
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
             >
               <Text
                 style={{
                   color: priceInvalid ? PROFILE_THEME_COLORS.onSurfaceVariant : PROFILE_THEME_COLORS.onPrimary,
                   fontFamily: FILTER_FONTS.cta,
+                  fontSize: 15,
+                  textTransform: 'uppercase',
                 }}
               >
                 Áp dụng

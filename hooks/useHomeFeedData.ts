@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import {
     buildLiveFamiliarCourts,
     formatPendingResultTimeLabel,
+    isWithinNext12Hours,
     isWithinNext24Hours,
     mapLiveSessionToMatchSession,
     normalizeHomeSessionRecord,
@@ -284,7 +285,7 @@ export function useHomeFeedData(userId?: string | null, isAuthLoading?: boolean)
           .filter((session) => {
             const activePlayers = session.session_players.filter((player) => player.status !== 'rejected').length
             const slotsLeft = Math.max(session.max_players - activePlayers, 0)
-            return slotsLeft > 0 && slotsLeft <= 2 && isWithinNext24Hours(session.slot?.start_time ?? '')
+            return slotsLeft > 0 && slotsLeft <= 2 && isWithinNext12Hours(session.slot?.start_time ?? '')
           })
           .map((session) => mapLiveSessionToMatchSession(session, { viewerId: userId, viewerElo, urgent: true }))
           .sort((left, right) => right.matchScore - left.matchScore)

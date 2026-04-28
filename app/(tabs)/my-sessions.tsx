@@ -12,10 +12,12 @@ import {
   ChevronRight,
   Pencil as Edit3,
   Plus,
+  Search,
   Share2,
   SlidersHorizontal,
   Star,
   UserRound,
+  Users,
   X,
 } from 'lucide-react-native'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -462,7 +464,6 @@ function MySessionCard({
           </Text>
         </View>
       </View>
-
       {tab === 'history' ? (() => {
         const canRate = item.status === 'done' && !item.has_rated
         const label = item.status === 'cancelled'
@@ -489,10 +490,11 @@ function MySessionCard({
               strokeWidth={2.3}
             />
             <Text
-              className="ml-2 text-[14px]"
+              className="ml-2 text-[15px]"
               style={{
                 color: canRate ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant,
                 fontFamily: SCREEN_FONTS.cta,
+                textTransform: 'uppercase',
               }}
             >
               {label}
@@ -502,85 +504,68 @@ function MySessionCard({
       })() : (
       <View
         style={{
-          borderTopWidth: 0.5,
-          borderColor: PROFILE_THEME_COLORS.outlineVariant,
           paddingHorizontal: 16,
-          paddingVertical: SPACING.sm,
+          paddingVertical: 14,
+          backgroundColor: colors.surfaceAlt,
         }}
       >
-        <View className="flex-row items-center justify-between">
-          <View className="mr-3 flex-1 flex-row items-center">
-            <Pressable
-              onPress={(event) => {
-                event.stopPropagation()
-                onOpenHostProfile(item.host_id)
-              }}
-              className="items-center justify-center rounded-full"
-              style={{
-                width: 32,
-                height: 32,
-                backgroundColor: PROFILE_THEME_COLORS.primaryContainer,
-                borderWidth: BORDER.base,
-                borderColor: withAlpha(PROFILE_THEME_COLORS.primary, 0.22),
-                marginRight: 8,
-              }}
-            >
-              <Text
-                style={{
-                  color: PROFILE_THEME_COLORS.onPrimaryContainer,
-                  fontFamily: SCREEN_FONTS.cta,
-                  fontSize: 16,
-                  lineHeight: 16,
-                }}
-              >
-                {hostInitials}
-              </Text>
-            </Pressable>
-
-            <View className="flex-1">
-              <Text
-                numberOfLines={1}
-                style={{
-                  color: PROFILE_THEME_COLORS.onSurface,
-                  fontFamily: SCREEN_FONTS.label,
-                  fontSize: 13,
-                  lineHeight: 18,
-                }}
-              >
-                {item.host_name || 'Ẩn danh'}
-              </Text>
-            </View>
-          </View>
-
-          <View className="items-end">
-            <Text
-              style={{
-                color: PROFILE_THEME_COLORS.onSurface,
-                fontFamily: SCREEN_FONTS.cta,
-                fontSize: 16,
+        {tab === 'pending' && (
+          <View 
+            style={{ 
+              marginBottom: 10, 
+              flexDirection: 'row',
+              alignItems: 'center',
+            }}
+          >
+            <Users size={14} color={item.role === 'host' ? colors.primary : colors.textSecondary} />
+            <Text 
+              style={{ 
+                marginLeft: 8, 
+                fontSize: 13, 
+                fontFamily: SCREEN_FONTS.headline,
+                color: item.role === 'host' ? colors.primary : colors.textSecondary,
+                textTransform: 'uppercase',
+                letterSpacing: 0.4,
               }}
             >
-              {item.player_count}/{item.max_players}
+              {item.role === 'host' ? 'Có người chơi đang chờ bạn duyệt' : 'Bạn đang chờ chủ kèo duyệt yêu cầu'}
             </Text>
           </View>
-        </View>
+        )}
 
-        <View className="mt-3 flex-row gap-3">
+        <View className="flex-row gap-3">
             <Pressable
-              onPress={() => onOpenSessionDetail(item.id)}
+              onPress={() => {
+                if (tab === 'pending' && item.role === 'host') {
+                  router.push({ pathname: '/session/[id]/review' as any, params: { id: item.id } })
+                } else {
+                  onOpenSessionDetail(item.id)
+                }
+              }}
               className="flex-1 flex-row items-center justify-center rounded-[10px] px-4 py-3"
               style={{ backgroundColor: PROFILE_THEME_COLORS.primary }}
             >
-              <Edit3 size={15} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.3} />
-              <Text
-                className="ml-2 text-[14px]"
-                style={{
-                  color: PROFILE_THEME_COLORS.onPrimary,
-                  fontFamily: SCREEN_FONTS.cta,
-                }}
-              >
-                Sửa kèo
-              </Text>
+                {tab === 'pending' ? (
+                  item.role === 'host' ? (
+                    <Search size={15} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.3} />
+                  ) : (
+                    <ChevronRight size={18} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.3} />
+                  )
+                ) : (
+                  <Edit3 size={15} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.3} />
+                )}
+                <Text
+                  className="ml-2 text-[15px]"
+                  style={{
+                    color: PROFILE_THEME_COLORS.onPrimary,
+                    fontFamily: SCREEN_FONTS.cta,
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {tab === 'pending' 
+                    ? (item.role === 'host' ? 'XEM YÊU CẦU' : 'CHI TIẾT KÈO') 
+                    : 'SỬA KÈO'}
+                </Text>
             </Pressable>
 
             <Pressable
@@ -590,8 +575,8 @@ function MySessionCard({
             >
               <Share2 size={15} color={PROFILE_THEME_COLORS.onSecondaryContainer} strokeWidth={2.3} />
               <Text
-                className="ml-2 text-[14px]"
-                style={{ color: PROFILE_THEME_COLORS.onSecondaryContainer, fontFamily: SCREEN_FONTS.cta }}
+                className="ml-2 text-[15px]"
+                style={{ color: PROFILE_THEME_COLORS.onSecondaryContainer, fontFamily: SCREEN_FONTS.headline, textTransform: 'uppercase' }}
               >
                 Chia sẻ
               </Text>
@@ -1186,7 +1171,7 @@ export default function MySessions() {
       <Text
         style={{
           color: isActive ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant,
-          fontFamily: SCREEN_FONTS.cta,
+          fontFamily: SCREEN_FONTS.label,
           fontSize: 12,
         }}
       >
@@ -1278,6 +1263,8 @@ export default function MySessions() {
                             color: active ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant,
                             fontFamily: SCREEN_FONTS.cta,
                             fontSize: 13,
+                            textTransform: 'uppercase',
+                            letterSpacing: 1.2,
                           }}
                         >
                           {tab.label}
@@ -1559,7 +1546,7 @@ export default function MySessions() {
                   className="h-12 items-center justify-center rounded-full"
                   style={{ backgroundColor: PROFILE_THEME_COLORS.primary }}
                 >
-                  <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta, fontSize: 13 }}>
+                  <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta, fontSize: 15, textTransform: 'uppercase' }}>
                     Áp dụng
                   </Text>
                 </Pressable>
@@ -1581,10 +1568,10 @@ export default function MySessions() {
               shadowOffset: { width: 0, height: 16 },
             }}
           >
-            <Plus size={20} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.7} />
+            <Plus size={20} color={PROFILE_THEME_COLORS.onPrimary} />
             <Text
-              className="ml-3 text-sm uppercase tracking-[2.6px]"
-              style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta }}
+              className="ml-3 text-[15px] uppercase tracking-[1.3px]"
+              style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.headline }}
             >
               Tạo kèo mới
             </Text>

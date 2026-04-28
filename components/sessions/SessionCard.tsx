@@ -194,7 +194,9 @@ export default function SessionCard({ session, onPress, onJoinPress }: SessionCa
 
         <View style={styles.priceWrap}>
           <Text style={[styles.priceValue, { color: disabled ? colors.textMuted : colors.text }]}>{formatVND(session.pricePerPerson)}</Text>
-          <Text style={[typography.bodyXs, styles.priceUnit, { color: disabled ? colors.textMuted : colors.textSecondary }]}>/người</Text>
+          <Text style={[typography.bodyXs, styles.priceUnit, { color: disabled ? colors.textMuted : colors.textSecondary }]}>
+            {session.pricePerPerson > 0 ? '/người' : ''}
+          </Text>
         </View>
       </View>
 
@@ -280,7 +282,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   dayBadgeText: {
-    fontFamily: SCREEN_FONTS.cta,
+    fontFamily: SCREEN_FONTS.headline,
     fontSize: 10,
     lineHeight: 12,
     color: colors.surface,
@@ -411,9 +413,10 @@ const styles = StyleSheet.create({
     borderColor: PROFILE_THEME_COLORS.outline,
   },
   ctaText: {
-    fontFamily: SCREEN_FONTS.cta,
-    fontSize: 14,
+    fontFamily: SCREEN_FONTS.headline,
+    fontSize: 15,
     lineHeight: 20,
     letterSpacing: 0.2,
+    textTransform: 'uppercase',
   },
 })

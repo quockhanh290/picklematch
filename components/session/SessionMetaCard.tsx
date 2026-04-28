@@ -163,7 +163,7 @@ export function SessionMetaCard({
               {priceLabel}
             </Text>
             <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 11, marginTop: 2 }}>
-              {'/người'}
+              {priceLabel === 'Miễn phí' ? '' : '/người'}
             </Text>
           </View>
         </View>

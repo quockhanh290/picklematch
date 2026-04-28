@@ -238,11 +238,12 @@ export function formatPendingResultTimeLabel(endTime: string) {
 
 export function formatPriceLabel(totalPrice: number, maxPlayers: number) {
   const pricePerPlayer = Math.round(totalPrice / Math.max(maxPlayers, 1))
+  if (pricePerPlayer <= 0) return 'Miễn phí'
   if (pricePerPlayer >= 1000) {
     const thousands = pricePerPlayer / 1000
     return `${thousands % 1 === 0 ? thousands.toFixed(0) : thousands.toFixed(1)}K`
   }
-  return `${pricePerPlayer}`
+  return `${pricePerPlayer}đ`
 }
 
 export function getInitials(name: string) {
@@ -271,6 +272,17 @@ export function isWithinNext24Hours(startTime: string) {
   const nowMs = Date.now()
   const diffMs = startMs - nowMs
   return diffMs > 0 && diffMs <= 24 * 60 * 60 * 1000
+}
+
+export function isWithinNext12Hours(startTime: string) {
+  const startMs = Date.parse(startTime)
+  if (Number.isNaN(startMs)) {
+    return false
+  }
+
+  const nowMs = Date.now()
+  const diffMs = startMs - nowMs
+  return diffMs > 0 && diffMs <= 12 * 60 * 60 * 1000
 }
 
 export function formatCountdownLabelFromStartTime(startTime: string) {

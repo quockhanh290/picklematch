@@ -78,6 +78,7 @@ function formatTime(date: Date) {
 }
 
 function formatPriceVndCompact(value: number) {
+  if (value <= 0) return 'Miễn phí'
   return `${Math.round(value / 1000)}K`
 }
 
@@ -260,7 +261,9 @@ export function SessionCard({ session, onPress, onJoinPress }: SessionCardProps)
           <Text style={{ ...typography.displayLg, color: colors.textPrimary, lineHeight: 26 }}>
             {formatPriceVndCompact(session.pricePerPlayer)}
           </Text>
-          <Text style={{ ...typography.bodyXs, color: colors.textSecondary, marginTop: 2 }}>/người</Text>
+          <Text style={{ ...typography.bodyXs, color: colors.textSecondary, marginTop: 2 }}>
+            {session.pricePerPlayer > 0 ? '/người' : ''}
+          </Text>
         </View>
       </View>
 
@@ -286,7 +289,7 @@ export function SessionCard({ session, onPress, onJoinPress }: SessionCardProps)
             elevation: isFull ? 0 : 2,
           })}
         >
-          <Text style={{ ...typography.cta, color: isFull ? colors.statusWarnText : PROFILE_THEME_COLORS.onPrimary }}>{isFull ? 'Đã đủ chỗ' : 'Vào kèo'}</Text>
+          <Text style={{ ...typography.cta, color: isFull ? colors.statusWarnText : PROFILE_THEME_COLORS.onPrimary }}>{isFull ? 'ĐÃ ĐỦ CHỖ' : 'VÀO KÈO'}</Text>
         </Pressable>
       </View>
     </Pressable>

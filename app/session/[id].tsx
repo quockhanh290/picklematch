@@ -441,7 +441,7 @@ export default function SessionDetailScreen() {
               onPress={() => router.push({ pathname: '/session/[id]/confirm-result' as never, params: { id } })}
               activeOpacity={0.9}
             >
-              <Text style={{ fontSize: 14, fontFamily: SCREEN_FONTS.cta, textTransform: 'uppercase', letterSpacing: 1.1, color: PROFILE_THEME_COLORS.onPrimary }}>
+              <Text style={{ fontSize: 14, fontFamily: SCREEN_FONTS.headline, textTransform: 'uppercase', letterSpacing: 1.1, color: PROFILE_THEME_COLORS.onPrimary }}>
                 {session.results_status === 'pending_confirmation' || session.results_status === 'disputed'
                   ? 'Xác nhận kết quả'
                   : 'Báo kết quả'}
@@ -485,57 +485,58 @@ export default function SessionDetailScreen() {
                   }}
                   disabled={hostPrimaryDisabled}
                   activeOpacity={0.84}
-                style={{
-                  flex: 1,
-                  paddingHorizontal: SPACING.md,
-                  minHeight: 52,
-                  paddingVertical: 11,
-                  borderRadius: RADIUS.full,
-                  backgroundColor: PROFILE_THEME_COLORS.primary,
-                  opacity: hostPrimaryDisabled && !savingArrangement ? 0.55 : 1,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                  {savingArrangement ? (
-                    <ActivityIndicator
-                      size="small"
-                      color={PROFILE_THEME_COLORS.onPrimary}
-                    />
-                  ) : hostPrimaryMode === 'edit' ? (
-                    <PencilLine
-                      size={16}
-                      strokeWidth={2.5}
-                      color={PROFILE_THEME_COLORS.onPrimary}
-                    />
-                  ) : hostPrimaryMode === 'save' ? (
-                    <Save
-                      size={16}
-                      strokeWidth={2.5}
-                      color={PROFILE_THEME_COLORS.onPrimary}
-                    />
-                  ) : (
-                    <Repeat2
-                      size={16}
-                      strokeWidth={2.5}
-                      color={PROFILE_THEME_COLORS.onPrimary}
-                    />
-                  )}
-                  <Text
-                    style={{
-                      fontSize: 15,
-                      fontFamily: SCREEN_FONTS.cta,
-                      color: PROFILE_THEME_COLORS.onPrimary,
-                    }}
-                  >
-                    {savingArrangement
-                      ? '\u0110ang l\u01B0u...'
-                      : hostPrimaryMode === 'edit'
-                        ? 'S\u1EEDa k\u00E8o'
-                        : hostPrimaryMode === 'save'
-                          ? 'L\u01B0u thay \u0111\u1ED5i'
-                          : '\u0110ang x\u1EBFp \u0111\u1ED9i'}
+                  style={{
+                    flex: 1,
+                    paddingHorizontal: SPACING.md,
+                    minHeight: 52,
+                    paddingVertical: 11,
+                    borderRadius: RADIUS.full,
+                    backgroundColor: PROFILE_THEME_COLORS.primary,
+                    opacity: hostPrimaryDisabled && !savingArrangement ? 0.55 : 1,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    {savingArrangement ? (
+                      <ActivityIndicator
+                        size="small"
+                        color={PROFILE_THEME_COLORS.onPrimary}
+                      />
+                    ) : hostPrimaryMode === 'edit' ? (
+                      <PencilLine
+                        size={16}
+                        strokeWidth={2.5}
+                        color={PROFILE_THEME_COLORS.onPrimary}
+                      />
+                    ) : hostPrimaryMode === 'save' ? (
+                      <Save
+                        size={16}
+                        strokeWidth={2.5}
+                        color={PROFILE_THEME_COLORS.onPrimary}
+                      />
+                    ) : (
+                      <Repeat2
+                        size={16}
+                        strokeWidth={2.5}
+                        color={PROFILE_THEME_COLORS.onPrimary}
+                      />
+                    )}
+                    <Text
+                      style={{
+                        fontSize: 15,
+                        fontFamily: SCREEN_FONTS.headline,
+                        color: PROFILE_THEME_COLORS.onPrimary,
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      {savingArrangement
+                        ? 'ĐANG LƯU...'
+                        : hostPrimaryMode === 'edit'
+                          ? 'SỬA KÈO'
+                          : hostPrimaryMode === 'save'
+                            ? 'LƯU THAY ĐỔI'
+                            : 'ĐANG XẾP ĐỘI'}
                     </Text>
                   </View>
                 </TouchableOpacity>
@@ -548,25 +549,25 @@ export default function SessionDetailScreen() {
                     flex: 1,
                     marginLeft: 10,
                     paddingHorizontal: SPACING.md,
-                  minHeight: 52,
-                  paddingVertical: 11,
-                  borderRadius: RADIUS.full,
-                  backgroundColor: PROFILE_THEME_SEMANTIC.dangerStrong,
-                  opacity: hostActionBusy ? 0.55 : 1,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                  {leaving ? (
-                    <ActivityIndicator size="small" color={PROFILE_THEME_COLORS.onPrimary} />
-                  ) : (
-                    <LogOut size={16} strokeWidth={2.5} color={PROFILE_THEME_COLORS.onPrimary} />
-                  )}
-                  <Text style={{ fontSize: 15, fontFamily: SCREEN_FONTS.cta, color: PROFILE_THEME_COLORS.onPrimary }}>
-                    {leaving ? '\u0110ang h\u1EE7y...' : 'H\u1EE7y k\u00E8o'}
-                  </Text>
-                </View>
+                    minHeight: 52,
+                    paddingVertical: 11,
+                    borderRadius: RADIUS.full,
+                    backgroundColor: PROFILE_THEME_SEMANTIC.dangerStrong,
+                    opacity: hostActionBusy ? 0.55 : 1,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    {leaving ? (
+                      <ActivityIndicator size="small" color={PROFILE_THEME_COLORS.onPrimary} />
+                    ) : (
+                      <LogOut size={16} strokeWidth={2.5} color={PROFILE_THEME_COLORS.onPrimary} />
+                    )}
+                    <Text style={{ fontSize: 15, fontFamily: SCREEN_FONTS.headline, color: PROFILE_THEME_COLORS.onPrimary, textTransform: 'uppercase' }}>
+                      {leaving ? 'Đang hủy...' : 'Hủy kèo'}
+                    </Text>
+                  </View>
                 </TouchableOpacity>
               </View>
             ) : hasJoined ? (
@@ -593,8 +594,8 @@ export default function SessionDetailScreen() {
                   ) : (
                     <LogOut size={18} strokeWidth={2.5} color={PROFILE_THEME_COLORS.onPrimary} />
                   )}
-                  <Text style={{ fontSize: 15, fontFamily: SCREEN_FONTS.cta, color: PROFILE_THEME_COLORS.onPrimary }}>
-                    {leaving ? '\u0110ang r\u1EDDi...' : 'R\u1EDDi k\u00E8o'}
+                  <Text style={{ fontSize: 15, fontFamily: SCREEN_FONTS.headline, color: PROFILE_THEME_COLORS.onPrimary, textTransform: 'uppercase' }}>
+                    {leaving ? 'Đang rời...' : 'Rời kèo'}
                   </Text>
                 </View>
               </TouchableOpacity>

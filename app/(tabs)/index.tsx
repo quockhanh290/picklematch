@@ -27,11 +27,11 @@ function withAlpha(hex: string, alpha: number) {
 }
 
 const SmartMatchCard = memo(function SmartMatchCard({ item, accentMode = 'default' }: { item: MatchSession; accentMode?: 'default' | 'rescue' }) {
-  return <MatchSessionCard item={item} variant="standard" actionLabel={item.joined ? 'Xem kèo' : 'Vào kèo'} accentMode={accentMode} />
+  return <MatchSessionCard item={item} variant="standard" actionLabel={item.joined ? 'XEM KÈO' : 'VÀO KÈO'} accentMode={accentMode} />
 })
 
 const SmartQueueHeroStyledCard = memo(function SmartQueueHeroStyledCard({ item }: { item: MatchSession }) {
-  return <MatchSessionCard item={item} variant="smart" actionLabel={item.joined ? 'Xem kèo' : 'Ưu tiên ghép'} />
+  return <MatchSessionCard item={item} variant="smart" actionLabel={item.joined ? 'XEM KÈO' : 'ƯU TIÊN GHÉP'} />
 })
 
 const HeroThemeCard = memo(function HeroThemeCard({
@@ -245,7 +245,7 @@ export default function HomeScreen() {
           }}
         >
           <Plus size={20} color={PROFILE_THEME_COLORS.onPrimary} />
-          <Text className="ml-3 text-sm uppercase tracking-[2.6px]" style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.bold }}>
+          <Text className="ml-3 text-[15px] uppercase tracking-[1.3px]" style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.headline }}>
             Tạo kèo mới
           </Text>
         </Pressable>

@@ -55,12 +55,12 @@ export function AppButton({
       {loading ? (
         <View className="flex-row items-center gap-3">
           <ActivityIndicator color={isPrimary ? theme.primaryContrast : theme.primaryStrong} />
-          <Text className="text-base font-extrabold" style={{ ...textStyle, fontFamily: AppFontSet.cta }}>
+          <Text style={{ ...textStyle, fontFamily: 'BarlowCondensed-Bold', fontSize: 16, textTransform: 'uppercase' }}>
             Đang xử lý...
           </Text>
         </View>
       ) : (
-        <Text className="text-base font-extrabold" style={{ ...textStyle, fontFamily: AppFontSet.cta }}>
+        <Text style={{ ...textStyle, fontFamily: 'BarlowCondensed-Bold', fontSize: 16, textTransform: 'uppercase' }}>
           {label}
         </Text>
       )}

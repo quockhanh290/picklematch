@@ -61,11 +61,12 @@ function extractCounts(label: string) {
 }
 
 function compactPriceLabel(label: string, divisor?: number) {
-  if (!label.trim()) return 'FREE'
-  if (label.toLowerCase().includes('miễn phí')) return 'FREE'
+  if (!label.trim()) return 'Miễn phí'
+  const lower = label.toLowerCase()
+  if (lower.includes('miễn phí') || lower.includes('free')) return 'Miễn phí'
   if (/[kK]/.test(label)) return label
   const raw = Number(label.replace(/[^\d]/g, ''))
-  if (!raw) return 'FREE'
+  if (!raw) return 'Miễn phí'
   const normalized = divisor && divisor > 0 ? Math.ceil(raw / divisor) : raw
   return `${Math.round(normalized / 1000)}K`
 }
@@ -280,7 +281,7 @@ export function FeedMatchCard({
               lineHeight: 18,
             }}
           >
-            {compactPriceLabel(priceLabel, priceDivisor)}/ng
+            {compactPriceLabel(priceLabel, priceDivisor)}{priceLabel === 'Miễn phí' ? '' : '/ng'}
           </Text>
         </View>
       </View>
@@ -396,7 +397,7 @@ export function FeedMatchCard({
               style={{
                 color: PROFILE_THEME_COLORS.onPrimary,
                 fontFamily: SCREEN_FONTS.headline,
-                fontSize: 11,
+                fontSize: 14,
                 textTransform: 'uppercase',
                 letterSpacing: 1.3,
               }}

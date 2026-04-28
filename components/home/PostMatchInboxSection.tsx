@@ -210,7 +210,7 @@ export function PostMatchInboxSection({
           </View>
 
           <Pressable onPress={() => presentation.onPress(currentTask.id)} className="rounded-full px-4 py-[7px]" style={{ backgroundColor: PROFILE_THEME_SEMANTIC.warningStrong }}>
-            <Text className="text-[12px]" style={{ color: PROFILE_THEME_COLORS.surface, fontFamily: SCREEN_FONTS.cta, lineHeight: 16 }}>
+            <Text className="text-[15px] uppercase" style={{ color: PROFILE_THEME_COLORS.surface, fontFamily: SCREEN_FONTS.headline, lineHeight: 18 }}>
               {presentation.cta}
             </Text>
           </Pressable>

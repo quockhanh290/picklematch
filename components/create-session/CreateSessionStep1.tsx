@@ -731,13 +731,13 @@ export function CreateSessionStep1({
           onPress={onBack}
           style={{ flex: 1, borderRadius: RADIUS.full, borderWidth: BORDER.medium, borderColor: '#E5E3DC', paddingVertical: 13, alignItems: 'center', backgroundColor: 'white' }}
         >
-          <Text style={{ fontSize: 14, fontWeight: '700', color: '#1A2E2A', fontFamily: SCREEN_FONTS.cta }}>Quay lại</Text>
+          <Text style={{ fontSize: 15, fontWeight: '700', color: '#1A2E2A', fontFamily: SCREEN_FONTS.cta, textTransform: 'uppercase' }}>Quay lại</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={onContinue}
           style={{ flex: 2, borderRadius: RADIUS.full, backgroundColor: '#0F6E56', paddingVertical: 13, alignItems: 'center' }}
         >
-          <Text style={{ fontSize: 14, fontWeight: '700', color: 'white', fontFamily: SCREEN_FONTS.cta }}>Tiếp tục →</Text>
+          <Text style={{ fontSize: 15, fontWeight: '700', color: 'white', fontFamily: SCREEN_FONTS.cta, textTransform: 'uppercase' }}>Tiếp tục →</Text>
         </TouchableOpacity>
       </View>
     </View>

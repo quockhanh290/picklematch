@@ -511,7 +511,7 @@ function HeroMatchSessionCard({ item }: { item: MatchSession; actionLabel: strin
           }}
           style={{ backgroundColor: '#FFFFFF', ...BUTTON.pill, flexShrink: 0 }}
         >
-          <Text style={{ color: '#0F6E56', fontFamily: SCREEN_FONTS.cta, fontSize: 12, lineHeight: 16 }}>
+          <Text style={{ color: '#0F6E56', fontFamily: SCREEN_FONTS.headline, fontSize: 15, lineHeight: 18, textTransform: 'uppercase' }}>
             {'Xem \u2192'}
           </Text>
         </Pressable>
@@ -654,7 +654,7 @@ function SuggestedSessionCard({ item, showFullAddress }: { item: MatchSession; s
               {item.priceLabel}
             </Text>
             <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 11, lineHeight: 15, marginTop: 2 }}>
-              {'/người'}
+              {item.priceLabel === 'Miễn phí' ? '' : '/người'}
             </Text>
           </View>
         </View>
@@ -677,8 +677,8 @@ function SuggestedSessionCard({ item, showFullAddress }: { item: MatchSession; s
             }}
             style={{ backgroundColor: '#0F6E56', ...BUTTON.pill }}
           >
-            <Text style={{ color: '#FFFFFF', fontFamily: SCREEN_FONTS.cta, fontSize: 13, lineHeight: 17 }}>
-              {'V\u00e0o k\u00e8o'}
+            <Text style={{ color: '#FFFFFF', fontFamily: SCREEN_FONTS.headline, fontSize: 15, lineHeight: 18, textTransform: 'uppercase' }}>
+              Vào kèo
             </Text>
           </Pressable>
         </View>
@@ -838,7 +838,7 @@ function UrgentFillCard({ item }: { item: MatchSession }) {
               {item.priceLabel}
             </Text>
             <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 11, lineHeight: 15, marginTop: 2 }}>
-              {'/người'}
+              {item.priceLabel === 'Miễn phí' ? '' : '/người'}
             </Text>
           </View>
         </View>
@@ -861,8 +861,8 @@ function UrgentFillCard({ item }: { item: MatchSession }) {
             }}
             style={{ backgroundColor: '#D85A30', ...BUTTON.pill }}
           >
-            <Text style={{ color: '#FFFFFF', fontFamily: SCREEN_FONTS.cta, fontSize: 13, lineHeight: 17 }}>
-              {'V\u00e0o ngay'}
+            <Text style={{ color: '#FFFFFF', fontFamily: SCREEN_FONTS.headline, fontSize: 15, lineHeight: 18, textTransform: 'uppercase' }}>
+              Vào ngay
             </Text>
           </Pressable>
         </View>
@@ -1056,7 +1056,7 @@ function SessionListCard({
               lineHeight: 18,
             }}
           >
-            {item.priceLabel}/ng
+            {item.priceLabel}{item.priceLabel === 'Miễn phí' ? '' : '/ng'}
           </Text>
         </View>
       </View>
@@ -1249,8 +1249,8 @@ function SessionListCard({
             <Text
               style={{
                 color: onAccentColor,
-                fontFamily: AppFontSet.headline,
-                fontSize: 11,
+                fontFamily: SCREEN_FONTS.headline,
+                fontSize: 15,
                 textTransform: 'uppercase',
                 letterSpacing: 1.3,
               }}
