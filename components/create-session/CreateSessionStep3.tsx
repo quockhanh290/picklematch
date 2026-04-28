@@ -158,10 +158,10 @@ export function CreateSessionStep3({
         {/* Preview card */}
         <View style={{ marginBottom: 16 }}>
           <Text style={{ fontSize: 10, color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.cta, letterSpacing: 0.8, marginBottom: 8 }}>
-            XEM TRƯỚC — kèo sẽ hiện như thế này trong feed
+            XEM TRƯỚC
           </Text>
           <View pointerEvents="none">
-            <MatchSessionCard item={previewMatch} variant="standard" actionLabel={'Vào kèo'} />
+            <MatchSessionCard item={previewMatch} variant="standard" actionLabel={'Vào kèo'} showFullAddress={true} />
           </View>
         </View>
 
@@ -193,9 +193,9 @@ export function CreateSessionStep3({
         </View>
 
         {/* Info note */}
-        <View style={{ backgroundColor: PROFILE_THEME_COLORS.primaryContainer, borderRadius: RADIUS.sm, padding: 12, flexDirection: 'row', gap: 10, marginBottom: 16 }}>
+        <View style={{ backgroundColor: PROFILE_THEME_COLORS.secondaryContainer, borderRadius: RADIUS.sm, padding: 12, flexDirection: 'row', gap: 10, marginBottom: 16 }}>
           <Text style={{ fontSize: 14 }}>ℹ️</Text>
-          <Text style={{ fontSize: 12, color: PROFILE_THEME_COLORS.primary, lineHeight: 18, flex: 1 }}>
+          <Text style={{ fontSize: 12, color: PROFILE_THEME_COLORS.primary, lineHeight: 18, flex: 1, fontFamily: SCREEN_FONTS.body }}>
             Kiểm tra lại thông tin, chi phí và trạng thái booking để bài đăng ra feed đúng ngay từ lần đầu.
           </Text>
         </View>
@@ -216,7 +216,7 @@ export function CreateSessionStep3({
           style={{ flex: 2, borderRadius: RADIUS.full, backgroundColor: PROFILE_THEME_COLORS.primary, paddingVertical: 13, alignItems: 'center', opacity: submitting ? 0.7 : 1 }}
         >
           <Text style={{ fontSize: 14, color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta }}>
-            {submitting ? 'Đang tạo...' : 'Tạo kèo 🏓'}
+            {submitting ? 'Đang tạo...' : 'Tạo kèo'}
           </Text>
         </TouchableOpacity>
       </View>

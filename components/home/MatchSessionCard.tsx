@@ -265,18 +265,20 @@ export function MatchSessionCard({
   variant,
   actionLabel,
   accentMode = 'default',
+  showFullAddress,
 }: {
   item: MatchSession
   variant: 'hero' | 'smart' | 'standard'
   actionLabel: string
   accentMode?: 'default' | 'rescue'
+  showFullAddress?: boolean
 }) {
   if (variant === 'hero') {
     return <HeroMatchSessionCard item={item} actionLabel={actionLabel} />
   }
 
   if (accentMode === 'default') {
-    return <SuggestedSessionCard item={item} />
+    return <SuggestedSessionCard item={item} showFullAddress={showFullAddress} />
   }
 
   if (accentMode === 'rescue') {
@@ -518,7 +520,7 @@ function HeroMatchSessionCard({ item }: { item: MatchSession; actionLabel: strin
   )
 }
 
-function SuggestedSessionCard({ item }: { item: MatchSession }) {
+function SuggestedSessionCard({ item, showFullAddress }: { item: MatchSession; showFullAddress?: boolean }) {
   const startDate = parseSessionStartDate(item)
   const endDate = parseSessionEndDate(item, startDate)
   const dayInfo = getSuggestedDayInfo(startDate)
@@ -527,7 +529,9 @@ function SuggestedSessionCard({ item }: { item: MatchSession }) {
     .split(',')
     .map((part) => part.trim())
     .filter(Boolean)
-  const addressBase = addressParts.length >= 2 ? addressParts[addressParts.length - 2] : addressParts[0] ?? item.address
+  const addressBase = showFullAddress
+    ? item.address
+    : addressParts.length >= 2 ? addressParts[addressParts.length - 2] : addressParts[0] ?? item.address
   const addressLabel = [addressBase, distanceLabel].filter(Boolean).join(' \u00b7 ')
   const levelMatchesUser = (item as MatchSession & { levelMatchesUser?: boolean }).levelMatchesUser !== false
   const pagination = `${(item.carouselIndex ?? 0) + 1} / ${item.carouselTotal ?? 1}`
