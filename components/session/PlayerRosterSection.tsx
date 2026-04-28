@@ -20,6 +20,7 @@ type Props = {
   averageTeamA: number
   averageTeamB: number
   renderPlayerRow: (player: ArrangementPlayer, mode: 'normal' | 'arranging') => React.ReactNode
+  hideEmptySlots?: boolean
 }
 
 function TeamHeader({ label, badge, avgElo }: { label: string; badge: string; avgElo: number }) {
@@ -130,6 +131,7 @@ export function PlayerRosterSection({
   averageTeamA,
   averageTeamB,
   renderPlayerRow,
+  hideEmptySlots = false,
 }: Props) {
   return (
     <View style={{ marginTop: 24 }}>
@@ -230,7 +232,7 @@ export function PlayerRosterSection({
         <TeamHeader label="Đội A" badge="A" avgElo={averageTeamA} />
         <View style={{ gap: 10 }}>
           {teamA.map((player) => renderPlayerRow(player, isArranging ? 'arranging' : 'normal'))}
-          {Array.from({ length: Math.max(0, Math.ceil(maxPlayers / 2) - teamA.length) }).map((_, i) => (
+          {!hideEmptySlots && Array.from({ length: Math.max(0, Math.ceil(maxPlayers / 2) - teamA.length) }).map((_, i) => (
             <EmptySlot key={`empty-a-${i}`} />
           ))}
         </View>
@@ -241,7 +243,7 @@ export function PlayerRosterSection({
         <TeamHeader label="Đội B" badge="B" avgElo={averageTeamB} />
         <View style={{ gap: 10 }}>
           {teamB.map((player) => renderPlayerRow(player, isArranging ? 'arranging' : 'normal'))}
-          {Array.from({ length: Math.max(0, Math.floor(maxPlayers / 2) - teamB.length) }).map((_, i) => (
+          {!hideEmptySlots && Array.from({ length: Math.max(0, Math.floor(maxPlayers / 2) - teamB.length) }).map((_, i) => (
             <EmptySlot key={`empty-b-${i}`} />
           ))}
         </View>

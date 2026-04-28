@@ -10,6 +10,7 @@ import {
   Share2,
   ShieldAlert,
   Star,
+  Trophy,
 } from 'lucide-react-native'
 import { useEffect, useMemo, useState } from 'react'
 import {
@@ -152,6 +153,17 @@ export default function SessionDetailScreen() {
   const viewerSessionPlayer = session.session_players.find((item) => item.player_id === userId) ?? null
   const showBottomActions = isHost || hasJoined || canShowJoinActions
   const hostActionBusy = savingArrangement || leaving
+
+  // Time-window flags
+  const now = new Date()
+  const slotStart = session.slot?.start_time ? new Date(session.slot.start_time) : null
+  const slotEnd = session.slot?.end_time ? new Date(session.slot.end_time) : null
+  const isBeforeStart = slotStart ? now < slotStart : true
+  const isDuringMatch = slotStart && slotEnd ? now >= slotStart && now <= slotEnd : false
+  const isAfterEnd = slotEnd ? now > slotEnd : false
+
+  // Disable team arrangement during or after match
+  const canArrange = isHost && isBeforeStart
   const hostPrimaryMode: 'edit' | 'arranging' | 'save' =
     !isArranging ? 'edit' : arrangementDirty ? 'save' : 'arranging'
   const hostPrimaryDisabled = hostActionBusy || hostPrimaryMode === 'arranging'
@@ -457,121 +469,182 @@ export default function SessionDetailScreen() {
           sessionStatus={session.status}
           spotsLeft={spotsLeft}
           isHost={isHost}
-          isArranging={isArranging}
-          setIsArranging={setIsArranging}
+          isArranging={canArrange ? isArranging : false}
+          setIsArranging={canArrange ? setIsArranging : () => {}}
           onAutoBalance={onAutoBalance}
           teamA={teamA}
           teamB={teamB}
           averageTeamA={averageTeamA}
           averageTeamB={averageTeamB}
           renderPlayerRow={renderPlayerRow}
+          hideEmptySlots={!isBeforeStart}
         />
 
         {showBottomActions ? (
           <View style={{ marginTop: 20, paddingBottom: 8 }}>
-            {isHost ? (
-              <View style={{ width: '100%', flexDirection: 'row', alignSelf: 'center' }}>
-                <TouchableOpacity
-                  onPress={() => {
-                    if (hostPrimaryMode === 'edit') {
-                      router.push({
-                        pathname: '/create-session',
-                        params: { editSessionId: session.id },
-                      } as never)
-                      return
-                    }
-                    if (hostPrimaryMode === 'save') {
-                      void onSaveArrangement()
-                    }
-                  }}
-                  disabled={hostPrimaryDisabled}
-                  activeOpacity={0.84}
-                  style={{
-                    flex: 1,
-                    paddingHorizontal: SPACING.md,
-                    minHeight: 52,
-                    paddingVertical: 11,
-                    borderRadius: RADIUS.full,
-                    backgroundColor: PROFILE_THEME_COLORS.primary,
-                    opacity: hostPrimaryDisabled && !savingArrangement ? 0.55 : 1,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                    {savingArrangement ? (
-                      <ActivityIndicator
-                        size="small"
-                        color={PROFILE_THEME_COLORS.onPrimary}
-                      />
-                    ) : hostPrimaryMode === 'edit' ? (
-                      <PencilLine
-                        size={16}
-                        strokeWidth={2.5}
-                        color={PROFILE_THEME_COLORS.onPrimary}
-                      />
-                    ) : hostPrimaryMode === 'save' ? (
-                      <Save
-                        size={16}
-                        strokeWidth={2.5}
-                        color={PROFILE_THEME_COLORS.onPrimary}
-                      />
-                    ) : (
-                      <Repeat2
-                        size={16}
-                        strokeWidth={2.5}
-                        color={PROFILE_THEME_COLORS.onPrimary}
-                      />
-                    )}
-                    <Text
-                      style={{
-                        fontSize: 15,
-                        fontFamily: SCREEN_FONTS.headline,
-                        color: PROFILE_THEME_COLORS.onPrimary,
-                        textTransform: 'uppercase',
-                      }}
-                    >
-                      {savingArrangement
-                        ? 'ĐANG LƯU...'
-                        : hostPrimaryMode === 'edit'
-                          ? 'SỬA KÈO'
-                          : hostPrimaryMode === 'save'
-                            ? 'LƯU THAY ĐỔI'
-                            : 'ĐANG XẾP ĐỘI'}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
+            {isHost ? (() => {
+              const isAwaitingResult =
+                isAfterEnd &&
+                (session.results_status === 'not_submitted' || session.results_status === null || session.results_status === undefined)
 
-                <TouchableOpacity
-                  onPress={() => void leaveSession()}
-                  disabled={hostActionBusy}
-                  activeOpacity={0.84}
-                  style={{
-                    flex: 1,
-                    marginLeft: 10,
-                    paddingHorizontal: SPACING.md,
-                    minHeight: 52,
-                    paddingVertical: 11,
-                    borderRadius: RADIUS.full,
-                    backgroundColor: PROFILE_THEME_SEMANTIC.dangerStrong,
-                    opacity: hostActionBusy ? 0.55 : 1,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                    {leaving ? (
-                      <ActivityIndicator size="small" color={PROFILE_THEME_COLORS.onPrimary} />
-                    ) : (
-                      <LogOut size={16} strokeWidth={2.5} color={PROFILE_THEME_COLORS.onPrimary} />
-                    )}
+              // After end, no result yet — prompt to enter result
+              if (isAwaitingResult) {
+                return (
+                  <TouchableOpacity
+                    onPress={() => router.push({ pathname: '/match-result/[id]' as any, params: { id } })}
+                    activeOpacity={0.84}
+                    style={{
+                      width: '100%',
+                      paddingHorizontal: SPACING.md,
+                      minHeight: 52,
+                      paddingVertical: 11,
+                      borderRadius: RADIUS.full,
+                      backgroundColor: PROFILE_THEME_COLORS.primary,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexDirection: 'row',
+                      gap: 8,
+                    }}
+                  >
+                    <Trophy size={18} strokeWidth={2.5} color={PROFILE_THEME_COLORS.onPrimary} />
                     <Text style={{ fontSize: 15, fontFamily: SCREEN_FONTS.headline, color: PROFILE_THEME_COLORS.onPrimary, textTransform: 'uppercase' }}>
-                      {leaving ? 'Đang hủy...' : 'Hủy kèo'}
+                      Nhập kết quả trận
+                    </Text>
+                  </TouchableOpacity>
+                )
+              }
+
+              // During match — informational disabled banner
+              if (isDuringMatch) {
+                return (
+                  <View
+                    style={{
+                      width: '100%',
+                      paddingHorizontal: SPACING.md,
+                      minHeight: 52,
+                      paddingVertical: 11,
+                      borderRadius: RADIUS.full,
+                      backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHigh,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexDirection: 'row',
+                      gap: 8,
+                      borderWidth: BORDER.base,
+                      borderColor: PROFILE_THEME_COLORS.outlineVariant,
+                    }}
+                  >
+                    <ActivityIndicator size="small" color={PROFILE_THEME_COLORS.primary} />
+                    <Text style={{ fontSize: 15, fontFamily: SCREEN_FONTS.headline, color: PROFILE_THEME_COLORS.onSurfaceVariant, textTransform: 'uppercase' }}>
+                      Kèo đang diễn ra
                     </Text>
                   </View>
-                </TouchableOpacity>
-              </View>
-            ) : hasJoined ? (() => {
+                )
+              }
+
+              return (
+                <View style={{ width: '100%', flexDirection: 'row', alignSelf: 'center' }}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      if (hostPrimaryMode === 'edit') {
+                        router.push({
+                          pathname: '/create-session',
+                          params: { editSessionId: session.id },
+                        } as never)
+                        return
+                      }
+                      if (hostPrimaryMode === 'save') {
+                        void onSaveArrangement()
+                      }
+                    }}
+                    disabled={hostPrimaryDisabled}
+                    activeOpacity={0.84}
+                    style={{
+                      flex: 1,
+                      paddingHorizontal: SPACING.md,
+                      minHeight: 52,
+                      paddingVertical: 11,
+                      borderRadius: RADIUS.full,
+                      backgroundColor: PROFILE_THEME_COLORS.primary,
+                      opacity: hostPrimaryDisabled && !savingArrangement ? 0.55 : 1,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      {savingArrangement ? (
+                        <ActivityIndicator
+                          size="small"
+                          color={PROFILE_THEME_COLORS.onPrimary}
+                        />
+                      ) : hostPrimaryMode === 'edit' ? (
+                        <PencilLine
+                          size={16}
+                          strokeWidth={2.5}
+                          color={PROFILE_THEME_COLORS.onPrimary}
+                        />
+                      ) : hostPrimaryMode === 'save' ? (
+                        <Save
+                          size={16}
+                          strokeWidth={2.5}
+                          color={PROFILE_THEME_COLORS.onPrimary}
+                        />
+                      ) : (
+                        <Repeat2
+                          size={16}
+                          strokeWidth={2.5}
+                          color={PROFILE_THEME_COLORS.onPrimary}
+                        />
+                      )}
+                      <Text
+                        style={{
+                          fontSize: 15,
+                          fontFamily: SCREEN_FONTS.headline,
+                          color: PROFILE_THEME_COLORS.onPrimary,
+                          textTransform: 'uppercase',
+                        }}
+                      >
+                        {savingArrangement
+                          ? 'ĐANG LƯU...'
+                          : hostPrimaryMode === 'edit'
+                            ? 'SỬA KÈO'
+                            : hostPrimaryMode === 'save'
+                              ? 'LƯU THAY ĐỔI'
+                              : 'ĐANG XẾP ĐỘI'}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => void leaveSession()}
+                    disabled={hostActionBusy}
+                    activeOpacity={0.84}
+                    style={{
+                      flex: 1,
+                      marginLeft: 10,
+                      paddingHorizontal: SPACING.md,
+                      minHeight: 52,
+                      paddingVertical: 11,
+                      borderRadius: RADIUS.full,
+                      backgroundColor: PROFILE_THEME_SEMANTIC.dangerStrong,
+                      opacity: hostActionBusy ? 0.55 : 1,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      {leaving ? (
+                        <ActivityIndicator size="small" color={PROFILE_THEME_COLORS.onPrimary} />
+                      ) : (
+                        <LogOut size={16} strokeWidth={2.5} color={PROFILE_THEME_COLORS.onPrimary} />
+                      )}
+                      <Text style={{ fontSize: 15, fontFamily: SCREEN_FONTS.headline, color: PROFILE_THEME_COLORS.onPrimary, textTransform: 'uppercase' }}>
+                        {leaving ? 'Đang hủy...' : 'Hủy kèo'}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              )
+            })() : hasJoined ? (() => {
               const resultsStatus = session?.results_status
               const isFinalized = resultsStatus === 'finalized'
               const isPendingConfirm = resultsStatus === 'pending_confirmation' || resultsStatus === 'disputed'
