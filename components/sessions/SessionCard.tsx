@@ -1,6 +1,6 @@
 import { colors } from '@/constants/colors'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
-import { SCREEN_FONTS } from '@/constants/screenFonts'
+import { SCREEN_FONTS } from '@/constants/typography'
 import { typography } from '@/constants/typography'
 import {
   formatDistance,
@@ -162,7 +162,7 @@ export default function SessionCard({ session, onPress, onJoinPress }: SessionCa
 
           <View style={styles.bookingWrap}>
             <View style={[styles.statusDot, { backgroundColor: session.courtBookingConfirmed ? colors.success : colors.warning }]} />
-            <Text style={[typography.bodySm, { color: session.courtBookingConfirmed ? colors.successText : colors.warningDark }]}>
+            <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 10, color: session.courtBookingConfirmed ? colors.successText : colors.warningDark, textTransform: 'uppercase', letterSpacing: 0.5 }}>
               {session.courtBookingConfirmed ? 'Đã đặt sân' : 'Chờ đặt sân'}
             </Text>
           </View>
@@ -283,8 +283,8 @@ const styles = StyleSheet.create({
   },
   dayBadgeText: {
     fontFamily: SCREEN_FONTS.headline,
-    fontSize: 10,
-    lineHeight: 12,
+    fontSize: 12,
+    lineHeight: 16,
     color: colors.surface,
   },
   timeText: {

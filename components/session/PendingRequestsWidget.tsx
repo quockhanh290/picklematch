@@ -2,7 +2,7 @@ import { ChevronRight, Users } from 'lucide-react-native'
 import { Image, Pressable, Text, View } from 'react-native'
 
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
-import { SCREEN_FONTS } from '@/constants/screenFonts'
+import { SCREEN_FONTS } from '@/constants/typography'
 
 type Props = {
   count: number

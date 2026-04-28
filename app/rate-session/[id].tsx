@@ -22,7 +22,7 @@ import {
 import { useCallback, useEffect, useState } from 'react'
 import { ActivityIndicator, LayoutAnimation, Platform, Pressable, ScrollView, Text, UIManager, View } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
-import { SCREEN_FONTS } from '@/constants/screenFonts'
+import { SCREEN_FONTS } from '@/constants/typography'
 import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
 
 type SkillValidation = 'weaker' | 'matched' | 'outclass'

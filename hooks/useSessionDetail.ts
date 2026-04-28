@@ -68,6 +68,7 @@ export type SessionDetailRecord = {
     }
   }
   session_players: SessionPlayer[]
+  has_rated?: boolean
 }
 
 export type RequestStatus = 'none' | 'pending' | 'accepted' | 'rejected'
@@ -107,6 +108,19 @@ export function useSessionDetail(id?: string, userId?: string | null) {
     if (userId) {
       const { data: viewerData } = await supabase.from('players').select('id, elo, current_elo').eq('id', userId).single()
       setViewerPlayer((viewerData as ViewerPlayer | null) ?? null)
+
+      // Check if user has rated this session
+      const { data: ratingsData } = await supabase
+        .from('ratings')
+        .select('id')
+        .eq('session_id', id)
+        .eq('rater_id', userId)
+        .limit(1)
+      
+      if (nextSession) {
+        nextSession.has_rated = (ratingsData?.length ?? 0) > 0
+        setSession({ ...nextSession })
+      }
     } else {
       setViewerPlayer(null)
     }

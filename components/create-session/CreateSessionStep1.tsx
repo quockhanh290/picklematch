@@ -1,6 +1,6 @@
 import { ScreenHeader } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
-import { SCREEN_FONTS } from '@/constants/screenFonts'
+import { SCREEN_FONTS } from '@/constants/typography'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Calendar, Clock3, CreditCard, Link2, MapPin, Search, ShieldAlert, ShieldCheck, SlidersHorizontal } from 'lucide-react-native'

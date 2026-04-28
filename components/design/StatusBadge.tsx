@@ -1,5 +1,5 @@
 import { Text, View } from 'react-native'
-import { SCREEN_FONTS } from '@/constants/screenFonts'
+import { SCREEN_FONTS } from '@/constants/typography'
 
 import { appRadii, getTonePalette, type BadgeTone } from '@/lib/designSystem'
 import { useAppTheme } from '@/lib/theme-context'

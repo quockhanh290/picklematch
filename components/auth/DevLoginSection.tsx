@@ -4,7 +4,7 @@ import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { Code2, LockKeyhole, Mail } from 'lucide-react-native'
 import { useState } from 'react'
 import { Alert, Pressable, Text, TextInput, View } from 'react-native'
-import { SCREEN_FONTS } from '@/constants/screenFonts'
+import { SCREEN_FONTS } from '@/constants/typography'
 import { SPACING, RADIUS } from '@/constants/screenLayout'
 
 const DEV = {

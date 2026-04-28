@@ -1,5 +1,5 @@
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
-import { SCREEN_FONTS } from '@/constants/screenFonts'
+import { SCREEN_FONTS } from '@/constants/typography'
 import { getSkillLevelUi } from '@/lib/skillLevelUi'
 import { LinearGradient } from 'expo-linear-gradient'
 import { CreditCard, MapPin, MessageSquareText } from 'lucide-react-native'

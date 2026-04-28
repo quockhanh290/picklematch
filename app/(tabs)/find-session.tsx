@@ -5,7 +5,7 @@ import {
 } from '@/components/find-session/AdvancedSessionFilterModal'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import SessionCard from '@/components/sessions/SessionCard'
-import { SCREEN_FONTS } from '@/constants/screenFonts'
+import { SCREEN_FONTS } from '@/constants/typography'
 import { getSkillLevelFromEloRange, getSkillLevelFromPlayer, getSkillScoreFromLevelId } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
 import AsyncStorage from '@react-native-async-storage/async-storage'

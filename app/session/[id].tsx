@@ -9,6 +9,7 @@ import {
   Save,
   Share2,
   ShieldAlert,
+  Star,
 } from 'lucide-react-native'
 import { useEffect, useMemo, useState } from 'react'
 import {
@@ -40,7 +41,7 @@ import {
 } from '@/lib/sessionDetail'
 import { getSkillLevelUi } from '@/lib/skillLevelUi'
 import { useAuth } from '@/lib/useAuth'
-import { SCREEN_FONTS } from '@/constants/screenFonts'
+import { SCREEN_FONTS } from '@/constants/typography'
 import { RADIUS, SPACING, BORDER, SHADOW } from '@/constants/screenLayout'
 
 export default function SessionDetailScreen() {
@@ -570,36 +571,116 @@ export default function SessionDetailScreen() {
                   </View>
                 </TouchableOpacity>
               </View>
-            ) : hasJoined ? (
-              <TouchableOpacity
-                onPress={() => void leaveSession()}
-                disabled={leaving}
-                activeOpacity={0.84}
-                style={{
-                  alignSelf: 'center',
-                  minWidth: 190,
-                  paddingHorizontal: SPACING.xl,
-                  minHeight: 52,
-                  paddingVertical: 11,
-                  borderRadius: RADIUS.full,
-                  backgroundColor: PROFILE_THEME_SEMANTIC.dangerStrong,
-                  opacity: leaving ? 0.55 : 1,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                  {leaving ? (
-                    <ActivityIndicator size="small" color={PROFILE_THEME_COLORS.onPrimary} />
-                  ) : (
-                    <LogOut size={18} strokeWidth={2.5} color={PROFILE_THEME_COLORS.onPrimary} />
-                  )}
-                  <Text style={{ fontSize: 15, fontFamily: SCREEN_FONTS.headline, color: PROFILE_THEME_COLORS.onPrimary, textTransform: 'uppercase' }}>
-                    {leaving ? 'Đang rời...' : 'Rời kèo'}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            ) : (
+            ) : hasJoined ? (() => {
+              const resultsStatus = session?.results_status
+              const isFinalized = resultsStatus === 'finalized'
+              const isPendingConfirm = resultsStatus === 'pending_confirmation' || resultsStatus === 'disputed'
+              const hasRated = session?.has_rated
+
+              if (isFinalized) {
+                const label = hasRated ? 'XEM KẾT QUẢ TRẬN ĐẤU' : 'ĐÁNH GIÁ TRẬN ĐẤU'
+                const action = hasRated 
+                  ? () => router.push({ pathname: '/session/[id]/confirm-result' as any, params: { id } })
+                  : () => router.push({ pathname: '/rate-session/[id]' as any, params: { id } })
+                const Icon = hasRated ? CheckCheck : Star
+
+                return (
+                  <TouchableOpacity
+                    onPress={action}
+                    activeOpacity={0.84}
+                    style={{
+                      alignSelf: 'center',
+                      minWidth: 220,
+                      paddingHorizontal: SPACING.xl,
+                      minHeight: 52,
+                      paddingVertical: 11,
+                      borderRadius: RADIUS.full,
+                      backgroundColor: PROFILE_THEME_COLORS.primary,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <Icon size={18} strokeWidth={2.5} color={PROFILE_THEME_COLORS.onPrimary} />
+                      <Text style={{ fontSize: 15, fontFamily: SCREEN_FONTS.headline, color: PROFILE_THEME_COLORS.onPrimary, textTransform: 'uppercase' }}>
+                        {label}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                )
+              }
+
+              if (isPendingConfirm) {
+                const label = isHost ? 'ĐANG CHỜ XÁC NHẬN' : 'XÁC NHẬN KẾT QUẢ'
+                const action = () => router.push({ pathname: '/session/[id]/confirm-result' as any, params: { id } })
+                const Icon = isHost ? ActivityIndicator : PencilLine
+
+                return (
+                  <TouchableOpacity
+                    onPress={isHost ? undefined : action}
+                    activeOpacity={0.84}
+                    style={{
+                      alignSelf: 'center',
+                      minWidth: 220,
+                      paddingHorizontal: SPACING.xl,
+                      minHeight: 52,
+                      paddingVertical: 11,
+                      borderRadius: RADIUS.full,
+                      backgroundColor: isHost ? PROFILE_THEME_COLORS.surfaceContainerHigh : PROFILE_THEME_COLORS.primary,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      {isHost ? (
+                        <ActivityIndicator size="small" color={PROFILE_THEME_COLORS.outline} />
+                      ) : (
+                        <PencilLine size={18} strokeWidth={2.5} color={PROFILE_THEME_COLORS.onPrimary} />
+                      )}
+                      <Text style={{ 
+                        fontSize: 15, 
+                        fontFamily: SCREEN_FONTS.headline, 
+                        color: isHost ? PROFILE_THEME_COLORS.outline : PROFILE_THEME_COLORS.onPrimary, 
+                        textTransform: 'uppercase' 
+                      }}>
+                        {label}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                )
+              }
+
+              return (
+                <TouchableOpacity
+                  onPress={() => void leaveSession()}
+                  disabled={leaving}
+                  activeOpacity={0.84}
+                  style={{
+                    alignSelf: 'center',
+                    minWidth: 190,
+                    paddingHorizontal: SPACING.xl,
+                    minHeight: 52,
+                    paddingVertical: 11,
+                    borderRadius: RADIUS.full,
+                    backgroundColor: PROFILE_THEME_SEMANTIC.dangerStrong,
+                    opacity: leaving ? 0.55 : 1,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    {leaving ? (
+                      <ActivityIndicator size="small" color={PROFILE_THEME_COLORS.onPrimary} />
+                    ) : (
+                      <LogOut size={18} strokeWidth={2.5} color={PROFILE_THEME_COLORS.onPrimary} />
+                    )}
+                    <Text style={{ fontSize: 15, fontFamily: SCREEN_FONTS.headline, color: PROFILE_THEME_COLORS.onPrimary, textTransform: 'uppercase' }}>
+                      {leaving ? 'Đang rời...' : 'Rời kèo'}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              )
+            })() : (
               <SmartJoinButton
                 matchStatus={matchStatus}
                 requestStatus={requestStatus}

@@ -1,5 +1,5 @@
 import { colors } from '@/constants/colors'
-import { SCREEN_FONTS } from '@/constants/screenFonts'
+import { SCREEN_FONTS } from '@/constants/typography'
 import { resolveTab, type SessionRequestStatus, type SessionRole } from '@/lib/mySessionsLogic'
 import { getSessionSkillLabel } from '@/lib/sessionDetail'
 import { supabase } from '@/lib/supabase'
@@ -11,6 +11,7 @@ import {
   ChevronDown,
   ChevronRight,
   Pencil as Edit3,
+  PencilLine,
   Plus,
   Search,
   Share2,
@@ -91,6 +92,7 @@ type MySession = {
   elo_max: number | null
   has_rated: boolean
   results_status?: 'not_submitted' | 'pending_confirmation' | 'disputed' | 'finalized' | 'void' | null
+  user_result?: 'win' | 'loss' | 'draw' | null
 }
 
 type MySessionsCache = {
@@ -355,8 +357,40 @@ function MySessionCard({
   const address = [item.court_address, item.court_city].filter(Boolean).join(', ')
   const compactAddress = address.split(',').map((p) => p.trim()).filter(Boolean).slice(0, 2).join(', ')
   const hostInitials = (item.host_name || '?').slice(0, 1).toUpperCase()
-  const bookingStatusLabel = isClosedRecruitment ? 'Đã ngừng nhận người' : isBooked ? 'Đã đặt sân' : 'Chưa đặt sân'
-  const bookingStatusColor = isClosedRecruitment ? colors.accentDark : isBooked ? colors.successText : colors.warningDark
+  const isHistory = tab === 'history'
+  const isFinalized = item.results_status === 'finalized'
+  const userResult = item.user_result
+
+  let statusLabel = isBooked ? 'Đã đặt sân' : 'Chưa đặt sân'
+  let statusColor = isBooked ? colors.successText : colors.warningDark
+  let dotColor = isBooked ? colors.success : colors.warning
+
+  if (isHistory) {
+    if (isFinalized) {
+      if (userResult === 'win') {
+        statusLabel = 'Thắng'
+        statusColor = colors.successText
+        dotColor = colors.success
+      } else if (userResult === 'loss') {
+        statusLabel = 'Thua'
+        statusColor = colors.error
+        dotColor = colors.error
+      } else {
+        statusLabel = 'Đã kết thúc'
+        statusColor = colors.textSecondary
+        dotColor = colors.textSecondary
+      }
+    } else if (item.results_status === 'not_submitted') {
+      statusLabel = 'Chờ nhập kết quả'
+      statusColor = colors.warningDark
+      dotColor = colors.warning
+    } else {
+      statusLabel = 'Đang xác nhận'
+      statusColor = colors.warningDark
+      dotColor = colors.warning
+    }
+  }
+
   const dateBadgeLabel = formatDateBadgeLabel(item.start_time).toLocaleUpperCase('vi-VN')
   const dateBadgeBackground = getDayBadgeBackground(item.start_time)
 
@@ -426,7 +460,7 @@ function MySessionCard({
                 marginRight: 8,
               }}
             >
-              <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta, fontSize: 10, lineHeight: 12 }}>
+              <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta, fontSize: 12, lineHeight: 16 }}>
                 {dateBadgeLabel}
               </Text>
             </View>
@@ -435,9 +469,9 @@ function MySessionCard({
             </Text>
           </View>
           <View style={{ marginLeft: 'auto', flexDirection: 'row', alignItems: 'center' }}>
-            <View style={{ width: 6, height: 6, borderRadius: RADIUS.full, backgroundColor: isBooked ? colors.success : colors.warning }} />
-            <Text style={{ marginLeft: 6, color: bookingStatusColor, fontFamily: SCREEN_FONTS.label, fontSize: 12 }}>
-              {bookingStatusLabel}
+            <View style={{ width: 6, height: 6, borderRadius: RADIUS.full, backgroundColor: dotColor }} />
+            <Text style={{ marginLeft: 6, color: statusColor, fontFamily: SCREEN_FONTS.cta, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+              {statusLabel}
             </Text>
           </View>
         </View>
@@ -465,36 +499,58 @@ function MySessionCard({
         </View>
       </View>
       {tab === 'history' ? (() => {
-        const canRate = item.status === 'done' && !item.has_rated
-        const label = item.status === 'cancelled'
-          ? 'Kèo đã bị hủy'
-          : item.has_rated
-            ? 'Bạn đã đánh giá kèo này'
-            : 'Đánh giá trận đấu'
+        const needsResult = item.results_status === 'not_submitted'
+        const needsConfirmation = item.results_status === 'pending_confirmation' || item.results_status === 'disputed'
+        const needsRating = !item.has_rated && (item.status === 'done' || item.results_status === 'finalized')
+        const isCancelled = item.status === 'cancelled'
+        const isHost = item.role === 'host'
+        
+        let label = 'Kèo đã kết thúc'
+        let canAction = false
+        let action = () => {}
+        let icon = null
+
+        if (isCancelled) {
+          label = 'Kèo đã bị hủy'
+        } else if (needsResult || (needsConfirmation && !isHost)) {
+          label = isHost ? 'Nhập kết quả' : 'Xác nhận kết quả'
+          canAction = true
+          action = () => {
+            const path = isHost ? '/match-result/[id]' : '/session/[id]/confirm-result'
+            router.push({ pathname: path as any, params: { id: item.id } })
+          }
+          icon = <PencilLine size={15} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.3} />
+        } else if (needsConfirmation && isHost) {
+          label = 'Đang chờ xác nhận'
+          canAction = true
+          action = () => router.push({ pathname: '/session/[id]' as any, params: { id: item.id } })
+          icon = <PencilLine size={15} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.3} />
+        } else if (needsRating) {
+          label = 'Đánh giá trận đấu'
+          canAction = true
+          action = () => onOpenRateSession(item.id)
+          icon = <Star size={15} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.3} />
+        }
+
         return (
           <Pressable
-            onPress={canRate ? () => onOpenRateSession(item.id) : undefined}
-            className="mt-3 flex-row items-center justify-center rounded-[10px] px-4 py-3"
+            onPress={canAction ? action : undefined}
+            className="flex-row items-center justify-center py-4"
             style={{
-              backgroundColor: canRate
-                ? PROFILE_THEME_COLORS.primary
-                : PROFILE_THEME_COLORS.surfaceContainerLowest,
-              borderWidth: canRate ? 0 : 1,
-              borderColor: PROFILE_THEME_COLORS.outlineVariant,
-              opacity: item.status === 'cancelled' ? 0.5 : 1,
+              backgroundColor: canAction ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surfaceContainerLow,
+              borderBottomLeftRadius: 14,
+              borderBottomRightRadius: 14,
+              opacity: canAction ? 1 : 0.6,
             }}
           >
-            <Star
-              size={15}
-              color={canRate ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant}
-              strokeWidth={2.3}
-            />
+            {icon}
             <Text
-              className="ml-2 text-[15px]"
+              className={icon ? "ml-2 text-[15px]" : "text-[15px]"}
               style={{
-                color: canRate ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant,
+                color: canAction ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant,
                 fontFamily: SCREEN_FONTS.cta,
                 textTransform: 'uppercase',
+                letterSpacing: 1,
               }}
             >
               {label}
@@ -724,6 +780,18 @@ export default function MySessions() {
               .map((row: any) => [row.id as string, (row.results_status as MySession['results_status']) ?? null]),
           )
 
+          const { data: userResultsRows } = await supabase
+            .from('session_players')
+            .select('session_id, proposed_result')
+            .eq('player_id', nextUserId)
+            .in('session_id', rpcSessionIds)
+
+          const userResultBySessionId = new Map<string, MySession['user_result']>(
+            (userResultsRows ?? [])
+              .filter((row: any) => row?.session_id)
+              .map((row: any) => [row.session_id as string, (row.proposed_result as MySession['user_result']) ?? null]),
+          )
+
           const { data: myRatingsRows } = await supabase
             .from('ratings')
             .select('session_id')
@@ -744,6 +812,7 @@ export default function MySessions() {
               hostIdBySessionId.get(session.id) ??
               null,
             results_status: session.results_status ?? resultsStatusBySessionId.get(session.id) ?? null,
+            user_result: userResultBySessionId.get(session.id) ?? null,
             has_rated: session.has_rated || ratedSessionIds.has(session.id),
           }))
         }

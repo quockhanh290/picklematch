@@ -9,7 +9,7 @@ import Animated, {
 } from 'react-native-reanimated'
 
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
-import { SCREEN_FONTS } from '@/constants/screenFonts'
+import { SCREEN_FONTS } from '@/constants/typography'
 
 const screenPadding = 20
 const screenWidth = Dimensions.get('window').width

@@ -27,7 +27,7 @@ import {
     type OnboardingQuestionId,
 } from '@/lib/onboardingAssessment'
 import { supabase } from '@/lib/supabase'
-import { SCREEN_FONTS } from '@/constants/screenFonts'
+import { SCREEN_FONTS } from '@/constants/typography'
 import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
 
 type AnswerLabels = Partial<Record<OnboardingQuestionId, string>>

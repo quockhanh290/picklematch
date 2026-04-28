@@ -13,7 +13,7 @@ import type { MatchSession } from '@/lib/homeFeed'
 import { getSkillLevelUi } from '@/lib/skillLevelUi'
 import { formatDistance, getAvatarColor } from '@/utils/formatters'
 import { RADIUS, SHADOW, SPACING, BORDER, BUTTON } from '@/constants/screenLayout'
-import { SCREEN_FONTS } from '@/constants/screenFonts'
+import { SCREEN_FONTS } from '@/constants/typography'
 
 export const SMART_MATCH_CARD_HEIGHT = 380
 
@@ -344,8 +344,7 @@ function HeroMatchSessionCard({ item }: { item: MatchSession; actionLabel: strin
               style={{
                 color: '#A8D9C8',
                 fontFamily: SCREEN_FONTS.label,
-                fontSize: 12,
-                lineHeight: 16,
+                fontSize: 13,
                 letterSpacing: 0.8,
               }}
             >
@@ -366,14 +365,36 @@ function HeroMatchSessionCard({ item }: { item: MatchSession; actionLabel: strin
                 style={{
                   color: headerTimeLabel.pill ? '#FFD580' : '#A8D9C8',
                   fontFamily: SCREEN_FONTS.cta,
-                  fontSize: 12,
-                  lineHeight: 16,
+                  fontSize: 13,
+                  lineHeight: 18,
                 }}
               >
                 {headerTimeLabel.label}
               </Text>
             </View>
           ) : null}
+
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginLeft: 12 }}>
+            <View 
+              style={{ 
+                width: 6, 
+                height: 6, 
+                borderRadius: 3, 
+                backgroundColor: item.courtBookingConfirmed ? '#5DCAA5' : '#FFD580' 
+              }} 
+            />
+            <Text 
+              style={{ 
+                fontFamily: SCREEN_FONTS.cta, 
+                fontSize: 10, 
+                color: item.courtBookingConfirmed ? '#A8D9C8' : '#FFD580',
+                textTransform: 'uppercase',
+                letterSpacing: 0.5
+              }}
+            >
+              {item.courtBookingConfirmed ? 'Đã đặt sân' : 'Chờ đặt sân'}
+            </Text>
+          </View>
         </View>
 
         <View style={{ flexDirection: 'row', alignItems: 'flex-end', columnGap: 16 }}>
@@ -617,10 +638,34 @@ function SuggestedSessionCard({ item, showFullAddress }: { item: MatchSession; s
       </View>
 
       <View style={{ backgroundColor: '#F5F1E8', paddingTop: 10, paddingHorizontal: 16, paddingBottom: 12 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 8, marginBottom: 4 }}>
-          <View style={{ backgroundColor: dayInfo.badgeColor, borderRadius: 3, paddingHorizontal: 7, paddingVertical: 2 }}>
-            <Text style={{ color: '#FFFFFF', fontFamily: SCREEN_FONTS.cta, fontSize: 9, lineHeight: 12 }}>
-              {dayInfo.badgeLabel}
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 8 }}>
+            <View style={{ backgroundColor: dayInfo.badgeColor, borderRadius: 3, paddingHorizontal: 7, paddingVertical: 2 }}>
+              <Text style={{ color: '#FFFFFF', fontFamily: SCREEN_FONTS.cta, fontSize: 12, lineHeight: 16 }}>
+                {dayInfo.badgeLabel}
+              </Text>
+            </View>
+          </View>
+
+          <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 6 }}>
+            <View 
+              style={{ 
+                width: 7, 
+                height: 7, 
+                borderRadius: 4, 
+                backgroundColor: item.courtBookingConfirmed ? '#1D9E75' : '#EAB308' 
+              }} 
+            />
+            <Text 
+              style={{ 
+                fontFamily: SCREEN_FONTS.cta, 
+                fontSize: 10, 
+                color: item.courtBookingConfirmed ? '#1D9E75' : '#854D0E',
+                textTransform: 'uppercase',
+                letterSpacing: 0.5
+              }}
+            >
+              {item.courtBookingConfirmed ? 'Đã đặt sân' : 'Chờ đặt sân'}
             </Text>
           </View>
         </View>
@@ -641,7 +686,7 @@ function SuggestedSessionCard({ item, showFullAddress }: { item: MatchSession; s
             >
               {formatClock(startDate)}
             </Text>
-            <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 11, lineHeight: 15, marginTop: 4 }}>
+            <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 12, lineHeight: 16, marginTop: 4 }}>
               {`đến ${formatClock(endDate)}`}
             </Text>
           </View>

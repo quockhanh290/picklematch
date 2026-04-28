@@ -1,7 +1,7 @@
-﻿import SessionCard from '@/components/sessions/SessionCard'
+import SessionCard from '@/components/sessions/SessionCard'
 import { colors } from '@/constants/colors'
 import { ScrollView, Text, View } from 'react-native'
-import { SCREEN_FONTS } from '@/constants/screenFonts'
+import { SCREEN_FONTS } from '@/constants/typography'
 
 function atTime(base: Date, hour: number, minute: number): Date {
   const d = new Date(base)
@@ -20,15 +20,15 @@ export default function SessionCardPreviewScreen() {
   const sessions = [
     {
       id: '1',
-      courtName: 'Sân Mỹ Đình',
-      courtAddress: 'Q. Nam Từ Liêm',
+      courtName: 'S�n M? ��nh',
+      courtAddress: 'Q. Nam T? Li�m',
       distanceKm: 1.2,
       courtBookingConfirmed: true,
       startTime: atTime(now, 7, 0),
       endTime: atTime(now, 9, 0),
       level: '3.5',
       levelMatchesUser: true,
-      host: { id: 'host-a', name: 'Nguyễn Anh', initial: 'A' },
+      host: { id: 'host-a', name: 'Nguy?n Anh', initial: 'A' },
       enrolledCount: 3,
       capacity: 4,
       pricePerPerson: 80000,
@@ -36,15 +36,15 @@ export default function SessionCardPreviewScreen() {
     },
     {
       id: '2',
-      courtName: 'Sân Pickleball Bắc Từ Liêm',
-      courtAddress: 'Q. Bắc Từ Liêm',
+      courtName: 'S�n Pickleball B?c T? Li�m',
+      courtAddress: 'Q. B?c T? Li�m',
       distanceKm: 0.4,
       courtBookingConfirmed: true,
       startTime: atTime(tomorrow, 18, 30),
       endTime: atTime(tomorrow, 20, 30),
       level: '4.0',
       levelMatchesUser: true,
-      host: { id: 'host-b', name: 'Trần Minh Hoàng', initial: 'H' },
+      host: { id: 'host-b', name: 'Tr?n Minh Ho�ng', initial: 'H' },
       enrolledCount: 2,
       capacity: 4,
       pricePerPerson: 120000,
@@ -52,14 +52,14 @@ export default function SessionCardPreviewScreen() {
     },
     {
       id: '3',
-      courtName: 'Sân Trung Tâm Thể Thao Và Giải Trí Phú Mỹ Hưng',
+      courtName: 'S�n Trung T�m Th? Thao V� Gi?i Tr� Ph� M? Hung',
       courtAddress: 'Q. 7',
       courtBookingConfirmed: false,
       startTime: atTime(fiveDaysOut, 6, 0),
       endTime: atTime(fiveDaysOut, 8, 0),
       level: '3.0',
       levelMatchesUser: false,
-      host: { id: 'host-c', name: 'Lê Quốc Bảo', initial: 'B' },
+      host: { id: 'host-c', name: 'L� Qu?c B?o', initial: 'B' },
       enrolledCount: 4,
       capacity: 4,
       pricePerPerson: 90000,
@@ -67,15 +67,15 @@ export default function SessionCardPreviewScreen() {
     },
     {
       id: '4',
-      courtName: 'Sân Hoàn Kiếm',
-      courtAddress: 'Q. Hoàn Kiếm',
+      courtName: 'S�n Ho�n Ki?m',
+      courtAddress: 'Q. Ho�n Ki?m',
       distanceKm: 2.8,
       courtBookingConfirmed: true,
       startTime: atTime(fiveDaysOut, 20, 0),
       endTime: atTime(fiveDaysOut, 22, 0),
       level: '3.5',
       levelMatchesUser: true,
-      host: { id: 'host-d', name: 'Phạm Thu Hà', initial: 'H' },
+      host: { id: 'host-d', name: 'Ph?m Thu H�', initial: 'H' },
       enrolledCount: 4,
       capacity: 4,
       pricePerPerson: 100000,

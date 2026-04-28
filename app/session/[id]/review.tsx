@@ -30,7 +30,7 @@ import {
     View,
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
-import { SCREEN_FONTS } from '@/constants/screenFonts'
+import { SCREEN_FONTS } from '@/constants/typography'
 import { SPACING, BORDER } from '@/constants/screenLayout'
 
 const ICON_STROKE = 2.5

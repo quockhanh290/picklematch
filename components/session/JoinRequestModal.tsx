@@ -1,5 +1,5 @@
 import { KeyboardAvoidingView, Modal, Platform, ScrollView, Text, TextInput, View } from 'react-native'
-import { SCREEN_FONTS } from '@/constants/screenFonts'
+import { SCREEN_FONTS } from '@/constants/typography'
 import { AlertCircle, Clock3, Send, Users } from 'lucide-react-native'
 
 import { AppButton } from '@/components/design'

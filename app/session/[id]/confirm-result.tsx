@@ -15,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { AppDialog, type AppDialogConfig } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { supabase } from '@/lib/supabase'
-import { SCREEN_FONTS } from '@/constants/screenFonts'
+import { SCREEN_FONTS } from '@/constants/typography'
 import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
 
 function withAlpha(hex: string, alpha: number) {
@@ -318,6 +318,7 @@ export default function ConfirmSessionResultScreen() {
       const nextSession = (data?.session ?? null) as ConfirmableSession | null
 
       if (nextSession?.host?.id === user.id) {
+        if (mounted) setLoading(false)
         openDialog({
           title: 'Chủ kèo không dùng màn này',
           message: 'Chủ kèo gửi kết quả ở bước nhập kết quả trận, không dùng luồng xác nhận của người chơi.',
@@ -719,7 +720,26 @@ export default function ConfirmSessionResultScreen() {
           </View>
         ) : null}
 
-        {!isMemberFallbackFlow ? (
+        {myEntry.result_confirmation_status === 'confirmed' || myEntry.result_confirmation_status === 'disputed' ? (
+          <Pressable
+            onPress={() => router.back()}
+            style={{ marginTop: 24, marginBottom: 12 }}
+          >
+            <View
+              style={{
+                height: 56,
+                borderRadius: RADIUS.full,
+                backgroundColor: CONFIRM_THEME.secondaryCtaBg,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 18, color: CONFIRM_THEME.secondaryCtaText }}>
+                Quay về chi tiết kèo
+              </Text>
+            </View>
+          </Pressable>
+        ) : !isMemberFallbackFlow ? (
           <>
             <Pressable
               onPress={() => void submitResponse('confirmed')}

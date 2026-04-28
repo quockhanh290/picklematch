@@ -2,7 +2,7 @@ import { Check, ChevronRight, MessageSquareText, ShieldAlert, X } from 'lucide-r
 import { Text, TouchableOpacity, View } from 'react-native'
 
 import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
-import { SCREEN_FONTS } from '@/constants/screenFonts'
+import { SCREEN_FONTS } from '@/constants/typography'
 
 type RequestItem = {
   id: string

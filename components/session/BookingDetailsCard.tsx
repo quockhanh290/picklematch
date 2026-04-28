@@ -2,7 +2,7 @@ import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { FileText, Hash, Phone, ShieldAlert, ShieldCheck, User } from 'lucide-react-native'
 import type { ComponentType } from 'react'
 import { Text, View } from 'react-native'
-import { SCREEN_FONTS } from '@/constants/screenFonts'
+import { SCREEN_FONTS } from '@/constants/typography'
 import { RADIUS, SPACING } from '@/constants/screenLayout'
 
 type Props = {

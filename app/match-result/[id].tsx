@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { AppDialog, type AppDialogConfig } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { supabase } from '@/lib/supabase'
-import { SCREEN_FONTS } from '@/constants/screenFonts'
+import { SCREEN_FONTS } from '@/constants/typography'
 import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
 
 function withAlpha(hex: string, alpha: number) {
@@ -267,7 +267,8 @@ function ScoreCard({
 }
 
 export default function MatchResultEntryScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>()
+  const params = useLocalSearchParams<{ id: string }>()
+  const id = Array.isArray(params.id) ? params.id[0] : params.id
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [session, setSession] = useState<MatchSessionRecord | null>(null)
@@ -302,6 +303,9 @@ export default function MatchResultEntryScreen() {
         return
       }
 
+      // Try to transition session status if overdue
+      await supabase.rpc('process_overdue_session_closures')
+
       if (mounted) setCurrentUserId(user.id)
 
       const { data, error } = await supabase.rpc('get_session_detail_overview', { p_session_id: id })
@@ -319,16 +323,14 @@ export default function MatchResultEntryScreen() {
       }
 
       const nextSession = (data?.session ?? null) as MatchSessionRecord | null
-      if (nextSession?.host?.id && nextSession.host.id !== user.id) {
+      const hostId = typeof nextSession?.host === 'string' ? nextSession.host : nextSession?.host?.id
+      if (hostId && hostId !== user.id) {
+        if (mounted) setLoading(false)
         openDialog({
           title: 'Chỉ host mới được nhập kết quả',
           message: 'Bạn có thể xem trận này, nhưng chỉ host mới có thể gửi kết quả cuối cùng.',
           actions: [{ label: 'Quay lại', onPress: () => router.back() }],
         })
-        if (mounted) {
-          setSession(null)
-          setLoading(false)
-        }
         return
       }
 
@@ -336,6 +338,14 @@ export default function MatchResultEntryScreen() {
         setSession(nextSession)
         const mins = durationMinutes(nextSession?.slot?.start_time, nextSession?.slot?.end_time)
         if (mins > 0) setMatchDuration(String(mins))
+        
+        if (nextSession?.status !== 'done' && nextSession?.status !== 'pending_completion') {
+           openDialog({
+             title: 'Trận chưa kết thúc',
+             message: 'Kèo cần ở trạng thái "Chờ kết thúc" (thường là sau khi hết giờ đánh) mới có thể nhập kết quả.',
+             actions: [{ label: 'Đã hiểu' }]
+           })
+        }
         setLoading(false)
       }
     }
@@ -350,10 +360,11 @@ export default function MatchResultEntryScreen() {
 
   async function onSaveResult() {
     if (!session || !id) return
-    if (!currentUserId || session.host?.id !== currentUserId) {
+    const hostId = typeof session.host === 'string' ? session.host : session.host?.id
+    if (!currentUserId || hostId !== currentUserId) {
       openDialog({
         title: 'Chỉ host mới được nhập kết quả',
-        message: 'Kết quả trận chỉ có thể được gửi bởi host của kèo này.',
+        message: `Bạn không phải là chủ kèo này (Host ID: ${hostId}, User ID: ${currentUserId})`,
         actions: [{ label: 'Đã hiểu' }],
       })
       return
@@ -396,7 +407,7 @@ export default function MatchResultEntryScreen() {
     if (error) {
       openDialog({
         title: 'Chưa thể gửi kết quả',
-        message: error.message,
+        message: `${error.message}\n\n(Lỗi: ${error.code || 'unknown'})`,
         actions: [{ label: 'Đã hiểu' }],
       })
       return
@@ -556,29 +567,49 @@ export default function MatchResultEntryScreen() {
           </View>
         </View>
 
-        <Pressable onPress={() => void onSaveResult()} disabled={submitting} style={{ marginTop: 18 }}>
-          <View
-            style={{
-              borderRadius: RADIUS.full,
-              height: 56,
-              backgroundColor: submitting ? RESULT_THEME.primaryCtaPressed : RESULT_THEME.primaryCta,
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexDirection: 'row',
-              gap: 8,
-              shadowColor: RESULT_THEME.shadow,
-              shadowOpacity: 0.22,
-              shadowOffset: { width: 0, height: 8 },
-              shadowRadius: 16,
-              elevation: 5,
-            }}
-          >
-            <Save size={18} color={RESULT_THEME.primaryCtaText} />
-            <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 18, color: RESULT_THEME.primaryCtaText }}>
-              {submitting ? 'Đang lưu...' : 'Lưu kết quả'}
-            </Text>
-          </View>
-        </Pressable>
+        {session?.results_status === 'pending_confirmation' || session?.results_status === 'finalized' ? (
+          <Pressable onPress={() => router.back()} style={{ marginTop: 24, marginBottom: 12 }}>
+            <View
+              style={{
+                borderRadius: RADIUS.full,
+                height: 56,
+                backgroundColor: RESULT_THEME.sectionCardBg,
+                borderWidth: BORDER.base,
+                borderColor: RESULT_THEME.sectionBorder,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 17, color: RESULT_THEME.vsText }}>
+                Quay lại chi tiết kèo
+              </Text>
+            </View>
+          </Pressable>
+        ) : (
+          <Pressable onPress={() => void onSaveResult()} disabled={submitting} style={{ marginTop: 18 }}>
+            <View
+              style={{
+                borderRadius: RADIUS.full,
+                height: 56,
+                backgroundColor: submitting ? RESULT_THEME.primaryCtaPressed : RESULT_THEME.primaryCta,
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexDirection: 'row',
+                gap: 8,
+                shadowColor: RESULT_THEME.shadow,
+                shadowOpacity: 0.22,
+                shadowOffset: { width: 0, height: 8 },
+                shadowRadius: 16,
+                elevation: 5,
+              }}
+            >
+              <Save size={18} color={RESULT_THEME.primaryCtaText} />
+              <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 18, color: RESULT_THEME.primaryCtaText }}>
+                {submitting ? 'Đang lưu...' : 'Lưu kết quả'}
+              </Text>
+            </View>
+          </Pressable>
+        )}
       </ScrollView>
 
       <AppDialog

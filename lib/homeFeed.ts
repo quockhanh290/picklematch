@@ -259,7 +259,6 @@ export function getStatusLabel(
   bookingStatus: HomeSessionRecord['court_booking_status'],
   sessionStatus: HomeSessionRecord['status'],
 ) {
-  if (sessionStatus === 'closed_recruitment') return 'Đã ngưng nhận người'
   return bookingStatus === 'confirmed' ? 'Đã đặt sân' : 'Chưa đặt sân'
 }
 

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Text, View } from 'react-native'
-import { SCREEN_FONTS } from '@/constants/screenFonts'
+import { SCREEN_FONTS } from '@/constants/typography'
 import { useAppTheme } from '@/lib/theme-context'
 
 type Props = {

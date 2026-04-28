@@ -1,7 +1,7 @@
 import { NotificationsProvider } from '@/lib/NotificationsContext'
 import { AppThemeProvider } from '@/lib/theme-context'
 import { useAuth } from '@/lib/useAuth'
-import { BarlowCondensed_700Bold, BarlowCondensed_700Bold_Italic } from '@expo-google-fonts/barlow-condensed'
+import { BarlowCondensed_700Bold, BarlowCondensed_700Bold_Italic, BarlowCondensed_900Black } from '@expo-google-fonts/barlow-condensed'
 import { PlusJakartaSans_400Regular } from '@expo-google-fonts/plus-jakarta-sans/400Regular'
 import { PlusJakartaSans_500Medium } from '@expo-google-fonts/plus-jakarta-sans/500Medium'
 import { PlusJakartaSans_600SemiBold } from '@expo-google-fonts/plus-jakarta-sans/600SemiBold'
@@ -14,7 +14,7 @@ import * as SplashScreen from 'expo-splash-screen'
 import { useEffect } from 'react'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import '../global.css'
-import { SCREEN_FONTS } from '@/constants/screenFonts'
+import { SCREEN_FONTS } from '@/constants/typography'
 
 void SplashScreen.preventAutoHideAsync()
 
@@ -25,6 +25,7 @@ export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     [SCREEN_FONTS.headline]: BarlowCondensed_700Bold,
     [SCREEN_FONTS.headlineItalic]: BarlowCondensed_700Bold_Italic,
+    [SCREEN_FONTS.headlineBlack]: BarlowCondensed_900Black,
     [SCREEN_FONTS.body]: PlusJakartaSans_400Regular,
     [SCREEN_FONTS.medium]: PlusJakartaSans_500Medium,
     [SCREEN_FONTS.label]: PlusJakartaSans_600SemiBold,
