@@ -41,6 +41,7 @@ type Props = {
   setTotalCostStr: (value: string) => void
   costPerPerson: number
   onContinue: () => void
+  hideHeader?: boolean
 }
 
 function formatCurrencyInput(nextValue: string) {
@@ -184,6 +185,7 @@ export function CreateSessionStep2({
   setTotalCostStr,
   costPerPerson,
   onContinue,
+  hideHeader = false,
 }: Props) {
   const minSkillOption = CREATE_SESSION_SKILL_OPTIONS.find((o) => o.id === minSkill)
   const maxSkillOption = CREATE_SESSION_SKILL_OPTIONS.find((o) => o.id === maxSkill)
@@ -202,18 +204,22 @@ export function CreateSessionStep2({
           keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
           style={{ flex: 1 }}
         >
-          <ScreenHeader
-            variant="brand"
-            title="KINETIC"
-            onBackPress={onBack}
-            style={{ marginHorizontal: -20, marginTop: -12 }}
-            rightSlot={<View style={{ width: 32, height: 32 }} />}
-          />
+          {!hideHeader && (
+            <>
+              <ScreenHeader
+                variant="brand"
+                title="KINETIC"
+                onBackPress={onBack}
+                style={{ marginHorizontal: -20, marginTop: -12 }}
+                rightSlot={<View style={{ width: 32, height: 32 }} />}
+              />
 
-          {/* Progress bar */}
-          <View style={{ height: 3, backgroundColor: PROFILE_THEME_COLORS.outlineVariant, borderRadius: RADIUS.full, marginTop: 12, marginBottom: 16, overflow: 'hidden' }}>
-            <View style={{ height: '100%', width: '66%', backgroundColor: PROFILE_THEME_COLORS.primary, borderRadius: RADIUS.full }} />
-          </View>
+              {/* Progress bar */}
+              <View style={{ height: 3, backgroundColor: PROFILE_THEME_COLORS.outlineVariant, borderRadius: RADIUS.full, marginTop: 12, marginBottom: 16, overflow: 'hidden' }}>
+                <View style={{ height: '100%', width: '66%', backgroundColor: PROFILE_THEME_COLORS.primary, borderRadius: RADIUS.full }} />
+              </View>
+            </>
+          )}
 
           {/* Step title */}
           <View style={{ marginBottom: 20 }}>

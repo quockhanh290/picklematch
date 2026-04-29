@@ -38,6 +38,7 @@ type Props = {
   defaultPickerValue: (type: 'start' | 'end') => Date
   onContinue: () => void
   lockCourtSchedule?: boolean
+  hideHeader?: boolean
 }
 
 const WEEKDAY_LABELS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
@@ -204,6 +205,7 @@ export function CreateSessionStep1({
   defaultPickerValue,
   onContinue,
   lockCourtSchedule = false,
+  hideHeader = false,
 }: Props) {
   const scrollRef = useRef<ScrollView | null>(null)
   const [showDatePicker, setShowDatePicker] = useState(false)
@@ -316,23 +318,27 @@ export function CreateSessionStep1({
         style={{ flex: 1 }}
         scrollEnabled={!(showStartPicker || showEndPicker || showDatePicker)}
       >
-        <View style={{ backgroundColor: 'transparent', paddingTop: 12 }}>
-          <ScreenHeader
-            variant="brand"
-            title="KINETIC"
-            onBackPress={onBack}
-            style={{ marginHorizontal: -20, marginTop: -12 }}
-            rightSlot={
-              <View style={{ width: 32, height: 32, borderRadius: RADIUS.full, backgroundColor: PROFILE_THEME_COLORS.primaryContainer, alignItems: 'center', justifyContent: 'center', borderWidth: BORDER.base, borderColor: PROFILE_THEME_COLORS.outlineVariant }}>
-                <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 11, color: PROFILE_THEME_COLORS.surfaceTint }}>QK</Text>
-              </View>
-            }
-          />
+        <View style={{ backgroundColor: 'transparent', paddingTop: hideHeader ? 0 : 12 }}>
+          {!hideHeader && (
+            <>
+              <ScreenHeader
+                variant="brand"
+                title="KINETIC"
+                onBackPress={onBack}
+                style={{ marginHorizontal: -20, marginTop: -12 }}
+                rightSlot={
+                  <View style={{ width: 32, height: 32, borderRadius: RADIUS.full, backgroundColor: PROFILE_THEME_COLORS.primaryContainer, alignItems: 'center', justifyContent: 'center', borderWidth: BORDER.base, borderColor: PROFILE_THEME_COLORS.outlineVariant }}>
+                    <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 11, color: PROFILE_THEME_COLORS.surfaceTint }}>QK</Text>
+                  </View>
+                }
+              />
 
-          {/* Progress bar */}
-          <View style={{ height: 3, backgroundColor: '#E5E3DC', borderRadius: RADIUS.full, marginTop: 12, marginBottom: 16, overflow: 'hidden' }}>
-            <View style={{ height: '100%', width: '33%', backgroundColor: '#0F6E56', borderRadius: RADIUS.full }} />
-          </View>
+              {/* Progress bar */}
+              <View style={{ height: 3, backgroundColor: '#E5E3DC', borderRadius: RADIUS.full, marginTop: 12, marginBottom: 16, overflow: 'hidden' }}>
+                <View style={{ height: '100%', width: '33%', backgroundColor: '#0F6E56', borderRadius: RADIUS.full }} />
+              </View>
+            </>
+          )}
 
           {/* Step title */}
           <View style={{ marginBottom: 20 }}>

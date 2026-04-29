@@ -12,7 +12,7 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
-import { AppDialog, type AppDialogConfig } from '@/components/design'
+import { AppDialog, type AppDialogConfig, NavbarShareButton, SecondaryNavbar } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { supabase } from '@/lib/supabase'
 import { SCREEN_FONTS } from '@/constants/typography'
@@ -482,26 +482,16 @@ export default function ConfirmSessionResultScreen() {
   if (!session || !myEntry) return null
 
   return (
-    <View style={{ flex: 1, backgroundColor: RESULT_THEME.pageBg, paddingTop: insets.top }}>
+    <View style={{ flex: 1, backgroundColor: RESULT_THEME.pageBg }}>
+      <SecondaryNavbar
+        onBackPress={() => router.back()}
+        rightSlot={<NavbarShareButton onPress={() => void onShare()} />}
+      />
       <View style={{ flex: 1 }}>
         <ScrollView 
           contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
           showsVerticalScrollIndicator={false}
         >
-          {/* Header */}
-          <View style={{ marginTop: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <TouchableOpacity
-              onPress={() => router.back()}
-              style={{ width: 40, height: 40, borderRadius: RADIUS.full, backgroundColor: RESULT_THEME.cardBg, alignItems: 'center', justifyContent: 'center', borderWidth: BORDER.base, borderColor: RESULT_THEME.cardBorder }}
-            >
-              <ArrowLeft size={20} color={RESULT_THEME.title} />
-            </TouchableOpacity>
-            <View style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: RADIUS.full, backgroundColor: '#E1F5EE' }}>
-              <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 12, color: '#0F6E56', textTransform: 'uppercase' }}>
-                {isFinalized ? 'Hoàn tất' : isDisputed ? 'Khiếu nại' : 'Chờ xác nhận'}
-              </Text>
-            </View>
-          </View>
 
           <View style={{ marginTop: 24 }}>
             <SessionResultMetaCard

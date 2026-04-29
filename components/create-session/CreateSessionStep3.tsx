@@ -25,6 +25,7 @@ type Props = {
   onCreate: () => void
   submitting?: boolean
   submitLabel?: string
+  hideHeader?: boolean
 }
 
 const WEEKDAY_LABELS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
@@ -56,6 +57,7 @@ export function CreateSessionStep3({
   selectedCourt, selectedDate, startTime, endTime,
   maxPlayers, minSkill, maxSkill, bookingStatus, deadlineMinutes,
   requireApproval, pricePerPerson, onBack, onCreate, submitting = false, submitLabel = 'Tạo kèo',
+  hideHeader = false,
 }: Props) {
   const minSkillOption = getCreateSessionSkillOption(minSkill)
   const maxSkillOption = getCreateSessionSkillOption(maxSkill)
@@ -124,18 +126,22 @@ export function CreateSessionStep3({
         contentContainerStyle={{ paddingBottom: 16 }}
         style={{ flex: 1 }}
       >
-        <ScreenHeader
-          variant="brand"
-          title="KINETIC"
-          onBackPress={onBack}
-          style={{ marginHorizontal: -20, marginTop: -12 }}
-          rightSlot={<View style={{ width: 32, height: 32 }} />}
-        />
+        {!hideHeader && (
+          <>
+            <ScreenHeader
+              variant="brand"
+              title="KINETIC"
+              onBackPress={onBack}
+              style={{ marginHorizontal: -20, marginTop: -12 }}
+              rightSlot={<View style={{ width: 32, height: 32 }} />}
+            />
 
-        {/* Progress bar */}
-        <View style={{ height: 3, backgroundColor: PROFILE_THEME_COLORS.outlineVariant, borderRadius: RADIUS.full, marginTop: 12, marginBottom: 16, overflow: 'hidden' }}>
-          <View style={{ height: '100%', width: '100%', backgroundColor: PROFILE_THEME_COLORS.primary, borderRadius: RADIUS.full }} />
-        </View>
+            {/* Progress bar */}
+            <View style={{ height: 3, backgroundColor: PROFILE_THEME_COLORS.outlineVariant, borderRadius: RADIUS.full, marginTop: 12, marginBottom: 16, overflow: 'hidden' }}>
+              <View style={{ height: '100%', width: '100%', backgroundColor: PROFILE_THEME_COLORS.primary, borderRadius: RADIUS.full }} />
+            </View>
+          </>
+        )}
 
         {/* Step title */}
         <View style={{ marginBottom: 20 }}>

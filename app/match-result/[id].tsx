@@ -11,7 +11,7 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
-import { AppDialog, type AppDialogConfig } from '@/components/design'
+import { AppDialog, type AppDialogConfig, NavbarDoneButton, SecondaryNavbar } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { supabase } from '@/lib/supabase'
 import { SCREEN_FONTS } from '@/constants/typography'
@@ -603,26 +603,16 @@ export default function MatchResultEntryScreen() {
   const isSubmitted = session.results_status === 'pending_confirmation' || session.results_status === 'finalized'
 
   return (
-    <View style={{ flex: 1, backgroundColor: RESULT_THEME.pageBg, paddingTop: insets.top }}>
+    <View style={{ flex: 1, backgroundColor: RESULT_THEME.pageBg }}>
+      <SecondaryNavbar
+        onBackPress={() => router.back()}
+        rightSlot={<NavbarDoneButton onPress={() => void onSaveResult()} />}
+      />
       <View style={{ flex: 1 }}>
         <ScrollView 
           contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
           showsVerticalScrollIndicator={false}
         >
-          {/* Header */}
-          <View style={{ marginTop: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <TouchableOpacity
-              onPress={() => router.back()}
-              style={{ width: 40, height: 40, borderRadius: RADIUS.full, backgroundColor: RESULT_THEME.cardBg, alignItems: 'center', justifyContent: 'center', borderWidth: BORDER.base, borderColor: RESULT_THEME.cardBorder }}
-            >
-              <ArrowLeft size={20} color={RESULT_THEME.title} />
-            </TouchableOpacity>
-            <View style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: RADIUS.full, backgroundColor: RESULT_THEME.accentSoft }}>
-              <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 12, color: RESULT_THEME.accent, textTransform: 'uppercase' }}>
-                {isSubmitted ? 'Đã gửi' : 'Đang nhập'}
-              </Text>
-            </View>
-          </View>
 
           <View style={{ marginTop: 24 }}>
 

@@ -9,9 +9,12 @@ import { type NearByCourt, useNearbyCourts } from '@/lib/useNearbyCourts'
 import * as Linking from 'expo-linking'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { ActivityIndicator, Alert } from 'react-native'
+import { ActivityIndicator, Alert, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { SPACING } from '@/constants/screenLayout'
+import { NavbarUserAvatar, SecondaryNavbar } from '@/components/design'
+import { useHomeFeedData } from '@/hooks/useHomeFeedData'
+import { useAuth } from '@/lib/useAuth'
 
 function toMins(hhmm: string): number {
   const [h, m] = hhmm.split(':').map(Number)
@@ -53,6 +56,7 @@ function skillLevelFromElo(elo: number, edge: 'min' | 'max'): number {
 }
 
 export default function CreateSession() {
+  const { userId, isAuthLoading } = useAuth()
   const params = useLocalSearchParams<{ editSessionId?: string }>()
   const router = useRouter()
   const editSessionId = typeof params.editSessionId === 'string' ? params.editSessionId : null
@@ -526,6 +530,8 @@ export default function CreateSession() {
     }
   }
 
+  const { profile } = useHomeFeedData(userId, isAuthLoading)
+
   if (isEditMode && isHydratingEdit && !editHydrated) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: PROFILE_THEME_COLORS.background, alignItems: 'center', justifyContent: 'center' }}>
@@ -534,125 +540,132 @@ export default function CreateSession() {
     )
   }
 
-  if (step === 1) {
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: PROFILE_THEME_COLORS.background, paddingHorizontal: SPACING.xl }} edges={['top']}>
-        <CreateSessionStep1
-          onBack={() => router.back()}
-          courts={courts}
-          loadingCourts={loadingCourts}
-          fallbackMode={fallbackMode}
-          keyword={keyword}
-          setKeyword={setKeyword}
-          searching={searching}
-          selectedCourt={selectedCourt}
-          selectedDate={selectedDate}
-          startTime={startTime}
-          endTime={endTime}
-          showStartPicker={showStartPicker}
-          showEndPicker={showEndPicker}
-          timeError={timeError}
-          onCourtSelect={onCourtSelect}
-          onChangeCourt={() => {
-            setSelectedCourt(null)
-            setStartTime(null)
-            setEndTime(null)
-            setTimeError(null)
-            setShowStartPicker(false)
-            setShowEndPicker(false)
-          }}
-          onDateSelect={onDatePress}
-          onStartTimeChange={(date) => {
-            if (!selectedDate || !date) return
-            setStartTime(withTime(selectedDate, date))
-          }}
-          onEndTimeChange={(date) => {
-            if (!selectedDate || !date) return
-            setEndTime(withTime(selectedDate, date))
-          }}
-          onToggleStartPicker={() => {
-            setShowEndPicker(false)
-            setShowStartPicker(value => !value)
-          }}
-          onToggleEndPicker={() => {
-            setShowStartPicker(false)
-            setShowEndPicker(value => !value)
-          }}
-          onCloseStartPicker={() => setShowStartPicker(false)}
-          onCloseEndPicker={() => setShowEndPicker(false)}
-          defaultPickerValue={defaultPickerValue}
-          onContinue={goToStep2}
-          lockCourtSchedule={lockCourtSchedule}
-        />
-      </SafeAreaView>
-    )
-  }
-
-  if (step === 2) {
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: PROFILE_THEME_COLORS.background, paddingHorizontal: SPACING.xl }} edges={['top']}>
-        <CreateSessionStep2
-          onBack={() => setStep(1)}
-          maxPlayers={maxPlayers}
-          setMaxPlayers={setMaxPlayers}
-          minSkill={minSkill}
-          setMinSkill={setMinSkill}
-          maxSkill={maxSkill}
-          setMaxSkill={setMaxSkill}
-          bookingStatus={bookingStatus}
-          setBookingStatus={setBookingStatus}
-          wantsBookingNow={wantsBookingNow}
-          setWantsBookingNow={setWantsBookingNow}
-          bookingReference={bookingReference}
-          setBookingReference={setBookingReference}
-          bookingName={bookingName}
-          setBookingName={setBookingName}
-          bookingPhone={bookingPhone}
-          setBookingPhone={setBookingPhone}
-          bookingNotes={bookingNotes}
-          setBookingNotes={setBookingNotes}
-          canOpenBookingLink={Boolean(selectedCourt?.booking_url ?? selectedCourt?.google_maps_url)}
-          onOpenBookingLink={openCourtBookingLink}
-          deadlineMinutes={deadlineMinutes}
-          setDeadlineMinutes={setDeadlineMinutes}
-          requireApproval={requireApproval}
-          setRequireApproval={setRequireApproval}
-          isRanked={isRanked}
-          setIsRanked={setIsRanked}
-          canToggleRanked={canToggleRanked}
-          rankedHelperText={rankedHelperText}
-          totalCostStr={totalCostStr}
-          setTotalCostStr={setTotalCostStr}
-          costPerPerson={costPerPerson}
-          onContinue={goToStep3FromNew}
-        />
-      </SafeAreaView>
-    )
-  }
-
-  if (!selectedCourt || !selectedDate || !startTime || !endTime) {
-    return null
-  }
+  const progressMap = { 1: 0.33, 2: 0.66, 3: 1 }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: PROFILE_THEME_COLORS.background, paddingHorizontal: SPACING.xl }} edges={['top']}>
-      <CreateSessionStep3
-        selectedCourt={selectedCourt}
-        selectedDate={selectedDate}
-        startTime={startTime}
-        endTime={endTime}
-        maxPlayers={maxPlayers}
-        minSkill={minSkill}
-        maxSkill={maxSkill}
-        bookingStatus={bookingStatus}
-        deadlineMinutes={deadlineMinutes}
-        requireApproval={requireApproval}
-        pricePerPerson={costPerPerson}
-        onBack={() => setStep(2)}
-        onCreate={submit}
-        submitting={submitting}
-        submitLabel={isEditMode ? 'L\u01b0u thay \u0111\u1ed5i' : 'T\u1ea1o k\u00e8o'}
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#F2F0E8' }} edges={['top']}>
+      <SecondaryNavbar
+        showProgress
+        progress={progressMap[step]}
+        rightSlot={<NavbarUserAvatar url={profile?.photo_url} />}
+        onBackPress={() => {
+          if (step === 1) router.back()
+          else if (step === 2) setStep(1)
+          else if (step === 3) setStep(2)
+        }}
       />
+      <View style={{ flex: 1, backgroundColor: PROFILE_THEME_COLORS.background, paddingHorizontal: SPACING.xl }}>
+        {step === 1 && (
+          <CreateSessionStep1
+            onBack={() => router.back()}
+            courts={courts}
+            loadingCourts={loadingCourts}
+            fallbackMode={fallbackMode}
+            keyword={keyword}
+            setKeyword={setKeyword}
+            searching={searching}
+            selectedCourt={selectedCourt}
+            selectedDate={selectedDate}
+            startTime={startTime}
+            endTime={endTime}
+            showStartPicker={showStartPicker}
+            showEndPicker={showEndPicker}
+            timeError={timeError}
+            onCourtSelect={onCourtSelect}
+            onChangeCourt={() => {
+              setSelectedCourt(null)
+              setStartTime(null)
+              setEndTime(null)
+              setTimeError(null)
+              setShowStartPicker(false)
+              setShowEndPicker(false)
+            }}
+            onDateSelect={onDatePress}
+            onStartTimeChange={(date) => {
+              if (!selectedDate || !date) return
+              setStartTime(withTime(selectedDate, date))
+            }}
+            onEndTimeChange={(date) => {
+              if (!selectedDate || !date) return
+              setEndTime(withTime(selectedDate, date))
+            }}
+            onToggleStartPicker={() => {
+              setShowEndPicker(false)
+              setShowStartPicker(value => !value)
+            }}
+            onToggleEndPicker={() => {
+              setShowStartPicker(false)
+              setShowEndPicker(value => !value)
+            }}
+            onCloseStartPicker={() => setShowStartPicker(false)}
+            onCloseEndPicker={() => setShowEndPicker(false)}
+            defaultPickerValue={defaultPickerValue}
+            onContinue={goToStep2}
+            lockCourtSchedule={lockCourtSchedule}
+            hideHeader
+          />
+        )}
+
+        {step === 2 && (
+          <CreateSessionStep2
+            onBack={() => setStep(1)}
+            maxPlayers={maxPlayers}
+            setMaxPlayers={setMaxPlayers}
+            minSkill={minSkill}
+            setMinSkill={setMinSkill}
+            maxSkill={maxSkill}
+            setMaxSkill={setMaxSkill}
+            bookingStatus={bookingStatus}
+            setBookingStatus={setBookingStatus}
+            wantsBookingNow={wantsBookingNow}
+            setWantsBookingNow={setWantsBookingNow}
+            bookingReference={bookingReference}
+            setBookingReference={setBookingReference}
+            bookingName={bookingName}
+            setBookingName={setBookingName}
+            bookingPhone={bookingPhone}
+            setBookingPhone={setBookingPhone}
+            bookingNotes={bookingNotes}
+            setBookingNotes={setBookingNotes}
+            canOpenBookingLink={Boolean(selectedCourt?.booking_url ?? selectedCourt?.google_maps_url)}
+            onOpenBookingLink={openCourtBookingLink}
+            deadlineMinutes={deadlineMinutes}
+            setDeadlineMinutes={setDeadlineMinutes}
+            requireApproval={requireApproval}
+            setRequireApproval={setRequireApproval}
+            isRanked={isRanked}
+            setIsRanked={setIsRanked}
+            canToggleRanked={canToggleRanked}
+            rankedHelperText={rankedHelperText}
+            totalCostStr={totalCostStr}
+            setTotalCostStr={setTotalCostStr}
+            costPerPerson={costPerPerson}
+            onContinue={goToStep3FromNew}
+            hideHeader
+          />
+        )}
+
+        {step === 3 && selectedCourt && selectedDate && startTime && endTime && (
+          <CreateSessionStep3
+            selectedCourt={selectedCourt}
+            selectedDate={selectedDate}
+            startTime={startTime}
+            endTime={endTime}
+            maxPlayers={maxPlayers}
+            minSkill={minSkill}
+            maxSkill={maxSkill}
+            bookingStatus={bookingStatus}
+            deadlineMinutes={deadlineMinutes}
+            requireApproval={requireApproval}
+            pricePerPerson={costPerPerson}
+            onBack={() => setStep(2)}
+            onCreate={submit}
+            submitting={submitting}
+            submitLabel={isEditMode ? 'L\u01b0u thay \u0111\u1ed5i' : 'T\u1ea1o k\u00e8o'}
+            hideHeader
+          />
+        )}
+      </View>
     </SafeAreaView>
   )
 }

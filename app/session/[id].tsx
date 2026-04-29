@@ -24,7 +24,7 @@ import {
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
-import { AppDialog, type AppDialogConfig, ScreenHeader } from '@/components/design'
+import { AppDialog, type AppDialogConfig, NavbarShareButton, SecondaryNavbar } from '@/components/design'
 import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
 import { JoinRequestModal } from '@/components/session/JoinRequestModal'
 import { PlayerRosterSection } from '@/components/session/PlayerRosterSection'
@@ -300,8 +300,23 @@ export default function SessionDetailScreen() {
     )
   }
 
+  async function handleShare() {
+    try {
+      const url = Linking.createURL(`/session/${id}`)
+      await Share.share({ message: `Tham gia kèo pickleball này nhé! ${url}` })
+    } catch (error) {
+      console.warn('[SessionDetail] Failed to share session:', error)
+      setDialogConfig({ title: '\u004b\u0068\u00f4\u006e\u0067\u0020\u0074\u0068\u1ec3\u0020\u0063\u0068\u0069\u0061\u0020\u0073\u1ebb', message: '\u0056\u0075\u0069\u0020\u006c\u00f2\u006e\u0067\u0020\u0074\u0068\u1eed\u0020\u006c\u1ea1\u0069\u0020\u0073\u0061\u0075\u0020\u00ed\u0074\u0020\u0070\u0068\u00fa\u0074\u002e', actions: [{ label: '\u0110\u00f3\u006e\u0067', tone: 'secondary' }] })
+    }
+  }
+
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: PROFILE_THEME_COLORS.background }} edges={['top']}>
+      <SecondaryNavbar
+        onBackPress={() => router.back()}
+        rightSlot={<NavbarShareButton onPress={handleShare} />}
+      />
+
       {showUpdatedToast ? (
         <View
           pointerEvents="none"
@@ -338,41 +353,12 @@ export default function SessionDetailScreen() {
 
       <ScrollView
         className="flex-1"
-        stickyHeaderIndices={[0]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void onRefresh()} />}
         contentContainerStyle={{
           paddingBottom: 48 + insets.bottom,
           paddingHorizontal: SPACING.xl,
         }}
       >
-        <ScreenHeader
-          variant="brand"
-          title="KINETIC"
-          onBackPress={() => router.back()}
-          rightSlot={
-            <TouchableOpacity
-              className="h-11 w-11 items-center justify-center rounded-2xl border"
-              style={{
-                borderColor: PROFILE_THEME_COLORS.outlineVariant,
-                backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
-              }}
-              onPress={() => {
-                void (async () => {
-                  try {
-                    const url = Linking.createURL(`/session/${id}`)
-                    await Share.share({ message: `Tham gia kèo pickleball này nhé! ${url}` })
-                  } catch (error) {
-                    console.warn('[SessionDetail] Failed to share session:', error)
-                    setDialogConfig({ title: '\u004b\u0068\u00f4\u006e\u0067\u0020\u0074\u0068\u1ec3\u0020\u0063\u0068\u0069\u0061\u0020\u0073\u1ebb', message: '\u0056\u0075\u0069\u0020\u006c\u00f2\u006e\u0067\u0020\u0074\u0068\u1eed\u0020\u006c\u1ea1\u0069\u0020\u0073\u0061\u0075\u0020\u00ed\u0074\u0020\u0070\u0068\u00fa\u0074\u002e', actions: [{ label: '\u0110\u00f3\u006e\u0067', tone: 'secondary' }] })
-                  }
-                })()
-              }}
-              activeOpacity={0.9}
-            >
-              <Share2 size={18} color={PROFILE_THEME_COLORS.primaryContainer} strokeWidth={2.5} />
-            </TouchableOpacity>
-          }
-        />
 
         <SessionMetaCard
           skillLevelId={sessionSkillBand.levelId}

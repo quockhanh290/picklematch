@@ -1,4 +1,4 @@
-import { AppButton, AppDialog, type AppDialogConfig, EmptyState } from '@/components/design'
+import { AppButton, AppDialog, type AppDialogConfig, EmptyState, NavbarStepCounter, SecondaryNavbar } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { getShortSkillLabel, getSkillLevelFromPlayer } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
@@ -605,23 +605,12 @@ export default function RateSessionScreen() {
   const skillLabel = getShortSkillLabel(getSkillLevelFromPlayer(currentPlayer))
 
   return (
-    <View style={{ flex: 1, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, paddingTop: insets.top }}>
+    <View style={{ flex: 1, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow }}>
+      <SecondaryNavbar
+        onBackPress={() => router.back()}
+        rightSlot={<NavbarStepCounter current={currentIndex + 1} total={players.length} />}
+      />
       <View style={{ flex: 1 }}>
-        {/* Header */}
-        <View style={{ marginHorizontal: 20, marginTop: 12, marginBottom: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={{ width: 40, height: 40, borderRadius: RADIUS.full, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest, alignItems: 'center', justifyContent: 'center', borderWidth: BORDER.base, borderColor: PROFILE_THEME_COLORS.outlineVariant }}
-          >
-            <ArrowLeft size={20} color={PROFILE_THEME_COLORS.primary} />
-          </TouchableOpacity>
-          <View style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: RADIUS.full, backgroundColor: withAlpha(PROFILE_THEME_COLORS.primary, 0.1) }}>
-            <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 12, color: PROFILE_THEME_COLORS.primary, textTransform: 'uppercase' }}>
-              Đánh giá trận
-            </Text>
-          </View>
-          <StepProgress total={players.length} current={currentIndex} />
-        </View>
 
         <ScrollView
           showsVerticalScrollIndicator={false}
