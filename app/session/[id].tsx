@@ -377,7 +377,17 @@ export default function SessionDetailScreen() {
         <SessionMetaCard
           skillLevelId={sessionSkillBand.levelId}
           sessionSkillLabel={sessionSkillLabel}
-          sessionStatus={session.status}
+          sessionStatus={
+            session.status === 'done' || session.status === 'cancelled'
+              ? session.status
+              : isAfterEnd
+                ? 'pending_completion'
+                : isDuringMatch
+                  ? 'in_progress'
+                  : session.status
+          }
+          resultsStatus={session.results_status}
+          userResult={viewerSessionPlayer?.proposed_result as any}
           courtBookingStatus={session.court_booking_status}
           courtName={session.slot.court.name}
           courtAddress={session.slot.court.address}
@@ -483,9 +493,97 @@ export default function SessionDetailScreen() {
         {showBottomActions ? (
           <View style={{ marginTop: 20, paddingBottom: 8 }}>
             {isHost ? (() => {
+              const resultsStatus = session?.results_status
+              const isResultSubmitted = resultsStatus === 'pending_confirmation' || resultsStatus === 'disputed'
+              const isFinalized = resultsStatus === 'finalized'
+              const hasRated = session?.has_rated
               const isAwaitingResult =
                 isAfterEnd &&
-                (session.results_status === 'not_submitted' || session.results_status === null || session.results_status === undefined)
+                (resultsStatus === 'not_submitted' || resultsStatus === null || resultsStatus === undefined)
+
+              if (isAfterEnd && !session?.is_ranked) {
+                return (
+                  <View
+                    style={{
+                      width: '100%',
+                      minHeight: 52,
+                      paddingVertical: 11,
+                      borderRadius: RADIUS.full,
+                      backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHigh,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderWidth: BORDER.base,
+                      borderColor: PROFILE_THEME_COLORS.outlineVariant,
+                    }}
+                  >
+                    <Text style={{ fontSize: 15, fontFamily: SCREEN_FONTS.headline, color: PROFILE_THEME_COLORS.outline, textTransform: 'uppercase' }}>
+                      Kèo đã kết thúc
+                    </Text>
+                  </View>
+                )
+              }
+
+              // After end, result finalized
+              if (isFinalized) {
+                const label = hasRated ? 'XEM KẾT QUẢ TRẬN' : 'ĐÁNH GIÁ TRẬN ĐẤU'
+                const action = hasRated 
+                  ? () => router.push({ pathname: '/session/[id]/confirm-result' as any, params: { id } })
+                  : () => router.push({ pathname: '/rate-session/[id]' as any, params: { id } })
+                const Icon = hasRated ? CheckCheck : Star
+
+                return (
+                  <TouchableOpacity
+                    onPress={action}
+                    activeOpacity={0.84}
+                    style={{
+                      alignSelf: 'center',
+                      paddingHorizontal: SPACING.xl,
+                      minHeight: 52,
+                      paddingVertical: 11,
+                      borderRadius: RADIUS.full,
+                      backgroundColor: PROFILE_THEME_COLORS.primary,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <Icon size={18} strokeWidth={2.5} color={PROFILE_THEME_COLORS.onPrimary} />
+                      <Text style={{ fontSize: 15, fontFamily: SCREEN_FONTS.headline, color: PROFILE_THEME_COLORS.onPrimary, textTransform: 'uppercase' }}>
+                        {label}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                )
+              }
+
+              // After end, result submitted but pending
+              if (isResultSubmitted) {
+                return (
+                  <TouchableOpacity
+                    onPress={() => router.push({ pathname: '/session/[id]/confirm-result' as any, params: { id } })}
+                    activeOpacity={0.84}
+                    style={{
+                      alignSelf: 'center',
+                      paddingHorizontal: SPACING.xl,
+                      minHeight: 52,
+                      paddingVertical: 11,
+                      borderRadius: RADIUS.full,
+                      backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHigh,
+                      borderWidth: BORDER.base,
+                      borderColor: PROFILE_THEME_COLORS.outlineVariant,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <ActivityIndicator size="small" color={PROFILE_THEME_COLORS.outline} />
+                      <Text style={{ fontSize: 15, fontFamily: SCREEN_FONTS.headline, color: PROFILE_THEME_COLORS.outline, textTransform: 'uppercase' }}>
+                        Đang chờ xác nhận
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                )
+              }
 
               // After end, no result yet — prompt to enter result
               if (isAwaitingResult) {
@@ -650,6 +748,29 @@ export default function SessionDetailScreen() {
               const isPendingConfirm = resultsStatus === 'pending_confirmation' || resultsStatus === 'disputed'
               const hasRated = session?.has_rated
 
+              if (isAfterEnd && !session?.is_ranked) {
+                return (
+                  <View
+                    style={{
+                      alignSelf: 'center',
+                      paddingHorizontal: SPACING.xl,
+                      minHeight: 52,
+                      paddingVertical: 11,
+                      borderRadius: RADIUS.full,
+                      backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHigh,
+                      borderWidth: BORDER.base,
+                      borderColor: PROFILE_THEME_COLORS.outlineVariant,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Text style={{ fontSize: 15, fontFamily: SCREEN_FONTS.headline, color: PROFILE_THEME_COLORS.outline, textTransform: 'uppercase' }}>
+                      Kèo đã kết thúc
+                    </Text>
+                  </View>
+                )
+              }
+
               if (isFinalized) {
                 const label = hasRated ? 'XEM KẾT QUẢ TRẬN ĐẤU' : 'ĐÁNH GIÁ TRẬN ĐẤU'
                 const action = hasRated 
@@ -663,7 +784,6 @@ export default function SessionDetailScreen() {
                     activeOpacity={0.84}
                     style={{
                       alignSelf: 'center',
-                      minWidth: 220,
                       paddingHorizontal: SPACING.xl,
                       minHeight: 52,
                       paddingVertical: 11,
@@ -684,42 +804,90 @@ export default function SessionDetailScreen() {
               }
 
               if (isPendingConfirm) {
-                const label = isHost ? 'ĐANG CHỜ XÁC NHẬN' : 'XÁC NHẬN KẾT QUẢ'
+                const label = 'XÁC NHẬN KẾT QUẢ'
                 const action = () => router.push({ pathname: '/session/[id]/confirm-result' as any, params: { id } })
-                const Icon = isHost ? ActivityIndicator : PencilLine
 
                 return (
                   <TouchableOpacity
-                    onPress={isHost ? undefined : action}
+                    onPress={action}
                     activeOpacity={0.84}
                     style={{
                       alignSelf: 'center',
-                      minWidth: 220,
                       paddingHorizontal: SPACING.xl,
                       minHeight: 52,
                       paddingVertical: 11,
                       borderRadius: RADIUS.full,
-                      backgroundColor: isHost ? PROFILE_THEME_COLORS.surfaceContainerHigh : PROFILE_THEME_COLORS.primary,
+                      backgroundColor: PROFILE_THEME_COLORS.primary,
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                      {isHost ? (
-                        <ActivityIndicator size="small" color={PROFILE_THEME_COLORS.outline} />
-                      ) : (
-                        <PencilLine size={18} strokeWidth={2.5} color={PROFILE_THEME_COLORS.onPrimary} />
-                      )}
+                      <PencilLine size={18} strokeWidth={2.5} color={PROFILE_THEME_COLORS.onPrimary} />
                       <Text style={{ 
                         fontSize: 15, 
                         fontFamily: SCREEN_FONTS.headline, 
-                        color: isHost ? PROFILE_THEME_COLORS.outline : PROFILE_THEME_COLORS.onPrimary, 
+                        color: PROFILE_THEME_COLORS.onPrimary, 
                         textTransform: 'uppercase' 
                       }}>
                         {label}
                       </Text>
                     </View>
                   </TouchableOpacity>
+                )
+              }
+
+              // After end, no result yet
+              if (isAfterEnd) {
+                return (
+                  <View
+                    style={{
+                      alignSelf: 'center',
+                      paddingHorizontal: SPACING.xl,
+                      minHeight: 52,
+                      paddingVertical: 11,
+                      borderRadius: RADIUS.full,
+                      backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHigh,
+                      borderWidth: BORDER.base,
+                      borderColor: PROFILE_THEME_COLORS.outlineVariant,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <ActivityIndicator size="small" color={PROFILE_THEME_COLORS.outline} />
+                      <Text style={{ fontSize: 15, fontFamily: SCREEN_FONTS.headline, color: PROFILE_THEME_COLORS.outline, textTransform: 'uppercase' }}>
+                        Chờ báo kết quả
+                      </Text>
+                    </View>
+                  </View>
+                )
+              }
+
+              // During match
+              if (isDuringMatch) {
+                return (
+                  <View
+                    style={{
+                      alignSelf: 'center',
+                      paddingHorizontal: SPACING.xl,
+                      minHeight: 52,
+                      paddingVertical: 11,
+                      borderRadius: RADIUS.full,
+                      backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHigh,
+                      borderWidth: BORDER.base,
+                      borderColor: PROFILE_THEME_COLORS.outlineVariant,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <ActivityIndicator size="small" color={PROFILE_THEME_COLORS.outline} />
+                      <Text style={{ fontSize: 15, fontFamily: SCREEN_FONTS.headline, color: PROFILE_THEME_COLORS.outline, textTransform: 'uppercase' }}>
+                        Kèo đang diễn ra
+                      </Text>
+                    </View>
+                  </View>
                 )
               }
 
@@ -730,7 +898,6 @@ export default function SessionDetailScreen() {
                   activeOpacity={0.84}
                   style={{
                     alignSelf: 'center',
-                    minWidth: 190,
                     paddingHorizontal: SPACING.xl,
                     minHeight: 52,
                     paddingVertical: 11,

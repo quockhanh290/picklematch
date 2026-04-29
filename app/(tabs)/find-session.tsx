@@ -462,43 +462,52 @@ export default function FindSession() {
   const listHeader = useMemo(() => (
     <View>
       {/* Page title */}
-      <View className="flex-row items-start justify-between px-5 pt-5 pb-4">
+      <View className="flex-row items-center justify-between px-5 pt-5 pb-4 mt-2">
         <View className="flex-1 pr-4">
           <Text
-            className="text-[28px] leading-[34px]"
             style={{
               color: PROFILE_THEME_COLORS.onBackground,
-              fontFamily: SCREEN_FONTS.headline,
+              fontFamily: SCREEN_FONTS.headlineBlack,
+              fontSize: 40,
+              lineHeight: 48,
+              letterSpacing: -1,
               textTransform: 'uppercase',
-              letterSpacing: 1.2,
             }}
           >
             Tìm kèo
           </Text>
           <Text
-            className="mt-1 text-[13px] leading-[18px]"
-            style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body }}
+            style={{
+              color: PROFILE_THEME_COLORS.onSurfaceVariant,
+              fontFamily: SCREEN_FONTS.body,
+              fontSize: 13,
+              marginTop: 2,
+            }}
           >
-            {loading ? 'Đang tải...' : `${filteredSessions.length} kèo phù hợp`}
+            {loading ? 'Đang cập nhật...' : `${filteredSessions.length} kèo phù hợp`}
           </Text>
         </View>
 
         <Pressable
           onPress={() => void openMapSearch()}
-          className="mt-1 h-16 w-16 items-center justify-center rounded-full"
-          style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow }}
+          className="h-14 w-14 items-center justify-center rounded-full"
+          style={{
+            backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
+            borderWidth: 1,
+            borderColor: PROFILE_THEME_COLORS.outlineVariant,
+          }}
         >
           <Map size={24} color={PROFILE_THEME_COLORS.primary} strokeWidth={2.4} />
         </Pressable>
       </View>
 
       {/* Search bar */}
-      <View className="px-5 pb-3">
+      <View className="px-5 pb-4">
         <View
-          className="h-14 flex-row items-center rounded-[24px] px-4"
+          className="h-14 flex-row items-center rounded-[18px] px-4"
           style={{
             backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
-            borderWidth: BORDER.base,
+            borderWidth: 1,
             borderColor: PROFILE_THEME_COLORS.outlineVariant,
           }}
         >

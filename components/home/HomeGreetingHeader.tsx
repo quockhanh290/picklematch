@@ -25,7 +25,7 @@ export function HomeGreetingHeader({
   const initial = displayName.charAt(0).toUpperCase()
 
   return (
-    <View className="flex-row items-start justify-between" style={{ paddingTop: 4 }}>
+    <View className="flex-row items-center justify-between">
       <View className="min-w-0 flex-1 pr-4">
         <Text
           className="mb-[3px] text-[11px]"
@@ -35,10 +35,15 @@ export function HomeGreetingHeader({
         </Text>
 
         <Text
-          className="text-[32px] uppercase"
+          className="text-[40px] uppercase"
           numberOfLines={1}
           ellipsizeMode="tail"
-          style={{ color: PROFILE_THEME_COLORS.onBackground, fontFamily: SCREEN_FONTS.headline, lineHeight: 34, letterSpacing: 0 }}
+          style={{ 
+            color: PROFILE_THEME_COLORS.onBackground, 
+            fontFamily: SCREEN_FONTS.headlineBlack, 
+            lineHeight: 48, 
+            letterSpacing: -1 
+          }}
         >
           {displayName.toUpperCase()}
         </Text>
@@ -55,13 +60,16 @@ export function HomeGreetingHeader({
 
       <Pressable
         onPress={() => router.push('/(tabs)/profile' as never)}
-        className="h-[42px] w-[42px] items-center justify-center overflow-hidden rounded-full border-2"
-        style={{ backgroundColor: PROFILE_THEME_COLORS.secondaryContainer, borderColor: PROFILE_THEME_COLORS.outlineVariant }}
+        className="h-16 w-16 items-center justify-center overflow-hidden rounded-full border-2"
+        style={{ 
+          backgroundColor: PROFILE_THEME_COLORS.secondaryContainer, 
+          borderColor: PROFILE_THEME_COLORS.outlineVariant
+        }}
       >
         {profilePhotoUrl ? (
           <Image source={{ uri: profilePhotoUrl }} className="h-full w-full" resizeMode="cover" />
         ) : (
-          <Text style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.headline, fontSize: 18, lineHeight: 22 }}>
+          <Text style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.headline, fontSize: 24, lineHeight: 28 }}>
             {initial}
           </Text>
         )}

@@ -18,6 +18,8 @@ type Props = {
   isRanked?: boolean | null
   hostNote?: string | null
   sessionStatus?: string | null
+  resultsStatus?: string | null
+  userResult?: 'win' | 'loss' | 'draw' | null
   maxPlayers: number
 }
 
@@ -39,6 +41,8 @@ export function SessionMetaCard({
   isRanked,
   hostNote,
   sessionStatus,
+  resultsStatus,
+  userResult,
   maxPlayers,
 }: Props) {
   const levelUi = getSkillLevelUi(skillLevelId as any)
@@ -55,11 +59,43 @@ export function SessionMetaCard({
   const isClosedRecruitment = sessionStatus === 'closed_recruitment'
   const isRankedMatch = isRanked ?? true
   const onAccent = PROFILE_THEME_COLORS.onPrimary
-  const bookingStatusLabel = isClosedRecruitment
-    ? '\u0110\u00e3\u0020\u006e\u0067\u01b0\u006e\u0067\u0020\u006e\u0068\u1ead\u006e\u0020\u006e\u0067\u01b0\u1eddi'
-    : isConfirmed
-      ? '\u0110\u00e3\u0020\u0111\u1eb7\u0074\u0020\u0073\u00e2\u006e'
-      : '\u0043\u0068\u01b0\u0061\u0020\u0111\u1eb7\u0074\u0020\u0073\u00e2\u006e'
+  const isFinished = sessionStatus === 'done'
+  const isPendingResult = sessionStatus === 'pending_completion'
+  const isDuringMatch = sessionStatus === 'in_progress'
+  const isFinalized = resultsStatus === 'finalized'
+
+  let bookingStatusLabel = isConfirmed ? 'Đã đặt sân' : 'Chưa đặt sân'
+  let statusColor = isConfirmed ? '#0F6E56' : '#D19900'
+
+  if (isFinished || isPendingResult || isDuringMatch || isFinalized) {
+    if (isFinalized) {
+      if (userResult === 'win') {
+        bookingStatusLabel = 'Thắng'
+        statusColor = '#0F6E56'
+      } else if (userResult === 'loss') {
+        bookingStatusLabel = 'Thua'
+        statusColor = '#EF4444'
+      } else {
+        bookingStatusLabel = 'Đã kết thúc'
+        statusColor = PROFILE_THEME_COLORS.onSurfaceVariant
+      }
+    } else if (resultsStatus === 'not_submitted') {
+      bookingStatusLabel = 'Chờ nhập kết quả'
+      statusColor = '#D19900'
+    } else if (resultsStatus === 'pending_confirmation' || resultsStatus === 'disputed') {
+      bookingStatusLabel = 'Đang xác nhận'
+      statusColor = '#D19900'
+    } else if (isDuringMatch) {
+      bookingStatusLabel = 'Đang diễn ra'
+      statusColor = PROFILE_THEME_COLORS.primary
+    } else if (isFinished || isPendingResult) {
+      bookingStatusLabel = 'Đã kết thúc'
+      statusColor = PROFILE_THEME_COLORS.onSurfaceVariant
+    }
+  } else if (isClosedRecruitment) {
+    bookingStatusLabel = 'Đã ngừng nhận người'
+    statusColor = PROFILE_THEME_COLORS.onSurfaceVariant
+  }
 
   return (
     <View
@@ -178,8 +214,15 @@ export function SessionMetaCard({
               </Text>
             </View>
             <View style={{ marginLeft: 12, flexDirection: 'row', alignItems: 'center' }}>
-              <View style={{ width: 6, height: 6, borderRadius: RADIUS.full, backgroundColor: isConfirmed ? '#0F6E56' : '#D19900' }} />
-              <Text style={{ marginLeft: 6, color: isConfirmed ? '#0F6E56' : '#7A6400', fontFamily: SCREEN_FONTS.label, fontSize: 12 }}>
+              <View style={{ width: 6, height: 6, borderRadius: RADIUS.full, backgroundColor: statusColor }} />
+              <Text style={{ 
+                marginLeft: 6, 
+                color: statusColor, 
+                fontFamily: SCREEN_FONTS.cta, 
+                fontSize: 10,
+                textTransform: 'uppercase',
+                letterSpacing: 0.5
+              }}>
                 {bookingStatusLabel}
               </Text>
             </View>

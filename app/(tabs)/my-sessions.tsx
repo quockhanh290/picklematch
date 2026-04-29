@@ -93,6 +93,7 @@ type MySession = {
   has_rated: boolean
   results_status?: 'not_submitted' | 'pending_confirmation' | 'disputed' | 'finalized' | 'void' | null
   user_result?: 'win' | 'loss' | 'draw' | null
+  is_ranked: boolean
 }
 
 type MySessionsCache = {
@@ -512,6 +513,9 @@ function MySessionCard({
 
         if (isCancelled) {
           label = 'Kèo đã bị hủy'
+        } else if (!item.is_ranked) {
+          label = 'Kèo đã kết thúc'
+          canAction = false
         } else if (needsResult || (needsConfirmation && !isHost)) {
           label = isHost ? 'Nhập kết quả' : 'Xác nhận kết quả'
           canAction = true
@@ -766,7 +770,7 @@ export default function MySessions() {
         if (rpcSessionIds.length > 0) {
           const { data: sessionMetaRows } = await supabase
             .from('sessions')
-            .select('id, host_id, results_status')
+            .select('id, host_id, results_status, is_ranked')
             .in('id', rpcSessionIds)
 
           const hostIdBySessionId = new Map<string, string>(
@@ -778,6 +782,11 @@ export default function MySessions() {
             (sessionMetaRows ?? [])
               .filter((row: any) => row?.id)
               .map((row: any) => [row.id as string, (row.results_status as MySession['results_status']) ?? null]),
+          )
+          const isRankedBySessionId = new Map<string, boolean>(
+            (sessionMetaRows ?? [])
+              .filter((row: any) => row?.id)
+              .map((row: any) => [row.id as string, row.is_ranked ?? true]),
           )
 
           const { data: userResultsRows } = await supabase
@@ -814,6 +823,7 @@ export default function MySessions() {
             results_status: session.results_status ?? resultsStatusBySessionId.get(session.id) ?? null,
             user_result: userResultBySessionId.get(session.id) ?? null,
             has_rated: session.has_rated || ratedSessionIds.has(session.id),
+            is_ranked: isRankedBySessionId.get(session.id) ?? true,
           }))
         }
 
@@ -878,6 +888,7 @@ export default function MySessions() {
               status,
               results_status,
               host_id,
+              is_ranked,
               court_booking_status,
               max_players,
               elo_min,
@@ -919,6 +930,7 @@ export default function MySessions() {
               elo_min: session.elo_min ?? null,
               elo_max: session.elo_max ?? null,
               has_rated: false,
+              is_ranked: session.is_ranked ?? true,
             }
 
             byKey.set(`player:${normalized.id}`, normalized)
@@ -1273,41 +1285,59 @@ export default function MySessions() {
             onEndReached={loadMoreHistory}
             onEndReachedThreshold={0.25}
             ListHeaderComponent={
-              <View>
-                <View className="flex-row items-start justify-between py-1 mb-6">
+              <View className="mb-2">
+                <View className="flex-row items-center justify-between mb-4 mt-2">
                   <View className="flex-1 pr-4">
                     <Text
-                      className="text-[28px] leading-[34px]"
-                      style={{ color: PROFILE_THEME_COLORS.onBackground, fontFamily: SCREEN_FONTS.headline, letterSpacing: 1 }}
+                      style={{
+                        color: PROFILE_THEME_COLORS.onBackground,
+                        fontFamily: SCREEN_FONTS.headlineBlack,
+                        fontSize: 40,
+                        lineHeight: 48,
+                        letterSpacing: -1,
+                        textTransform: 'uppercase',
+                      }}
                     >
                       Kèo của tôi
                     </Text>
                     <Text
-                      className="mt-1 text-[13px] leading-[18px]"
-                      style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body }}
+                      style={{
+                        color: PROFILE_THEME_COLORS.onSurfaceVariant,
+                        fontFamily: SCREEN_FONTS.body,
+                        fontSize: 13,
+                        marginTop: -2,
+                      }}
                     >
-                      {`${activeTabCount} kèo`}
+                      {activeTab === 'history' ? `${activeTabCount} trận đã lưu` : `${activeTabCount} kèo đang xử lý`}
                     </Text>
                   </View>
+
                   <Pressable
-                    onPress={() => router.push('/(tabs)/profile' as never)}
-                    className="mt-1 h-16 w-16 items-center justify-center rounded-full p-1.5"
-                    style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow }}
+                    onPress={() => router.push('/create-session' as never)}
+                    className="flex-row items-center rounded-full px-6 py-3"
+                    style={{
+                      backgroundColor: colors.primary,
+                      shadowColor: colors.primary,
+                      shadowOpacity: 0.2,
+                      shadowRadius: 12,
+                      shadowOffset: { width: 0, height: 6 },
+                    }}
                   >
-                    <View
-                      className="flex-1 self-stretch items-center justify-center rounded-full"
-                      style={{ backgroundColor: PROFILE_THEME_COLORS.primaryContainer }}
+                    <Plus size={16} color="#FFFFFF" strokeWidth={3} />
+                    <Text
+                      className="ml-2 text-[14px] uppercase tracking-[1px]"
+                      style={{ color: '#FFFFFF', fontFamily: SCREEN_FONTS.headline }}
                     >
-                      <UserRound size={30} color={PROFILE_THEME_COLORS.onPrimaryContainer} strokeWidth={2.4} />
-                    </View>
+                      Tạo kèo
+                    </Text>
                   </Pressable>
                 </View>
 
                 <View
-                  className="rounded-[14px] p-1.5 flex-row gap-1.5"
+                  className="rounded-[16px] p-1 flex-row gap-1"
                   style={{
                     backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
-                    borderWidth: BORDER.base,
+                    borderWidth: 1,
                     borderColor: PROFILE_THEME_COLORS.outlineVariant,
                   }}
                 >
@@ -1317,14 +1347,9 @@ export default function MySessions() {
                       <Pressable
                         key={tab.key}
                         onPress={() => setActiveTab(tab.key)}
-                        className="flex-1 rounded-[10px] px-3 py-3 items-center"
+                        className="flex-1 rounded-[12px] py-2.5 items-center justify-center"
                         style={active ? {
                           backgroundColor: PROFILE_THEME_COLORS.primary,
-                          shadowColor: withAlpha(PROFILE_THEME_COLORS.primary, 0.4),
-                          shadowOpacity: 0.22,
-                          shadowRadius: 10,
-                          shadowOffset: { width: 0, height: 4 },
-                          elevation: 3,
                         } : undefined}
                       >
                         <Text
@@ -1333,7 +1358,7 @@ export default function MySessions() {
                             fontFamily: SCREEN_FONTS.cta,
                             fontSize: 13,
                             textTransform: 'uppercase',
-                            letterSpacing: 1.2,
+                            letterSpacing: 0.8,
                           }}
                         >
                           {tab.label}
@@ -1343,7 +1368,7 @@ export default function MySessions() {
                   })}
                 </View>
 
-                <View className={isHistoryTab ? 'pt-2' : 'pt-5'} />
+                <View className={isHistoryTab ? 'pt-2' : 'pt-3'} />
               </View>
             }
             ListFooterComponent={
@@ -1623,28 +1648,6 @@ export default function MySessions() {
             </View>
           </Modal>
 
-          <Pressable
-            onPress={() => router.push('/create-session' as never)}
-            className="absolute flex-row items-center rounded-full px-8 py-5"
-            style={{
-              bottom: 100,
-              right: 24,
-              zIndex: 100,
-              backgroundColor: PROFILE_THEME_COLORS.primary,
-              shadowColor: PROFILE_THEME_COLORS.primary,
-              shadowOpacity: 0.28,
-              shadowRadius: 24,
-              shadowOffset: { width: 0, height: 16 },
-            }}
-          >
-            <Plus size={20} color={PROFILE_THEME_COLORS.onPrimary} />
-            <Text
-              className="ml-3 text-[15px] uppercase tracking-[1.3px]"
-              style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.headline }}
-            >
-              Tạo kèo mới
-            </Text>
-          </Pressable>
         </View>
       )}
     </SafeAreaView>

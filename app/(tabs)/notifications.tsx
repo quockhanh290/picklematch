@@ -1,3 +1,5 @@
+import { useState, useMemo } from 'react'
+import { colors } from '@/constants/colors'
 import { EmptyState, ScreenHeader } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import type { Notification } from '@/hooks/useNotifications'
@@ -20,11 +22,17 @@ import {
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { SCREEN_FONTS } from '@/constants/typography'
+ 
+function withAlpha(hex: string, alpha: number) {
+  const clean = hex.replace('#', '')
+  const n = Number.parseInt(clean.length === 3 ? clean.split('').map((c) => c + c).join('') : clean, 16)
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`
+}
 
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime()
   const mins = Math.floor(diff / 60_000)
-  if (mins < 1) return 'vừa xong'
+  if (mins < 1) return 'Vừa xong'
   if (mins < 60) return `${mins} phút trước`
   const hrs = Math.floor(mins / 60)
   if (hrs < 24) return `${hrs} giờ trước`
@@ -115,9 +123,35 @@ function isActionable(notification: Notification) {
   return notification.type === 'join_request'
 }
 
+type NotificationCategory = 'all' | 'my_sessions' | 'achievements' | 'system'
+
 export default function NotificationsScreen() {
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotificationsContext()
   const tabBarHeight = useBottomTabBarHeight()
+  const [activeCategory, setActiveCategory] = useState<NotificationCategory>('all')
+
+  const categories: { key: NotificationCategory; label: string }[] = [
+    { key: 'all', label: 'Tất cả' },
+    { key: 'my_sessions', label: 'Kèo của tôi' },
+    { key: 'achievements', label: 'Danh hiệu' },
+    { key: 'system', label: 'Hệ thống' },
+  ]
+
+  const filteredNotifications = useMemo(() => {
+    if (activeCategory === 'all') return notifications
+    return notifications.filter((n) => {
+      if (activeCategory === 'my_sessions') {
+        return ['join_request', 'join_approved', 'join_rejected', 'session_cancelled', 'session_updated', 'result_confirmation_request', 'session_ready_for_rating'].includes(n.type)
+      }
+      if (activeCategory === 'achievements') {
+        return n.type === 'achievement'
+      }
+      if (activeCategory === 'system') {
+        return !['join_request', 'join_approved', 'join_rejected', 'session_cancelled', 'session_updated', 'result_confirmation_request', 'session_ready_for_rating', 'achievement'].includes(n.type)
+      }
+      return true
+    })
+  }, [notifications, activeCategory])
 
   async function handleTap(notification: Notification) {
     if (!notification.is_read) await markAsRead(notification.id)
@@ -132,38 +166,85 @@ export default function NotificationsScreen() {
         stickyHeaderIndices={[0]}
         contentContainerStyle={{ paddingBottom: tabBarHeight + 56 }}
       >
-        <ScreenHeader
-          variant="brand"
-          title="KINETIC"
-          leftSlot={<Menu size={18} color={PROFILE_THEME_COLORS.primary} />}
-          rightSlot={
-            <View
-              className="h-10 w-10 items-center justify-center rounded-full border-2"
-              style={{ borderColor: PROFILE_THEME_COLORS.primaryFixed, backgroundColor: PROFILE_THEME_COLORS.primary }}
+        <View style={{ backgroundColor: PROFILE_THEME_COLORS.background }}>
+          {/* Main Title Row */}
+          <View className="flex-row items-center justify-between px-6 pt-8 pb-6">
+            <Text
+              style={{
+                color: colors.primary,
+                fontFamily: SCREEN_FONTS.headlineBlack,
+                fontSize: 40,
+                lineHeight: 48,
+                letterSpacing: -1,
+              }}
             >
-              <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta }}>U</Text>
-            </View>
-          }
-          style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow }}
-        />
+              THÔNG BÁO
+            </Text>
 
-        {notifications.length === 0 ? (
-          <View className="px-6 pt-8 pb-8">
-            <View className="mb-10">
+            <TouchableOpacity
+              onPress={markAllAsRead}
+              activeOpacity={0.84}
+              className="rounded-full px-4 py-2.5"
+              style={{
+                backgroundColor: unreadCount > 0 ? colors.accent : colors.textMuted,
+                shadowColor: unreadCount > 0 ? colors.accent : '#000',
+                shadowOpacity: unreadCount > 0 ? 0.2 : 0,
+                shadowRadius: 10,
+                shadowOffset: { width: 0, height: 4 },
+              }}
+            >
               <Text
-                className="mb-2 text-[12px] uppercase tracking-[4px]"
-                style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.cta }}
+                style={{
+                  color: '#FFFFFF',
+                  fontFamily: SCREEN_FONTS.cta,
+                  fontSize: 12,
+                  letterSpacing: 0.8,
+                  textTransform: 'uppercase',
+                }}
               >
-                Hộp Thư Đến
+                {unreadCount} MỚI
               </Text>
-              <Text
-                className="text-[44px] leading-[48px]"
-                style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.bold }}
-              >
-                Thông báo.
-              </Text>
-            </View>
+            </TouchableOpacity>
+          </View>
 
+          {/* Filter Tabs */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 16 }}
+            className="flex-row"
+          >
+            {categories.map((cat) => {
+              const active = activeCategory === cat.key
+              return (
+                <TouchableOpacity
+                  key={cat.key}
+                  onPress={() => setActiveCategory(cat.key)}
+                  className="mr-3 rounded-full px-5 py-2.5 border"
+                  style={{
+                    backgroundColor: active ? colors.primary : 'transparent',
+                    borderColor: active ? colors.primary : colors.border,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: active ? '#FFFFFF' : colors.textSecondary,
+                      fontFamily: SCREEN_FONTS.cta,
+                      fontSize: 13,
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.5,
+                    }}
+                  >
+                    {cat.label}
+                  </Text>
+                </TouchableOpacity>
+              )
+            })}
+          </ScrollView>
+        </View>
+
+        {filteredNotifications.length === 0 ? (
+          <View className="px-6 pt-10 pb-8">
             <EmptyState
               icon={<Bell size={28} color={PROFILE_THEME_COLORS.outline} />}
               title="Chưa có thông báo nào"
@@ -171,45 +252,9 @@ export default function NotificationsScreen() {
             />
           </View>
         ) : (
-          <View className="px-6 pt-8">
-            <View className="relative mb-10">
-              <View
-                className="absolute -right-6 -top-6 h-40 w-40 rounded-full"
-                style={{ backgroundColor: 'rgba(176,240,214,0.22)' }}
-              />
-              <Text
-                className="mb-2 text-[12px] uppercase tracking-[4px]"
-                style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.cta }}
-              >
-                Hộp Thư Đến
-              </Text>
-              <View className="flex-row items-end justify-between gap-4">
-                <Text
-                  className="flex-1 text-[44px] leading-[48px]"
-                  style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.bold }}
-                >
-                  Thông báo
-                  <Text style={{ color: PROFILE_THEME_COLORS.primaryFixedDim }}>.</Text>
-                </Text>
-                <TouchableOpacity
-                  onPress={markAllAsRead}
-                  activeOpacity={0.9}
-                  disabled={unreadCount === 0}
-                  className="rounded-full px-4 py-2"
-                  style={{
-                    backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHigh,
-                    opacity: unreadCount > 0 ? 1 : 0.5,
-                  }}
-                >
-                  <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.headline, fontSize: 15 }}>
-                    {unreadCount} Mới
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
+          <View className="px-6 pt-4">
             <View className="gap-4">
-              {notifications.map((item) => {
+              {filteredNotifications.map((item) => {
                 const meta = typeMeta(item.type)
                 const Icon = meta.icon
 
@@ -218,20 +263,22 @@ export default function NotificationsScreen() {
                     key={item.id}
                     onPress={() => handleTap(item)}
                     activeOpacity={0.9}
-                    className="relative overflow-hidden rounded-[24px] p-6"
+                    className="relative overflow-hidden rounded-[20px] p-5"
                     style={{
                       backgroundColor: item.is_read ? PROFILE_THEME_COLORS.surfaceContainerLow : PROFILE_THEME_COLORS.surfaceContainerLowest,
+                      borderWidth: 1,
+                      borderColor: item.is_read ? 'transparent' : PROFILE_THEME_COLORS.primary + '20',
                       shadowColor: PROFILE_THEME_COLORS.onBackground,
-                      shadowOpacity: item.is_read ? 0 : 0.05,
-                      shadowRadius: 18,
-                      shadowOffset: { width: 0, height: 10 },
-                      elevation: item.is_read ? 0 : 3,
+                      shadowOpacity: item.is_read ? 0 : 0.04,
+                      shadowRadius: 12,
+                      shadowOffset: { width: 0, height: 6 },
+                      elevation: item.is_read ? 0 : 2,
                     }}
                   >
                     {!item.is_read ? (
                       <View
-                        className="absolute left-0 top-1/2 h-12 w-1.5 -translate-y-1/2 rounded-r-full"
-                        style={{ backgroundColor: meta.indicator }}
+                        className="absolute left-0 top-0 bottom-0 w-1"
+                        style={{ backgroundColor: PROFILE_THEME_COLORS.primary }}
                       />
                     ) : null}
 
@@ -246,17 +293,20 @@ export default function NotificationsScreen() {
                       <View className="flex-1" style={{ opacity: item.is_read ? 0.72 : 1 }}>
                         <View className="mb-1 flex-row items-start justify-between gap-3">
                           <Text
-                            className="flex-1 text-lg leading-6"
+                            className="flex-1 text-[17px] leading-6"
                             style={{
                               color: PROFILE_THEME_COLORS.onSurface,
-                              fontFamily: item.is_read ? SCREEN_FONTS.cta : SCREEN_FONTS.bold,
+                              fontFamily: item.is_read ? SCREEN_FONTS.headline : SCREEN_FONTS.headline,
+                              textTransform: 'uppercase',
+                              letterSpacing: 0.2,
+                              opacity: item.is_read ? 0.7 : 1,
                             }}
                           >
                             {item.title}
                           </Text>
                           <Text
-                            className="text-[10px] uppercase tracking-[1.6px]"
-                            style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: SCREEN_FONTS.cta }}
+                            className="text-[10px] uppercase tracking-[1px]"
+                            style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: SCREEN_FONTS.cta, marginTop: 4 }}
                           >
                             {timeAgo(item.created_at)}
                           </Text>
@@ -270,32 +320,35 @@ export default function NotificationsScreen() {
                           {item.body}
                         </Text>
 
-                        {isActionable(item) ? (
-                          <View className="mt-4 flex-row gap-3">
+                        {isActionable(item) && !item.is_read ? (
+                          <View className="mt-5 flex-row gap-3">
                             <TouchableOpacity
-                              activeOpacity={0.9}
+                              activeOpacity={0.84}
                               onPress={() => handleTap(item)}
-                              className="rounded-full px-6 py-2"
+                              className="flex-1 rounded-[12px] px-4 py-3 items-center justify-center"
                               style={{ backgroundColor: PROFILE_THEME_COLORS.primary }}
                             >
                               <Text
-                                className="text-[15px] uppercase tracking-[1.3px]"
-                                style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.headline }}
+                                className="text-[13px] uppercase tracking-[1px]"
+                                style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta }}
                               >
-                                Chấp nhận
+                                CHẤP NHẬN
                               </Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                              activeOpacity={0.9}
+                              activeOpacity={0.84}
                               onPress={() => handleTap(item)}
-                              className="rounded-full px-6 py-2"
-                              style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHigh }}
+                              className="flex-1 rounded-[12px] px-4 py-3 items-center justify-center border"
+                              style={{ 
+                                backgroundColor: 'transparent',
+                                borderColor: PROFILE_THEME_COLORS.outlineVariant 
+                              }}
                             >
                               <Text
-                                className="text-[15px] uppercase tracking-[1.3px]"
-                                style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.headline }}
+                                className="text-[13px] uppercase tracking-[1px]"
+                                style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.cta }}
                               >
-                                Từ chối
+                                TỪ CHỐI
                               </Text>
                             </TouchableOpacity>
                           </View>

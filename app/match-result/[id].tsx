@@ -16,6 +16,7 @@ import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { supabase } from '@/lib/supabase'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { RADIUS, SPACING, BORDER, SHADOW } from '@/constants/screenLayout'
+import { formatPricePerPerson, formatTimeRange as _formatTimeRange } from '@/lib/sessionDetail'
 
 function withAlpha(hex: string, alpha: number) {
   const clean = hex.replace('#', '')
@@ -62,15 +63,19 @@ type MatchSessionRecord = {
   id: string
   status: string
   results_status: string
+  max_players: number
+  booking_notes?: string | null
   host?: {
     id?: string
   } | null
   slot?: {
     start_time?: string | null
     end_time?: string | null
+    price?: number | null
     court?: {
       name?: string | null
       address?: string | null
+      city?: string | null
     } | null
   } | null
   session_players: SessionPlayerRecord[]
@@ -150,89 +155,283 @@ function buildTeams(session: MatchSessionRecord | null): TeamSummary[] {
   ]
 }
 
-function TeamScoreCard({
-  team,
-  score,
-  isMain,
-  onDecrease,
-  onIncrease,
+function SessionResultMetaCard({
+  session,
+  scoreA,
+  scoreB,
+  setScoreA,
+  setScoreB,
+  isSubmitted,
+  teams,
 }: {
-  team: TeamSummary
-  score: number
-  isMain: boolean
-  onDecrease: () => void
-  onIncrease: () => void
+  session: MatchSessionRecord
+  scoreA: number
+  scoreB: number
+  setScoreA: (dispatch: (s: number) => number) => void
+  setScoreB: (dispatch: (s: number) => number) => void
+  isSubmitted: boolean
+  teams: TeamSummary[]
 }) {
-  const bg = isMain ? RESULT_THEME.teamABg : RESULT_THEME.cardBg
-  const text = isMain ? RESULT_THEME.teamAText : RESULT_THEME.teamBText
-  const label = isMain ? withAlpha(RESULT_THEME.teamAText, 0.7) : RESULT_THEME.muted
+  const courtName = session.slot?.court?.name || 'Sân chưa xác định'
+  const courtAddress = session.slot?.court?.address || ''
+  const courtCity = session.slot?.court?.city || ''
+  const startTime = session.slot?.start_time
+  const endTime = session.slot?.end_time
+  const price = session.slot?.price || 0
+  const maxPlayers = session.max_players || 4
+  const hostNote = session.booking_notes
   
+  const timeLabel = _formatTimeRange(startTime, endTime)
+  const [datePart, clockPart] = timeLabel.split('•').map((s) => s.trim())
+  const priceLabel = formatPricePerPerson(price, maxPlayers)
+
+  const compactAddress = [courtAddress, courtCity]
+    .filter(Boolean)
+    .join(', ')
+    .split(',')
+    .slice(0, 3)
+    .join(',')
+
   return (
     <View
       style={{
-        flex: 1,
-        borderRadius: RADIUS.xl,
-        backgroundColor: bg,
-        borderWidth: isMain ? 0 : BORDER.base,
-        borderColor: RESULT_THEME.cardBorder,
-        padding: 16,
-        alignItems: 'center',
+        borderRadius: RADIUS.lg,
+        overflow: 'hidden',
+        backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+        borderWidth: BORDER.hairline,
+        borderColor: PROFILE_THEME_COLORS.outlineVariant,
         ...SHADOW.sm,
       }}
     >
-      <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 13, color: label, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-        {team.name}
-      </Text>
-      
-      <View style={{ marginVertical: 12, alignItems: 'center' }}>
-        <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 64, lineHeight: 72, color: text }}>
-          {padScore(score)}
+      {/* Brand Header */}
+      <View
+        style={{
+          backgroundColor: '#1D9E75',
+          paddingHorizontal: 16,
+          paddingVertical: SPACING.xs,
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
+        <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 6 }}>
+          <View style={{ width: 5, height: 5, borderRadius: RADIUS.full, backgroundColor: '#FFFFFF' }} />
+          <Text style={{ color: '#FFFFFF', fontFamily: SCREEN_FONTS.cta, fontSize: 11, letterSpacing: 0.5 }}>
+            KẾT QUẢ TRẬN ĐẤU
+          </Text>
+        </View>
+        <Text style={{ color: 'rgba(255,255,255,0.8)', fontFamily: SCREEN_FONTS.label, fontSize: 11 }}>
+          {maxPlayers === 2 ? 'Đánh đơn' : 'Đánh đôi'}
         </Text>
       </View>
 
-      <View style={{ flexDirection: 'row', gap: 8 }}>
-        <TouchableOpacity 
-          activeOpacity={0.7}
-          onPress={onDecrease}
+      {/* Court Info */}
+      <View style={{ paddingTop: 12, paddingHorizontal: 16, paddingBottom: 12 }}>
+        <Text
+          numberOfLines={2}
           style={{
-            width: 44,
-            height: 44,
-            borderRadius: RADIUS.full,
-            backgroundColor: isMain ? withAlpha(RESULT_THEME.teamAText, 0.2) : RESULT_THEME.inputBg,
-            alignItems: 'center',
-            justifyContent: 'center',
+            color: '#1A2E2A',
+            fontFamily: SCREEN_FONTS.headline,
+            fontSize: 31,
+            lineHeight: 36,
+            marginBottom: 4,
+            textTransform: 'uppercase',
           }}
         >
-          <Minus size={20} color={text} strokeWidth={2.5} />
-        </TouchableOpacity>
-        <TouchableOpacity 
-          activeOpacity={0.7}
-          onPress={onIncrease}
-          style={{
-            width: 44,
-            height: 44,
-            borderRadius: RADIUS.full,
-            backgroundColor: isMain ? withAlpha(RESULT_THEME.teamAText, 0.2) : RESULT_THEME.inputBg,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Plus size={20} color={text} strokeWidth={2.5} />
-        </TouchableOpacity>
-      </View>
-      
-      <View style={{ marginTop: 16, width: '100%' }}>
-        {team.players.map((p, idx) => (
-          <Text key={p.id} numberOfLines={1} style={{ 
-            fontFamily: SCREEN_FONTS.label, 
-            fontSize: 12, 
-            color: label, 
-            textAlign: 'center',
-            marginTop: idx > 0 ? 2 : 0
-          }}>
-            {p.name}
+          {courtName}
+        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 6 }}>
+          <MapPin size={13} color="#7A8884" strokeWidth={2.5} />
+          <Text numberOfLines={1} style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 13, flexShrink: 1 }}>
+            {compactAddress}
           </Text>
-        ))}
+        </View>
+      </View>
+
+      {/* Main Scoreboard */}
+      <View style={{ backgroundColor: '#F5F1E8', paddingHorizontal: 16, paddingVertical: 20 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+          {/* Team A */}
+          <View style={{ alignItems: 'center', flex: 1 }}>
+            <Text numberOfLines={1} style={{ 
+              color: scoreA > scoreB ? '#1D9E75' : scoreA < scoreB ? '#7A8884' : '#7A8884', 
+              fontFamily: SCREEN_FONTS.headline, 
+              fontSize: 16, 
+              textTransform: 'uppercase', 
+              letterSpacing: 1, 
+              marginBottom: 8,
+              textAlign: 'center'
+            }}>
+              {scoreA > scoreB ? 'THẮNG' : scoreA < scoreB ? 'THUA' : 'HÒA'}
+            </Text>
+            
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              {!isSubmitted && (
+                <TouchableOpacity 
+                  onPress={() => setScoreA(s => Math.max(0, s - 1))}
+                  style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: 'rgba(0,0,0,0.04)', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <Minus size={12} color="#1A2E2A" />
+                </TouchableOpacity>
+              )}
+              
+              <View style={{ 
+                backgroundColor: '#FFFFFF', 
+                borderRadius: RADIUS.md, 
+                paddingHorizontal: 12, 
+                paddingVertical: 6,
+                minWidth: 80,
+                alignItems: 'center',
+                borderWidth: 1,
+                borderColor: scoreA > scoreB ? '#1D9E75' : 'rgba(0,0,0,0.05)',
+                ...SHADOW.sm,
+              }}>
+                <Text style={{ 
+                  color: scoreA > scoreB ? '#1D9E75' : '#1A2E2A', 
+                  fontFamily: SCREEN_FONTS.headline, 
+                  fontSize: 64, 
+                  lineHeight: 68 
+                }}>
+                  {scoreA.toString().padStart(2, '0')}
+                </Text>
+              </View>
+
+              {!isSubmitted && (
+                <TouchableOpacity 
+                  onPress={() => setScoreA(s => Math.min(99, s + 1))}
+                  style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: 'rgba(0,0,0,0.04)', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <Plus size={12} color="#1A2E2A" />
+                </TouchableOpacity>
+              )}
+            </View>
+
+            <View style={{ marginTop: 10, alignItems: 'center' }}>
+              <Text numberOfLines={1} style={{ color: '#1A2E2A', fontFamily: SCREEN_FONTS.headline, fontSize: 14, textTransform: 'uppercase', letterSpacing: 0.5, textAlign: 'center' }}>
+                {teams[0].name}
+              </Text>
+              <Text numberOfLines={1} style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 11, textAlign: 'center', marginTop: 2 }}>
+                {teams[0].players.map(p => p.name).join(' · ')}
+              </Text>
+            </View>
+          </View>
+
+          <View style={{ width: 1, height: 100, backgroundColor: '#7A8884', opacity: 0.15, alignSelf: 'center', marginTop: 10, marginHorizontal: 24 }} />
+
+          {/* Team B */}
+          <View style={{ alignItems: 'center', flex: 1 }}>
+            <Text numberOfLines={1} style={{ 
+              color: scoreB > scoreA ? '#1D9E75' : scoreB < scoreA ? '#7A8884' : '#7A8884', 
+              fontFamily: SCREEN_FONTS.headline, 
+              fontSize: 16, 
+              textTransform: 'uppercase', 
+              letterSpacing: 1, 
+              marginBottom: 8,
+              textAlign: 'center'
+            }}>
+              {scoreB > scoreA ? 'THẮNG' : scoreB < scoreA ? 'THUA' : 'HÒA'}
+            </Text>
+
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              {!isSubmitted && (
+                <TouchableOpacity 
+                  onPress={() => setScoreB(s => Math.max(0, s - 1))}
+                  style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: 'rgba(0,0,0,0.04)', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <Minus size={12} color="#1A2E2A" />
+                </TouchableOpacity>
+              )}
+
+              <View style={{ 
+                backgroundColor: '#FFFFFF', 
+                borderRadius: RADIUS.md, 
+                paddingHorizontal: 12, 
+                paddingVertical: 6,
+                minWidth: 80,
+                alignItems: 'center',
+                borderWidth: 1,
+                borderColor: scoreB > scoreA ? '#1D9E75' : 'rgba(0,0,0,0.05)',
+                ...SHADOW.sm,
+              }}>
+                <Text style={{ 
+                  color: scoreB > scoreA ? '#1D9E75' : '#1A2E2A', 
+                  fontFamily: SCREEN_FONTS.headline, 
+                  fontSize: 64, 
+                  lineHeight: 68 
+                }}>
+                  {scoreB.toString().padStart(2, '0')}
+                </Text>
+              </View>
+
+              {!isSubmitted && (
+                <TouchableOpacity 
+                  onPress={() => setScoreB(s => Math.min(99, s + 1))}
+                  style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: 'rgba(0,0,0,0.04)', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <Plus size={12} color="#1A2E2A" />
+                </TouchableOpacity>
+              )}
+            </View>
+
+            <View style={{ marginTop: 10, alignItems: 'center' }}>
+              <Text numberOfLines={1} style={{ color: '#1A2E2A', fontFamily: SCREEN_FONTS.headline, fontSize: 14, textTransform: 'uppercase', letterSpacing: 0.5, textAlign: 'center' }}>
+                {teams[1].name}
+              </Text>
+              <Text numberOfLines={1} style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 11, textAlign: 'center', marginTop: 2 }}>
+                {teams[1].players.map(p => p.name).join(' · ')}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+
+        <View style={{ height: 1, backgroundColor: 'rgba(0,0,0,0.06)', marginVertical: 16 }} />
+
+        {/* Time & Price Info */}
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+          <View>
+            <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.label, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>
+              THỜI GIAN
+            </Text>
+            <Text style={{ color: '#1A2E2A', fontFamily: SCREEN_FONTS.headline, fontSize: 26, lineHeight: 28 }}>
+              {clockPart}
+            </Text>
+            <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 13, marginTop: 2 }}>
+              {datePart}
+            </Text>
+          </View>
+
+          <View style={{ alignItems: 'flex-end' }}>
+            <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.label, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>
+              CHI PHÍ
+            </Text>
+            <Text style={{ color: '#1D9E75', fontFamily: SCREEN_FONTS.headline, fontSize: 26, lineHeight: 28 }}>
+              {priceLabel}
+            </Text>
+            {priceLabel !== 'Miễn phí' && (
+              <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 13, marginTop: 2 }}>
+                /người
+              </Text>
+            )}
+          </View>
+        </View>
+
+        {/* Note */}
+        {hostNote && hostNote.trim().length > 0 && (
+          <>
+            <View style={{ height: 1, backgroundColor: 'rgba(0,0,0,0.06)', marginVertical: 16 }} />
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+              <View style={{ flex: 1 }}>
+                <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.label, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8 }}>
+                  LỜI NHẮN
+                </Text>
+                <Text style={{ color: '#1A2E2A', fontFamily: SCREEN_FONTS.body, fontSize: 13, marginTop: 2 }}>
+                  {hostNote.trim()}
+                </Text>
+              </View>
+            </View>
+          </>
+        )}
       </View>
     </View>
   )
@@ -248,7 +447,6 @@ export default function MatchResultEntryScreen() {
 
   const [scoreA, setScoreA] = useState(11)
   const [scoreB, setScoreB] = useState(9)
-  const [matchDuration, setMatchDuration] = useState('45')
   const [refereeNote, setRefereeNote] = useState('')
   const [dialogConfig, setDialogConfig] = useState<AppDialogConfig | null>(null)
 
@@ -317,9 +515,6 @@ export default function MatchResultEntryScreen() {
 
       if (mounted) {
         setSession(nextSession)
-        
-        const mins = durationMinutes(nextSession?.slot?.start_time, nextSession?.slot?.end_time)
-        if (mins > 0) setMatchDuration(String(mins))
         
         setLoading(false)
         
@@ -430,46 +625,15 @@ export default function MatchResultEntryScreen() {
           </View>
 
           <View style={{ marginTop: 24 }}>
-            <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 32, color: RESULT_THEME.title }}>
-              Nhập kết quả
-            </Text>
-            <View style={{ marginTop: 8, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <MapPin size={14} color={RESULT_THEME.muted} />
-                <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 13, color: RESULT_THEME.subtitle }}>
-                  {session.slot?.court?.name}
-                </Text>
-              </View>
-              <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: RESULT_THEME.muted }} />
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <Clock size={14} color={RESULT_THEME.muted} />
-                <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 13, color: RESULT_THEME.subtitle }}>
-                  {formatTimeRange(session.slot?.start_time, session.slot?.end_time)}
-                </Text>
-              </View>
-            </View>
-          </View>
 
-          {/* Scoreboard */}
-          <View style={{ marginTop: 32, flexDirection: 'row', gap: 12, alignItems: 'center' }}>
-            <TeamScoreCard 
-              team={teams[0]} 
-              score={scoreA} 
-              isMain={scoreA > scoreB}
-              onDecrease={() => !isSubmitted && setScoreA(s => clampScore(s - 1))}
-              onIncrease={() => !isSubmitted && setScoreA(s => clampScore(s + 1))}
-            />
-            
-            <View style={{ width: 32, alignItems: 'center' }}>
-              <Text style={{ fontFamily: SCREEN_FONTS.boldItalic, fontSize: 16, color: RESULT_THEME.muted }}>VS</Text>
-            </View>
-
-            <TeamScoreCard 
-              team={teams[1]} 
-              score={scoreB} 
-              isMain={scoreB > scoreA}
-              onDecrease={() => !isSubmitted && setScoreB(s => clampScore(s - 1))}
-              onIncrease={() => !isSubmitted && setScoreB(s => clampScore(s + 1))}
+            <SessionResultMetaCard
+              session={session}
+              scoreA={scoreA}
+              scoreB={scoreB}
+              setScoreA={setScoreA}
+              setScoreB={setScoreB}
+              isSubmitted={isSubmitted}
+              teams={teams}
             />
           </View>
 
@@ -477,29 +641,8 @@ export default function MatchResultEntryScreen() {
           <View style={{ marginTop: 32, gap: 20 }}>
             <View>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                <Clock size={16} color={RESULT_THEME.title} />
-                <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 16, color: RESULT_THEME.title }}>
-                  Thời lượng trận đấu
-                </Text>
-              </View>
-              <View style={{ height: 56, borderRadius: RADIUS.lg, backgroundColor: RESULT_THEME.inputBg, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center' }}>
-                <TextInput 
-                  value={matchDuration}
-                  onChangeText={v => !isSubmitted && setMatchDuration(v.replace(/\D/g, ''))}
-                  keyboardType="number-pad"
-                  editable={!isSubmitted}
-                  style={{ flex: 1, fontFamily: SCREEN_FONTS.bold, fontSize: 18, color: RESULT_THEME.inputText }}
-                  placeholder="45"
-                  placeholderTextColor={RESULT_THEME.inputPlaceholder}
-                />
-                <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 14, color: RESULT_THEME.muted }}>phút</Text>
-              </View>
-            </View>
-
-            <View>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 }}>
                 <Info size={16} color={RESULT_THEME.title} />
-                <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 16, color: RESULT_THEME.title }}>
+                <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 18, color: RESULT_THEME.title, textTransform: 'uppercase', letterSpacing: 0.5 }}>
                   Ghi chú thêm
                 </Text>
               </View>
@@ -516,7 +659,7 @@ export default function MatchResultEntryScreen() {
                   backgroundColor: RESULT_THEME.inputBg, 
                   padding: 16, 
                   fontFamily: SCREEN_FONTS.body, 
-                  fontSize: 15, 
+                  fontSize: 13, 
                   color: RESULT_THEME.inputText 
                 }}
                 placeholder="Ví dụ: Trận đấu rất kịch tính, mọi người chơi đều rất fair-play..."
@@ -529,29 +672,48 @@ export default function MatchResultEntryScreen() {
 
       {/* Fixed Bottom Action */}
       <View style={{ 
-        paddingHorizontal: 20, 
+        flexDirection: 'row',
+        gap: 10,
+        paddingHorizontal: 16, 
         paddingTop: 12, 
-        paddingBottom: Math.max(insets.bottom, 12), 
-        backgroundColor: RESULT_THEME.pageBg,
-        borderTopWidth: BORDER.base,
-        borderTopColor: RESULT_THEME.cardBorder,
+        paddingBottom: Math.max(insets.bottom, 28), 
+        backgroundColor: '#F2F0E8',
+        borderTopWidth: 0.5,
+        borderTopColor: '#E5E3DC',
       }}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={{ 
+            flex: 1, 
+            height: 50,
+            borderRadius: RADIUS.full, 
+            borderWidth: BORDER.medium, 
+            borderColor: '#E5E3DC', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            backgroundColor: 'white' 
+          }}
+        >
+          <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 15, color: '#1A2E2A', textTransform: 'uppercase' }}>
+            Hủy
+          </Text>
+        </TouchableOpacity>
+
         {isSubmitted ? (
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => router.back()}
             style={{
-              height: 56,
+              flex: 2,
+              height: 50,
               borderRadius: RADIUS.full,
               backgroundColor: RESULT_THEME.secondaryCta,
               alignItems: 'center',
               justifyContent: 'center',
-              flexDirection: 'row',
-              gap: 8,
             }}
           >
-            <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 16, color: RESULT_THEME.secondaryCtaText }}>
-              QUAY LẠI CHI TIẾT KÈO
+            <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 15, color: RESULT_THEME.secondaryCtaText, textTransform: 'uppercase' }}>
+              Xong
             </Text>
           </TouchableOpacity>
         ) : (
@@ -560,25 +722,23 @@ export default function MatchResultEntryScreen() {
             onPress={() => void onSaveResult()}
             disabled={submitting}
             style={{
-              height: 56,
+              flex: 2,
+              height: 50,
               borderRadius: RADIUS.full,
-              backgroundColor: RESULT_THEME.primaryCta,
+              backgroundColor: '#0F6E56',
               alignItems: 'center',
               justifyContent: 'center',
               flexDirection: 'row',
               gap: 8,
               opacity: submitting ? 0.8 : 1,
-              ...SHADOW.md,
-              shadowColor: RESULT_THEME.primaryCta,
             }}
           >
             {submitting ? (
-              <ActivityIndicator color={RESULT_THEME.primaryCtaText} />
+              <ActivityIndicator color="white" />
             ) : (
               <>
-                <Save size={20} color={RESULT_THEME.primaryCtaText} strokeWidth={2.5} />
-                <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 18, color: RESULT_THEME.primaryCtaText, textTransform: 'uppercase' }}>
-                  Lưu kết quả
+                <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 15, color: 'white', textTransform: 'uppercase' }}>
+                  Lưu kết quả →
                 </Text>
               </>
             )}

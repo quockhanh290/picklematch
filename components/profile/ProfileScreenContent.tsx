@@ -1,3 +1,4 @@
+import { colors } from '@/constants/colors'
 import { AppButton, EmptyState, ScreenHeader } from '@/components/design'
 import type { FeedbackTrait } from '@/components/profile/CommunityFeedbackSection'
 import CommunityFeedbackPanel from '@/components/profile/CommunityFeedbackSection'
@@ -31,6 +32,7 @@ import {
     CalendarDays,
     CircleAlert,
     Menu,
+    PencilLine,
     Swords,
     UserCircle2
 } from 'lucide-react-native'
@@ -297,122 +299,87 @@ export default function ProfileScreenContent() {
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: PROFILE_PAGE_COLORS.background }} edges={['top']}>
-      <ScrollView stickyHeaderIndices={[0]} contentContainerStyle={{ paddingBottom: 96 }}>
-        <ScreenHeader
-          variant="brand"
-          title="KINETIC"
-          leftSlot={<Menu size={18} color={PROFILE_PAGE_COLORS.primary} />}
-          rightSlot={
-            <View
-              className="h-10 w-10 items-center justify-center rounded-full border-2"
-              style={{ borderColor: PROFILE_PAGE_COLORS.primaryFixed, backgroundColor: PROFILE_PAGE_COLORS.primary }}
-            >
-              <Text style={{ color: PROFILE_PAGE_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta }}>
-                {player.name?.charAt(0).toUpperCase() ?? 'U'}
-              </Text>
-            </View>
-          }
-          style={{ backgroundColor: PROFILE_PAGE_COLORS.surfaceContainerLow }}
-        />
-
+      <ScrollView contentContainerStyle={{ paddingBottom: 96 }}>
         <View className="px-6 pt-6">
-          <View>
-            <View
-              style={{ paddingTop: 6, paddingBottom: 4 }}
-              onLayout={(event) => {
-                const measuredWidth = event.nativeEvent.layout.width
-                if (Math.abs(measuredWidth - nameMeasureWidth) > 1) {
-                  setNameMeasureWidth(measuredWidth)
-                }
-              }}
-            >
-              {nameMeasureWidth > 0 ? (
+          <View className="pt-4 pb-6">
+            <View className="flex-row items-end justify-between gap-3">
+              <View className="flex-1 flex-row items-end flex-wrap gap-2">
                 <Text
-                  onTextLayout={(event) => {
-                    const nextFits = event.nativeEvent.lines.length <= 1
-                    if (nextFits !== nameFitsOneLine) {
-                      setNameFitsOneLine(nextFits)
-                    }
-                  }}
                   style={{
-                    position: 'absolute',
-                    opacity: 0,
-                    left: 0,
-                    right: 0,
-                    color: PROFILE_PAGE_COLORS.primary,
-                    fontFamily: SCREEN_FONTS.bold,
-                    fontSize: editorialNameSize,
-                    lineHeight: editorialNameLineHeight,
-                    letterSpacing: -2,
+                    flex: 1,
+                    color: colors.primary,
+                    fontFamily: SCREEN_FONTS.headlineBlack,
+                    fontSize: 40,
+                    lineHeight: 48,
+                    textTransform: 'uppercase',
+                    letterSpacing: -1,
                   }}
                 >
                   {player.name}
                 </Text>
-              ) : null}
+                
+                <View
+                  className="rounded-full px-3 py-1.5 mb-1"
+                  style={{ backgroundColor: colors.primaryDark }}
+                >
+                  <Text
+                    style={{
+                      color: '#FFFFFF',
+                      fontFamily: SCREEN_FONTS.cta,
+                      fontSize: 10,
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.5,
+                    }}
+                  >
+                    TIN CẬY · {reliability === null ? '--' : `${reliability}%`}
+                  </Text>
+                </View>
+              </View>
 
-              {shouldUseSplitEditorialName ? (
-                <>
-                  <Text
-                    style={{
-                      color: PROFILE_PAGE_COLORS.primary,
-                      fontFamily: SCREEN_FONTS.bold,
-                      fontSize: editorialNameSize,
-                      lineHeight: editorialNameLineHeight,
-                      letterSpacing: -2,
-                    }}
-                  >
-                    {headlineMainName}
-                  </Text>
-                  <Text
-                    style={{
-                      color: PROFILE_PAGE_COLORS.outlineVariant,
-                      opacity: 0.55,
-                      fontFamily: SCREEN_FONTS.boldItalic,
-                      fontSize: editorialNameSize,
-                      lineHeight: editorialNameLineHeight,
-                      letterSpacing: -2,
-                      marginTop: -4,
-                    }}
-                  >
-                    {headlineSubName}
-                  </Text>
-                </>
-              ) : (
-                <Text
-                  style={{
-                    color: PROFILE_PAGE_COLORS.primary,
-                    fontFamily: SCREEN_FONTS.bold,
-                    fontSize: editorialNameSize,
-                    lineHeight: editorialNameLineHeight,
-                    letterSpacing: -2,
-                  }}
-                >
-                  {player.name}
-                </Text>
-              )}
+              <TouchableOpacity
+                onPress={() => router.push('/edit-profile' as any)}
+                className="h-9 w-9 items-center justify-center rounded-full"
+                style={{
+                  backgroundColor: colors.primaryLight,
+                  shadowColor: colors.primary,
+                  shadowOpacity: 0.1,
+                  shadowRadius: 4,
+                  shadowOffset: { width: 0, height: 2 },
+                }}
+              >
+                <PencilLine size={18} color={colors.primary} />
+              </TouchableOpacity>
             </View>
 
-            <View className="mt-3 flex-row flex-wrap items-center gap-3">
-              <Text
-                className="rounded-full px-4 py-1 text-[10px] uppercase tracking-[2px]"
-                style={{ color: PROFILE_PAGE_COLORS.onPrimaryFixed, backgroundColor: PROFILE_PAGE_COLORS.primaryFixed, fontFamily: SCREEN_FONTS.cta }}
+            <View className="mt-4 flex-row items-center gap-3">
+              <View
+                className="rounded-full px-4 py-1.5"
+                style={{ backgroundColor: colors.primary }}
               >
-                {player.is_provisional ? `${placementPlayed}/5 placement` : 'Verified Player'}
-              </Text>
-              <Text className="text-sm" style={{ color: PROFILE_PAGE_COLORS.primary, fontFamily: SCREEN_FONTS.cta }}>
+                <Text
+                  style={{
+                    color: '#FFFFFF',
+                    fontFamily: SCREEN_FONTS.cta,
+                    fontSize: 10,
+                    textTransform: 'uppercase',
+                    letterSpacing: 1,
+                  }}
+                >
+                  {player.is_provisional ? `${placementPlayed}/5 PLACEMENT` : 'VERIFIED PLAYER'}
+                </Text>
+              </View>
+
+              <Text
+                style={{
+                  color: colors.textSecondary,
+                  fontFamily: SCREEN_FONTS.body,
+                  fontSize: 13,
+                }}
+              >
                 Thành viên từ {joinedYear ?? 'N/A'}
               </Text>
             </View>
-
-            <View className="mt-3">
-              <Text
-                className="self-start rounded-full px-4 py-1 text-[10px] uppercase tracking-[2px]"
-                style={{ color: PROFILE_PAGE_COLORS.onPrimaryContainer, backgroundColor: PROFILE_PAGE_COLORS.primaryContainer, fontFamily: SCREEN_FONTS.cta }}
-              >
-                Độ tin cậy · {' '}
-                {reliability === null ? '--' : `${reliability}%`}
-              </Text>
-            </View>
+          </View>
 
             <Text className="mt-4 text-base leading-7" style={{ color: PROFILE_PAGE_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body }}>
               Đam mê Pickleball với phong cách chơi năng lượng cao. Luôn tìm kiếm những trận đấu kịch tính và phù hợp trình độ.
@@ -429,8 +396,6 @@ export default function ProfileScreenContent() {
                 contentRightInset={16}
               />
             </View>
-
-          </View>
 
           <View className="mb-10 gap-4">
             <ProfileSectionDivider index="01" title="TỔNG QUAN" />
@@ -469,21 +434,8 @@ export default function ProfileScreenContent() {
             <TrophyRoomSection badges={displayAchievements} hideHeader flushBottom />
           </View>
 
-          <View>
-            <ProfileSectionDivider index="04" title="LỊCH SỬ" />
-            <ProfileHistoryList
-              title="Lịch sử trận đấu"
-              subtitle="Nhịp trận gần nhất của bạn"
-              items={displayHistory}
-              formatTime={formatTime}
-              showRateAction
-              hideHeader
-              flushBottom
-            />
-          </View>
-
           <View className="mt-6">
-            <ProfileSectionDivider index="05" title="TÀI KHOẢN" />
+            <ProfileSectionDivider index="04" title="TÀI KHOẢN" />
             <View className="flex-row gap-3">
               <TouchableOpacity
                 className="flex-1 rounded-full py-4 items-center"
