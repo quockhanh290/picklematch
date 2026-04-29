@@ -140,7 +140,7 @@ function SectionHeader({
       <Text className="mb-3 text-[11px] uppercase tracking-[0.16em]" style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: SCREEN_FONTS.cta }}>
         {eyebrow}
       </Text>
-      <Text className="text-[24px]" style={{ color: PROFILE_THEME_COLORS.onBackground, fontFamily: SCREEN_FONTS.bold, lineHeight: 32 }}>
+      <Text className="text-[24px]" style={{ color: PROFILE_THEME_COLORS.onBackground, fontFamily: SCREEN_FONTS.headline, lineHeight: 32 }}>
         {title}
       </Text>
     </View>

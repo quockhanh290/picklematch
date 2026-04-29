@@ -66,7 +66,7 @@ export function DashboardStatsStrip({ items }: { items: DashboardStatItem[] }) {
                   {item.label}
                 </Text>
               </View>
-              <Text className="mt-4 text-center text-[28px]" style={{ color: valueColor, fontFamily: SCREEN_FONTS.bold, lineHeight: 36 }}>
+              <Text className="mt-4 text-center text-[28px]" style={{ color: valueColor, fontFamily: SCREEN_FONTS.headline, lineHeight: 36 }}>
                 {item.value}
               </Text>
             </View>

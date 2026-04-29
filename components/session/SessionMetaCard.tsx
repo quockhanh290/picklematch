@@ -67,8 +67,14 @@ export function SessionMetaCard({
   let bookingStatusLabel = isConfirmed ? 'Đã đặt sân' : 'Chưa đặt sân'
   let statusColor = isConfirmed ? '#0F6E56' : '#D19900'
 
-  if (isFinished || isPendingResult || isDuringMatch || isFinalized) {
-    if (isFinalized) {
+  if (sessionStatus === 'cancelled') {
+    bookingStatusLabel = 'Đã hủy'
+    statusColor = '#EF4444'
+  } else if (isFinished || isPendingResult || isDuringMatch || isFinalized) {
+    if ((isFinished || isPendingResult || isFinalized) && !isRankedMatch) {
+      bookingStatusLabel = 'Đã kết thúc'
+      statusColor = PROFILE_THEME_COLORS.onSurfaceVariant
+    } else if (isFinalized) {
       if (userResult === 'win') {
         bookingStatusLabel = 'Thắng'
         statusColor = '#0F6E56'

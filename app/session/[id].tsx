@@ -24,7 +24,7 @@ import {
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
-import { AppDialog, type AppDialogConfig, NavbarShareButton, SecondaryNavbar } from '@/components/design'
+import { AppDialog, type AppDialogConfig, AppLoading, NavbarShareButton, SecondaryNavbar } from '@/components/design'
 import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
 import { JoinRequestModal } from '@/components/session/JoinRequestModal'
 import { PlayerRosterSection } from '@/components/session/PlayerRosterSection'
@@ -67,7 +67,18 @@ export default function SessionDetailScreen() {
     setIntroNote,
     fetchSession,
     onRefresh,
+    error,
   } = useSessionDetail(id, userId)
+
+  useEffect(() => {
+    if (error) {
+      setDialogConfig({
+        title: 'Không tải được kèo',
+        message: error,
+        actions: [{ label: 'Đã hiểu' }],
+      })
+    }
+  }, [error])
 
   const isHost = userId !== null && userId !== undefined && userId === session?.host.id
   const hasJoined = useMemo(
@@ -88,7 +99,7 @@ export default function SessionDetailScreen() {
     averageTeamA,
     averageTeamB,
     arrangementDirty,
-  } = useSessionArrangement(session, isHost, fetchSession)
+  } = useSessionArrangement(session, isHost, fetchSession, (payload) => setDialogConfig(payload))
 
   const {
     joining,
@@ -131,11 +142,7 @@ export default function SessionDetailScreen() {
 
 
   if (loading) {
-    return (
-      <SafeAreaView className="flex-1 items-center justify-center" style={{ backgroundColor: PROFILE_THEME_COLORS.background }}>
-        <ActivityIndicator size="large" color={PROFILE_THEME_COLORS.primary} />
-      </SafeAreaView>
-    )
+    return <AppLoading fullScreen />
   }
 
   if (!session) {
@@ -228,7 +235,7 @@ export default function SessionDetailScreen() {
           <Text
             style={{
               fontSize: 14,
-              fontFamily: SCREEN_FONTS.bold,
+              fontFamily: SCREEN_FONTS.headline,
               color: PROFILE_THEME_COLORS.primary,
             }}
           >
@@ -271,7 +278,7 @@ export default function SessionDetailScreen() {
           <Text
             style={{
               fontSize: 11,
-              fontFamily: SCREEN_FONTS.bold,
+              fontFamily: SCREEN_FONTS.headline,
               color: levelUi.iconColor,
               textTransform: 'uppercase',
               letterSpacing: 0.5,
@@ -313,8 +320,9 @@ export default function SessionDetailScreen() {
   return (
     <View className="flex-1" style={{ backgroundColor: PROFILE_THEME_COLORS.background }}>
       <SecondaryNavbar
+        title="CHI TIẾT KÈO"
         onBackPress={() => router.back()}
-        rightSlot={<NavbarShareButton onPress={handleShare} />}
+        rightSlot={<NavbarShareButton onPress={() => void handleShare()} />}
       />
 
       {showUpdatedToast ? (
@@ -342,7 +350,7 @@ export default function SessionDetailScreen() {
             style={{
               flex: 1,
               fontSize: 13,
-              fontFamily: SCREEN_FONTS.bold,
+              fontFamily: SCREEN_FONTS.headline,
               color: PROFILE_THEME_COLORS.primaryContainer,
             }}
           >
@@ -404,7 +412,7 @@ export default function SessionDetailScreen() {
               <Text style={{ fontSize: 16 }}>🏆</Text>
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 13, fontFamily: SCREEN_FONTS.bold, color: PROFILE_THEME_COLORS.primary }}>
+              <Text style={{ fontSize: 13, fontFamily: SCREEN_FONTS.headline, color: PROFILE_THEME_COLORS.primary }}>
                 Kèo tính điểm ELO
               </Text>
               <Text style={{ fontSize: 11, fontFamily: SCREEN_FONTS.body, color: PROFILE_THEME_COLORS.primary, marginTop: 1, opacity: 0.8 }}>
@@ -414,7 +422,7 @@ export default function SessionDetailScreen() {
           </View>
         )}
 
-        {canRespondToResult ? (
+        {(canRespondToResult || (isHost && isResultDisputed)) ? (
           <View
             style={{ marginTop: 20, borderRadius: RADIUS.lg, borderWidth: BORDER.base, padding: SPACING.xl, borderColor: resultBannerTone.border, backgroundColor: resultBannerTone.background }}
           >
@@ -425,7 +433,7 @@ export default function SessionDetailScreen() {
                 <CheckCheck size={18} color={PROFILE_THEME_COLORS.onSecondaryFixedVariant} strokeWidth={2.5} />
               )}
               <Text
-                style={{ marginLeft: 8, fontSize: 15, fontFamily: SCREEN_FONTS.bold, color: resultBannerTone.text }}
+                style={{ marginLeft: 8, fontSize: 15, fontFamily: SCREEN_FONTS.headline, color: resultBannerTone.text }}
               >
                 {session.results_status === 'disputed'
                   ? 'Kết quả đang bị tranh chấp'
@@ -439,24 +447,34 @@ export default function SessionDetailScreen() {
               style={{ marginTop: 12, fontSize: 14, lineHeight: 22, fontFamily: SCREEN_FONTS.body, color: resultBannerTone.text }}
             >
               {session.results_status === 'disputed'
-                ? 'Vào màn xác nhận để xem lại kết quả chủ kèo đã gửi và cập nhật phản hồi của bạn.'
+                ? (isHost ? 'Người chơi đã khiếu nại kết quả này. Vui lòng kiểm tra và cập nhật lại thông tin chính xác.' : 'Vào màn xác nhận để xem lại kết quả chủ kèo đã gửi và cập nhật phản hồi của bạn.')
                 : session.results_status === 'pending_confirmation'
                   ? 'Bạn cần xác nhận hoặc tranh chấp kết quả trước khi hệ thống chốt trận.'
                   : 'Nếu chủ kèo chưa gửi kết quả đúng hạn, bạn có thể báo kết quả của mình để hệ thống xử lý tiếp.'}
             </Text>
 
-            <TouchableOpacity
-              className="mt-4 h-12 items-center justify-center rounded-2xl"
-              style={{ backgroundColor: resultBannerTone.button }}
-              onPress={() => router.push({ pathname: '/session/[id]/confirm-result' as never, params: { id } })}
-              activeOpacity={0.9}
-            >
-              <Text style={{ fontSize: 14, fontFamily: SCREEN_FONTS.headline, textTransform: 'uppercase', letterSpacing: 1.1, color: PROFILE_THEME_COLORS.onPrimary }}>
-                {session.results_status === 'pending_confirmation' || session.results_status === 'disputed'
-                  ? 'Xác nhận kết quả'
-                  : 'Báo kết quả'}
-              </Text>
-            </TouchableOpacity>
+            {(canRespondToResult || (isHost && isResultDisputed)) && (
+              <TouchableOpacity
+                className="mt-4 h-12 items-center justify-center rounded-2xl"
+                style={{ backgroundColor: resultBannerTone.button }}
+                onPress={() => {
+                  if (isHost && isResultDisputed) {
+                    router.push({ pathname: '/match-result/[id]' as any, params: { id } })
+                  } else {
+                    router.push({ pathname: '/session/[id]/confirm-result' as never, params: { id } })
+                  }
+                }}
+                activeOpacity={0.9}
+              >
+                <Text style={{ fontSize: 14, fontFamily: SCREEN_FONTS.headline, textTransform: 'uppercase', letterSpacing: 1.1, color: PROFILE_THEME_COLORS.onPrimary }}>
+                  {session.results_status === 'disputed'
+                    ? (isHost ? 'Cập nhật lại kết quả' : 'Xác nhận kết quả')
+                    : session.results_status === 'pending_confirmation'
+                      ? 'Xác nhận kết quả'
+                      : 'Báo kết quả'}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         ) : null}
 
@@ -487,6 +505,28 @@ export default function SessionDetailScreen() {
               const isAwaitingResult =
                 isAfterEnd &&
                 (resultsStatus === 'not_submitted' || resultsStatus === null || resultsStatus === undefined)
+
+              if (session?.status === 'cancelled') {
+                return (
+                  <View
+                    style={{
+                      width: '100%',
+                      minHeight: 52,
+                      paddingVertical: 11,
+                      borderRadius: RADIUS.full,
+                      backgroundColor: PROFILE_THEME_SEMANTIC.dangerBg,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderWidth: BORDER.base,
+                      borderColor: PROFILE_THEME_SEMANTIC.dangerBorderSoft,
+                    }}
+                  >
+                    <Text style={{ fontSize: 15, fontFamily: SCREEN_FONTS.headline, color: PROFILE_THEME_SEMANTIC.dangerText, textTransform: 'uppercase' }}>
+                      Kèo đã bị hủy
+                    </Text>
+                  </View>
+                )
+              }
 
               if (isAfterEnd && !session?.is_ranked) {
                 return (
@@ -545,9 +585,14 @@ export default function SessionDetailScreen() {
 
               // After end, result submitted but pending
               if (isResultSubmitted) {
+                const isDisputed = resultsStatus === 'disputed'
                 return (
                   <TouchableOpacity
-                    onPress={() => router.push({ pathname: '/session/[id]/confirm-result' as any, params: { id } })}
+                    onPress={() => {
+                      if (isDisputed) {
+                        router.push({ pathname: '/match-result/[id]' as any, params: { id } })
+                      }
+                    }}
                     activeOpacity={0.84}
                     style={{
                       alignSelf: 'center',
@@ -555,17 +600,26 @@ export default function SessionDetailScreen() {
                       minHeight: 52,
                       paddingVertical: 11,
                       borderRadius: RADIUS.full,
-                      backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHigh,
+                      backgroundColor: isDisputed ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surfaceContainerHigh,
                       borderWidth: BORDER.base,
-                      borderColor: PROFILE_THEME_COLORS.outlineVariant,
+                      borderColor: isDisputed ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                      <ActivityIndicator size="small" color={PROFILE_THEME_COLORS.outline} />
-                      <Text style={{ fontSize: 15, fontFamily: SCREEN_FONTS.headline, color: PROFILE_THEME_COLORS.outline, textTransform: 'uppercase' }}>
-                        Đang chờ xác nhận
+                      {isDisputed ? (
+                        <PencilLine size={18} strokeWidth={2.5} color={PROFILE_THEME_COLORS.onPrimary} />
+                      ) : (
+                        <ActivityIndicator size="small" color={PROFILE_THEME_COLORS.outline} />
+                      )}
+                      <Text style={{ 
+                        fontSize: 15, 
+                        fontFamily: SCREEN_FONTS.headline, 
+                        color: isDisputed ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.outline, 
+                        textTransform: 'uppercase' 
+                      }}>
+                        {isDisputed ? 'Sửa kết quả' : 'Đang chờ xác nhận'}
                       </Text>
                     </View>
                   </TouchableOpacity>
@@ -734,6 +788,29 @@ export default function SessionDetailScreen() {
               const isFinalized = resultsStatus === 'finalized'
               const isPendingConfirm = resultsStatus === 'pending_confirmation' || resultsStatus === 'disputed'
               const hasRated = session?.has_rated
+
+              if (session?.status === 'cancelled') {
+                return (
+                  <View
+                    style={{
+                      alignSelf: 'center',
+                      paddingHorizontal: SPACING.xl,
+                      minHeight: 52,
+                      paddingVertical: 11,
+                      borderRadius: RADIUS.full,
+                      backgroundColor: PROFILE_THEME_SEMANTIC.dangerBg,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderWidth: BORDER.base,
+                      borderColor: PROFILE_THEME_SEMANTIC.dangerBorderSoft,
+                    }}
+                  >
+                    <Text style={{ fontSize: 15, fontFamily: SCREEN_FONTS.headline, color: PROFILE_THEME_SEMANTIC.dangerText, textTransform: 'uppercase' }}>
+                      Kèo đã bị hủy
+                    </Text>
+                  </View>
+                )
+              }
 
               if (isAfterEnd && !session?.is_ranked) {
                 return (

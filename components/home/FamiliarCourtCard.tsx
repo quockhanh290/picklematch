@@ -64,7 +64,7 @@ export function FamiliarCourtCard({ item, onPress }: { item: FamiliarCourt; onPr
               <Zap size={14} color={PROFILE_THEME_COLORS.primary} strokeWidth={iconStroke} />
               <Text
                 className="ml-2 text-xs"
-                style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.bold }}
+                style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.headline }}
               >
                 {item.openMatches} kèo đang mở
               </Text>
@@ -83,7 +83,7 @@ export function FamiliarCourtCard({ item, onPress }: { item: FamiliarCourt; onPr
           >
             <Text
               className="text-[22px]"
-              style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.bold, lineHeight: 30 }}
+              style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.headline, lineHeight: 30 }}
             >
               {item.name}
             </Text>

@@ -29,7 +29,7 @@ function TeamHeader({ label, badge, avgElo }: { label: string; badge: string; av
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
         <Text
           style={{
-            fontFamily: SCREEN_FONTS.bold,
+            fontFamily: SCREEN_FONTS.headline,
             fontSize: 13,
             letterSpacing: 2.4,
             textTransform: 'uppercase',
@@ -65,7 +65,7 @@ function TeamHeader({ label, badge, avgElo }: { label: string; badge: string; av
           justifyContent: 'center',
         }}
       >
-        <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 14, color: PROFILE_THEME_COLORS.onPrimary }}>
+        <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 14, color: PROFILE_THEME_COLORS.onPrimary }}>
           {badge}
         </Text>
       </View>
@@ -101,7 +101,7 @@ function EmptySlot() {
           marginRight: 14,
         }}
       >
-        <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 20, color: PROFILE_THEME_COLORS.outlineVariant }}>
+        <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 20, color: PROFILE_THEME_COLORS.outlineVariant }}>
           +
         </Text>
       </View>
@@ -138,7 +138,7 @@ export function PlayerRosterSection({
       {/* Section header */}
       <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 16 }}>
         <View>
-          <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 20, color: PROFILE_THEME_COLORS.onBackground }}>
+          <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 20, color: PROFILE_THEME_COLORS.onBackground }}>
             Danh sách thi đấu
           </Text>
           <Text
@@ -175,7 +175,7 @@ export function PlayerRosterSection({
             />
             <Text
               style={{
-                fontFamily: SCREEN_FONTS.bold,
+                fontFamily: SCREEN_FONTS.headline,
                 fontSize: 12,
                 letterSpacing: 0.5,
                 color: isArranging ? PROFILE_THEME_COLORS.surfaceContainerLowest : PROFILE_THEME_COLORS.onSurface,
@@ -220,7 +220,7 @@ export function PlayerRosterSection({
             })}
           >
             <Shuffle size={14} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.5} />
-            <Text style={{ fontFamily: SCREEN_FONTS.bold, fontSize: 12, letterSpacing: 0.5, color: PROFILE_THEME_COLORS.onPrimary }}>
+            <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 12, letterSpacing: 0.5, color: PROFILE_THEME_COLORS.onPrimary }}>
               Chia đội tự động
             </Text>
           </Pressable>

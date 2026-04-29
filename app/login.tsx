@@ -1,3 +1,4 @@
+import { AppDialog, type AppDialogConfig } from '@/components/design'
 import { supabase } from '@/lib/supabase'
 import { router } from 'expo-router'
 import { ShieldCheck, Smartphone } from 'lucide-react-native'
@@ -9,7 +10,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
 import {
-  Alert,
   ImageBackground,
   KeyboardAvoidingView,
   Platform,
@@ -72,6 +72,7 @@ export default function LoginScreen() {
   const [otp, setOtp] = useState('')
   const [step, setStep] = useState<'phone' | 'otp'>('phone')
   const [loading, setLoading] = useState(false)
+  const [dialogConfig, setDialogConfig] = useState<AppDialogConfig | null>(null)
 
   function nextRouteForPlayer(player: any) {
     if (!player) return '/profile-setup'
@@ -81,7 +82,11 @@ export default function LoginScreen() {
 
   async function sendOTP() {
     if (!phone || phone.replace(/\D/g, '').length < 9) {
-      Alert.alert('Lỗi', 'Vui lòng nhập số điện thoại hợp lệ')
+      setDialogConfig({
+        title: 'Lỗi',
+        message: 'Vui lòng nhập số điện thoại hợp lệ',
+        actions: [{ label: 'Đã hiểu' }],
+      })
       return
     }
 
@@ -91,17 +96,29 @@ export default function LoginScreen() {
     setLoading(false)
 
     if (error) {
-      Alert.alert('Lỗi', error.message)
+      setDialogConfig({
+        title: 'Lỗi',
+        message: error.message,
+        actions: [{ label: 'Đã hiểu' }],
+      })
       return
     }
 
     setStep('otp')
-    Alert.alert('Đã gửi mã', 'Kiểm tra SMS để nhập mã xác thực của bạn')
+    setDialogConfig({
+      title: 'Đã gửi mã',
+      message: 'Kiểm tra SMS để nhập mã xác thực của bạn',
+      actions: [{ label: 'Đã hiểu' }],
+    })
   }
 
   async function verifyOTP() {
     if (!otp || otp.length < 6) {
-      Alert.alert('Lỗi', 'Nhập đủ 6 số OTP từ SMS')
+      setDialogConfig({
+        title: 'Lỗi',
+        message: 'Nhập đủ 6 số OTP từ SMS',
+        actions: [{ label: 'Đã hiểu' }],
+      })
       return
     }
 
@@ -115,7 +132,11 @@ export default function LoginScreen() {
     setLoading(false)
 
     if (error) {
-      Alert.alert('Lỗi', 'Mã OTP không đúng, vui lòng thử lại')
+      setDialogConfig({
+        title: 'Lỗi',
+        message: 'Mã OTP không đúng, vui lòng thử lại',
+        actions: [{ label: 'Đã hiểu' }],
+      })
       return
     }
 
@@ -124,7 +145,11 @@ export default function LoginScreen() {
     } = await supabase.auth.getUser()
 
     if (!user?.id) {
-      Alert.alert('Lỗi', 'Không lấy được thông tin tài khoản sau khi xác thực OTP.')
+      setDialogConfig({
+        title: 'Lỗi',
+        message: 'Không lấy được thông tin tài khoản sau khi xác thực OTP.',
+        actions: [{ label: 'Đã hiểu' }],
+      })
       return
     }
 
@@ -326,7 +351,7 @@ export default function LoginScreen() {
                   color: ELECTRIC.lime,
                   fontSize: 32,
                   lineHeight: 34,
-                  fontFamily: SCREEN_FONTS.boldItalic,
+                  fontFamily: SCREEN_FONTS.headlineItalic,
                   letterSpacing: -0.8,
                 }}
               >
@@ -545,11 +570,19 @@ export default function LoginScreen() {
 
           {__DEV__ ? (
             <View style={{ marginTop: 24, paddingHorizontal: 8 }}>
-              <DevLoginSection nextRouteForPlayer={nextRouteForPlayer} />
+              <DevLoginSection
+                nextRouteForPlayer={nextRouteForPlayer}
+                presentDialog={(payload) => setDialogConfig(payload)}
+              />
             </View>
           ) : null}
         </View>
       </ScrollView>
+      <AppDialog
+        visible={Boolean(dialogConfig)}
+        config={dialogConfig}
+        onClose={() => setDialogConfig(null)}
+      />
     </KeyboardAvoidingView>
   )
 }

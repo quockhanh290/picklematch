@@ -1,9 +1,10 @@
+import { AppDialogConfig } from '@/components/design'
 import { supabase } from '@/lib/supabase'
 import { router } from 'expo-router'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { Code2, LockKeyhole, Mail } from 'lucide-react-native'
 import { useState } from 'react'
-import { Alert, Pressable, Text, TextInput, View } from 'react-native'
+import { Pressable, Text, TextInput, View } from 'react-native'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { SPACING, RADIUS } from '@/constants/screenLayout'
 
@@ -19,8 +20,10 @@ const DEV = {
 
 export default function DevLoginSection({
   nextRouteForPlayer,
+  presentDialog,
 }: {
   nextRouteForPlayer: (player: any) => string
+  presentDialog?: (config: AppDialogConfig) => void
 }) {
   const [devEmail, setDevEmail] = useState('')
   const [devPassword, setDevPassword] = useState('')
@@ -28,7 +31,11 @@ export default function DevLoginSection({
 
   async function devSignIn() {
     if (!devEmail || !devPassword) {
-      Alert.alert('Lỗi đăng nhập dev', 'Nhập email và mật khẩu để tiếp tục.')
+      presentDialog?.({
+        title: 'Lỗi đăng nhập dev',
+        message: 'Nhập email và mật khẩu để tiếp tục.',
+        actions: [{ label: 'Đã hiểu' }],
+      })
       return
     }
 
@@ -40,7 +47,11 @@ export default function DevLoginSection({
     setDevLoading(false)
 
     if (error) {
-      Alert.alert('Lỗi đăng nhập dev', error.message)
+      presentDialog?.({
+        title: 'Lỗi đăng nhập dev',
+        message: error.message,
+        actions: [{ label: 'Đã hiểu' }],
+      })
       return
     }
 
@@ -49,7 +60,11 @@ export default function DevLoginSection({
     } = await supabase.auth.getUser()
 
     if (!user?.id) {
-      Alert.alert('Lỗi', 'Không lấy được thông tin tài khoản sau khi đăng nhập dev.')
+      presentDialog?.({
+        title: 'Lỗi',
+        message: 'Không lấy được thông tin tài khoản sau khi đăng nhập dev.',
+        actions: [{ label: 'Đã hiểu' }],
+      })
       return
     }
 

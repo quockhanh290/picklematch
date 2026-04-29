@@ -3,6 +3,7 @@ import {
     AdvancedFilter,
     AdvancedSessionFilterModal,
 } from '@/components/find-session/AdvancedSessionFilterModal'
+import { AppDialog, AppLoading, type AppDialogConfig, MainHeader } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import SessionCard from '@/components/sessions/SessionCard'
 import { SCREEN_FONTS } from '@/constants/typography'
@@ -23,7 +24,6 @@ import {
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
     ActivityIndicator,
-    Alert,
     FlatList,
     Pressable,
     RefreshControl,
@@ -31,7 +31,7 @@ import {
     TextInput,
     View,
 } from 'react-native'
-import { MainHeader } from '@/components/design'
+
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
 
@@ -203,6 +203,7 @@ export default function FindSession() {
   const params = useLocalSearchParams<{ courtId?: string; courtName?: string }>()
   const [sessions, setSessions] = useState<Session[]>([])
   const [loading, setLoading] = useState(true)
+  const [dialogConfig, setDialogConfig] = useState<AppDialogConfig | null>(null)
   const [refreshing, setRefreshing] = useState(false)
   const [query, setQuery] = useState('')
   const [sortMode, setSortMode] = useState<'match' | 'time'>('match')
@@ -310,7 +311,11 @@ export default function FindSession() {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync()
       if (status !== 'granted') {
-        Alert.alert('Quyền truy cập', 'Vui lòng cho phép ứng dụng truy cập vị trí để tìm các kèo gần bạn.')
+        setDialogConfig({
+          title: 'Quyền truy cập',
+          message: 'Vui lòng cho phép ứng dụng truy cập vị trí để tìm các kèo gần bạn.',
+          actions: [{ label: 'Đã hiểu' }],
+        })
         return
       }
 
@@ -332,7 +337,11 @@ export default function FindSession() {
       
     } catch (error) {
       console.warn('[FindSession] nearby filter failed:', error)
-      Alert.alert('Lỗi', 'Không thể xác định vị trí của bạn lúc này.')
+      setDialogConfig({
+        title: 'Lỗi',
+        message: 'Không thể xác định vị trí của bạn lúc này.',
+        actions: [{ label: 'Đã hiểu' }],
+      })
     } finally {
       setLoading(false)
     }
@@ -341,14 +350,14 @@ export default function FindSession() {
   const applySmartQueueFilters = useCallback(
     async (enabled: boolean) => {
       if (!playerProfile?.id) {
-        Alert.alert(
-          'Cần hoàn thiện hồ sơ',
-          'Gợi ý hợp gu cần thành phố và mức trình gần đúng để ưu tiên kèo phù hợp hơn.',
-          [
-            { text: 'Để sau', style: 'cancel' },
-            { text: 'Chỉnh hồ sơ', onPress: () => router.push('/edit-profile' as never) },
+        setDialogConfig({
+          title: 'Cần hoàn thiện hồ sơ',
+          message: 'Gợi ý hợp gu cần thành phố và mức trình gần đúng để ưu tiên kèo phù hợp hơn.',
+          actions: [
+            { label: 'Để sau', tone: 'secondary' },
+            { label: 'Chỉnh hồ sơ', onPress: () => router.push('/edit-profile' as never) },
           ],
-        )
+        })
         return
       }
       if (!enabled) {
@@ -754,15 +763,10 @@ export default function FindSession() {
       {loading ? (
         <View className="flex-1">
           {listHeader}
-          <View className="flex-1 items-center justify-center">
-            <ActivityIndicator size="large" color={PROFILE_THEME_COLORS.primary} />
-            <Text
-              className="mt-4 text-[14px]"
-              style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.label }}
-            >
-              Đang tải kèo phù hợp...
-            </Text>
-          </View>
+          <AppLoading 
+            label="Đang tải kèo phù hợp..." 
+            style={{ flex: 1, justifyContent: 'center' }}
+          />
         </View>
       ) : (
         <FlatList
@@ -791,6 +795,11 @@ export default function FindSession() {
         onReset={() => setAdvancedFilter(ADVANCED_FILTER_INITIAL)}
         districts={allDistricts}
         skillLevels={skillLevels}
+      />
+      <AppDialog
+        visible={Boolean(dialogConfig)}
+        config={dialogConfig}
+        onClose={() => setDialogConfig(null)}
       />
     </View>
   )

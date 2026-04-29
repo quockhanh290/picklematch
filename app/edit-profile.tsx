@@ -1,4 +1,4 @@
-import { AppInput, EmptyState, SecondaryNavbar, NavbarUserAvatar, StatusBadge } from '@/components/design'
+import { AppDialog, type AppDialogConfig, AppInput, EmptyState, SecondaryNavbar, NavbarUserAvatar, StatusBadge } from '@/components/design'
 import { PROFILE_SKILL_HERO_TONE, ProfileSkillHero } from '@/components/profile/ProfileSections'
 import { PROFILE_THEME_COLORS as EDIT_PROFILE_COLORS } from '@/components/profile/profileTheme'
 import { getEloBandByLegacySkillLabel } from '@/lib/eloSystem'
@@ -8,7 +8,7 @@ import { router } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { MapPin, Menu } from 'lucide-react-native'
 import { useEffect, useRef, useState } from 'react'
-import { ActivityIndicator, Alert, FlatList, ImageBackground, Keyboard, ScrollView, Switch, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native'
+import { ActivityIndicator, FlatList, ImageBackground, Keyboard, ScrollView, Switch, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { RADIUS, BORDER } from '@/constants/screenLayout'
@@ -46,6 +46,7 @@ export default function EditProfile() {
   const [favCourts, setFavCourts] = useState<Court[]>([])
   const [favCourtIds, setFavCourtIds] = useState<string[]>([])
 
+  const [dialogConfig, setDialogConfig] = useState<AppDialogConfig | null>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const scrollViewRef = useRef<ScrollView>(null)
   const initialStateRef = useRef<EditProfileInitialState | null>(null)
@@ -150,7 +151,11 @@ export default function EditProfile() {
     if (favCourtIds.includes(court.id)) return
 
     if (favCourtIds.length >= 5) {
-      Alert.alert('Tối đa 5 sân', 'Xóa bớt sân để thêm sân mới.')
+      setDialogConfig({
+        title: 'Tối đa 5 sân',
+        message: 'Xóa bớt sân để thêm sân mới.',
+        actions: [{ label: 'Đã hiểu' }],
+      })
       return
     }
 
@@ -172,14 +177,14 @@ export default function EditProfile() {
   }
 
   function handleRedoAssessment() {
-    Alert.alert(
-      'Làm lại bài đánh giá?',
-      'Mức hiện tại sẽ được giữ nguyên cho tới khi bạn hoàn thành bài đánh giá mới. Sau đó hệ thống sẽ cập nhật mức khởi điểm phù hợp hơn.',
-      [
-        { text: 'Để sau', style: 'cancel' },
-        { text: 'Bắt đầu', onPress: () => router.push('/onboarding' as any) },
+    setDialogConfig({
+      title: 'Làm lại bài đánh giá?',
+      message: 'Mức hiện tại sẽ được giữ nguyên cho tới khi bạn hoàn thành bài đánh giá mới. Sau đó hệ thống sẽ cập nhật mức khởi điểm phù hợp hơn.',
+      actions: [
+        { label: 'Để sau', tone: 'secondary' },
+        { label: 'Bắt đầu', onPress: () => router.push('/onboarding' as any) },
       ],
-    )
+    })
   }
 
   function sameIds(a: string[], b: string[]) {
@@ -209,7 +214,11 @@ export default function EditProfile() {
 
   async function save() {
     if (!name.trim()) {
-      Alert.alert('Lỗi', 'Tên không được để trống')
+      setDialogConfig({
+        title: 'Lỗi',
+        message: 'Tên không được để trống',
+        actions: [{ label: 'Đã hiểu' }],
+      })
       return
     }
 
@@ -229,11 +238,19 @@ export default function EditProfile() {
     setSaving(false)
 
     if (error) {
-      Alert.alert('Lỗi', error.message)
+      setDialogConfig({
+        title: 'Lỗi',
+        message: error.message,
+        actions: [{ label: 'Đã hiểu' }],
+      })
       return
     }
 
-    Alert.alert('Đã lưu', 'Hồ sơ của bạn đã được cập nhật.', [{ text: 'OK', onPress: () => router.back() }])
+    setDialogConfig({
+      title: 'Đã lưu',
+      message: 'Hồ sơ của bạn đã được cập nhật.',
+      actions: [{ label: 'OK', onPress: () => router.back() }],
+    })
   }
 
   const currentLevel = getSkillLevelById(selectedLevelId)
@@ -254,10 +271,9 @@ export default function EditProfile() {
       <StatusBar style="dark" translucent backgroundColor={EDIT_PROFILE_COLORS.background} />
 
       <SecondaryNavbar
+        title="HỒ SƠ"
         onBackPress={() => router.back()}
-        rightSlot={
-          <NavbarUserAvatar />
-        }
+        rightSlot={<NavbarUserAvatar url={photoUrl} name={name} />}
       />
       <ScrollView ref={scrollViewRef} contentContainerStyle={{ paddingBottom: 325, paddingTop: 12 }} keyboardShouldPersistTaps="always" keyboardDismissMode="on-drag">
 
@@ -266,7 +282,7 @@ export default function EditProfile() {
             <Text
               style={{
                 color: EDIT_PROFILE_COLORS.primary,
-                fontFamily: SCREEN_FONTS.bold,
+                fontFamily: SCREEN_FONTS.headline,
                 fontSize: heroTitleSize,
                 lineHeight: heroTitleLineHeight,
                 letterSpacing: -2,
@@ -277,7 +293,7 @@ export default function EditProfile() {
             <Text
               style={{
                 color: EDIT_PROFILE_COLORS.onPrimaryContainer,
-                fontFamily: SCREEN_FONTS.bold,
+                fontFamily: SCREEN_FONTS.headline,
                 fontSize: heroTitleSize,
                 lineHeight: heroTitleLineHeight,
                 letterSpacing: -2,
@@ -616,6 +632,11 @@ export default function EditProfile() {
           </TouchableOpacity>
         </View>
       </View>
+      <AppDialog
+        visible={Boolean(dialogConfig)}
+        config={dialogConfig}
+        onClose={() => setDialogConfig(null)}
+      />
     </View>
   )
 }

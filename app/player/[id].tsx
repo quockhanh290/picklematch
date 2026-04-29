@@ -1,4 +1,4 @@
-import { AppButton, EmptyState, SecondaryNavbar, NavbarShareButton } from '@/components/design'
+import { AppButton, AppLoading, EmptyState, SecondaryNavbar, NavbarShareButton } from '@/components/design'
 import type { FeedbackTrait } from '@/components/profile/CommunityFeedbackSection'
 import CommunityFeedbackPanel from '@/components/profile/CommunityFeedbackSection'
 import { ProfileHistoryList, ProfileSkillHero, ProfileWinStreak } from '@/components/profile/ProfileSections'
@@ -233,11 +233,7 @@ export default function PlayerProfile() {
   }, [ratingTags])
 
   if (loading) {
-    return (
-      <SafeAreaView className="flex-1 items-center justify-center" style={{ backgroundColor: PROFILE_THEME_COLORS.background }} edges={['top']}>
-        <ActivityIndicator size="large" color={PROFILE_THEME_COLORS.primary} />
-      </SafeAreaView>
-    )
+    return <AppLoading fullScreen />
   }
 
   if (!player) {
@@ -289,6 +285,7 @@ export default function PlayerProfile() {
   return (
     <View className="flex-1" style={{ backgroundColor: PROFILE_THEME_COLORS.background }}>
       <SecondaryNavbar
+        title="CHI TIẾT NGƯỜI CHƠI"
         onBackPress={() => router.back()}
         rightSlot={<NavbarShareButton onPress={handleShare} />}
       />
@@ -317,7 +314,7 @@ export default function PlayerProfile() {
                     left: 0,
                     right: 0,
                     color: PROFILE_THEME_COLORS.primary,
-                    fontFamily: SCREEN_FONTS.bold,
+                    fontFamily: SCREEN_FONTS.headline,
                     fontSize: editorialNameSize,
                     lineHeight: editorialNameLineHeight,
                     letterSpacing: -2,
@@ -332,7 +329,7 @@ export default function PlayerProfile() {
                   <Text
                     style={{
                       color: PROFILE_THEME_COLORS.primary,
-                      fontFamily: SCREEN_FONTS.bold,
+                      fontFamily: SCREEN_FONTS.headline,
                       fontSize: editorialNameSize,
                       lineHeight: editorialNameLineHeight,
                       letterSpacing: -2,
@@ -344,7 +341,7 @@ export default function PlayerProfile() {
                     style={{
                       color: PROFILE_THEME_COLORS.outlineVariant,
                       opacity: 0.55,
-                      fontFamily: SCREEN_FONTS.boldItalic,
+                      fontFamily: SCREEN_FONTS.headlineItalic,
                       fontSize: editorialNameSize,
                       lineHeight: editorialNameLineHeight,
                       letterSpacing: -2,
@@ -358,7 +355,7 @@ export default function PlayerProfile() {
                 <Text
                   style={{
                     color: PROFILE_THEME_COLORS.primary,
-                    fontFamily: SCREEN_FONTS.bold,
+                    fontFamily: SCREEN_FONTS.headline,
                     fontSize: editorialNameSize,
                     lineHeight: editorialNameLineHeight,
                     letterSpacing: -2,

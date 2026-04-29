@@ -54,7 +54,7 @@ function CourtRow({ court, onPress }: { court: NearByCourt; onPress: (court: Nea
         </View>
         <View className="flex-1">
           <View className="flex-row items-start justify-between gap-3">
-            <Text className="flex-1 text-[15px] font-black" style={{ color: PROFILE_THEME_COLORS.onSurface }} numberOfLines={1}>
+            <Text className="flex-1 text-[16px] font-black" style={{ color: PROFILE_THEME_COLORS.onSurface }} numberOfLines={1}>
               {court.name}
             </Text>
             {distanceLabel ? <Text className="text-[11px] font-bold" style={{ color: PROFILE_THEME_COLORS.outline }}>{distanceLabel}</Text> : null}
@@ -124,7 +124,7 @@ export function CourtSelectorCard({
             <MapPin size={18} color={PROFILE_THEME_COLORS.surfaceTint} />
           </View>
           <View className="flex-1">
-            <Text className="text-[15px] font-black" style={{ color: PROFILE_THEME_COLORS.onSurface }} numberOfLines={1}>
+            <Text className="text-[16px] font-black" style={{ color: PROFILE_THEME_COLORS.onSurface }} numberOfLines={1}>
               {selectedCourt.name}
             </Text>
             <Text className="mt-0.5 text-[12px] leading-[18px]" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant }} numberOfLines={2}>

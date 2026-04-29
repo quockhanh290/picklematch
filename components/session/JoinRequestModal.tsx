@@ -2,7 +2,7 @@ import { KeyboardAvoidingView, Modal, Platform, ScrollView, Text, TextInput, Vie
 import { SCREEN_FONTS } from '@/constants/typography'
 import { AlertCircle, Clock3, Send, Users } from 'lucide-react-native'
 
-import { AppButton } from '@/components/design'
+import { AppButton } from '@/components/design/AppButton'
 import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
 import type { MatchStatus } from '@/lib/matchmaking'
 import { useAppTheme } from '@/lib/theme-context'
@@ -83,8 +83,8 @@ export function JoinRequestModal({
                   <Text
                     style={{
                       fontSize: 10,
-                      fontFamily: SCREEN_FONTS.bold,
-                      letterSpacing: 1.8,
+                      fontFamily: SCREEN_FONTS.headline,
+                      letterSpacing: 1.5,
                       textTransform: 'uppercase',
                       color: PROFILE_THEME_COLORS.outline,
                     }}
@@ -93,10 +93,9 @@ export function JoinRequestModal({
                   </Text>
                   <Text
                     style={{
-                      marginTop: 6,
-                      fontSize: 30,
-                      lineHeight: 36,
-                      letterSpacing: 0.4,
+                      marginTop: 4,
+                      fontSize: 28,
+                      lineHeight: 32,
                       color: PROFILE_THEME_COLORS.primary,
                       fontFamily: SCREEN_FONTS.headline,
                       textTransform: 'uppercase',
@@ -151,10 +150,9 @@ export function JoinRequestModal({
                     <Text
                       style={{
                         marginLeft: 7,
-                        fontSize: 12,
+                        fontSize: 13,
                         fontFamily: SCREEN_FONTS.headline,
                         textTransform: 'uppercase',
-                        letterSpacing: 1,
                         color: PROFILE_THEME_COLORS.onPrimaryFixedVariant,
                       }}
                     >
@@ -178,10 +176,10 @@ export function JoinRequestModal({
               <View style={{ marginTop: 18 }}>
                 <Text
                   style={{
-                    fontSize: 10,
-                    fontFamily: SCREEN_FONTS.bold,
+                    fontSize: 12,
+                    fontFamily: SCREEN_FONTS.headline,
                     textTransform: 'uppercase',
-                    letterSpacing: 1.8,
+                    letterSpacing: 1.2,
                     color: PROFILE_THEME_COLORS.outline,
                   }}
                 >
@@ -243,10 +241,10 @@ export function JoinRequestModal({
                   <Text
                     style={{
                       marginLeft: 7,
-                      fontSize: 11,
-                      fontFamily: SCREEN_FONTS.bold,
+                      fontSize: 12,
+                      fontFamily: SCREEN_FONTS.headline,
                       textTransform: 'uppercase',
-                      letterSpacing: 1.3,
+                      letterSpacing: 1.1,
                       color: PROFILE_THEME_COLORS.primary,
                     }}
                   >

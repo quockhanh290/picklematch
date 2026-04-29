@@ -6,6 +6,7 @@ import { Modal, Platform, Pressable, ScrollView, Text, View } from 'react-native
 import { X } from 'lucide-react-native'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
+import { AppButton } from '@/components/design/AppButton'
 
 export type AdvancedFilter = {
   district: string | null
@@ -92,12 +93,11 @@ function chipTextStyle(active: boolean) {
 }
 
 const sectionLabel = {
-  fontFamily: FILTER_FONTS.cta,
-  fontSize: 10,
-  letterSpacing: 1.4,
+  fontFamily: SCREEN_FONTS.headline,
+  fontSize: 14,
   textTransform: 'uppercase',
-  color: PROFILE_THEME_COLORS.outline,
-  marginBottom: 8,
+  color: PROFILE_THEME_COLORS.primary,
+  marginBottom: 10,
 } as const
 
 const BOOKING_OPTIONS: { value: 'confirmed' | 'unconfirmed'; label: string }[] = [
@@ -209,7 +209,7 @@ export function AdvancedSessionFilterModal({
           }}
         >
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
-            <Text style={{ fontFamily: FILTER_FONTS.cta, fontSize: 18, color: PROFILE_THEME_COLORS.onBackground }}>
+            <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 24, color: PROFILE_THEME_COLORS.primary, textTransform: 'uppercase' }}>
               BỘ LỌC NÂNG CAO
             </Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
@@ -430,31 +430,13 @@ export function AdvancedSessionFilterModal({
             </View>
           </ScrollView>
 
-          <View style={{ marginTop: 12 }}>
-            <Pressable
+          <View style={{ marginTop: 24 }}>
+            <AppButton
+              label="Áp dụng bộ lọc"
               onPress={onApply}
               disabled={priceInvalid}
-              style={{
-                backgroundColor: priceInvalid
-                  ? PROFILE_THEME_COLORS.surfaceContainerHighest
-                  : PROFILE_THEME_COLORS.primary,
-                borderRadius: RADIUS.full,
-                height: 48,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Text
-                style={{
-                  color: priceInvalid ? PROFILE_THEME_COLORS.onSurfaceVariant : PROFILE_THEME_COLORS.onPrimary,
-                  fontFamily: FILTER_FONTS.cta,
-                  fontSize: 15,
-                  textTransform: 'uppercase',
-                }}
-              >
-                Áp dụng
-              </Text>
-            </Pressable>
+              variant="primary"
+            />
           </View>
         </View>
       </View>

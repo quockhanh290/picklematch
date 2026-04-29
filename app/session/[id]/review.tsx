@@ -1,4 +1,4 @@
-import { SecondaryNavbar } from '@/components/design'
+import { AppDialog, type AppDialogConfig, SecondaryNavbar } from '@/components/design'
 import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
 import { SessionMetaCard } from '@/components/session/SessionMetaCard'
 import { insertNotification } from '@/lib/notifications'
@@ -22,7 +22,6 @@ import {
 import { useCallback, useEffect, useState } from 'react'
 import {
     ActivityIndicator,
-    Alert,
     Pressable,
     ScrollView,
     Text,
@@ -31,7 +30,7 @@ import {
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { SCREEN_FONTS } from '@/constants/typography'
-import { SPACING, BORDER } from '@/constants/screenLayout'
+import { SPACING, BORDER, RADIUS } from '@/constants/screenLayout'
 
 const ICON_STROKE = 2.5
 const QUICK_REPLY_TEMPLATES = [
@@ -240,12 +239,12 @@ function RequestCard({
               className="h-12 w-12 items-center justify-center rounded-full"
               style={{ backgroundColor: colors.primaryContainer }}
             >
-              <Text style={{ fontSize: 16, fontFamily: SCREEN_FONTS.bold, color: colors.onPrimaryContainer }}>
+              <Text style={{ fontSize: 16, fontFamily: SCREEN_FONTS.headline, color: colors.onPrimaryContainer }}>
                 {getInitials(applicant.player.name)}
               </Text>
             </View>
             <View className="ml-3 flex-1">
-              <Text numberOfLines={1} style={{ fontSize: 16, fontFamily: SCREEN_FONTS.bold, color: colors.onSurface }}>
+              <Text numberOfLines={1} style={{ fontSize: 16, fontFamily: SCREEN_FONTS.headline, color: colors.onSurface }}>
                 {applicant.player.name}
               </Text>
               <View className="flex-row items-center mt-0.5">
@@ -365,6 +364,7 @@ export default function HostReviewCenterScreen() {
   const [loading, setLoading] = useState(true)
   const [submittingId, setSubmittingId] = useState<string | null>(null)
   const [cancelling, setCancelling] = useState(false)
+  const [dialogConfig, setDialogConfig] = useState<AppDialogConfig | null>(null)
 
   const fetchData = useCallback(async () => {
     if (!id) return
@@ -387,13 +387,21 @@ export default function HostReviewCenterScreen() {
 
     if (sessionError) {
       setLoading(false)
-      Alert.alert('Lỗi', sessionError.message)
+      setDialogConfig({
+        title: 'Lỗi',
+        message: sessionError.message,
+        actions: [{ label: 'Đã hiểu' }],
+      })
       return
     }
 
     if (requestError) {
       setLoading(false)
-      Alert.alert('Lỗi', requestError.message)
+      setDialogConfig({
+        title: 'Lỗi',
+        message: requestError.message,
+        actions: [{ label: 'Đã hiểu' }],
+      })
       return
     }
 
@@ -446,7 +454,11 @@ export default function HostReviewCenterScreen() {
 
     if (error) {
       setSubmittingId(null)
-      Alert.alert('Lỗi', error.message)
+      setDialogConfig({
+        title: 'Lỗi',
+        message: error.message,
+        actions: [{ label: 'Đã hiểu' }],
+      })
       return
     }
 
@@ -491,7 +503,11 @@ export default function HostReviewCenterScreen() {
 
     if (error) {
       setSubmittingId(null)
-      Alert.alert('Lỗi', error.message)
+      setDialogConfig({
+        title: 'Lỗi',
+        message: error.message,
+        actions: [{ label: 'Đã hiểu' }],
+      })
       return
     }
 
@@ -522,23 +538,27 @@ export default function HostReviewCenterScreen() {
       minute: '2-digit',
     })
 
-    Alert.alert(
-      isFull ? 'Kèo đã đủ người' : 'Hủy kèo?',
-      isFull
+    setDialogConfig({
+      title: isFull ? 'Kèo đã đủ người' : 'Hủy kèo?',
+      message: isFull
         ? '\u004B\u00E8\u006F\u0020\u0111\u00E3\u0020\u0111\u1EE7\u0020\u006E\u0067\u01B0\u1EDD\u0069\u0020\u0063\u0068\u01A1\u0069\u002C\u0020\u0076\u0069\u1EC7\u0063\u0020\u0068\u1EE7\u0079\u0020\u006B\u00E8\u006F\u0020\u0073\u1EBD\u0020\u1EA3\u006E\u0068\u0020\u0068\u01B0\u1EDF\u006E\u0067\u0020\u0111\u1EBF\u006E\u0020\u0074\u1EF7\u0020\u006C\u1EC7\u0020\u0075\u0079\u0020\u0074\u00ED\u006E\u0020\u0063\u1EE7\u0061\u0020\u0062\u1EA1\u006E\u002E\u0020\u0042\u1EA1\u006E\u0020\u0063\u00F3\u0020\u0063\u0068\u1EAF\u0063\u0020\u006B\u0068\u00F4\u006E\u0067\u003F'
         : 'Kèo sẽ bị hủy và toàn bộ người chơi sẽ được thông báo. Không thể hoàn tác.',
-      [
-        { text: 'Không', style: 'cancel' },
+      actions: [
+        { label: 'Không', tone: 'secondary' },
         {
-          text: 'Hủy kèo',
-          style: 'destructive',
+          label: 'Hủy kèo',
+          tone: 'danger',
           onPress: async () => {
             setCancelling(true)
             const { error } = await supabase.rpc('cancel_host_session', { p_session_id: session.id })
 
             if (error) {
               setCancelling(false)
-              Alert.alert('Lỗi', error.message)
+              setDialogConfig({
+                title: 'Lỗi',
+                message: error.message,
+                actions: [{ label: 'Đã hiểu' }],
+              })
               return
             }
 
@@ -555,13 +575,15 @@ export default function HostReviewCenterScreen() {
             )
 
             setCancelling(false)
-            Alert.alert('Đã hủy kèo', 'Kèo của bạn đã được hủy.', [
-              { text: 'OK', onPress: () => router.replace('/(tabs)' as any) },
-            ])
+            setDialogConfig({
+              title: 'Đã hủy kèo',
+              message: 'Kèo của bạn đã được hủy.',
+              actions: [{ label: 'OK', onPress: () => router.replace('/(tabs)' as any) }],
+            })
           },
         },
       ]
-    )
+    })
   }
 
   if (loading) {
@@ -584,7 +606,7 @@ export default function HostReviewCenterScreen() {
     return (
       <SafeAreaView className="flex-1 items-center justify-center px-6" style={{ backgroundColor: PROFILE_THEME_COLORS.background }}>
         <CircleX size={28} color={PROFILE_THEME_SEMANTIC.dangerStrong} strokeWidth={ICON_STROKE} />
-        <Text className="mt-4 text-center" style={{ fontSize: 18, fontFamily: SCREEN_FONTS.bold, color: PROFILE_THEME_COLORS.onSurface }}>{'\u0042\u1EA1\u006E\u0020\u006B\u0068\u00F4\u006E\u0067\u0020\u0063\u00F3\u0020\u0071\u0075\u0079\u1EC1\u006E\u0020\u0074\u0072\u0075\u0079\u0020\u0063\u1EAD\u0070'}</Text>
+        <Text className="mt-4 text-center" style={{ fontSize: 18, fontFamily: SCREEN_FONTS.headline, color: PROFILE_THEME_COLORS.onSurface }}>{'\u0042\u1EA1\u006E\u0020\u006B\u0068\u00F4\u006E\u0067\u0020\u0063\u00F3\u0020\u0071\u0075\u0079\u1EC1\u006E\u0020\u0074\u0072\u0075\u0079\u0020\u0063\u1EAD\u0070'}</Text>
         <Text className="mt-2 text-center text-[14px] leading-6" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant }}>
           {'\u0043\u0068\u1EC9\u0020\u0068\u006F\u0073\u0074\u0020\u0063\u1EE7\u0061\u0020\u006B\u00E8\u006F\u0020\u006D\u1EDB\u0069\u0020\u0063\u00F3\u0020\u0074\u0068\u1EC3\u0020\u0078\u0065\u006D\u0020\u0076\u00E0\u0020\u0078\u1EED\u0020\u006C\u00FD\u0020\u0074\u0072\u0075\u006E\u0067\u0020\u0074\u00E2\u006D\u0020\u0064\u0075\u0079\u1EC7\u0074\u0020\u0079\u00EA\u0075\u0020\u0063\u1EA7\u0075\u0020\u006E\u00E0\u0079\u002E'}
         </Text>
@@ -593,7 +615,7 @@ export default function HostReviewCenterScreen() {
           className="mt-6 active:scale-95 rounded-2xl px-5 py-3.5"
           style={{ backgroundColor: PROFILE_THEME_COLORS.primary }}
         >
-          <Text style={{ fontSize: 14, fontFamily: SCREEN_FONTS.bold, color: PROFILE_THEME_COLORS.onPrimary }}>{'\u0051\u0075\u0061\u0079\u0020\u006C\u1EA1\u0069'}</Text>
+          <Text style={{ fontSize: 14, fontFamily: SCREEN_FONTS.headline, color: PROFILE_THEME_COLORS.onPrimary }}>{'\u0051\u0075\u0061\u0079\u0020\u006C\u1EA1\u0069'}</Text>
         </Pressable>
       </SafeAreaView>
     )
@@ -604,7 +626,10 @@ export default function HostReviewCenterScreen() {
   return (
     <View className="flex-1" style={{ backgroundColor: PROFILE_THEME_COLORS.background }}>
       <View className="flex-1">
-        <SecondaryNavbar onBackPress={() => router.back()} />
+        <SecondaryNavbar 
+          title="REVIEW TRẬN ĐẤU"
+          onBackPress={() => router.back()} 
+        />
         <ScrollView
           className="flex-1"
           contentContainerStyle={{
@@ -656,7 +681,7 @@ export default function HostReviewCenterScreen() {
                 <View className="h-14 w-14 items-center justify-center rounded-full" style={{ backgroundColor: PROFILE_THEME_SEMANTIC.successBg }}>
                   <ShieldCheck size={24} color={PROFILE_THEME_COLORS.surfaceTint} strokeWidth={ICON_STROKE} />
                 </View>
-                <Text className="mt-4 text-center" style={{ fontSize: 22, fontFamily: SCREEN_FONTS.bold, color: PROFILE_THEME_COLORS.onSurface }}>{'\u004B\u0068\u00F4\u006E\u0067\u0020\u0063\u00F2\u006E\u0020\u0079\u00EA\u0075\u0020\u0063\u1EA7\u0075\u0020\u0063\u0068\u1EDD\u0020\u0064\u0075\u0079\u1EC7\u0074'}</Text>
+                <Text className="mt-4 text-center" style={{ fontSize: 22, fontFamily: SCREEN_FONTS.headline, color: PROFILE_THEME_COLORS.onSurface }}>{'\u004B\u0068\u00F4\u006E\u0067\u0020\u0063\u00F2\u006E\u0020\u0079\u00EA\u0075\u0020\u0063\u1EA7\u0075\u0020\u0063\u0068\u1EDD\u0020\u0064\u0075\u0079\u1EC7\u0074'}</Text>
                 <Text
                   className="mt-2 text-center"
                   style={{ fontSize: 14, lineHeight: 24, fontFamily: SCREEN_FONTS.body, color: PROFILE_THEME_SEMANTIC.infoIcon }}
@@ -711,6 +736,11 @@ export default function HostReviewCenterScreen() {
             </Pressable>
           </View>
         </View>
+        <AppDialog
+          visible={Boolean(dialogConfig)}
+          config={dialogConfig}
+          onClose={() => setDialogConfig(null)}
+        />
       </View>
     </View>
   )

@@ -10,6 +10,7 @@ import { HomeGreetingHeader } from '@/components/home/HomeGreetingHeader'
 import { MatchSessionCard } from '@/components/home/MatchSessionCard'
 import { PostMatchInboxSection } from '@/components/home/PostMatchInboxSection'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { AppLoading } from '@/components/design/AppLoading'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { useHomeFeedData } from '@/hooks/useHomeFeedData'
 import type { FamiliarCourt, MatchSession } from '@/lib/homeFeed'
@@ -171,10 +172,10 @@ export default function HomeScreen() {
           {upcomingMatch ? (
             <View className="mt-4">
               <View className="mb-5">
-                <Text className="mb-3 text-[11px] uppercase tracking-[0.16em]" style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: SCREEN_FONTS.bold }}>
+                <Text className="mb-3 text-[11px] uppercase tracking-[0.16em]" style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: SCREEN_FONTS.headline }}>
                   Sắp diễn ra
                 </Text>
-                <Text className="text-[24px]" style={{ color: PROFILE_THEME_COLORS.onBackground, fontFamily: SCREEN_FONTS.bold, lineHeight: 32 }}>
+                <Text className="text-[24px]" style={{ color: PROFILE_THEME_COLORS.onBackground, fontFamily: SCREEN_FONTS.headline, lineHeight: 32 }}>
                   Trận của bạn
                 </Text>
               </View>
@@ -182,16 +183,18 @@ export default function HomeScreen() {
             </View>
           ) : null}
 
-          {loading ? (
-            <View
-              className="mt-8 items-center rounded-[24px] border py-12"
-              style={{ borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest }}
-            >
-              <ActivityIndicator color={theme.primary} />
-              <Text className="mt-4 text-sm" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.bold }}>
-                Đang tải dữ liệu thật từ hệ thống...
-              </Text>
-            </View>
+          {loading && !refreshing ? (
+            <AppLoading
+              label="Đang tải dữ liệu thật từ hệ thống..."
+              style={{
+                marginTop: 32,
+                paddingVertical: 48,
+                borderRadius: 24,
+                borderWidth: 1,
+                borderColor: PROFILE_THEME_COLORS.outlineVariant,
+                backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+              }}
+            />
           ) : null}
 
           <HomeCarouselSection

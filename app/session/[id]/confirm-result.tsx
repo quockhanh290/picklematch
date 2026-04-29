@@ -16,7 +16,7 @@ import { AppDialog, type AppDialogConfig, NavbarShareButton, SecondaryNavbar } f
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { supabase } from '@/lib/supabase'
 import { SCREEN_FONTS } from '@/constants/typography'
-import { RADIUS, BORDER, SHADOW } from '@/constants/screenLayout'
+import { RADIUS, SPACING, BORDER, SHADOW } from '@/constants/screenLayout'
 import { formatPricePerPerson, formatTimeRange as _formatTimeRange } from '@/lib/sessionDetail'
 
 function withAlpha(hex: string, alpha: number) {
@@ -484,6 +484,7 @@ export default function ConfirmSessionResultScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: RESULT_THEME.pageBg }}>
       <SecondaryNavbar
+        title="XÁC NHẬN KẾT QUẢ"
         onBackPress={() => router.back()}
         rightSlot={<NavbarShareButton onPress={() => void onShare()} />}
       />

@@ -2,7 +2,7 @@ import { Text, View } from 'react-native'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { AlertCircle, Clock3 } from 'lucide-react-native'
 
-import { AppButton } from '@/components/design'
+import { AppButton } from '@/components/design/AppButton'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import type { MatchStatus } from '@/lib/matchmaking'
 import { RADIUS, SPACING } from '@/constants/screenLayout'
@@ -69,7 +69,7 @@ export function SmartJoinButton({
             <Text
               style={{
                 fontSize: 10,
-                fontFamily: SCREEN_FONTS.bold,
+                fontFamily: SCREEN_FONTS.headline,
                 textTransform: 'uppercase',
                 letterSpacing: 1.5,
                 color: PROFILE_THEME_COLORS.onPrimaryFixedVariant,
@@ -130,7 +130,7 @@ export function SmartJoinButton({
             <Text
               style={{
                 fontSize: 10,
-                fontFamily: SCREEN_FONTS.bold,
+                fontFamily: SCREEN_FONTS.headline,
                 textTransform: 'uppercase',
                 letterSpacing: 1.5,
                 color: PROFILE_THEME_COLORS.error,

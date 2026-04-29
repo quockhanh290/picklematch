@@ -43,7 +43,7 @@ function InfoRow({
           <Text
             style={{
               fontSize: 10,
-              fontFamily: SCREEN_FONTS.bold,
+              fontFamily: SCREEN_FONTS.headline,
               textTransform: 'uppercase',
               letterSpacing: 1.8,
               color: PROFILE_THEME_COLORS.outline,
@@ -121,7 +121,7 @@ export function BookingDetailsCard({
           <Text
             style={{
               fontSize: 10,
-              fontFamily: SCREEN_FONTS.bold,
+              fontFamily: SCREEN_FONTS.headline,
               textTransform: 'uppercase',
               letterSpacing: 1.8,
               color: PROFILE_THEME_COLORS.outline,
@@ -159,7 +159,7 @@ export function BookingDetailsCard({
             style={{
               marginLeft: 6,
               fontSize: 12,
-              fontFamily: SCREEN_FONTS.bold,
+              fontFamily: SCREEN_FONTS.headline,
               color: isConfirmed ? PROFILE_THEME_COLORS.surfaceTint : PROFILE_THEME_COLORS.outline,
             }}
           >

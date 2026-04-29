@@ -9,10 +9,10 @@ import { type NearByCourt, useNearbyCourts } from '@/lib/useNearbyCourts'
 import * as Linking from 'expo-linking'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { ActivityIndicator, Alert, View } from 'react-native'
+import { ActivityIndicator, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { SPACING } from '@/constants/screenLayout'
-import { NavbarUserAvatar, SecondaryNavbar } from '@/components/design'
+import { AppDialog, type AppDialogConfig, NavbarUserAvatar, SecondaryNavbar } from '@/components/design'
 import { useHomeFeedData } from '@/hooks/useHomeFeedData'
 import { useAuth } from '@/lib/useAuth'
 
@@ -93,6 +93,7 @@ export default function CreateSession() {
   const [submitting, setSubmitting] = useState(false)
   const [isHydratingEdit, setIsHydratingEdit] = useState(false)
   const [editHydrated, setEditHydrated] = useState(false)
+  const [dialogConfig, setDialogConfig] = useState<AppDialogConfig | null>(null)
   const [lockCourtSchedule, setLockCourtSchedule] = useState(false)
   const [lockedSlotSnapshot, setLockedSlotSnapshot] = useState<{ courtId: string; startIso: string; endIso: string } | null>(null)
   const totalCost = useMemo(() => parseTotalCost(totalCostStr), [totalCostStr])
@@ -122,20 +123,29 @@ export default function CreateSession() {
       if (!mounted) return
 
       if (!user) {
-        Alert.alert('\u0043\u1ea7n \u0111\u0103ng nh\u1eadp', '\u0042\u1ea1n c\u1ea7n \u0111\u0103ng nh\u1eadp \u0111\u1ec3 ch\u1ec9nh s\u1eeda k\u00e8o.')
-        router.back()
+        setDialogConfig({
+          title: '\u0043\u1ea7n \u0111\u0103ng nh\u1eadp',
+          message: '\u0042\u1ea1n c\u1ea7n \u0111\u0103ng nh\u1eadp \u0111\u1ec3 ch\u1ec9nh s\u1eeda k\u00e8o.',
+          actions: [{ label: 'OK', onPress: () => router.back() }],
+        })
         return
       }
 
       if (detailResult.error || !session) {
-        Alert.alert('\u004c\u1ed7i', detailResult.error?.message ?? 'Kh\u00f4ng t\u1ea3i \u0111\u01b0\u1ee3c d\u1eef li\u1ec7u k\u00e8o.')
-        router.back()
+        setDialogConfig({
+          title: '\u004c\u1ed7i',
+          message: detailResult.error?.message ?? 'Kh\u00f4ng t\u1ea3i \u0111\u01b0\u1ee3c d\u1eef li\u1ec7u k\u00e8o.',
+          actions: [{ label: 'Quay lại', onPress: () => router.back() }],
+        })
         return
       }
 
       if (session.host.id !== user.id) {
-        Alert.alert('\u004b\u00f4ng c\u00f3 quy\u1ec1n', '\u0042\u1ea1n kh\u00f4ng ph\u1ea3i ch\u1ee7 k\u00e8o n\u00ean kh\u00f4ng th\u1ec3 ch\u1ec9nh s\u1eeda.')
-        router.back()
+        setDialogConfig({
+          title: '\u004b\u00f4ng c\u00f3 quy\u1ec1n',
+          message: '\u0042\u1ea1n kh\u00f4ng ph\u1ea3i ch\u1ee7 k\u00e8o n\u00ean kh\u00f4ng th\u1ec3 ch\u1ec9nh s\u1eeda.',
+          actions: [{ label: 'Đã hiểu', onPress: () => router.back() }],
+        })
         return
       }
 
@@ -322,20 +332,22 @@ export default function CreateSession() {
   async function openCourtBookingLink() {
     const url = selectedCourt?.booking_url ?? selectedCourt?.google_maps_url
     if (!url) {
-      Alert.alert(
-        'Ch\u01b0a c\u00f3 link \u0111\u1eb7t s\u00e2n',
-        'S\u00e2n n\u00e0y ch\u01b0a c\u00f3 link booking. B\u1ea1n v\u1eabn c\u00f3 th\u1ec3 t\u1ef1 \u0111\u1eb7t r\u1ed3i nh\u1eadp th\u00f4ng tin b\u00ean d\u01b0\u1edbi.',
-      )
+      setDialogConfig({
+        title: 'Ch\u01b0a c\u00f3 link \u0111\u1eb7t s\u00e2n',
+        message: 'S\u00e2n n\u00e0y ch\u01b0a c\u00f3 link booking. B\u1ea1n v\u1eabn c\u00f3 th\u1ec3 t\u1ef1 \u0111\u1eb7t r\u1ed3i nh\u1eadp th\u00f4ng tin b\u00ean d\u01b0\u1edbi.',
+        actions: [{ label: 'Đã hiểu' }],
+      })
       return
     }
 
     try {
       await Linking.openURL(url)
     } catch {
-      Alert.alert(
-        'Kh\u00f4ng m\u1edf \u0111\u01b0\u1ee3c link',
-        'Vui l\u00f2ng th\u1eed l\u1ea1i ho\u1eb7c m\u1edf link booking c\u1ee7a s\u00e2n theo c\u00e1ch kh\u00e1c.',
-      )
+      setDialogConfig({
+        title: 'Kh\u00f4ng m\u1edf \u0111\u01b0\u1ee3c link',
+        message: 'Vui l\u00f2ng th\u1eed l\u1ea1i ho\u1eb7c m\u1edf link booking c\u1ee7a s\u00e2n theo c\u00e1ch kh\u00e1c.',
+        actions: [{ label: 'Đã hiểu' }],
+      })
     }
   }
 
@@ -356,7 +368,11 @@ export default function CreateSession() {
     const maxElo = ELO_BANDS[maxSkill - 1].eloMax
 
     if (minElo > maxElo) {
-      Alert.alert('L\u1ed7i', 'Tr\u00ecnh \u0111\u1ed9 t\u1ed1i thi\u1ec3u kh\u00f4ng th\u1ec3 cao h\u01a1n tr\u00ecnh \u0111\u1ed9 t\u1ed1i \u0111a.')
+      setDialogConfig({
+        title: 'L\u1ed7i',
+        message: 'Tr\u00ecnh \u0111\u1ed9 t\u1ed1i thi\u1ec3u kh\u00f4ng th\u1ec3 cao h\u01a1n tr\u00ecnh \u0111\u1ed9 t\u1ed1i \u0111a.',
+        actions: [{ label: 'Đã hiểu' }],
+      })
       return
     }
 
@@ -370,10 +386,14 @@ export default function CreateSession() {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
-        Alert.alert('\u0043\u1ea7\u006e\u0020\u0111\u0103\u006e\u0067\u0020\u006e\u0068\u1ead\u0070', `\u0042\u1ea1\u006e\u0020\u0063\u1ea7\u006e\u0020\u0111\u0103\u006e\u0067\u0020\u006e\u0068\u1ead\u0070\u0020\u0111\u1ec3\u0020${isEditMode ? '\u0063\u1ead\u0070\u0020\u006e\u0068\u1ead\u0074' : '\u0074\u1ea1\u006f'}\u0020\u006b\u00e8\u006f\u002e`, [
-          { text: '\u0110\u0103\u006e\u0067\u0020\u006e\u0068\u1ead\u0070', onPress: () => router.push('/login') },
-          { text: '\u0048\u1ee7\u0079', style: 'cancel' },
-        ])
+        setDialogConfig({
+          title: '\u0043\u1ea7\u006e\u0020\u0111\u0103\u006e\u0067\u0020\u006e\u0068\u1ead\u0070',
+          message: `\u0042\u1ea1\u006e\u0020\u0063\u1ea7\u006e\u0020\u0111\u0103\u006e\u0067\u0020\u006e\u0068\u1ead\u0070\u0020\u0111\u1ec3\u0020${isEditMode ? '\u0063\u1ead\u0070\u0020\u006e\u0068\u1ead\u0074' : '\u0074\u1ea1\u006f'}\u0020\u006b\u00e8\u006f\u002e`,
+          actions: [
+            { label: '\u0110\u0103\u006e\u0067\u0020\u006e\u0068\u1ead\u0070', onPress: () => router.push('/login') },
+            { label: '\u0048\u1ee7\u0079', tone: 'secondary' },
+          ],
+        })
         return
       }
 
@@ -382,10 +402,11 @@ export default function CreateSession() {
       const sendBookingDetails = bookingStatus === 'confirmed' || wantsBookingNow === true
       const fillDeadline = new Date(startTime.getTime() - deadlineMinutes * 60_000)
       if (fillDeadline.getTime() <= Date.now()) {
-        Alert.alert(
-          '\u0048\u1ea1\u006e\u0020\u0063\u0068\u00f3\u0074\u0020\u0063\u0068\u01b0\u0061\u0020\u0068\u1ee3\u0070\u0020\u006c\u1ec7',
-          '\u0048\u1ea1\u006e\u0020\u0063\u0068\u00f3\u0074\u0020\u0076\u00e0\u006f\u0020\u006b\u00e8\u006f\u0020\u0070\u0068\u1ea3\u0069\u0020\u006e\u1eb1\u006d\u0020\u0074\u0072\u006f\u006e\u0067\u0020\u0074\u01b0\u01a1\u006e\u0067\u0020\u006c\u0061\u0069\u002e\u0020\u0048\u00e3\u0079\u0020\u0063\u0068\u1ecd\u006e\u0020\u0067\u0069\u1edd\u0020\u0063\u0068\u01a1\u0069\u0020\u006d\u0075\u1ed9\u006e\u0020\u0068\u01a1\u006e\u0020\u0068\u006f\u1eb7\u0063\u0020\u0067\u0069\u1ea3\u006d\u0020\u006d\u1ed1\u0063\u0020\u0068\u1ea1\u006e\u0020\u0063\u0068\u00f3\u0074\u002e',
-        )
+        setDialogConfig({
+          title: '\u0048\u1ea1\u006e\u0020\u0063\u0068\u00f3\u0074\u0020\u0063\u0068\u01b0\u0061\u0020\u0068\u1ee3\u0070\u0020\u006c\u1ec7',
+          message: '\u0048\u1ea1\u006e\u0020\u0063\u0068\u00f3\u0074\u0020\u0076\u00e0\u006f\u0020\u006b\u00e8\u006f\u0020\u0070\u0068\u1ea3\u0069\u0020\u006e\u1eb1\u006d\u0020\u0074\u0072\u006f\u006e\u0067\u0020\u0074\u01b0\u01a1\u006e\u0067\u0020\u006c\u0061\u0069\u002e\u0020\u0048\u00e3\u0079\u0020\u0063\u0068\u1ecd\u006e\u0020\u0067\u0069\u1edd\u0020\u0063\u0068\u01a1\u0069\u0020\u006d\u0075\u1ed9\u006e\u0020\u0068\u01a1\u006e\u0020\u0068\u006f\u1eb7\u0063\u0020\u0067\u0069\u1ea3\u006d\u0020\u006d\u1ed1\u0063\u0020\u0068\u1ea1\u006e\u0020\u0063\u0068\u00f3\u0074\u002e',
+          actions: [{ label: 'Đã hiểu' }],
+        })
         return
       }
 
@@ -394,7 +415,11 @@ export default function CreateSession() {
         const changedStart = startTime.toISOString() !== lockedSlotSnapshot.startIso
         const changedEnd = endTime.toISOString() !== lockedSlotSnapshot.endIso
         if (changedCourt || changedStart || changedEnd) {
-          Alert.alert('Kh\u00f4ng th\u1ec3 thay \u0111\u1ed5i', 'K\u00e8o \u0111\u00e3 \u0111\u1eb7t s\u00e2n n\u00ean kh\u00f4ng th\u1ec3 \u0111\u1ed5i s\u00e2n v\u00e0 ng\u00e0y gi\u1edd ch\u01a1i.')
+          setDialogConfig({
+            title: 'Kh\u00f4ng th\u1ec3 thay \u0111\u1ed5i',
+            message: 'K\u00e8o \u0111\u00e3 \u0111\u1eb7t s\u00e2n n\u00ean kh\u00f4ng th\u1ec3 \u0111\u1ed5i s\u00e2n v\u00e0 ng\u00e0y gi\u1edd ch\u01a1i.',
+            actions: [{ label: 'Đã hiểu' }],
+          })
           return
         }
       }
@@ -484,7 +509,11 @@ export default function CreateSession() {
         }
 
         if (updateError || !updatedSessionId) {
-          Alert.alert('\u004c\u1ed7\u0069', updateError?.message ?? '\u004b\u0068\u00f4\u006e\u0067\u0020\u0074\u0068\u1ec3\u0020\u0063\u1ead\u0070\u0020\u006e\u0068\u1ead\u0074\u0020\u006b\u00e8\u006f\u002e')
+          setDialogConfig({
+            title: '\u004c\u1ed7\u0069',
+            message: updateError?.message ?? '\u004b\u0068\u00f4\u006e\u0067\u0020\u0074\u0068\u1ec3\u0020\u0063\u1ead\u0070\u0020\u006e\u0068\u1ead\u0074\u0020\u006b\u00e8\u006f\u002e',
+            actions: [{ label: 'Đã hiểu' }],
+          })
           return
         }
 
@@ -510,7 +539,11 @@ export default function CreateSession() {
       }
 
       if (createError || !newSessionId) {
-        Alert.alert('\u004c\u1ed7\u0069', createError?.message ?? '\u004b\u0068\u00f4\u006e\u0067\u0020\u0074\u0068\u1ec3\u0020\u0074\u1ea1\u006f\u0020\u006b\u00e8\u006f\u002e')
+        setDialogConfig({
+          title: '\u004c\u1ed7\u0069',
+          message: createError?.message ?? '\u004b\u0068\u00f4\u006e\u0067\u0020\u0074\u0068\u1ec3\u0020\u0074\u1ea1\u006f\u0020\u006b\u00e8\u006f\u002e',
+          actions: [{ label: 'Đã hiểu' }],
+        })
         return
       }
 
@@ -524,7 +557,11 @@ export default function CreateSession() {
         : isEditMode
           ? '\u004b\u0068\u00f4\u006e\u0067\u0020\u0074\u0068\u1ec3\u0020\u0063\u1ead\u0070\u0020\u006e\u0068\u1ead\u0074\u0020\u006b\u00e8\u006f\u0020\u006c\u00fac\u0020\u006e\u00e0\u0079\u002e'
           : '\u004b\u0068\u00f4\u006e\u0067\u0020\u0074\u0068\u1ec3\u0020\u0074\u1ea1\u006f\u0020\u006b\u00e8\u006f\u0020\u006c\u00fac\u0020\u006e\u00e0\u0079\u002e'
-      Alert.alert('\u004c\u1ed7\u0069', message)
+      setDialogConfig({
+        title: '\u004c\u1ed7\u0069',
+        message: message,
+        actions: [{ label: 'Đã hiểu' }],
+      })
     } finally {
       setSubmitting(false)
     }
@@ -545,9 +582,10 @@ export default function CreateSession() {
   return (
     <View style={{ flex: 1, backgroundColor: '#F2F0E8' }}>
       <SecondaryNavbar
+        title="TẠO KÈO MỚI"
         showProgress
         progress={progressMap[step]}
-        rightSlot={<NavbarUserAvatar url={profile?.photo_url} />}
+        rightSlot={<NavbarUserAvatar url={profile?.photo_url} name={profile?.name} />}
         onBackPress={() => {
           if (step === 1) router.back()
           else if (step === 2) setStep(1)
@@ -665,6 +703,11 @@ export default function CreateSession() {
             hideHeader
           />
         )}
+        <AppDialog
+          visible={Boolean(dialogConfig)}
+          config={dialogConfig}
+          onClose={() => setDialogConfig(null)}
+        />
       </View>
     </View>
   )

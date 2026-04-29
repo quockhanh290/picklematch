@@ -196,7 +196,7 @@ export function ProfileSkillHero({
       {!miniTitleOnly ? (
         <View className="flex-row items-center justify-between">
           <View className="rounded-[12px] px-4 py-2 shadow-sm" style={{ backgroundColor: heroColors.eloChipBg }}>
-            <Text className="text-[20px]" style={{ color: heroColors.eloChipText, fontFamily: SCREEN_FONTS.boldItalic }}>{elo} ELO</Text>
+            <Text className="text-[20px]" style={{ color: heroColors.eloChipText, fontFamily: SCREEN_FONTS.headlineItalic }}>{elo} ELO</Text>
           </View>
         </View>
       ) : null}

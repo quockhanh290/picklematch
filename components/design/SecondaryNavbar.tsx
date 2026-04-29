@@ -6,6 +6,7 @@ import { Image, Pressable, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 type SecondaryNavbarProps = {
+  title?: string
   rightSlot?: ReactNode
   progress?: number // 0 to 1
   showProgress?: boolean
@@ -18,6 +19,7 @@ type SecondaryNavbarProps = {
  * Background: #F2F0E8, Height: 58px, Brand centered.
  */
 export function SecondaryNavbar({
+  title,
   rightSlot,
   progress,
   showProgress = false,
@@ -49,7 +51,7 @@ export function SecondaryNavbar({
           <ChevronLeft size={16} color="#1A2E2A" strokeWidth={3} />
         </Pressable>
 
-        {/* Center Slot: Brand Name */}
+        {/* Center Slot: Brand Name or Title */}
         <View 
           className="absolute left-0 right-0 items-center justify-center" 
           pointerEvents="none"
@@ -58,13 +60,13 @@ export function SecondaryNavbar({
           <Text
             style={{
               fontFamily: SCREEN_FONTS.headlineBlack,
-              fontSize: 15,
+              fontSize: 24,
               color: '#0F6E56',
-              letterSpacing: 1,
+              letterSpacing: 0.5,
               textTransform: 'uppercase',
             }}
           >
-            PICKLEMATCH
+            {title || 'PICKLEMATCH'}
           </Text>
         </View>
 
@@ -104,20 +106,33 @@ export const NavbarShareButton = ({ onPress }: { onPress: () => void }) => (
   </Pressable>
 )
 
-export const NavbarUserAvatar = ({ url }: { url?: string | null }) => (
-  <View
-    className="h-9 w-9 overflow-hidden rounded-full"
-    style={{ backgroundColor: '#0F6E56' }}
-  >
-    {url ? (
-      <Image source={{ uri: url }} className="h-full w-full" resizeMode="cover" />
-    ) : (
-      <View className="h-full w-full items-center justify-center">
-         {/* Placeholder or nothing as per spec */}
-      </View>
-    )}
-  </View>
-)
+export const NavbarUserAvatar = ({ url, name }: { url?: string | null; name?: string | null }) => {
+  const initial = name?.trim().charAt(0).toUpperCase() || '?'
+  
+  return (
+    <View
+      className="h-9 w-9 overflow-hidden rounded-full"
+      style={{ backgroundColor: '#0F6E56' }}
+    >
+      {url ? (
+        <Image source={{ uri: url }} className="h-full w-full" resizeMode="cover" />
+      ) : (
+        <View className="h-full w-full items-center justify-center">
+          <Text 
+            style={{ 
+              color: '#FFFFFF', 
+              fontFamily: SCREEN_FONTS.headline, 
+              fontSize: 14,
+              lineHeight: 18
+            }}
+          >
+            {initial}
+          </Text>
+        </View>
+      )}
+    </View>
+  )
+}
 
 export const NavbarDoneButton = ({ onPress, disabled = false }: { onPress: () => void; disabled?: boolean }) => (
   <Pressable

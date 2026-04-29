@@ -1,6 +1,4 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Alert } from 'react-native'
-
 import { supabase } from '@/lib/supabase'
 
 export type SessionPlayer = {
@@ -81,6 +79,7 @@ export type ViewerPlayer = {
 
 export function useSessionDetail(id?: string, userId?: string | null) {
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [refreshing, setRefreshing] = useState(false)
   const [session, setSession] = useState<SessionDetailRecord | null>(null)
   const [viewerPlayer, setViewerPlayer] = useState<ViewerPlayer | null>(null)
@@ -91,10 +90,11 @@ export function useSessionDetail(id?: string, userId?: string | null) {
   const fetchSession = useCallback(async () => {
     if (!id) return
 
+    setError(null)
     const { data, error } = await supabase.rpc('get_session_detail_overview', { p_session_id: id })
 
     if (error) {
-      Alert.alert('Không tải được kèo', error.message)
+      setError(error.message)
       setSession(null)
       return
     }
@@ -161,5 +161,6 @@ export function useSessionDetail(id?: string, userId?: string | null) {
     setIntroNote,
     fetchSession,
     onRefresh,
+    error,
   }
 }

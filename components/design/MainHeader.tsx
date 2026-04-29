@@ -34,7 +34,7 @@ export function MainHeader({ title, subtitle, rightElement, style }: MainHeaderP
               color: PROFILE_THEME_COLORS.onBackground,
               fontFamily: SCREEN_FONTS.headlineBlack,
               fontSize: 40,
-              lineHeight: 48,
+              lineHeight: 54,
               letterSpacing: -1,
               textTransform: 'uppercase',
             }}

@@ -8,6 +8,7 @@ import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs'
 import { router } from 'expo-router'
 import type { LucideIcon } from 'lucide-react-native'
 import {
+    AlertTriangle,
     Bell,
     CheckCircle2,
     DoorOpen,
@@ -16,11 +17,12 @@ import {
     Menu,
     MessageCircleMore,
     Sparkles,
+    Trophy,
     UserPlus,
     XCircle,
 } from 'lucide-react-native'
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { SCREEN_FONTS } from '@/constants/typography'
  
 function withAlpha(hex: string, alpha: number) {
@@ -102,6 +104,22 @@ function typeMeta(type: string): {
       indicator: PROFILE_THEME_COLORS.primary,
     }
   }
+  if (type === 'achievement_unlocked') {
+    return {
+      icon: Trophy,
+      iconColor: PROFILE_THEME_COLORS.tertiary,
+      iconBackground: PROFILE_THEME_COLORS.tertiaryContainer,
+      indicator: PROFILE_THEME_COLORS.tertiary,
+    }
+  }
+  if (type === 'host_unprofessional_reported') {
+    return {
+      icon: AlertTriangle,
+      iconColor: PROFILE_THEME_COLORS.error,
+      iconBackground: PROFILE_THEME_COLORS.errorContainer,
+      indicator: PROFILE_THEME_COLORS.error,
+    }
+  }
   if (type === 'result_confirmation_request') {
     return {
       icon: CheckCircle2,
@@ -111,6 +129,15 @@ function typeMeta(type: string): {
     }
   }
 
+  if (type === 'session_pending_completion' || type === 'session_results_submitted' || type === 'session_results_disputed' || type === 'session_auto_closed' || type === 'ghost_session_voided') {
+    return {
+      icon: Bell,
+      iconColor: PROFILE_THEME_COLORS.primary,
+      iconBackground: PROFILE_THEME_COLORS.primaryFixed,
+      indicator: PROFILE_THEME_COLORS.primary,
+    }
+  }
+  
   return {
     icon: Info,
     iconColor: PROFILE_THEME_COLORS.onSurfaceVariant,
@@ -123,31 +150,44 @@ function isActionable(notification: Notification) {
   return notification.type === 'join_request'
 }
 
-type NotificationCategory = 'all' | 'my_sessions' | 'achievements' | 'system'
+type NotificationCategory = 'all' | 'my_sessions' | 'achievements'
 
 export default function NotificationsScreen() {
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotificationsContext()
   const tabBarHeight = useBottomTabBarHeight()
+  const insets = useSafeAreaInsets()
   const [activeCategory, setActiveCategory] = useState<NotificationCategory>('all')
 
   const categories: { key: NotificationCategory; label: string }[] = [
     { key: 'all', label: 'Tất cả' },
     { key: 'my_sessions', label: 'Kèo của tôi' },
     { key: 'achievements', label: 'Danh hiệu' },
-    { key: 'system', label: 'Hệ thống' },
   ]
 
   const filteredNotifications = useMemo(() => {
     if (activeCategory === 'all') return notifications
     return notifications.filter((n) => {
       if (activeCategory === 'my_sessions') {
-        return ['join_request', 'join_approved', 'join_rejected', 'session_cancelled', 'session_updated', 'result_confirmation_request', 'session_ready_for_rating'].includes(n.type)
+        return [
+          'join_request',
+          'join_approved',
+          'join_rejected',
+          'player_left',
+          'session_cancelled',
+          'session_updated',
+          'result_confirmation_request',
+          'session_ready_for_rating',
+          'join_request_reply',
+          'host_unprofessional_reported',
+          'session_pending_completion',
+          'session_results_submitted',
+          'session_results_disputed',
+          'session_auto_closed',
+          'ghost_session_voided'
+        ].includes(n.type)
       }
       if (activeCategory === 'achievements') {
-        return n.type === 'achievement'
-      }
-      if (activeCategory === 'system') {
-        return !['join_request', 'join_approved', 'join_rejected', 'session_cancelled', 'session_updated', 'result_confirmation_request', 'session_ready_for_rating', 'achievement'].includes(n.type)
+        return n.type === 'achievement_unlocked'
       }
       return true
     })
@@ -159,7 +199,7 @@ export default function NotificationsScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: PROFILE_THEME_COLORS.background }} edges={['top']}>
+    <View className="flex-1" style={{ backgroundColor: PROFILE_THEME_COLORS.background }}>
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
@@ -168,13 +208,16 @@ export default function NotificationsScreen() {
       >
         <View style={{ backgroundColor: PROFILE_THEME_COLORS.background }}>
           {/* Main Title Row */}
-          <View className="flex-row items-center justify-between px-6 pt-8 pb-6">
+          <View 
+            className="flex-row items-center justify-between px-6 pb-4"
+            style={{ paddingTop: insets.top + 20 }}
+          >
             <Text
               style={{
-                color: colors.primary,
+                color: PROFILE_THEME_COLORS.onBackground,
                 fontFamily: SCREEN_FONTS.headlineBlack,
-                fontSize: 40,
-                lineHeight: 48,
+                fontSize: 36,
+                lineHeight: 50,
                 letterSpacing: -1,
               }}
             >
@@ -212,7 +255,6 @@ export default function NotificationsScreen() {
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 16 }}
-            className="flex-row"
           >
             {categories.map((cat) => {
               const active = activeCategory === cat.key
@@ -362,6 +404,6 @@ export default function NotificationsScreen() {
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   )
 }

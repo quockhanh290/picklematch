@@ -8,6 +8,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useFocusEffect } from '@react-navigation/native'
 import { router } from 'expo-router'
 import {
+  CheckCircle2,
+  AlertCircle,
   ChevronDown,
   ChevronRight,
   Pencil as Edit3,
@@ -28,6 +30,7 @@ import {
   Modal,
   Pressable,
   RefreshControl,
+  ScrollView,
   Share,
   Text,
   View,
@@ -369,7 +372,15 @@ function MySessionCard({
   let dotColor = isBooked ? colors.success : colors.warning
 
   if (isHistory) {
-    if (isFinalized) {
+    if (item.status === 'cancelled') {
+      statusLabel = 'Đã hủy'
+      statusColor = colors.error
+      dotColor = colors.error
+    } else if (!item.is_ranked) {
+      statusLabel = 'Đã kết thúc'
+      statusColor = colors.textSecondary
+      dotColor = colors.textSecondary
+    } else if (isFinalized) {
       if (userResult === 'win') {
         statusLabel = 'Thắng'
         statusColor = colors.successText
@@ -538,30 +549,70 @@ function MySessionCard({
           icon = <Star size={15} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.3} />
         }
 
-        return (
-          <Pressable
-            onPress={canAction ? action : undefined}
-            className="flex-row items-center justify-center py-4"
-            style={{
-              backgroundColor: canAction ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surfaceContainerLow,
-              borderBottomLeftRadius: 14,
-              borderBottomRightRadius: 14,
-              opacity: canAction ? 1 : 0.6,
-            }}
-          >
-            {icon}
-            <Text
-              className={icon ? "ml-2 text-[15px]" : "text-[15px]"}
+        if (!canAction) {
+          const statusIcon = isCancelled ? <AlertCircle size={14} color={PROFILE_THEME_COLORS.outline} /> : <CheckCircle2 size={14} color={PROFILE_THEME_COLORS.outline} />
+          
+          return (
+            <View 
+              className="flex-row items-center justify-center py-3.5"
               style={{
-                color: canAction ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant,
-                fontFamily: SCREEN_FONTS.cta,
-                textTransform: 'uppercase',
-                letterSpacing: 1,
+                backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
+                borderBottomLeftRadius: 14,
+                borderBottomRightRadius: 14,
+                borderTopWidth: BORDER.hairline,
+                borderTopColor: PROFILE_THEME_COLORS.outlineVariant,
               }}
             >
-              {label}
-            </Text>
-          </Pressable>
+              {statusIcon}
+              <Text
+                className="ml-2 text-[12px] uppercase tracking-[1px]"
+                style={{
+                  color: PROFILE_THEME_COLORS.outline,
+                  fontFamily: SCREEN_FONTS.cta,
+                }}
+              >
+                {label}
+              </Text>
+            </View>
+          )
+        }
+
+        return (
+          <View 
+            className="px-4 py-3"
+            style={{
+              backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
+              borderBottomLeftRadius: 14,
+              borderBottomRightRadius: 14,
+              borderTopWidth: BORDER.hairline,
+              borderTopColor: PROFILE_THEME_COLORS.outlineVariant,
+            }}
+          >
+            <Pressable
+              onPress={action}
+              className="flex-row items-center justify-center rounded-full py-2.5"
+              style={{
+                backgroundColor: PROFILE_THEME_COLORS.primary,
+                shadowColor: PROFILE_THEME_COLORS.primary,
+                shadowOpacity: 0.15,
+                shadowRadius: 8,
+                shadowOffset: { width: 0, height: 4 },
+              }}
+            >
+              {icon}
+              <Text
+                className={icon ? "ml-2 text-[14px]" : "text-[14px]"}
+                style={{
+                  color: PROFILE_THEME_COLORS.onPrimary,
+                  fontFamily: SCREEN_FONTS.cta,
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.8,
+                }}
+              >
+                {label}
+              </Text>
+            </Pressable>
+          </View>
         )
       })() : (
       <View
@@ -1281,7 +1332,7 @@ export default function MySessions() {
             data={listData}
             keyExtractor={(item) => ('type' in item ? `${activeTab}-${item.key}` : `${activeTab}-${item.id}`)}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: SPACING.xl, paddingTop: 16, paddingBottom: 160 }}
+            contentContainerStyle={{ paddingHorizontal: SPACING.xl, paddingTop: 0, paddingBottom: 160 }}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={PROFILE_THEME_COLORS.primary} />}
             stickyHeaderIndices={stickyHeaderIndices}
             onEndReached={loadMoreHistory}
@@ -1454,157 +1505,177 @@ export default function MySessions() {
             animationType="slide"
             onRequestClose={() => setHistoryFilterModalVisible(false)}
           >
-            <View className="flex-1" style={{ backgroundColor: withAlpha(PROFILE_THEME_COLORS.onBackground, 0.36), justifyContent: 'flex-end' }}>
-              <Pressable className="flex-1" onPress={() => setHistoryFilterModalVisible(false)} />
+            <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' }}>
+              <Pressable style={{ flex: 1 }} onPress={() => setHistoryFilterModalVisible(false)} />
               <View
-                className="rounded-t-[28px] px-5 pt-5 pb-8"
                 style={{
                   backgroundColor: PROFILE_THEME_COLORS.background,
+                  borderTopLeftRadius: 28,
+                  borderTopRightRadius: 28,
                   borderTopWidth: 1,
                   borderColor: PROFILE_THEME_COLORS.outlineVariant,
+                  paddingHorizontal: 20,
+                  paddingTop: 20,
+                  paddingBottom: 32,
+                  maxHeight: '90%',
+                  shadowColor: '#000',
+                  shadowOpacity: 0.15,
+                  shadowRadius: 24,
+                  shadowOffset: { width: 0, height: -8 },
+                  elevation: 12,
                 }}
               >
-                <View className="mb-4 flex-row items-center justify-between">
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
                   <Text
                     style={{
-                      color: PROFILE_THEME_COLORS.onBackground,
-                      fontFamily: SCREEN_FONTS.cta,
-                      fontSize: 18,
+                      color: PROFILE_THEME_COLORS.primary,
+                      fontFamily: SCREEN_FONTS.headline,
+                      fontSize: 24,
+                      textTransform: 'uppercase',
                     }}
                   >
                     Bộ lọc lịch sử
                   </Text>
                   <Pressable
                     onPress={() => setHistoryFilterModalVisible(false)}
-                    className="h-9 w-9 items-center justify-center rounded-full"
-                    style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow }}
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 18,
+                      backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
                   >
                     <X size={16} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.6} />
                   </Pressable>
                 </View>
 
-                <Text
-                  className="mb-2"
-                  style={{
-                    color: PROFILE_THEME_COLORS.outline,
-                    fontFamily: SCREEN_FONTS.cta,
-                    fontSize: 10,
-                    letterSpacing: 1.4,
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  Trạng thái
-                </Text>
-                <View className="mb-3 flex-row flex-wrap">
-                  {HISTORY_STATUS_OPTIONS.map((option) =>
-                    renderHistoryFilterChip(
-                      `status-${option.id}`,
-                      option.label,
-                      historyStatusFilter === option.id,
-                      () => setHistoryStatusFilter(option.id),
-                    ),
-                  )}
-                </View>
+                <ScrollView showsVerticalScrollIndicator={false}>
+                  <Text
+                    style={{
+                      color: PROFILE_THEME_COLORS.primary,
+                      fontFamily: SCREEN_FONTS.headline,
+                      fontSize: 14,
+                      textTransform: 'uppercase',
+                      marginBottom: 10,
+                    }}
+                  >
+                    Trạng thái
+                  </Text>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 2, marginBottom: 16 }}>
+                    {HISTORY_STATUS_OPTIONS.map((option) =>
+                      renderHistoryFilterChip(
+                        `status-${option.id}`,
+                        option.label,
+                        historyStatusFilter === option.id,
+                        () => setHistoryStatusFilter(option.id),
+                      ),
+                    )}
+                  </View>
 
-                <Text
-                  className="mb-2"
-                  style={{
-                    color: PROFILE_THEME_COLORS.outline,
-                    fontFamily: SCREEN_FONTS.cta,
-                    fontSize: 10,
-                    letterSpacing: 1.4,
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  Vai trò
-                </Text>
-                <View className="mb-3 flex-row flex-wrap">
-                  {HISTORY_ROLE_OPTIONS.map((option) =>
-                    renderHistoryFilterChip(
-                      `role-${option.id}`,
-                      option.label,
-                      historyRoleFilter === option.id,
-                      () => setHistoryRoleFilter(option.id),
-                    ),
-                  )}
-                </View>
+                  <Text
+                    style={{
+                      color: PROFILE_THEME_COLORS.primary,
+                      fontFamily: SCREEN_FONTS.headline,
+                      fontSize: 14,
+                      textTransform: 'uppercase',
+                      marginBottom: 10,
+                    }}
+                  >
+                    Vai trò
+                  </Text>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 2, marginBottom: 16 }}>
+                    {HISTORY_ROLE_OPTIONS.map((option) =>
+                      renderHistoryFilterChip(
+                        `role-${option.id}`,
+                        option.label,
+                        historyRoleFilter === option.id,
+                        () => setHistoryRoleFilter(option.id),
+                      ),
+                    )}
+                  </View>
 
-                <Text
-                  className="mb-2"
-                  style={{
-                    color: PROFILE_THEME_COLORS.outline,
-                    fontFamily: SCREEN_FONTS.cta,
-                    fontSize: 10,
-                    letterSpacing: 1.4,
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  Thời gian
-                </Text>
-                <View className="mb-3 flex-row flex-wrap">
-                  {HISTORY_TIME_OPTIONS.map((option) =>
-                    renderHistoryFilterChip(
-                      `time-${option.id}`,
-                      option.label,
-                      historyTimeFilter === option.id,
-                      () => setHistoryTimeFilter(option.id),
-                    ),
-                  )}
-                </View>
+                  <Text
+                    style={{
+                      color: PROFILE_THEME_COLORS.primary,
+                      fontFamily: SCREEN_FONTS.headline,
+                      fontSize: 14,
+                      textTransform: 'uppercase',
+                      marginBottom: 10,
+                    }}
+                  >
+                    Thời gian
+                  </Text>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 2, marginBottom: 16 }}>
+                    {HISTORY_TIME_OPTIONS.map((option) =>
+                      renderHistoryFilterChip(
+                        `time-${option.id}`,
+                        option.label,
+                        historyTimeFilter === option.id,
+                        () => setHistoryTimeFilter(option.id),
+                      ),
+                    )}
+                  </View>
 
-                <Text
-                  className="mb-2"
-                  style={{
-                    color: PROFILE_THEME_COLORS.outline,
-                    fontFamily: SCREEN_FONTS.cta,
-                    fontSize: 10,
-                    letterSpacing: 1.4,
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  Đánh giá
-                </Text>
-                <View className="mb-3 flex-row flex-wrap">
-                  {HISTORY_RATING_OPTIONS.map((option) =>
-                    renderHistoryFilterChip(
-                      `rating-${option.id}`,
-                      option.label,
-                      historyRatingFilter === option.id,
-                      () => setHistoryRatingFilter(option.id),
-                    ),
-                  )}
-                </View>
+                  <Text
+                    style={{
+                      color: PROFILE_THEME_COLORS.primary,
+                      fontFamily: SCREEN_FONTS.headline,
+                      fontSize: 14,
+                      textTransform: 'uppercase',
+                      marginBottom: 10,
+                    }}
+                  >
+                    Đánh giá
+                  </Text>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 2, marginBottom: 16 }}>
+                    {HISTORY_RATING_OPTIONS.map((option) =>
+                      renderHistoryFilterChip(
+                        `rating-${option.id}`,
+                        option.label,
+                        historyRatingFilter === option.id,
+                        () => setHistoryRatingFilter(option.id),
+                      ),
+                    )}
+                  </View>
 
-                <Text
-                  className="mb-2"
-                  style={{
-                    color: PROFILE_THEME_COLORS.outline,
-                    fontFamily: SCREEN_FONTS.cta,
-                    fontSize: 10,
-                    letterSpacing: 1.4,
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  Kết quả
-                </Text>
-                <View className="mb-4 flex-row flex-wrap">
-                  {HISTORY_RESULT_OPTIONS.map((option) =>
-                    renderHistoryFilterChip(
-                      `result-${option.id}`,
-                      option.label,
-                      historyResultFilter === option.id,
-                      () => setHistoryResultFilter(option.id),
-                    ),
-                  )}
-                </View>
+                  <Text
+                    style={{
+                      color: PROFILE_THEME_COLORS.primary,
+                      fontFamily: SCREEN_FONTS.headline,
+                      fontSize: 14,
+                      textTransform: 'uppercase',
+                      marginBottom: 10,
+                    }}
+                  >
+                    Kết quả
+                  </Text>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 2, marginBottom: 24 }}>
+                    {HISTORY_RESULT_OPTIONS.map((option) =>
+                      renderHistoryFilterChip(
+                        `result-${option.id}`,
+                        option.label,
+                        historyResultFilter === option.id,
+                        () => setHistoryResultFilter(option.id),
+                      ),
+                    )}
+                  </View>
+                </ScrollView>
 
                 <Pressable
                   onPress={() => setHistoryFilterModalVisible(false)}
-                  className="h-12 items-center justify-center rounded-full"
-                  style={{ backgroundColor: PROFILE_THEME_COLORS.primary }}
+                  style={({ pressed }) => ({
+                    height: 52,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: RADIUS.full,
+                    backgroundColor: PROFILE_THEME_COLORS.primary,
+                    opacity: pressed ? 0.9 : 1,
+                  })}
                 >
-                  <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta, fontSize: 15, textTransform: 'uppercase' }}>
-                    Áp dụng
+                  <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.headline, fontSize: 16, textTransform: 'uppercase' }}>
+                    Áp dụng bộ lọc
                   </Text>
                 </Pressable>
               </View>

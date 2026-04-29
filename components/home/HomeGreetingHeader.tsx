@@ -52,7 +52,7 @@ export function HomeGreetingHeader({
           style={{ 
             color: PROFILE_THEME_COLORS.onBackground, 
             fontFamily: SCREEN_FONTS.headlineBlack, 
-            lineHeight: 48, 
+            lineHeight: 54, 
             letterSpacing: -1 
           }}
         >
@@ -73,14 +73,14 @@ export function HomeGreetingHeader({
         onPress={() => router.push('/(tabs)/profile' as never)}
         className="h-16 w-16 items-center justify-center overflow-hidden rounded-full border-2"
         style={{ 
-          backgroundColor: PROFILE_THEME_COLORS.secondaryContainer, 
+          backgroundColor: PROFILE_THEME_COLORS.primary, 
           borderColor: PROFILE_THEME_COLORS.outlineVariant
         }}
       >
         {profilePhotoUrl ? (
           <Image source={{ uri: profilePhotoUrl }} className="h-full w-full" resizeMode="cover" />
         ) : (
-          <Text style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.headline, fontSize: 24, lineHeight: 28 }}>
+          <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.headline, fontSize: 24, lineHeight: 28 }}>
             {initial}
           </Text>
         )}

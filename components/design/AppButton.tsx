@@ -25,8 +25,9 @@ export function AppButton({
   const theme = useAppTheme()
   const isPrimary = variant === 'primary'
   const isSecondary = variant === 'secondary'
+  const isDanger = variant === 'danger'
 
-  const baseStyle = isPrimary
+  const baseStyle = (isPrimary || isDanger)
     ? BUTTON.primary
     : isSecondary
       ? BUTTON.secondary
@@ -34,11 +35,11 @@ export function AppButton({
 
   const buttonStyle = {
     ...baseStyle,
-    backgroundColor: isPrimary ? theme.primary : isSecondary ? theme.surface : 'transparent',
-    borderColor: theme.primary,
+    backgroundColor: isPrimary ? theme.primary : isDanger ? theme.danger : isSecondary ? theme.surface : 'transparent',
+    borderColor: isDanger ? theme.danger : theme.primary,
   }
 
-  const textStyle = isPrimary
+  const textStyle = (isPrimary || isDanger)
     ? { color: theme.primaryContrast }
     : isSecondary
       ? { color: theme.primaryStrong }

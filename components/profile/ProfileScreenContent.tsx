@@ -1,5 +1,7 @@
-import { colors } from '@/constants/colors'
-import { AppButton, EmptyState, ScreenHeader } from '@/components/design'
+import { AppButton } from '@/components/design/AppButton'
+import { AppDialog, type AppDialogConfig } from '@/components/design/AppDialog'
+import { EmptyState } from '@/components/design/EmptyState'
+import { ScreenHeader } from '@/components/design/ScreenHeader'
 import type { FeedbackTrait } from '@/components/profile/CommunityFeedbackSection'
 import CommunityFeedbackPanel from '@/components/profile/CommunityFeedbackSection'
 import {
@@ -37,7 +39,7 @@ import {
     UserCircle2
 } from 'lucide-react-native'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native'
+import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { SPACING } from '@/constants/screenLayout'
 
@@ -173,6 +175,7 @@ export default function ProfileScreenContent() {
   const [loading, setLoading] = useState(false)
   const [nameFitsOneLine, setNameFitsOneLine] = useState<boolean | null>(null)
   const [nameMeasureWidth, setNameMeasureWidth] = useState(0)
+  const [dialogConfig, setDialogConfig] = useState<AppDialogConfig | null>(null)
 
   const init = useCallback(async () => {
     setLoading(true)
@@ -195,25 +198,29 @@ export default function ProfileScreenContent() {
   )
 
   async function logout() {
-    Alert.alert('Đăng xuất?', 'Bạn chắc muốn đăng xuất không?', [
-      { text: 'Huỷ', style: 'cancel' },
-      {
-        text: 'Đăng xuất',
-        style: 'destructive',
-        onPress: async () => {
-          await supabase.auth.signOut()
-          clearCurrentPlayerProfileCache()
-          setLoggedIn(false)
-          setPlayer(null)
-          setPlayerStats(null)
-          setRatingTags({})
-          setAchievements([])
-          setHistory([])
-          setHostedSessionsCount(0)
-          router.replace('/(tabs)')
+    setDialogConfig({
+      title: 'Đăng xuất?',
+      message: 'Bạn chắc muốn đăng xuất không?',
+      actions: [
+        { label: 'Huỷ', tone: 'secondary' },
+        {
+          label: 'Đăng xuất',
+          tone: 'danger',
+          onPress: async () => {
+            await supabase.auth.signOut()
+            clearCurrentPlayerProfileCache()
+            setLoggedIn(false)
+            setPlayer(null)
+            setPlayerStats(null)
+            setRatingTags({})
+            setAchievements([])
+            setHistory([])
+            setHostedSessionsCount(0)
+            router.replace('/(tabs)')
+          },
         },
-      },
-    ])
+      ],
+    })
   }
 
   function formatTime(start: string) {
@@ -309,7 +316,7 @@ export default function ProfileScreenContent() {
                 <Text
                   style={{
                     flex: 1,
-                    color: colors.primary,
+                    color: PROFILE_PAGE_COLORS.primary,
                     fontFamily: SCREEN_FONTS.headlineBlack,
                     fontSize: 40,
                     lineHeight: 48,
@@ -322,7 +329,7 @@ export default function ProfileScreenContent() {
                 
                 <View
                   className="rounded-full px-3 py-1.5 mb-1"
-                  style={{ backgroundColor: colors.primaryDark }}
+                  style={{ backgroundColor: PROFILE_PAGE_COLORS.primaryContainer }}
                 >
                   <Text
                     style={{
@@ -342,21 +349,21 @@ export default function ProfileScreenContent() {
                 onPress={() => router.push('/edit-profile' as any)}
                 className="h-9 w-9 items-center justify-center rounded-full"
                 style={{
-                  backgroundColor: colors.primaryLight,
-                  shadowColor: colors.primary,
+                  backgroundColor: PROFILE_PAGE_COLORS.secondaryContainer,
+                  shadowColor: PROFILE_PAGE_COLORS.primary,
                   shadowOpacity: 0.1,
                   shadowRadius: 4,
                   shadowOffset: { width: 0, height: 2 },
                 }}
               >
-                <PencilLine size={18} color={colors.primary} />
+                <PencilLine size={18} color={PROFILE_PAGE_COLORS.primary} />
               </TouchableOpacity>
             </View>
 
             <View className="mt-4 flex-row items-center gap-3">
               <View
                 className="rounded-full px-4 py-1.5"
-                style={{ backgroundColor: colors.primary }}
+                style={{ backgroundColor: PROFILE_PAGE_COLORS.primary }}
               >
                 <Text
                   style={{
@@ -373,7 +380,7 @@ export default function ProfileScreenContent() {
 
               <Text
                 style={{
-                  color: colors.textSecondary,
+                  color: PROFILE_PAGE_COLORS.onSurfaceVariant,
                   fontFamily: SCREEN_FONTS.body,
                   fontSize: 13,
                 }}
@@ -459,6 +466,11 @@ export default function ProfileScreenContent() {
           </View>
         </View>
       </ScrollView>
+      <AppDialog
+        visible={Boolean(dialogConfig)}
+        config={dialogConfig}
+        onClose={() => setDialogConfig(null)}
+      />
     </View>
   )
 }

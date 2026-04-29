@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router'
-import { ArrowLeft, Minus, Plus, Save, Clock, MapPin, Trophy, CheckCheck, Info } from 'lucide-react-native'
+import { ArrowLeft, Minus, Plus, Save, Clock, MapPin, Trophy, CheckCheck, Info, ShieldAlert } from 'lucide-react-native'
 import { useEffect, useMemo, useState } from 'react'
 import {
   ActivityIndicator,
@@ -54,6 +54,7 @@ type SessionPlayerRecord = {
   player_id: string
   status?: string | null
   team_no?: 1 | 2 | null
+  result_dispute_note?: string | null
   player?: {
     name?: string | null
   } | null
@@ -534,6 +535,12 @@ export default function MatchResultEntryScreen() {
 
   const teams = useMemo(() => buildTeams(session), [session])
 
+  const disputeNotes = useMemo(() => {
+    return (session?.session_players ?? [])
+      .filter((p) => p.result_dispute_note && p.result_dispute_note.trim().length > 0)
+      .map((p) => ({ name: p.player?.name || 'Người chơi', note: p.result_dispute_note }))
+  }, [session])
+
   async function onSaveResult() {
     if (!session || !id) return
     const hostId = typeof session.host === 'string' ? session.host : session.host?.id
@@ -605,6 +612,7 @@ export default function MatchResultEntryScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: RESULT_THEME.pageBg }}>
       <SecondaryNavbar
+        title="KẾT QUẢ TRẬN ĐẤU"
         onBackPress={() => router.back()}
         rightSlot={<NavbarDoneButton onPress={() => void onSaveResult()} />}
       />
@@ -613,6 +621,39 @@ export default function MatchResultEntryScreen() {
           contentContainerStyle={{ paddingHorizontal: SPACING.xl, paddingBottom: insets.bottom + 40, paddingTop: 16 }}
           showsVerticalScrollIndicator={false}
         >
+
+          {session.results_status === 'disputed' && disputeNotes.length > 0 && (
+            <View
+              style={{
+                marginTop: 16,
+                padding: 16,
+                backgroundColor: '#FEF2F2',
+                borderRadius: RADIUS.lg,
+                borderWidth: 1,
+                borderColor: '#FECACA',
+                gap: 12,
+              }}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <ShieldAlert size={18} color="#EF4444" strokeWidth={2.5} />
+                <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 14, color: '#991B1B', textTransform: 'uppercase' }}>
+                  Nội dung khiếu nại từ người chơi
+                </Text>
+              </View>
+              <View style={{ gap: 8 }}>
+                {disputeNotes.map((dn, idx) => (
+                  <View key={idx} style={{ paddingLeft: 8, borderLeftWidth: 2, borderLeftColor: '#FCA5A5' }}>
+                    <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 12, color: '#B91C1C' }}>
+                      {dn.name}:
+                    </Text>
+                    <Text style={{ fontFamily: SCREEN_FONTS.body, fontSize: 13, color: '#991B1B', marginTop: 2 }}>
+                      {dn.note}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
 
           <View style={{ marginTop: 24 }}>
 
