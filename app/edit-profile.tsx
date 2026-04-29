@@ -11,7 +11,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ActivityIndicator, FlatList, ImageBackground, Keyboard, ScrollView, Switch, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { SCREEN_FONTS } from '@/constants/typography'
-import { RADIUS, BORDER } from '@/constants/screenLayout'
+import { RADIUS, BORDER, SHADOW } from '@/constants/screenLayout'
 
 const CITIES = ['Hồ Chí Minh', 'Hà Nội', 'Đà Nẵng', 'Cần Thơ', 'Hải Phòng']
 const HERO_IMAGE = require('../assets/images/login-electric-court-hero.png')
@@ -39,6 +39,8 @@ export default function EditProfile() {
   const [city, setCity] = useState('')
   const [selectedLevelId, setSelectedLevelId] = useState<SkillAssessmentLevel['id']>('level_3')
   const [autoAccept, setAutoAccept] = useState(false)
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null)
+  const [placementMatchesPlayed, setPlacementMatchesPlayed] = useState(0)
 
   const [keyword, setKeyword] = useState('')
   const [courts, setCourts] = useState<Court[]>([])
@@ -104,14 +106,16 @@ export default function EditProfile() {
 
     const { data } = await supabase
       .from('players')
-      .select('name, city, skill_label, self_assessed_level, auto_accept, favorite_court_ids, elo, current_elo')
+      .select('name, city, skill_label, self_assessed_level, auto_accept, favorite_court_ids, elo, current_elo, photo_url, placement_matches_played')
       .eq('id', user.id)
       .single()
 
     if (data) {
       setName(data.name ?? '')
       setCity(data.city ?? '')
+      setPhotoUrl(data.photo_url ?? null)
       setElo(data.current_elo ?? data.elo ?? 0)
+      setPlacementMatchesPlayed(data.placement_matches_played ?? 0)
 
       const levelId =
         (data.self_assessed_level as SkillAssessmentLevel['id'] | null) ?? inferLevelIdFromLegacySkill(data.skill_label)
@@ -254,9 +258,9 @@ export default function EditProfile() {
   }
 
   const currentLevel = getSkillLevelById(selectedLevelId)
-  const heroTitleSize = width < 360 ? 36 : width < 420 ? 44 : 52
-  const heroTitleLineHeight = width < 360 ? 50 : width < 420 ? 60 : 70
-  const heroCardSize = Math.min(width - 48, 360)
+  const heroTitleSize = width < 360 ? 32 : 40
+  const heroTitleLineHeight = width < 360 ? 44 : 54
+  const avatarSize = 64
 
   if (loading) {
     return (
@@ -277,83 +281,80 @@ export default function EditProfile() {
       />
       <ScrollView ref={scrollViewRef} contentContainerStyle={{ paddingBottom: 325, paddingTop: 12 }} keyboardShouldPersistTaps="always" keyboardDismissMode="on-drag">
 
-        <View className="px-6 pb-8 pt-4">
-          <View style={{ paddingTop: 4, paddingBottom: 6 }}>
-            <Text
-              style={{
-                color: EDIT_PROFILE_COLORS.primary,
-                fontFamily: SCREEN_FONTS.headline,
-                fontSize: heroTitleSize,
-                lineHeight: heroTitleLineHeight,
-                letterSpacing: -2,
-              }}
-            >
-              CHỈNH SỬA
-            </Text>
-            <Text
-              style={{
-                color: EDIT_PROFILE_COLORS.onPrimaryContainer,
-                fontFamily: SCREEN_FONTS.headline,
-                fontSize: heroTitleSize,
-                lineHeight: heroTitleLineHeight,
-                letterSpacing: -2,
-                marginTop: -6,
-              }}
-            >
-              HỒ SƠ.
-            </Text>
-          </View>
-          <Text className="mb-8 mt-4 text-base leading-6" style={{ color: EDIT_PROFILE_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.medium }}>
-            Cập nhật thông tin cá nhân và trình độ để kết nối với cộng đồng Pickleball Việt Nam.
-          </Text>
+        <View className="px-6 pb-6 pt-4">
+          <View className="flex-row items-center justify-between">
+            <View className="min-w-0 flex-1 pr-4">
+              <Text
+                className="mb-[3px] text-[11px]"
+                style={{ color: EDIT_PROFILE_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.label, lineHeight: 15 }}
+              >
+                CÀI ĐẶT
+              </Text>
+              <Text
+                numberOfLines={2}
+                style={{
+                  color: EDIT_PROFILE_COLORS.onBackground,
+                  fontFamily: SCREEN_FONTS.headlineBlack,
+                  fontSize: heroTitleSize,
+                  lineHeight: heroTitleLineHeight,
+                  letterSpacing: -1,
+                  textTransform: 'uppercase',
+                }}
+              >
+                HỒ SƠ CỦA BẠN.
+              </Text>
+            </View>
 
-          <View
-            style={{
-              width: heroCardSize,
-              height: heroCardSize,
-              alignSelf: 'center',
-              borderRadius: RADIUS.hero,
-              overflow: 'hidden',
-              backgroundColor: EDIT_PROFILE_COLORS.primaryContainer,
-            }}
-          >
-            <ImageBackground source={HERO_IMAGE} resizeMode="cover" style={{ flex: 1 }} imageStyle={{ opacity: 0.62 }}>
-              <View style={{ flex: 1, backgroundColor: 'rgba(6,78,59,0.52)', justifyContent: 'center', alignItems: 'center' }}>
-                <View
+            <View style={{ alignItems: 'center' }}>
+              <View
+                style={{
+                  width: avatarSize,
+                  height: avatarSize,
+                  borderRadius: RADIUS.full,
+                  borderWidth: 2,
+                  borderColor: EDIT_PROFILE_COLORS.outlineVariant,
+                  backgroundColor: EDIT_PROFILE_COLORS.secondaryFixed,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'hidden',
+                }}
+              >
+                {photoUrl ? (
+                  <ImageBackground source={{ uri: photoUrl }} className="h-full w-full" resizeMode="cover" />
+                ) : (
+                  <Text style={{ color: EDIT_PROFILE_COLORS.primary, fontSize: 24, fontFamily: SCREEN_FONTS.cta }}>
+                    {(name || 'U').charAt(0).toUpperCase()}
+                  </Text>
+                )}
+              </View>
+              <TouchableOpacity
+                activeOpacity={0.8}
+                style={{
+                  marginTop: -12,
+                  backgroundColor: EDIT_PROFILE_COLORS.primary,
+                  paddingHorizontal: 12,
+                  paddingVertical: 4,
+                  borderRadius: RADIUS.full,
+                  ...SHADOW.xs,
+                }}
+              >
+                <Text
                   style={{
-                    width: 148,
-                    height: 148,
-                    borderRadius: RADIUS.full,
-                    overflow: 'hidden',
-                    borderWidth: 4,
-                    borderColor: EDIT_PROFILE_COLORS.primaryFixed,
-                    marginBottom: 16,
+                    color: EDIT_PROFILE_COLORS.onPrimary,
+                    fontSize: 9,
+                    fontFamily: SCREEN_FONTS.label,
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.5,
                   }}
                 >
-                  <View style={{ flex: 1, backgroundColor: EDIT_PROFILE_COLORS.secondaryFixed, alignItems: 'center', justifyContent: 'center' }}>
-                    <Text style={{ color: EDIT_PROFILE_COLORS.primary, fontSize: 44, fontFamily: SCREEN_FONTS.cta }}>
-                      {(name || 'U').charAt(0).toUpperCase()}
-                    </Text>
-                  </View>
-                </View>
-                <TouchableOpacity
-                  activeOpacity={0.9}
-                  className="rounded-full px-6 py-2"
-                  style={{ backgroundColor: EDIT_PROFILE_COLORS.primaryFixed }}
-                >
-                  <Text
-                    className="text-[11px] uppercase tracking-[2px]"
-                    style={{ color: EDIT_PROFILE_COLORS.onPrimaryFixed, fontFamily: SCREEN_FONTS.label }}
-                  >
-                    Thay ảnh
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </ImageBackground>
+                  Sửa
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
-        <View className="px-6 gap-10">
+        <View className="px-6 gap-8">
           {/* Basic Info Section */}
           <View>
             <View className="mb-6 flex-row items-center gap-4">
@@ -423,25 +424,38 @@ export default function EditProfile() {
               colors={PROFILE_SKILL_HERO_TONE}
             />
 
-            <TouchableOpacity 
-              activeOpacity={0.85} 
-              className="rounded-full px-4 py-4 mb-4 flex-row items-center justify-center"
-              style={{ backgroundColor: EDIT_PROFILE_COLORS.error }}
-              onPress={handleRedoAssessment}
-            >
-              <Text
-                className="text-center text-base font-extrabold"
-                style={{ color: EDIT_PROFILE_COLORS.onError, fontFamily: SCREEN_FONTS.cta }}
-              >
-                Làm lại bài đánh giá
-              </Text>
-            </TouchableOpacity>
-            <Text
-              className="text-center text-sm leading-6 mb-4"
-              style={{ color: EDIT_PROFILE_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body }}
-            >
-              Dùng lại 7 câu hỏi onboarding để hệ thống ước lượng mức khởi điểm mới cho bạn.
-            </Text>
+            {placementMatchesPlayed < 5 ? (
+              <>
+                <TouchableOpacity 
+                  activeOpacity={0.85} 
+                  className="rounded-full px-4 py-4 mb-4 flex-row items-center justify-center"
+                  style={{ backgroundColor: EDIT_PROFILE_COLORS.error }}
+                  onPress={handleRedoAssessment}
+                >
+                  <Text
+                    className="text-center text-base font-extrabold"
+                    style={{ color: EDIT_PROFILE_COLORS.onError, fontFamily: SCREEN_FONTS.cta }}
+                  >
+                    Làm lại bài đánh giá
+                  </Text>
+                </TouchableOpacity>
+                <Text
+                  className="text-center text-sm leading-6 mb-4"
+                  style={{ color: EDIT_PROFILE_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body }}
+                >
+                  Dùng lại 7 câu hỏi onboarding để hệ thống ước lượng mức khởi điểm mới cho bạn.
+                </Text>
+              </>
+            ) : (
+              <View className="rounded-2xl p-4 border border-dashed" style={{ borderColor: EDIT_PROFILE_COLORS.outlineVariant }}>
+                <Text
+                  className="text-center text-sm leading-6"
+                  style={{ color: EDIT_PROFILE_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body }}
+                >
+                  Bạn đã hoàn thành giai đoạn phân hạng. Trình độ của bạn giờ đây sẽ được cập nhật tự động dựa trên kết quả thi đấu thực tế.
+                </Text>
+              </View>
+            )}
           </View>
 
           {/* Quick Match Section */}

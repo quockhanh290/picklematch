@@ -233,7 +233,7 @@ export default function OnboardingScreen() {
     <View style={{ flex: 1, backgroundColor: ONBOARDING_THEME.background }}>
       <StatusBar style="dark" translucent backgroundColor="#F2F0E8" />
       <SecondaryNavbar
-        title="BUILD YOUR LEVEL"
+        title="PHÂN LOẠI TRÌNH ĐỘ"
         showProgress
         progress={progress / 100}
         onBackPress={handleBack}
@@ -305,34 +305,34 @@ export default function OnboardingScreen() {
                     paddingHorizontal: 20,
                     paddingVertical: 18,
                     justifyContent: 'center',
-                    backgroundColor: isSelected ? ONBOARDING_THEME.accent : ONBOARDING_THEME.panel,
-                    borderWidth: isSelected ? 2 : 1,
+                    backgroundColor: isSelected ? ONBOARDING_THEME.accentDeep : ONBOARDING_THEME.panel,
+                    borderWidth: 1,
                     borderColor: isSelected ? ONBOARDING_THEME.accentDeep : ONBOARDING_THEME.border,
                   }}
                 >
                   <View className="flex-row items-center justify-between">
-                    <Text
-                      style={{
-                        flex: 1,
-                        color: isSelected ? ONBOARDING_THEME.accentDeep : ONBOARDING_THEME.text,
-                        fontSize: 16,
-                        lineHeight: 24,
-                        fontFamily: SCREEN_FONTS.label,
-                        paddingRight: 16,
-                      }}
-                    >
-                      {option.label}
-                    </Text>
+                      <Text
+                        style={{
+                          flex: 1,
+                          color: isSelected ? ONBOARDING_THEME.white : ONBOARDING_THEME.text,
+                          fontSize: 15,
+                          lineHeight: 22,
+                          fontFamily: SCREEN_FONTS.label,
+                          paddingRight: 16,
+                        }}
+                      >
+                        {option.label}
+                      </Text>
                     <View
                       className="h-6 w-6 items-center justify-center rounded-full"
                       style={{ 
-                        backgroundColor: isSelected ? ONBOARDING_THEME.accentDeep : 'transparent',
+                        backgroundColor: isSelected ? ONBOARDING_THEME.white : 'transparent',
                         borderWidth: isSelected ? 0 : 1,
-                        borderColor: ONBOARDING_THEME.border
+                        borderColor: isSelected ? ONBOARDING_THEME.white : ONBOARDING_THEME.border
                       }}
                     >
                       {isSelected && (
-                        <CheckCircle2 size={14} color={ONBOARDING_THEME.white} />
+                        <CheckCircle2 size={14} color={ONBOARDING_THEME.accentDeep} />
                       )}
                     </View>
                   </View>
@@ -341,56 +341,67 @@ export default function OnboardingScreen() {
             })}
           </View>
         </View>
+      </ScrollView>
 
-        <View style={{ paddingTop: 40 }}>
-          <View className="flex-row items-center" style={{ gap: 12 }}>
+      {/* Fixed Bottom Action Container */}
+      <View
+        style={{
+          paddingHorizontal: SPACING.xl,
+          paddingTop: 16,
+          paddingBottom: Math.max(insets.bottom, 24),
+          backgroundColor: ONBOARDING_THEME.background,
+          borderTopWidth: 1,
+          borderTopColor: ONBOARDING_THEME.border,
+        }}
+      >
+        <View className="flex-row items-center" style={{ gap: 12 }}>
+          <View style={{ flex: 1 }}>
             <AppButton
               label="Quay lại"
               variant="secondary"
               onPress={handleBack}
               disabled={submitting || stepIndex === 0}
-              fullWidth={false}
-              style={{ flex: 1 }}
             />
+          </View>
 
+          <View style={{ flex: 2 }}>
             <AppButton
               label={isLastQuestion ? 'Xem kết quả' : 'Tiếp theo'}
               onPress={isLastQuestion ? openResultPreview : handleNext}
               disabled={!isCurrentAnswerSelected || submitting}
-              style={{ flex: 2 }}
             />
           </View>
+        </View>
 
-          {!resultPreview && errorVisible ? (
-            <View
+        {!resultPreview && errorVisible ? (
+          <View
+            style={{
+              marginTop: 14,
+              borderRadius: RADIUS.xl,
+              backgroundColor: PROFILE_THEME_COLORS.errorContainer,
+              paddingHorizontal: 16,
+              paddingVertical: SPACING.md,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <Text style={{ color: PROFILE_THEME_COLORS.error, fontSize: 14, fontFamily: SCREEN_FONTS.cta }}>Có lỗi xảy ra, thử lại nhé</Text>
+            <TouchableOpacity
+              activeOpacity={0.92}
+              onPress={openResultPreview}
               style={{
-                marginTop: 14,
-                borderRadius: RADIUS.xl,
-                backgroundColor: PROFILE_THEME_COLORS.errorContainer,
-                paddingHorizontal: 16,
-                paddingVertical: SPACING.md,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
+                borderRadius: RADIUS.full,
+                backgroundColor: PROFILE_THEME_COLORS.error,
+                paddingHorizontal: 12,
+                paddingVertical: 8,
               }}
             >
-              <Text style={{ color: PROFILE_THEME_COLORS.error, fontSize: 14, fontFamily: SCREEN_FONTS.cta }}>Có lỗi xảy ra, thử lại nhé</Text>
-              <TouchableOpacity
-                activeOpacity={0.92}
-                onPress={openResultPreview}
-                style={{
-                  borderRadius: RADIUS.full,
-                  backgroundColor: PROFILE_THEME_COLORS.error,
-                  paddingHorizontal: 12,
-                  paddingVertical: 8,
-                }}
-              >
-                <Text style={{ color: ONBOARDING_THEME.white, fontSize: 13, fontFamily: SCREEN_FONTS.cta }}>Thử lại</Text>
-              </TouchableOpacity>
-            </View>
-          ) : null}
-        </View>
-      </ScrollView>
+              <Text style={{ color: ONBOARDING_THEME.white, fontSize: 13, fontFamily: SCREEN_FONTS.cta }}>Thử lại</Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
+      </View>
 
       {resultPreview ? (
         <View
