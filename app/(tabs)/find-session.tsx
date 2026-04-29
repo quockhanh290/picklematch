@@ -10,9 +10,11 @@ import { getSkillLevelFromEloRange, getSkillLevelFromPlayer, getSkillScoreFromLe
 import { supabase } from '@/lib/supabase'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import * as Linking from 'expo-linking'
+import * as Location from 'expo-location'
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
 import {
     Map,
+    Navigation,
     Search,
     SlidersHorizontal,
     Sparkles,
@@ -304,15 +306,37 @@ export default function FindSession() {
     setRefreshing(false)
   }, [fetchPlayerProfile, fetchSessions])
 
-  const openMapSearch = useCallback(async () => {
-    const fallbackQuery = query.trim() || playerProfile?.city?.trim() || sessions[0]?.slot?.court?.city?.trim() || 'Hồ Chí Minh'
-    const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fallbackQuery)}`
+  const handleNearbyFilter = useCallback(async () => {
     try {
-      await Linking.openURL(url)
-    } catch {
-      Alert.alert('Không mở được bản đồ', 'Vui lòng thử lại sau ít phút.')
+      const { status } = await Location.requestForegroundPermissionsAsync()
+      if (status !== 'granted') {
+        Alert.alert('Quyền truy cập', 'Vui lòng cho phép ứng dụng truy cập vị trí để tìm các kèo gần bạn.')
+        return
+      }
+
+      setLoading(true)
+      
+      // Haptic feedback
+      try {
+        const { selectionAsync } = require('expo-haptics')
+        await selectionAsync()
+      } catch {}
+
+      const location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced })
+      
+      // Enable nearby filter
+      setQuickFilters(prev => ({ ...prev, nearby: true }))
+      
+      // Optional: If we want to be more specific, we could reverse geocode
+      // and set the query to the city name, but for now nearby flag is enough
+      
+    } catch (error) {
+      console.warn('[FindSession] nearby filter failed:', error)
+      Alert.alert('Lỗi', 'Không thể xác định vị trí của bạn lúc này.')
+    } finally {
+      setLoading(false)
     }
-  }, [playerProfile?.city, query, sessions])
+  }, [])
 
   const applySmartQueueFilters = useCallback(
     async (enabled: boolean) => {
@@ -467,7 +491,7 @@ export default function FindSession() {
         subtitle={loading ? 'Đang cập nhật...' : `${filteredSessions.length} kèo phù hợp`}
         rightElement={
           <Pressable
-            onPress={() => void openMapSearch()}
+            onPress={() => void handleNearbyFilter()}
             className="h-14 w-14 items-center justify-center rounded-full"
             style={{
               backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
@@ -475,7 +499,7 @@ export default function FindSession() {
               borderColor: PROFILE_THEME_COLORS.outlineVariant,
             }}
           >
-            <Map size={24} color={PROFILE_THEME_COLORS.primary} strokeWidth={2.4} />
+            <Navigation size={24} color={PROFILE_THEME_COLORS.primary} strokeWidth={2.4} />
           </Pressable>
         }
       />
@@ -633,7 +657,7 @@ export default function FindSession() {
 
       <View style={{ height: 4 }} />
     </View>
-  ), [loading, filteredSessions.length, query, activeAdvancedFiltersCount, preferredCourtFilter, sortMode, openMapSearch])
+  ), [loading, filteredSessions.length, query, activeAdvancedFiltersCount, preferredCourtFilter, sortMode, handleNearbyFilter])
 
   const listFooter = useMemo(() => (
     <View className="px-5 pb-10">

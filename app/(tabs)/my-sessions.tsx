@@ -1691,11 +1691,11 @@ function ExpandingCreateButton() {
         <View className="absolute left-[12px]">
           <Plus size={20} color="#FFFFFF" strokeWidth={2.5} />
         </View>
-        <Animated.View style={[{ marginLeft: 48 }, textStyle]}>
+        <Animated.View style={[{ marginLeft: 40 }, textStyle]}>
           <Text
             className="text-[14px] uppercase tracking-[0.5px]"
             numberOfLines={1}
-            style={{ color: '#FFFFFF', fontFamily: SCREEN_FONTS.headline }}
+            style={{ color: '#FFFFFF', fontFamily: SCREEN_FONTS.headline, top: 1 }}
           >
             Tạo kèo mới
           </Text>
