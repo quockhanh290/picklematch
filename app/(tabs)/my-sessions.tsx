@@ -32,8 +32,10 @@ import {
   Text,
   View,
 } from 'react-native'
+import { MainHeader } from '@/components/design'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
+import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming } from 'react-native-reanimated'
 
 
 const PROFILE_THEME_COLORS = {
@@ -1262,7 +1264,7 @@ export default function MySessions() {
   )
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: PROFILE_THEME_COLORS.background }} edges={['top']}>
+    <View className="flex-1" style={{ backgroundColor: PROFILE_THEME_COLORS.background }}>
       {loading ? (
         <View className="flex-1 items-center justify-center px-6">
           <ActivityIndicator size="large" color={PROFILE_THEME_COLORS.primary} />
@@ -1286,57 +1288,18 @@ export default function MySessions() {
             onEndReachedThreshold={0.25}
             ListHeaderComponent={
               <View className="mb-2">
-                <View className="flex-row items-center justify-between mb-4 mt-2">
-                  <View className="flex-1 pr-4">
-                    <Text
-                      style={{
-                        color: PROFILE_THEME_COLORS.onBackground,
-                        fontFamily: SCREEN_FONTS.headlineBlack,
-                        fontSize: 40,
-                        lineHeight: 48,
-                        letterSpacing: -1,
-                        textTransform: 'uppercase',
-                      }}
-                    >
-                      Kèo của tôi
-                    </Text>
-                    <Text
-                      style={{
-                        color: PROFILE_THEME_COLORS.onSurfaceVariant,
-                        fontFamily: SCREEN_FONTS.body,
-                        fontSize: 13,
-                        marginTop: -2,
-                      }}
-                    >
-                      {activeTab === 'history' ? `${activeTabCount} trận đã lưu` : `${activeTabCount} kèo đang xử lý`}
-                    </Text>
-                  </View>
-
-                  <Pressable
-                    onPress={() => router.push('/create-session' as never)}
-                    className="flex-row items-center rounded-full px-6 py-3"
-                    style={{
-                      backgroundColor: colors.primary,
-                      shadowColor: colors.primary,
-                      shadowOpacity: 0.2,
-                      shadowRadius: 12,
-                      shadowOffset: { width: 0, height: 6 },
-                    }}
-                  >
-                    <Plus size={16} color="#FFFFFF" strokeWidth={3} />
-                    <Text
-                      className="ml-2 text-[14px] uppercase tracking-[1px]"
-                      style={{ color: '#FFFFFF', fontFamily: SCREEN_FONTS.headline }}
-                    >
-                      Tạo kèo
-                    </Text>
-                  </Pressable>
-                </View>
+                <MainHeader
+                  title="Kèo của tôi"
+                  subtitle={activeTab === 'history' ? `${activeTabCount} trận đã lưu` : `${activeTabCount} kèo đang xử lý`}
+                  rightElement={<ExpandingCreateButton />}
+                  style={{ paddingHorizontal: 0 }}
+                />
 
                 <View
-                  className="rounded-[16px] p-1 flex-row gap-1"
+                  className="p-1 flex-row gap-1"
                   style={{
                     backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
+                    borderRadius: RADIUS.lg,
                     borderWidth: 1,
                     borderColor: PROFILE_THEME_COLORS.outlineVariant,
                   }}
@@ -1650,6 +1613,94 @@ export default function MySessions() {
 
         </View>
       )}
-    </SafeAreaView>
+    </View>
+  )
+}
+
+function ExpandingCreateButton() {
+  const [expanded, setExpanded] = useState(false)
+  const width = useSharedValue(44)
+  const opacity = useSharedValue(0)
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    width: width.value,
+  }))
+
+  const textStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }))
+
+  const handlePress = async () => {
+    if (!expanded) {
+      setExpanded(true)
+      // Haptic feedback for expansion
+      try {
+        const { selectionAsync } = require('expo-haptics')
+        await selectionAsync()
+      } catch {}
+
+      width.value = withSpring(160, { damping: 15, stiffness: 100 })
+      opacity.value = withTiming(1, { duration: 200 })
+
+      // Auto-collapse if not tapped again within 3 seconds
+      setTimeout(() => {
+        setExpanded((curr) => {
+          if (curr) {
+            width.value = withSpring(44)
+            opacity.value = withTiming(0)
+            return false
+          }
+          return curr
+        })
+      }, 3000)
+    } else {
+      // Haptic feedback for navigation
+      try {
+        const { notificationAsync, NotificationFeedbackType } = require('expo-haptics')
+        await notificationAsync(NotificationFeedbackType.Success)
+      } catch {}
+
+      router.push('/create-session' as never)
+      
+      // Reset immediately so it's clean when coming back
+      setTimeout(() => {
+        width.value = 44
+        opacity.value = 0
+        setExpanded(false)
+      }, 500)
+    }
+  }
+
+  return (
+    <Pressable onPress={handlePress}>
+      <Animated.View
+        className="flex-row items-center justify-center overflow-hidden rounded-full"
+        style={[
+          {
+            height: 44,
+            backgroundColor: colors.primary,
+            shadowColor: colors.primary,
+            shadowOpacity: 0.25,
+            shadowRadius: 10,
+            shadowOffset: { width: 0, height: 4 },
+            elevation: 4,
+          },
+          animatedStyle,
+        ]}
+      >
+        <View className="absolute left-[12px]">
+          <Plus size={20} color="#FFFFFF" strokeWidth={2.5} />
+        </View>
+        <Animated.View style={[{ marginLeft: 48 }, textStyle]}>
+          <Text
+            className="text-[14px] uppercase tracking-[0.5px]"
+            numberOfLines={1}
+            style={{ color: '#FFFFFF', fontFamily: SCREEN_FONTS.headline }}
+          >
+            Tạo kèo mới
+          </Text>
+        </Animated.View>
+      </Animated.View>
+    </Pressable>
   )
 }

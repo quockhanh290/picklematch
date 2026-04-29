@@ -311,7 +311,7 @@ export default function SessionDetailScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: PROFILE_THEME_COLORS.background }} edges={['top']}>
+    <View className="flex-1" style={{ backgroundColor: PROFILE_THEME_COLORS.background }}>
       <SecondaryNavbar
         onBackPress={() => router.back()}
         rightSlot={<NavbarShareButton onPress={handleShare} />}
@@ -357,6 +357,7 @@ export default function SessionDetailScreen() {
         contentContainerStyle={{
           paddingBottom: 48 + insets.bottom,
           paddingHorizontal: SPACING.xl,
+          paddingTop: 12,
         }}
       >
 
@@ -929,6 +930,6 @@ export default function SessionDetailScreen() {
         onSubmit={() => void sendJoinRequest()}
       />
       <AppDialog visible={dialogConfig !== null} config={dialogConfig} onClose={() => setDialogConfig(null)} />
-    </SafeAreaView>
+    </View>
   )
 }

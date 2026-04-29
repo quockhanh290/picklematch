@@ -22,7 +22,7 @@ import {
 } from 'lucide-react-native'
 import { useCallback, useEffect, useState } from 'react'
 import { ActivityIndicator, LayoutAnimation, Platform, ScrollView, Text, TouchableOpacity, UIManager, View } from 'react-native'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { RADIUS, SPACING, BORDER, SHADOW } from '@/constants/screenLayout'
 
@@ -614,7 +614,7 @@ export default function RateSessionScreen() {
 
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: 40 }}
+          contentContainerStyle={{ paddingHorizontal: SPACING.xl, paddingTop: 16, paddingBottom: 120 + insets.bottom }}
         >
           <View
             style={{

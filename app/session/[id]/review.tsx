@@ -1,4 +1,4 @@
-import { ScreenHeader } from '@/components/design'
+import { SecondaryNavbar } from '@/components/design'
 import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
 import { SessionMetaCard } from '@/components/session/SessionMetaCard'
 import { insertNotification } from '@/lib/notifications'
@@ -602,14 +602,14 @@ export default function HostReviewCenterScreen() {
   const sessionSkill = getSkillLevelFromEloRange(session.elo_min, session.elo_max)
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: PROFILE_THEME_COLORS.background }} edges={['top']}>
+    <View className="flex-1" style={{ backgroundColor: PROFILE_THEME_COLORS.background }}>
       <View className="flex-1">
-        <ScreenHeader variant="brand" title="KINETIC" onBackPress={() => router.back()} />
+        <SecondaryNavbar onBackPress={() => router.back()} />
         <ScrollView
           className="flex-1"
           contentContainerStyle={{
             paddingHorizontal: SPACING.xl,
-            paddingTop: 8,
+            paddingTop: 12,
             paddingBottom: 140 + insets.bottom,
           }}
           showsVerticalScrollIndicator={false}
@@ -712,6 +712,6 @@ export default function HostReviewCenterScreen() {
           </View>
         </View>
       </View>
-    </SafeAreaView>
+    </View>
   )
 }

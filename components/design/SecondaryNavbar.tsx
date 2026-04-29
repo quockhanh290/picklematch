@@ -3,12 +3,14 @@ import { router } from 'expo-router'
 import { ChevronLeft, Upload } from 'lucide-react-native'
 import type { ReactNode } from 'react'
 import { Image, Pressable, Text, View } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 type SecondaryNavbarProps = {
   rightSlot?: ReactNode
   progress?: number // 0 to 1
   showProgress?: boolean
   onBackPress?: () => void
+  style?: any
 }
 
 /**
@@ -20,11 +22,13 @@ export function SecondaryNavbar({
   progress,
   showProgress = false,
   onBackPress,
+  style,
 }: SecondaryNavbarProps) {
+  const insets = useSafeAreaInsets()
   const handleBack = onBackPress || (() => router.back())
 
   return (
-    <View style={{ backgroundColor: '#F2F0E8', zIndex: 100 }}>
+    <View style={[{ backgroundColor: '#F2F0E8', zIndex: 100, paddingTop: insets.top }, style]}>
       <View
         className="flex-row items-center justify-between"
         style={{

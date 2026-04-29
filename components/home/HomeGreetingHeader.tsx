@@ -2,6 +2,8 @@ import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { router } from 'expo-router'
 import { Image, Pressable, Text, View } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { SPACING } from '@/constants/screenLayout'
 
 function getGreetingLabel() {
   const hour = new Date().getHours()
@@ -23,9 +25,18 @@ export function HomeGreetingHeader({
 }) {
   const displayName = name.trim() || 'Bạn'
   const initial = displayName.charAt(0).toUpperCase()
+  const insets = useSafeAreaInsets()
 
   return (
-    <View className="flex-row items-center justify-between">
+    <View
+      style={{
+        paddingTop: insets.top + 20,
+        paddingHorizontal: SPACING.xl,
+        paddingBottom: 16,
+        backgroundColor: PROFILE_THEME_COLORS.background,
+      }}
+    >
+      <View className="flex-row items-center justify-between">
       <View className="min-w-0 flex-1 pr-4">
         <Text
           className="mb-[3px] text-[11px]"
@@ -74,6 +85,7 @@ export function HomeGreetingHeader({
           </Text>
         )}
       </Pressable>
+      </View>
     </View>
   )
 }

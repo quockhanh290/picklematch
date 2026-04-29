@@ -137,7 +137,7 @@ export function CreateSessionStep3({
             />
 
             {/* Progress bar */}
-            <View style={{ height: 3, backgroundColor: PROFILE_THEME_COLORS.outlineVariant, borderRadius: RADIUS.full, marginTop: 12, marginBottom: 16, overflow: 'hidden' }}>
+            <View style={{ height: 3, backgroundColor: PROFILE_THEME_COLORS.outlineVariant, borderRadius: RADIUS.full, marginTop: 12, marginBottom: 24, overflow: 'hidden' }}>
               <View style={{ height: '100%', width: '100%', backgroundColor: PROFILE_THEME_COLORS.primary, borderRadius: RADIUS.full }} />
             </View>
           </>
@@ -145,8 +145,8 @@ export function CreateSessionStep3({
 
         {/* Step title */}
         <View style={{ marginBottom: 20 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8, marginBottom: 6 }}>
-            <Text style={{ fontFamily: SCREEN_FONTS.headlineItalic, fontSize: 52, color: PROFILE_THEME_COLORS.primary, lineHeight: 44, opacity: 0.2, letterSpacing: -1 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 4, marginBottom: 6 }}>
+            <Text style={{ fontFamily: SCREEN_FONTS.headlineItalic, fontSize: 52, color: PROFILE_THEME_COLORS.primary, lineHeight: 54, opacity: 0.2, letterSpacing: -1, paddingRight: 6, paddingTop: 6 }}>
               03
             </Text>
             <Text

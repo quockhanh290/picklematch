@@ -334,7 +334,7 @@ export function CreateSessionStep1({
               />
 
               {/* Progress bar */}
-              <View style={{ height: 3, backgroundColor: '#E5E3DC', borderRadius: RADIUS.full, marginTop: 12, marginBottom: 16, overflow: 'hidden' }}>
+              <View style={{ height: 3, backgroundColor: '#E5E3DC', borderRadius: RADIUS.full, marginTop: 12, marginBottom: 24, overflow: 'hidden' }}>
                 <View style={{ height: '100%', width: '33%', backgroundColor: '#0F6E56', borderRadius: RADIUS.full }} />
               </View>
             </>
@@ -342,8 +342,8 @@ export function CreateSessionStep1({
 
           {/* Step title */}
           <View style={{ marginBottom: 20 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8, marginBottom: 6 }}>
-              <Text style={{ fontFamily: SCREEN_FONTS.headlineItalic, fontSize: 52, color: '#0F6E56', lineHeight: 44, opacity: 0.2, letterSpacing: -1 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 4, marginBottom: 6 }}>
+              <Text style={{ fontFamily: SCREEN_FONTS.headlineItalic, fontSize: 52, color: '#0F6E56', lineHeight: 54, opacity: 0.2, letterSpacing: -1, paddingRight: 6, paddingTop: 6 }}>
                 01
               </Text>
               <Text
@@ -355,7 +355,7 @@ export function CreateSessionStep1({
                 Chọn Sân & Ngày giờ
               </Text>
             </View>
-            <View style={{ width: 32, height: 3, backgroundColor: '#5DCAA5', borderRadius: 2 }} />
+            <View style={{ width: 32, height: 3, backgroundColor: PROFILE_THEME_COLORS.tertiary, borderRadius: 2 }} />
           </View>
 
           <SectionDivider index="01" title="Chọn sân" />

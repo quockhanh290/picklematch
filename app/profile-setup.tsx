@@ -1,4 +1,4 @@
-import { AppButton, AppInput, ScreenHeader, SectionCard } from '@/components/design'
+import { AppButton, AppInput, SecondaryNavbar, SectionCard } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { getEloBandByLegacySkillLabel } from '@/lib/eloSystem'
 import { supabase } from '@/lib/supabase'
@@ -54,13 +54,17 @@ export default function ProfileSetup() {
   }
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: PROFILE_THEME_COLORS.background }} edges={['top']}>
-      <ScrollView stickyHeaderIndices={[0]} contentContainerStyle={{ paddingBottom: 40 }}>
-        <ScreenHeader
-          eyebrow="Bắt đầu"
-          title="Tạo hồ sơ của bạn"
-          subtitle="Điền vài thông tin cơ bản trước, rồi app sẽ gợi ý mức khởi điểm phù hợp cho bạn ở bước tiếp theo."
-        />
+    <View className="flex-1" style={{ backgroundColor: PROFILE_THEME_COLORS.background }}>
+      <SecondaryNavbar onBackPress={() => router.back()} />
+      <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
+
+        <View className="px-5 py-6">
+          <Text className="text-[11px] uppercase tracking-[2px] mb-2" style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.cta }}>Bắt đầu</Text>
+          <Text className="text-3xl mb-3" style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.bold }}>Tạo hồ sơ của bạn</Text>
+          <Text className="text-sm leading-6" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body }}>
+            Điền vài thông tin cơ bản trước, rồi app sẽ gợi ý mức khởi điểm phù hợp cho bạn ở bước tiếp theo.
+          </Text>
+        </View>
 
         <View className="px-5">
           <SectionCard title="Thông tin cơ bản" subtitle="Thông tin này sẽ được dùng để hiển thị hồ sơ và gợi ý kèo phù hợp." className="mb-4">
@@ -93,6 +97,6 @@ export default function ProfileSetup() {
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   )
 }

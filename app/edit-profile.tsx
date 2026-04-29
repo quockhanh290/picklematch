@@ -1,4 +1,4 @@
-import { AppInput, EmptyState, ScreenHeader, StatusBadge } from '@/components/design'
+import { AppInput, EmptyState, SecondaryNavbar, NavbarUserAvatar, StatusBadge } from '@/components/design'
 import { PROFILE_SKILL_HERO_TONE, ProfileSkillHero } from '@/components/profile/ProfileSections'
 import { PROFILE_THEME_COLORS as EDIT_PROFILE_COLORS } from '@/components/profile/profileTheme'
 import { getEloBandByLegacySkillLabel } from '@/lib/eloSystem'
@@ -250,34 +250,16 @@ export default function EditProfile() {
   }
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: EDIT_PROFILE_COLORS.background }} edges={['top']}>
+    <View className="flex-1" style={{ backgroundColor: EDIT_PROFILE_COLORS.background }}>
       <StatusBar style="dark" translucent backgroundColor={EDIT_PROFILE_COLORS.background} />
 
-      <ScrollView ref={scrollViewRef} contentContainerStyle={{ paddingBottom: 325 }} keyboardShouldPersistTaps="always" keyboardDismissMode="on-drag">
-        <ScreenHeader
-          variant="brand"
-          title="KINETIC"
-          leftSlot={
-            <TouchableOpacity
-              activeOpacity={0.8}
-              className="h-10 w-10 items-center justify-center"
-              onPress={() => router.back()}
-            >
-              <Menu size={18} color={EDIT_PROFILE_COLORS.onPrimaryFixedVariant} />
-            </TouchableOpacity>
-          }
-          rightSlot={
-            <View
-              className="h-10 w-10 items-center justify-center rounded-full border-2"
-              style={{ borderColor: EDIT_PROFILE_COLORS.primaryFixed, backgroundColor: EDIT_PROFILE_COLORS.primary }}
-            >
-              <Text className="text-sm" style={{ color: EDIT_PROFILE_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta }}>
-                {(name || 'U').charAt(0).toUpperCase()}
-              </Text>
-            </View>
-          }
-          style={{ backgroundColor: EDIT_PROFILE_COLORS.surfaceContainerLow }}
-        />
+      <SecondaryNavbar
+        onBackPress={() => router.back()}
+        rightSlot={
+          <NavbarUserAvatar />
+        }
+      />
+      <ScrollView ref={scrollViewRef} contentContainerStyle={{ paddingBottom: 325, paddingTop: 12 }} keyboardShouldPersistTaps="always" keyboardDismissMode="on-drag">
 
         <View className="px-6 pb-8 pt-4">
           <View style={{ paddingTop: 4, paddingBottom: 6 }}>
@@ -634,7 +616,7 @@ export default function EditProfile() {
           </TouchableOpacity>
         </View>
       </View>
-    </SafeAreaView>
+    </View>
   )
 }
 

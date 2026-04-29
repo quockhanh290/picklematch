@@ -29,6 +29,7 @@ import {
 import { supabase } from '@/lib/supabase'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
+import { SecondaryNavbar } from '@/components/design'
 
 type AnswerLabels = Partial<Record<OnboardingQuestionId, string>>
 type AnswerScores = Partial<Record<OnboardingQuestionId, number>>
@@ -220,11 +221,16 @@ export default function OnboardingScreen() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: ELECTRIC.smoke }} edges={['left', 'right']}>
-      <StatusBar style="light" translucent backgroundColor="transparent" />
+    <View style={{ flex: 1, backgroundColor: ELECTRIC.smoke }}>
+      <StatusBar style="dark" translucent backgroundColor="#F2F0E8" />
+      <SecondaryNavbar
+        showProgress
+        progress={progress / 100}
+        onBackPress={handleBack}
+      />
       <ScrollView
         bounces={false}
-        contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 20) }}
+        contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 20), paddingTop: 12 }}
         showsVerticalScrollIndicator={false}
       >
         <View style={{ minHeight: heroMinHeight, backgroundColor: ELECTRIC.emeraldDark }}>
@@ -260,30 +266,9 @@ export default function OnboardingScreen() {
             }}
           />
 
-          <View style={{ paddingTop: heroTopPadding, paddingHorizontal: SPACING.xl, paddingBottom: 32 }}>
+          <View style={{ paddingTop: 20, paddingHorizontal: SPACING.xl, paddingBottom: 32 }}>
             <View className="flex-row items-center justify-between">
-              <Pressable
-                onPress={() => (resultPreview ? setResultPreview(null) : stepIndex > 0 ? handleBack() : router.back())}
-                disabled={submitting}
-                className="h-12 w-12 items-center justify-center rounded-full"
-                style={{
-                  backgroundColor: 'rgba(255,255,255,0.08)',
-                  borderWidth: BORDER.base,
-                  borderColor: 'rgba(255,255,255,0.14)',
-                  opacity: submitting ? 0.5 : 1,
-                }}
-              >
-                <ArrowLeft size={20} color={ELECTRIC.white} />
-              </Pressable>
-
-              <View
-                className="rounded-full px-4 py-2"
-                style={{ backgroundColor: 'rgba(236,253,245,0.18)', borderWidth: BORDER.base, borderColor: 'rgba(236,253,245,0.38)' }}
-              >
-                <Text style={{ color: PROFILE_THEME_COLORS.onPrimaryContainer, fontSize: 11, letterSpacing: 1.2, fontFamily: SCREEN_FONTS.cta }}>
-                  ELECTRIC COURT
-                </Text>
-              </View>
+              {/* Previous header row removed in favor of SecondaryNavbar */}
             </View>
 
             <View style={{ marginTop: 34 }}>
@@ -353,25 +338,7 @@ export default function OnboardingScreen() {
                 </Text>
               </View>
             </View>
-
-            <View
-              style={{
-                marginTop: 14,
-                height: 10,
-                borderRadius: RADIUS.full,
-                backgroundColor: 'rgba(255,255,255,0.22)',
-                overflow: 'hidden',
-              }}
-            >
-              <View
-                style={{
-                  width: `${progress}%`,
-                  height: '100%',
-                  borderRadius: RADIUS.full,
-                  backgroundColor: PROFILE_THEME_COLORS.primaryFixedDim,
-                }}
-              />
-            </View>
+            {/* Progress bar moved to SecondaryNavbar */}
           </View>
         </View>
 
@@ -735,6 +702,6 @@ export default function OnboardingScreen() {
           </View>
         </View>
       ) : null}
-    </SafeAreaView>
+    </View>
   )
 }

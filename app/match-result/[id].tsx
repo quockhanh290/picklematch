@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context'
 
 import { AppDialog, type AppDialogConfig, NavbarDoneButton, SecondaryNavbar } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
@@ -610,7 +610,7 @@ export default function MatchResultEntryScreen() {
       />
       <View style={{ flex: 1 }}>
         <ScrollView 
-          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
+          contentContainerStyle={{ paddingHorizontal: SPACING.xl, paddingBottom: insets.bottom + 40, paddingTop: 16 }}
           showsVerticalScrollIndicator={false}
         >
 

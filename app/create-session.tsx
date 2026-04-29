@@ -543,7 +543,7 @@ export default function CreateSession() {
   const progressMap = { 1: 0.33, 2: 0.66, 3: 1 }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#F2F0E8' }} edges={['top']}>
+    <View style={{ flex: 1, backgroundColor: '#F2F0E8' }}>
       <SecondaryNavbar
         showProgress
         progress={progressMap[step]}
@@ -554,7 +554,7 @@ export default function CreateSession() {
           else if (step === 3) setStep(2)
         }}
       />
-      <View style={{ flex: 1, backgroundColor: PROFILE_THEME_COLORS.background, paddingHorizontal: SPACING.xl }}>
+      <View style={{ flex: 1, backgroundColor: PROFILE_THEME_COLORS.background, paddingHorizontal: SPACING.xl, paddingTop: 16 }}>
         {step === 1 && (
           <CreateSessionStep1
             onBack={() => router.back()}
@@ -666,6 +666,6 @@ export default function CreateSession() {
           />
         )}
       </View>
-    </SafeAreaView>
+    </View>
   )
 }

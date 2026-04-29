@@ -29,8 +29,9 @@ import {
     TextInput,
     View,
 } from 'react-native'
+import { MainHeader } from '@/components/design'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { SPACING, BORDER } from '@/constants/screenLayout'
+import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
 
 type Session = {
   id: string
@@ -461,52 +462,31 @@ export default function FindSession() {
 
   const listHeader = useMemo(() => (
     <View>
-      {/* Page title */}
-      <View className="flex-row items-center justify-between px-5 pt-5 pb-4 mt-2">
-        <View className="flex-1 pr-4">
-          <Text
+      <MainHeader
+        title="Tìm kèo"
+        subtitle={loading ? 'Đang cập nhật...' : `${filteredSessions.length} kèo phù hợp`}
+        rightElement={
+          <Pressable
+            onPress={() => void openMapSearch()}
+            className="h-14 w-14 items-center justify-center rounded-full"
             style={{
-              color: PROFILE_THEME_COLORS.onBackground,
-              fontFamily: SCREEN_FONTS.headlineBlack,
-              fontSize: 40,
-              lineHeight: 48,
-              letterSpacing: -1,
-              textTransform: 'uppercase',
+              backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
+              borderWidth: 1,
+              borderColor: PROFILE_THEME_COLORS.outlineVariant,
             }}
           >
-            Tìm kèo
-          </Text>
-          <Text
-            style={{
-              color: PROFILE_THEME_COLORS.onSurfaceVariant,
-              fontFamily: SCREEN_FONTS.body,
-              fontSize: 13,
-              marginTop: 2,
-            }}
-          >
-            {loading ? 'Đang cập nhật...' : `${filteredSessions.length} kèo phù hợp`}
-          </Text>
-        </View>
-
-        <Pressable
-          onPress={() => void openMapSearch()}
-          className="h-14 w-14 items-center justify-center rounded-full"
-          style={{
-            backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
-            borderWidth: 1,
-            borderColor: PROFILE_THEME_COLORS.outlineVariant,
-          }}
-        >
-          <Map size={24} color={PROFILE_THEME_COLORS.primary} strokeWidth={2.4} />
-        </Pressable>
-      </View>
+            <Map size={24} color={PROFILE_THEME_COLORS.primary} strokeWidth={2.4} />
+          </Pressable>
+        }
+      />
 
       {/* Search bar */}
       <View className="px-5 pb-4">
         <View
-          className="h-14 flex-row items-center rounded-[18px] px-4"
+          className="h-14 flex-row items-center px-4"
           style={{
             backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
+            borderRadius: RADIUS.lg,
             borderWidth: 1,
             borderColor: PROFILE_THEME_COLORS.outlineVariant,
           }}
@@ -537,10 +517,11 @@ export default function FindSession() {
       <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: SPACING.xl, paddingBottom: 16, columnGap: 8 }}>
         <Pressable
           onPress={() => setFilterModalVisible(true)}
-          className="flex-row items-center justify-center rounded-full px-4 py-2.5"
+          className="flex-row items-center justify-center px-4 py-2.5"
           style={{
             minWidth: 152,
             backgroundColor: activeAdvancedFiltersCount > 0 ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surfaceContainerLow,
+            borderRadius: RADIUS.full,
             borderWidth: BORDER.base,
             borderColor: activeAdvancedFiltersCount > 0 ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
           }}
@@ -564,9 +545,10 @@ export default function FindSession() {
         </Pressable>
 
         <View
-          className="flex-1 flex-row items-center rounded-full p-1"
+          className="flex-1 flex-row items-center p-1"
           style={{
             backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
+            borderRadius: RADIUS.full,
             borderWidth: BORDER.base,
             borderColor: PROFILE_THEME_COLORS.outlineVariant,
           }}
@@ -744,7 +726,7 @@ export default function FindSession() {
   ), [loading, filteredSessions.length, smartQueueEnabled, smartQueueHydrated, playerProfile?.city, applySmartQueueFilters])
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: PROFILE_THEME_COLORS.background }} edges={['top']}>
+    <View className="flex-1" style={{ backgroundColor: PROFILE_THEME_COLORS.background }}>
       {loading ? (
         <View className="flex-1">
           {listHeader}
@@ -786,7 +768,7 @@ export default function FindSession() {
         districts={allDistricts}
         skillLevels={skillLevels}
       />
-    </SafeAreaView>
+    </View>
   )
 }
 

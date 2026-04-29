@@ -1,4 +1,4 @@
-import { AppButton, EmptyState, ScreenHeader } from '@/components/design'
+import { AppButton, EmptyState, SecondaryNavbar, NavbarShareButton } from '@/components/design'
 import type { FeedbackTrait } from '@/components/profile/CommunityFeedbackSection'
 import CommunityFeedbackPanel from '@/components/profile/CommunityFeedbackSection'
 import { ProfileHistoryList, ProfileSkillHero, ProfileWinStreak } from '@/components/profile/ProfileSections'
@@ -7,9 +7,10 @@ import { FEEDBACK_META, calculateReliabilityScore } from '@/lib/profileData'
 import { getSkillLevelFromElo, getSkillLevelFromPlayer } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
-import { CalendarDays, CircleAlert, MapPin, Swords } from 'lucide-react-native'
+import * as Linking from 'expo-linking'
+import { CalendarDays, CircleAlert, MapPin, Share, Swords } from 'lucide-react-native'
 import { useCallback, useMemo, useState } from 'react'
-import { ActivityIndicator, ScrollView, Text, View, useWindowDimensions } from 'react-native'
+import { ActivityIndicator, ScrollView, Text, View, useWindowDimensions, Share as RNShare } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { SCREEN_FONTS } from '@/constants/typography'
 
@@ -276,25 +277,22 @@ export default function PlayerProfile() {
     return `${weekday} ${day} · ${hh}:${mm}`
   }
 
+  async function handleShare() {
+    try {
+      const url = Linking.createURL(`/player/${id}`)
+      await RNShare.share({ message: `Xem hồ sơ người chơi Pickleball này nhé! ${url}` })
+    } catch (error) {
+      console.warn('[PlayerProfile] Failed to share profile:', error)
+    }
+  }
+
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: PROFILE_THEME_COLORS.background }} edges={['top']}>
-      <ScrollView stickyHeaderIndices={[0]} contentContainerStyle={{ paddingBottom: 72 }}>
-        <ScreenHeader
-          variant="brand"
-          title="KINETIC"
-          subtitle="Hồ sơ công khai"
-          rightSlot={
-            <View
-              className="h-10 w-10 items-center justify-center rounded-full border-2"
-              style={{ borderColor: PROFILE_THEME_COLORS.primaryFixed, backgroundColor: PROFILE_THEME_COLORS.primary }}
-            >
-              <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta }}>
-                {player.name?.charAt(0).toUpperCase() ?? 'U'}
-              </Text>
-            </View>
-          }
-          style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow }}
-        />
+    <View className="flex-1" style={{ backgroundColor: PROFILE_THEME_COLORS.background }}>
+      <SecondaryNavbar
+        onBackPress={() => router.back()}
+        rightSlot={<NavbarShareButton onPress={handleShare} />}
+      />
+      <ScrollView contentContainerStyle={{ paddingBottom: 72 }}>
 
         <View className="px-6 pt-6">
           <View>
@@ -558,7 +556,7 @@ export default function PlayerProfile() {
           ) : null}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   )
 }
 

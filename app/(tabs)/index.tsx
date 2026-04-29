@@ -155,15 +155,15 @@ export default function HomeScreen() {
   )
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: PROFILE_THEME_COLORS.background }} edges={['top']}>
-      <View className="flex-1" style={{ backgroundColor: PROFILE_THEME_COLORS.background }}>
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: SPACING.xl, paddingTop: 16, paddingBottom: 160 }}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />}
-        >
-          <HomeGreetingHeader name={profile?.name ?? 'Bạn'} statusPrompt={statusPrompt} />
+    <View className="flex-1" style={{ backgroundColor: PROFILE_THEME_COLORS.background }}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 160 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />}
+      >
+        <HomeGreetingHeader name={profile?.name ?? 'Bạn'} statusPrompt={statusPrompt} />
 
+        <View style={{ paddingHorizontal: SPACING.xl }}>
           <HomeStreakCard current={displayWinStreak} />
 
           <PostMatchInboxSection pendingMatches={pendingMatches} postMatchActions={postMatchActions} marginTopClassName="mt-3" />
@@ -227,7 +227,8 @@ export default function HomeScreen() {
             onIndexChange={setCourtIndex}
             renderCard={renderCourtCard}
           />
-        </ScrollView>
+        </View>
+      </ScrollView>
 
         <Pressable
           onPress={() => router.push('/create-session' as never)}
@@ -250,6 +251,5 @@ export default function HomeScreen() {
           </Text>
         </Pressable>
       </View>
-    </SafeAreaView>
   )
 }

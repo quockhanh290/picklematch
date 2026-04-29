@@ -38,7 +38,8 @@ import {
 } from 'lucide-react-native'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
+import { SPACING } from '@/constants/screenLayout'
 
 const PROFILE_PAGE_COLORS = PROFILE_THEME_COLORS
 
@@ -158,6 +159,7 @@ const PROFILE_MOCK_HISTORY: SessionHistory[] = [
 ]
 
 export default function ProfileScreenContent() {
+  const insets = useSafeAreaInsets()
   const theme = useAppTheme()
   const { width } = useWindowDimensions()
   const [checking, setChecking] = useState(true)
@@ -231,15 +233,15 @@ export default function ProfileScreenContent() {
 
   if (checking) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center" style={{ backgroundColor: theme.backgroundMuted }} edges={['top']}>
+      <View className="flex-1 items-center justify-center" style={{ backgroundColor: theme.backgroundMuted, paddingTop: insets.top }}>
         <ActivityIndicator size="large" color={theme.primary} />
-      </SafeAreaView>
+      </View>
     )
   }
 
   if (!loggedIn) {
     return (
-      <SafeAreaView className="flex-1" style={{ backgroundColor: theme.backgroundMuted }} edges={['top']}>
+      <View className="flex-1" style={{ backgroundColor: theme.backgroundMuted, paddingTop: insets.top }}>
         <ScreenHeader
           compact
           title="Hồ sơ"
@@ -253,27 +255,27 @@ export default function ProfileScreenContent() {
           <AppButton label="Đăng nhập" onPress={() => router.push('/login' as any)} />
           <AppButton label="Về trang chủ" onPress={() => router.replace('/(tabs)')} variant="secondary" />
         </View>
-      </SafeAreaView>
+      </View>
     )
   }
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center" style={{ backgroundColor: theme.backgroundMuted }} edges={['top']}>
+      <View className="flex-1 items-center justify-center" style={{ backgroundColor: theme.backgroundMuted, paddingTop: insets.top }}>
         <ActivityIndicator size="large" color={theme.primary} />
-      </SafeAreaView>
+      </View>
     )
   }
 
   if (!player) {
     return (
-      <SafeAreaView className="flex-1" style={{ backgroundColor: theme.backgroundMuted }} edges={['top']}>
+      <View className="flex-1" style={{ backgroundColor: theme.backgroundMuted, paddingTop: insets.top }}>
         <EmptyState
           icon={<CircleAlert size={28} color={PROFILE_THEME_COLORS.outline} />}
           title="Không tìm thấy hồ sơ"
           description="Thử tải lại hoặc đăng nhập lại để tiếp tục."
         />
-      </SafeAreaView>
+      </View>
     )
   }
 
@@ -298,9 +300,9 @@ export default function ProfileScreenContent() {
   const displayHistory = history.length > 0 ? history : PROFILE_MOCK_HISTORY
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: PROFILE_PAGE_COLORS.background }} edges={['top']}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 96 }}>
-        <View className="px-6 pt-6">
+    <View className="flex-1" style={{ backgroundColor: PROFILE_PAGE_COLORS.background }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 96 }} showsVerticalScrollIndicator={false}>
+        <View style={{ paddingTop: insets.top + 20, paddingHorizontal: SPACING.xl }}>
           <View className="pt-4 pb-6">
             <View className="flex-row items-end justify-between gap-3">
               <View className="flex-1 flex-row items-end flex-wrap gap-2">
@@ -457,7 +459,7 @@ export default function ProfileScreenContent() {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   )
 }
 
