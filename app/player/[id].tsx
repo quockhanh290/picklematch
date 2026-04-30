@@ -2,7 +2,7 @@ import { AppButton, AppLoading, EmptyState, SecondaryNavbar, NavbarShareButton }
 import type { FeedbackTrait } from '@/components/profile/CommunityFeedbackSection'
 import CommunityFeedbackPanel from '@/components/profile/CommunityFeedbackSection'
 import { ProfileHistoryList, ProfileSkillHero, ProfileWinStreak } from '@/components/profile/ProfileSections'
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/constants/theme/profileTheme'
 import { FEEDBACK_META, calculateReliabilityScore } from '@/lib/profileData'
 import { getSkillLevelFromElo, getSkillLevelFromPlayer } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'

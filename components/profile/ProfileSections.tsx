@@ -1,4 +1,4 @@
-import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC, getHistoryResultPalette } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC, getHistoryResultPalette } from '@/constants/theme/profileTheme'
 import { SCREEN_FONTS } from '@/constants/typography'
 import type { SkillAssessmentLevel } from '@/lib/skillAssessment'
 import { getSkillLevelUi } from '@/lib/skillLevelUi'

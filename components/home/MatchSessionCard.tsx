@@ -6,7 +6,7 @@ import type { GestureResponderEvent } from 'react-native'
 import { useEffect, useMemo, useState } from 'react'
 import { Pressable, Text, View } from 'react-native'
 
-import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/theme/profileTheme'
 import { colors } from '@/constants/colors'
 import { AppFontSet } from '@/constants/typography'
 import type { MatchSession } from '@/lib/homeFeed'

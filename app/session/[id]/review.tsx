@@ -1,5 +1,5 @@
 import { AppDialog, type AppDialogConfig, SecondaryNavbar } from '@/components/design'
-import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/theme/profileTheme'
 import { SessionMetaCard } from '@/components/session/SessionMetaCard'
 import { insertNotification } from '@/lib/notifications'
 import { formatPricePerPerson } from '@/lib/sessionDetail'

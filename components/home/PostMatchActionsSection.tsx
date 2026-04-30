@@ -1,7 +1,7 @@
 import { router } from 'expo-router'
 import { AlertTriangle, CheckCheck, Clock3 } from 'lucide-react-native'
 import { Pressable, Text, View } from 'react-native'
-import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/theme/profileTheme'
 
 import type { PostMatchAction } from '@/lib/homeFeed'
 

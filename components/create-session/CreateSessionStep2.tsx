@@ -1,5 +1,5 @@
 import { ScreenHeader } from '@/components/design'
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/constants/theme/profileTheme'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { UserRound, Users } from 'lucide-react-native'
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native'

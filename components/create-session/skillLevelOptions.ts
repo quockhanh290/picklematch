@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react-native'
 import { Activity, Diamond, Sparkles, Swords, Trophy } from 'lucide-react-native'
-import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/theme/profileTheme'
 
 export type CreateSessionSkillOption = {
   id: number

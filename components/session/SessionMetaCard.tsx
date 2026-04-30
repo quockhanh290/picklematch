@@ -1,4 +1,4 @@
-import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/theme/profileTheme'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { getSkillLevelUi } from '@/lib/skillLevelUi'
 import { MapPin, MessageSquareText } from 'lucide-react-native'

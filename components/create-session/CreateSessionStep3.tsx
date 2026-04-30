@@ -1,6 +1,6 @@
 import { ScreenHeader } from '@/components/design'
 import { MatchSessionCard } from '@/components/home/MatchSessionCard'
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/constants/theme/profileTheme'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { type MatchSession, getStatusLabel } from '@/lib/homeFeed'
 import type { NearByCourt } from '@/lib/useNearbyCourts'

@@ -1,6 +1,7 @@
 import { NotificationsProvider } from '@/lib/NotificationsContext'
 import { AppThemeProvider } from '@/lib/theme-context'
 import { useAuth } from '@/lib/useAuth'
+import { supabase } from '@/lib/supabase'
 import { BarlowCondensed_700Bold, BarlowCondensed_700Bold_Italic, BarlowCondensed_900Black } from '@expo-google-fonts/barlow-condensed'
 import { PlusJakartaSans_400Regular } from '@expo-google-fonts/plus-jakarta-sans/400Regular'
 import { PlusJakartaSans_500Medium } from '@expo-google-fonts/plus-jakarta-sans/500Medium'
@@ -44,14 +45,44 @@ export default function RootLayout() {
 
     const firstSegment = segments[0] ?? ''
     const isPublicRoute = firstSegment === 'login'
+    const isOnboardingRoute = firstSegment === 'onboarding'
 
     if (!userId && !isPublicRoute) {
       router.replace('/login')
       return
     }
 
-    if (userId && isPublicRoute) {
-      router.replace('/(tabs)')
+    if (userId) {
+      if (isPublicRoute) {
+        router.replace('/(tabs)')
+        return
+      }
+
+      // Onboarding Guard
+      const checkOnboarding = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('players')
+            .select('onboarding_completed')
+            .eq('id', userId)
+            .maybeSingle()
+
+          if (error) {
+            console.error('[RootLayout] Failed to check onboarding status:', error.message)
+            return
+          }
+
+          if (data && !data.onboarding_completed && !isOnboardingRoute) {
+            router.replace('/onboarding')
+          } else if (data?.onboarding_completed && isOnboardingRoute) {
+            router.replace('/(tabs)')
+          }
+        } catch (e) {
+          console.error('[RootLayout] Onboarding check error:', e)
+        }
+      }
+
+      checkOnboarding()
     }
   }, [fontsLoaded, isLoading, router, segments, userId])
 

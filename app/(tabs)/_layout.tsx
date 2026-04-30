@@ -1,4 +1,4 @@
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/constants/theme/profileTheme'
 import { AppFontSet } from '@/constants/typography'
 import { useNotificationsContext } from '@/lib/NotificationsContext'
 import { Tabs } from 'expo-router'

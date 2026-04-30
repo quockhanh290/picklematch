@@ -1,5 +1,5 @@
 import { AppButton, AppDialog, type AppDialogConfig, AppInput, SecondaryNavbar, SectionCard } from '@/components/design'
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/constants/theme/profileTheme'
 import { getEloBandByLegacySkillLabel } from '@/lib/eloSystem'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { supabase } from '@/lib/supabase'

@@ -1,4 +1,4 @@
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/constants/theme/profileTheme'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { ReactNode } from 'react'
 import { Text, View, ViewStyle } from 'react-native'

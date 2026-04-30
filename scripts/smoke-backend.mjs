@@ -4,9 +4,7 @@ import { createClient } from '@supabase/supabase-js'
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://mzqsxgfvtgmsscbqugni.supabase.co'
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
-const SUPABASE_ANON_KEY =
-  process.env.SUPABASE_ANON_KEY ||
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16cXN4Z2Z2dGdtc3NjYnF1Z25pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NjI4NzIsImV4cCI6MjA4OTUzODg3Mn0.U4aLAFVO64PmR4E_1QJh-6mt1wiayj2wrPpKTbDv4j8'
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY
 const DUMMY_PASSWORD = process.env.DUMMY_PASSWORD || 'Pickle123!'
 
 if (!SUPABASE_SERVICE_ROLE_KEY) {

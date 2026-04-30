@@ -1,7 +1,7 @@
 import { MapPin, Search } from 'lucide-react-native'
 import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from 'react-native'
 
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/constants/theme/profileTheme'
 import type { NearByCourt } from '@/lib/useNearbyCourts'
 
 type Props = {

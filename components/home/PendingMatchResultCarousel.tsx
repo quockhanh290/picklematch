@@ -2,7 +2,7 @@ import { router } from 'expo-router'
 import { Hand, LayoutList } from 'lucide-react-native'
 import { Dimensions, Pressable, ScrollView, Text, View } from 'react-native'
 
-import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/theme/profileTheme'
 import type { PendingMatch } from '@/lib/homeFeed'
 
 const screenWidth = Dimensions.get('window').width

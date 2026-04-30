@@ -25,7 +25,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { AppDialog, type AppDialogConfig, AppLoading, NavbarShareButton, SecondaryNavbar } from '@/components/design'
-import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/theme/profileTheme'
 import { JoinRequestModal } from '@/components/session/JoinRequestModal'
 import { PlayerRosterSection } from '@/components/session/PlayerRosterSection'
 import { SessionMetaCard } from '@/components/session/SessionMetaCard'

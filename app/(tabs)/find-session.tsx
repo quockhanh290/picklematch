@@ -4,7 +4,7 @@ import {
     AdvancedSessionFilterModal,
 } from '@/components/find-session/AdvancedSessionFilterModal'
 import { AppDialog, AppLoading, type AppDialogConfig, MainHeader } from '@/components/design'
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/constants/theme/profileTheme'
 import SessionCard from '@/components/sessions/SessionCard'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { getSkillLevelFromEloRange, getSkillLevelFromPlayer, getSkillScoreFromLevelId } from '@/lib/skillAssessment'

@@ -1,7 +1,7 @@
 import { Home, MapPin, Zap } from 'lucide-react-native'
 import { ImageBackground, Pressable, Text, View } from 'react-native'
 
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/constants/theme/profileTheme'
 import { RADIUS, SHADOW, SPACING, BORDER } from '@/constants/screenLayout'
 import { SCREEN_FONTS } from '@/constants/typography'
 import type { FamiliarCourt } from '@/lib/homeFeed'

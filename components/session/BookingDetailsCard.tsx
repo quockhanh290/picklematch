@@ -1,4 +1,4 @@
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/constants/theme/profileTheme'
 import { FileText, Hash, Phone, ShieldAlert, ShieldCheck, User } from 'lucide-react-native'
 import type { ComponentType } from 'react'
 import { Text, View } from 'react-native'

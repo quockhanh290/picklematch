@@ -10,7 +10,7 @@ import {
     ProfileSkillHero,
     ProfileWinStreak,
 } from '@/components/profile/ProfileSections'
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/constants/theme/profileTheme'
 import { SCREEN_FONTS } from '@/constants/typography'
 import type { TrophyBadge } from '@/components/profile/TrophyRoom'
 import TrophyRoomSection from '@/components/profile/TrophyRoom'

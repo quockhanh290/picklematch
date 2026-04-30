@@ -1,6 +1,6 @@
 import { AppDialog, type AppDialogConfig, AppInput, EmptyState, SecondaryNavbar, NavbarUserAvatar, StatusBadge } from '@/components/design'
 import { PROFILE_SKILL_HERO_TONE, ProfileSkillHero } from '@/components/profile/ProfileSections'
-import { PROFILE_THEME_COLORS as EDIT_PROFILE_COLORS } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS as EDIT_PROFILE_COLORS } from '@/constants/theme/profileTheme'
 import { getEloBandByLegacySkillLabel, getEloBandForElo, getEloBandByLevelId } from '@/lib/eloSystem'
 import { getSkillLevelById, getSkillLevelFromPlayer, type SkillAssessmentLevel } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'

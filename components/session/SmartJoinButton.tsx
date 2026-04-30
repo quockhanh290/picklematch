@@ -3,7 +3,7 @@ import { SCREEN_FONTS } from '@/constants/typography'
 import { AlertCircle, Clock3 } from 'lucide-react-native'
 
 import { AppButton } from '@/components/design/AppButton'
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/constants/theme/profileTheme'
 import type { MatchStatus } from '@/lib/matchmaking'
 import { RADIUS, SPACING } from '@/constants/screenLayout'
 
