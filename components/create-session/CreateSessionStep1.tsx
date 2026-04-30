@@ -2,14 +2,17 @@ import { ScreenHeader } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
 import { SCREEN_FONTS } from '@/constants/typography'
 import DateTimePicker from '@react-native-community/datetimepicker'
-import { LinearGradient } from 'expo-linear-gradient'
-import { Calendar, Clock3, CreditCard, Link2, MapPin, Search, ShieldAlert, ShieldCheck, SlidersHorizontal } from 'lucide-react-native'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Search, SlidersHorizontal } from 'lucide-react-native'
+import { useEffect, useRef, useState } from 'react'
 import { ActivityIndicator, Keyboard, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 
 import type { NearByCourt } from '@/lib/useNearbyCourts'
-import { RADIUS, SPACING, BORDER, SHADOW } from '@/constants/screenLayout'
-import { AppFontSet } from '@/constants/typography'
+import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
+import { CourtRow } from './CourtRow'
+import { SectionDivider } from './SectionDivider'
+import { SelectedCourtCard } from './SelectedCourtCard'
+import { DateStripPicker } from './DateStripPicker'
+import { TimeRangePicker } from './TimeRangePicker'
 
 type Props = {
   onBack: () => void
@@ -41,141 +44,12 @@ type Props = {
   hideHeader?: boolean
 }
 
-const WEEKDAY_LABELS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
 const MONTH_LABELS = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12']
 
 function startOfDay(date: Date) {
   const next = new Date(date)
   next.setHours(0, 0, 0, 0)
   return next
-}
-
-function addDays(date: Date, amount: number) {
-  const next = new Date(date)
-  next.setDate(next.getDate() + amount)
-  return next
-}
-
-function isSameDay(left: Date | null, right: Date) {
-  return !!left && left.toDateString() === right.toDateString()
-}
-
-function isWeekend(date: Date) {
-  const day = date.getDay()
-  return day === 0 || day === 6
-}
-
-function formatTime(date: Date | null) {
-  if (!date) return '--:--'
-  return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
-}
-
-function formatHeroDateLabel(date: Date | null) {
-  if (!date) return 'Chưa chọn ngày'
-  const weekdayLong = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'][date.getDay()]
-  return `${weekdayLong}, ngày ${date.getDate()} tháng ${date.getMonth() + 1}`
-}
-
-function formatDistance(distance?: number) {
-  if (distance == null) return null
-  return distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)}km`
-}
-
-function formatCourtPricePerHour(price: number | null) {
-  if (price == null) return null
-  if (price >= 1000) return `${Math.round(price / 1000)}K/giờ`
-  return `${price.toLocaleString('vi-VN')} VNĐ/giờ`
-}
-
-function withAlpha(hex: string, alpha: number) {
-  const clean = hex.replace('#', '')
-  const fullHex = clean.length === 3 ? clean.split('').map((char) => char + char).join('') : clean
-  const value = Number.parseInt(fullHex, 16)
-  return `rgba(${(value >> 16) & 255}, ${(value >> 8) & 255}, ${value & 255}, ${alpha})`
-}
-
-function CourtRow({ court, onPress }: { court: NearByCourt; onPress: (court: NearByCourt) => void }) {
-  const distanceLabel = formatDistance(court.distance)
-  const isOpen = !!court.hasSlots
-
-  return (
-    <Pressable
-      onPress={() => onPress(court)}
-      style={({ pressed }) => ({
-        borderRadius: RADIUS.lg,
-        borderWidth: BORDER.base,
-        borderColor: PROFILE_THEME_COLORS.outlineVariant,
-        backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
-        padding: SPACING.md,
-        opacity: pressed ? 0.88 : 1,
-      })}
-    >
-      <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
-        <View style={{ width: 44, height: 44, borderRadius: RADIUS.md, backgroundColor: PROFILE_THEME_COLORS.secondaryContainer, alignItems: 'center', justifyContent: 'center' }}>
-          <MapPin size={18} color={PROFILE_THEME_COLORS.surfaceTint} />
-        </View>
-        <View style={{ flex: 1 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
-            <Text style={{ flex: 1, fontFamily: SCREEN_FONTS.headline, fontSize: 16, color: PROFILE_THEME_COLORS.onSurface }} numberOfLines={1}>
-              {court.name}
-            </Text>
-            {distanceLabel ? (
-              <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 11, color: PROFILE_THEME_COLORS.outline }}>{distanceLabel}</Text>
-            ) : null}
-          </View>
-          <Text style={{ fontFamily: SCREEN_FONTS.body, fontSize: 12, lineHeight: 18, color: PROFILE_THEME_COLORS.onSurfaceVariant, marginTop: 3 }} numberOfLines={2}>
-            {court.address}{court.city ? ` · ${court.city}` : ''}
-          </Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 }}>
-            <View style={{
-              borderRadius: RADIUS.full,
-              borderWidth: BORDER.base,
-              borderColor: isOpen ? PROFILE_THEME_COLORS.outlineVariant : PROFILE_THEME_COLORS.error,
-              backgroundColor: isOpen ? PROFILE_THEME_COLORS.secondaryContainer : PROFILE_THEME_COLORS.errorContainer,
-              paddingHorizontal: SPACING.sm,
-              paddingVertical: 4,
-            }}>
-              <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8, color: isOpen ? PROFILE_THEME_COLORS.surfaceTint : PROFILE_THEME_COLORS.error }}>
-                {isOpen ? 'Đang mở' : 'Đã đóng'}
-              </Text>
-            </View>
-          </View>
-        </View>
-      </View>
-    </Pressable>
-  )
-}
-
-const sectionCard = {
-  borderRadius: RADIUS.xl,
-  borderWidth: BORDER.base,
-  borderColor: PROFILE_THEME_COLORS.outlineVariant,
-  backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
-  padding: SPACING.lg,
-  marginBottom: 18,
-} as const
-
-const pickerHeader = {
-  width: '100%' as any,
-  maxWidth: 360,
-  flexDirection: 'row' as const,
-  alignItems: 'center' as const,
-  justifyContent: 'space-between' as const,
-  borderBottomWidth: 1,
-  borderBottomColor: PROFILE_THEME_COLORS.outlineVariant,
-  paddingHorizontal: 16,
-  paddingVertical: 12,
-}
-
-function SectionDivider({ index, title }: { index: string; title: string }) {
-  return (
-    <View style={{ marginBottom: 12, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-      <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 16, textTransform: 'uppercase', letterSpacing: 1.5, color: PROFILE_THEME_COLORS.outline }}>
-        {index} / {title}
-      </Text>
-      <View style={{ height: 1, flex: 1, backgroundColor: PROFILE_THEME_COLORS.outlineVariant }} />
-    </View>
-  )
 }
 
 export function CreateSessionStep1({
@@ -215,55 +89,20 @@ export function CreateSessionStep1({
   const [draftStartTime, setDraftStartTime] = useState(startTime ?? defaultPickerValue('start'))
   const [draftEndTime, setDraftEndTime] = useState(endTime ?? defaultPickerValue('end'))
 
-  const dateStrip = useMemo(() => {
-    const today = startOfDay(new Date())
-    const selected = selectedDate ? startOfDay(selectedDate) : today
-    const diffDays = Math.floor((selected.getTime() - today.getTime()) / 86_400_000)
-    const offset = diffDays > 6 ? diffDays - 3 : 0
-    const stripStart = addDays(today, Math.max(0, offset))
-    return Array.from({ length: 7 }, (_, index) => addDays(stripStart, index))
-  }, [selectedDate])
-
   const isCourtScheduleLocked = Boolean(lockCourtSchedule && selectedCourt)
   const showCourtPicker = (!selectedCourt || isChoosingCourt) && !isCourtScheduleLocked
-  const selectedCourtDistanceLabel = selectedCourt ? formatDistance(selectedCourt.distance) : null
-  const selectedCourtAddress = selectedCourt
-    ? `${selectedCourt.address}${selectedCourt.city ? ` · ${selectedCourt.city}` : ''}`
-    : ''
-  const selectedCourtOpen = selectedCourt ? !!selectedCourt.hasSlots : false
-  const selectedCourtPriceLabel = selectedCourt ? formatCourtPricePerHour(selectedCourt.price_per_hour) : null
-  const selectedCourtOpenHoursLabel = selectedCourt && (selectedCourt.hours_open || selectedCourt.hours_close)
-    ? `${selectedCourt.hours_open ?? '06:00'} - ${selectedCourt.hours_close ?? '22:00'}`
-    : null
-  const selectedCourtAmenities = selectedCourt
-    ? [
-      selectedCourt.booking_url ? 'Đặt sân online' : null,
-      selectedCourt.google_maps_url ? 'Google Maps' : null,
-    ].filter((item): item is string => item !== null)
-    : []
-  const selectedCourtDetailRowsRaw = [
-    selectedCourtPriceLabel ? { icon: CreditCard, label: 'Giá sân', value: selectedCourtPriceLabel } : null,
-    selectedCourtOpenHoursLabel ? { icon: Clock3, label: 'Giờ mở cửa', value: selectedCourtOpenHoursLabel } : null,
-    selectedCourtAmenities.length > 0 ? { icon: Link2, label: 'Tiện ích', value: selectedCourtAmenities.join(' · ') } : null,
-  ].filter((item): item is { icon: any; label: string; value: string } => item !== null)
-  const mockCourtDetailRows = selectedCourt
-    ? [
-      { icon: CreditCard, label: 'Giá sân', value: '120K/giờ' },
-      { icon: Clock3, label: 'Giờ mở cửa', value: '05:30 - 23:00' },
-      { icon: Link2, label: 'Tiện ích', value: 'Đặt sân online · Đỗ xe · Nhà tắm · Nước uống' },
-    ]
-    : []
-  const selectedCourtDetailRows =
-    selectedCourtDetailRowsRaw.length > 0
-      ? selectedCourtDetailRowsRaw
-      : (__DEV__ ? mockCourtDetailRows : [])
 
-  const durationHours = startTime && endTime
-    ? (() => {
-        const h = (endTime.getTime() - startTime.getTime()) / 3600000
-        return Number.isInteger(h) ? `${h}` : h.toFixed(1)
-      })()
-    : null
+  const pickerHeader = {
+    width: '100%' as any,
+    maxWidth: 360,
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'space-between' as const,
+    borderBottomWidth: 1,
+    borderBottomColor: PROFILE_THEME_COLORS.outlineVariant,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  }
 
   useEffect(() => {
     if (showStartPicker) {
@@ -388,101 +227,13 @@ export function CreateSessionStep1({
 
         <View style={{ marginTop: 16, marginBottom: 24 }}>
           {selectedCourt ? (
-            <>
-              <View style={{ 
-                borderRadius: RADIUS.lg, 
-                overflow: 'hidden', 
-                backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
-                borderWidth: BORDER.base,
-                borderColor: PROFILE_THEME_COLORS.outlineVariant,
-                ...SHADOW.sm,
-              }}>
-                <View style={{ 
-                  backgroundColor: PROFILE_THEME_COLORS.primary,
-                  paddingHorizontal: 16,
-                  paddingVertical: 6,
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 6 }}>
-                    <View style={{ width: 5, height: 5, borderRadius: RADIUS.full, backgroundColor: PROFILE_THEME_COLORS.onPrimary }} />
-                    <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta, fontSize: 13, letterSpacing: 0.5 }}>
-                      {'SÂN ĐÃ CHỌN'}
-                    </Text>
-                  </View>
-                  
-                  {!isCourtScheduleLocked && (
-                    <TouchableOpacity 
-                      onPress={() => {
-                        if (showCourtPicker) {
-                          setIsChoosingCourt(false)
-                          return
-                        }
-                        onChangeCourt()
-                        setIsChoosingCourt(true)
-                      }}
-                    >
-                      <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.headline, fontSize: 13, textTransform: 'uppercase' }}>
-                        {showCourtPicker ? 'Đóng' : 'Đổi sân'}
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-
-                <View style={{ padding: 16 }}>
-                  <Text
-                    numberOfLines={2}
-                    style={{ 
-                      color: PROFILE_THEME_COLORS.onSurface, 
-                      fontFamily: SCREEN_FONTS.headline, 
-                      fontSize: 31, 
-                      lineHeight: 36, 
-                      letterSpacing: 0,
-                      marginBottom: 4,
-                      textTransform: 'uppercase',
-                    }}
-                  >
-                    {selectedCourt.name}
-                  </Text>
-
-                  <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 6, marginBottom: 12 }}>
-                    <MapPin size={13} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.5} />
-                    <Text numberOfLines={1} style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, fontSize: 13, lineHeight: 18, flexShrink: 1 }}>
-                      {selectedCourtAddress}
-                    </Text>
-                  </View>
-
-                </View>
-
-                <View style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceAlt, padding: 16 }}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-                    <View>
-                      <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.label, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>
-                        {'CHI PHÍ'}
-                      </Text>
-                      <Text style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.headline, fontSize: 24, lineHeight: 24 }}>
-                        {selectedCourtPriceLabel ?? '—'}
-                      </Text>
-                    </View>
-
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                      <View style={{ width: 6, height: 6, borderRadius: RADIUS.full, backgroundColor: selectedCourtOpen ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.error }} />
-                      <Text style={{ 
-                        marginLeft: 6, 
-                        color: selectedCourtOpen ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.error, 
-                        fontFamily: SCREEN_FONTS.cta, 
-                        fontSize: 10,
-                        textTransform: 'uppercase',
-                        letterSpacing: 0.5
-                      }}>
-                        {selectedCourtOpen ? 'Đang mở' : 'Tạm đóng'}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-              </View>
-            </>
+            <SelectedCourtCard
+              selectedCourt={selectedCourt}
+              isCourtScheduleLocked={isCourtScheduleLocked}
+              showCourtPicker={showCourtPicker}
+              setIsChoosingCourt={setIsChoosingCourt}
+              onChangeCourt={onChangeCourt}
+            />
           ) : (
             <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 15, color: PROFILE_THEME_COLORS.onSurface, marginBottom: 12 }}>Gợi ý sân</Text>
           )}
@@ -526,143 +277,48 @@ export function CreateSessionStep1({
 
         <SectionDivider index="02" title="Chọn ngày giờ chơi" />
 
-        <View style={[sectionCard, { opacity: selectedCourt ? 1 : 0.5 }]}>
-          <Pressable
-            disabled={!selectedCourt || isCourtScheduleLocked}
-            onPress={openDatePicker}
-            style={({ pressed }) => ({
-              opacity: !selectedCourt || isCourtScheduleLocked ? 0.55 : pressed ? 0.86 : 1,
-            })}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <View style={{ width: 28, height: 28, borderRadius: RADIUS.full, backgroundColor: PROFILE_THEME_COLORS.secondaryContainer, alignItems: 'center', justifyContent: 'center' }}>
-                <Calendar size={14} color={PROFILE_THEME_COLORS.surfaceTint} strokeWidth={2.6} />
-              </View>
-              <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 13, textTransform: 'uppercase', letterSpacing: 1.2, color: PROFILE_THEME_COLORS.outline }}>
-                Ngày chơi
-              </Text>
-            </View>
-            {selectedCourt ? (
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={{ marginTop: 12 }}
-                contentContainerStyle={{ flexGrow: 1, flexDirection: 'row', justifyContent: 'space-between', gap: 8, paddingHorizontal: 4 }}
-              >
-                {dateStrip.map((day) => {
-                  const active = isSameDay(selectedDate, day)
-                  const weekend = isWeekend(day)
-                  return (
-                    <Pressable
-                      key={day.toISOString()}
-                      disabled={isCourtScheduleLocked}
-                      onPress={() => onDateSelect(day)}
-                      style={({ pressed }) => ({
-                        width: 54,
-                        alignItems: 'center',
-                        borderRadius: RADIUS.md,
-                        borderWidth: BORDER.base,
-                        borderColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
-                        backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
-                        paddingVertical: 12,
-                        paddingHorizontal: 8,
-                        opacity: isCourtScheduleLocked ? 0.55 : pressed ? 0.85 : 1,
-                      })}
-                    >
-                      <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 14, textTransform: 'uppercase', textAlign: 'center', color: active ? PROFILE_THEME_COLORS.primary : weekend ? PROFILE_THEME_COLORS.error : PROFILE_THEME_COLORS.outline }}>
-                        {WEEKDAY_LABELS[day.getDay()]}
-                      </Text>
-                      <View style={{ marginTop: 4, width: 36, height: 36, borderRadius: RADIUS.full, alignItems: 'center', justifyContent: 'center', backgroundColor: active ? PROFILE_THEME_COLORS.primary : 'transparent' }}>
-                        <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 22, lineHeight: 26, textAlign: 'center', color: active ? PROFILE_THEME_COLORS.onPrimary : weekend ? PROFILE_THEME_COLORS.error : PROFILE_THEME_COLORS.onSurface }}>
-                          {day.getDate().toString().padStart(2, '0')}
-                        </Text>
-                      </View>
-                    </Pressable>
-                  )
-                })}
-              </ScrollView>
-            ) : null}
-            {selectedCourt ? (
-              <>
-                <View style={{ height: 1, backgroundColor: PROFILE_THEME_COLORS.outlineVariant, marginVertical: 12 }} />
-                <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 32, color: PROFILE_THEME_COLORS.surfaceTint, lineHeight: 36 }}>
-                  {formatHeroDateLabel(selectedDate)}
-                </Text>
-              </>
-            ) : null}
-          </Pressable>
+        <View style={{
+          borderRadius: RADIUS.xl,
+          borderWidth: BORDER.base,
+          borderColor: PROFILE_THEME_COLORS.outlineVariant,
+          backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+          padding: SPACING.lg,
+          marginBottom: 18,
+          opacity: selectedCourt ? 1 : 0.5
+        }}>
+          <DateStripPicker
+            selectedDate={selectedDate}
+            isCourtScheduleLocked={isCourtScheduleLocked}
+            onDateSelect={onDateSelect}
+            openDatePicker={openDatePicker}
+            selectedCourt={selectedCourt}
+          />
 
-          {selectedCourt ? (
-            <View style={{ height: 1, backgroundColor: PROFILE_THEME_COLORS.outlineVariant, marginVertical: 12 }} />
-          ) : null}
+          {selectedCourt && <View style={{ height: 1, backgroundColor: PROFILE_THEME_COLORS.outlineVariant, marginVertical: 12 }} />}
 
-          {selectedDate ? (
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Pressable
-                disabled={!selectedCourt || isCourtScheduleLocked}
-                onPress={onToggleStartPicker}
-                style={({ pressed }) => ({
-                  paddingVertical: 8, opacity: !selectedCourt || isCourtScheduleLocked ? 0.55 : pressed ? 0.86 : 1, alignItems: 'flex-start'
-                })}
-              >
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                  <View style={{ width: 28, height: 28, borderRadius: RADIUS.full, backgroundColor: PROFILE_THEME_COLORS.secondaryContainer, alignItems: 'center', justifyContent: 'center' }}>
-                    <Clock3 size={14} color={PROFILE_THEME_COLORS.surfaceTint} strokeWidth={2.6} />
-                  </View>
-                  <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 13, textTransform: 'uppercase', letterSpacing: 1.2, color: PROFILE_THEME_COLORS.outline }}>Bắt đầu</Text>
-                </View>
-                <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 32, color: PROFILE_THEME_COLORS.surfaceTint, marginTop: 12, lineHeight: 36, textAlign: 'left' }}>
-                  {formatTime(startTime)}
-                </Text>
-              </Pressable>
+          {selectedDate && (
+            <TimeRangePicker
+              startTime={startTime}
+              endTime={endTime}
+              onToggleStartPicker={onToggleStartPicker}
+              onToggleEndPicker={onToggleEndPicker}
+              selectedCourt={selectedCourt}
+              selectedDate={selectedDate}
+              isCourtScheduleLocked={isCourtScheduleLocked}
+              timeError={timeError}
+            />
+          )}
 
-              <View style={{ width: 1, height: '80%', backgroundColor: PROFILE_THEME_COLORS.outlineVariant }} />
-
-              <Pressable
-                disabled={!selectedDate || !startTime || isCourtScheduleLocked}
-                onPress={onToggleEndPicker}
-                style={({ pressed }) => ({
-                  paddingVertical: 8, opacity: !selectedDate || !startTime || isCourtScheduleLocked ? 0.45 : pressed ? 0.86 : 1, alignItems: 'flex-end'
-                })}
-              >
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                  <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 13, textTransform: 'uppercase', letterSpacing: 1.2, color: PROFILE_THEME_COLORS.outline }}>Kết thúc</Text>
-                  <View style={{ width: 28, height: 28, borderRadius: RADIUS.full, backgroundColor: PROFILE_THEME_COLORS.secondaryContainer, alignItems: 'center', justifyContent: 'center' }}>
-                    <Clock3 size={14} color={PROFILE_THEME_COLORS.surfaceTint} strokeWidth={2.6} />
-                  </View>
-                </View>
-                <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 32, color: PROFILE_THEME_COLORS.surfaceTint, marginTop: 12, lineHeight: 36, textAlign: 'right' }}>
-                  {formatTime(endTime)}
-                </Text>
-              </Pressable>
-            </View>
-          ) : null}
-
-          {/* Duration chip */}
-          {durationHours ? (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 }}>
-              <Text style={{ fontFamily: SCREEN_FONTS.body, fontSize: 11, color: '#7A8884' }}>Thời lượng:</Text>
-              <View style={{ backgroundColor: '#E1F5EE', paddingHorizontal: 12, paddingVertical: 3, borderRadius: RADIUS.full }}>
-                <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 11, color: '#0F6E56' }}>{durationHours} tiếng</Text>
-              </View>
-            </View>
-          ) : null}
-
-          {timeError ? (
-            <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 13, color: PROFILE_THEME_COLORS.error, marginTop: 10 }}>
-              {timeError}
-            </Text>
-          ) : null}
-          {isCourtScheduleLocked ? (
+          {isCourtScheduleLocked && (
             <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 12, color: PROFILE_THEME_COLORS.outline, marginTop: 8 }}>
               Kèo đã đặt sân nên không thể đổi sân và ngày giờ.
             </Text>
-          ) : null}
+          )}
         </View>
 
         <View onLayout={(event) => { setPickerAnchorY(event.nativeEvent.layout.y) }} />
 
-        {showDatePicker ? (
+        {showDatePicker && (
           <View style={{ marginBottom: 14, borderRadius: RADIUS.xl, overflow: 'hidden', borderWidth: BORDER.base, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, alignItems: 'center' }}>
             <View style={pickerHeader}>
               <Pressable onPress={() => setShowDatePicker(false)} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
@@ -686,9 +342,9 @@ export function CreateSessionStep1({
               onChange={(_e, d) => { if (d) setDraftDate(d) }}
             />
           </View>
-        ) : null}
+        )}
 
-        {showStartPicker ? (
+        {showStartPicker && (
           <View style={{ marginBottom: 14, borderRadius: RADIUS.xl, overflow: 'hidden', borderWidth: BORDER.base, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest, alignItems: 'center' }}>
             <View style={pickerHeader}>
               <Pressable onPress={onCloseStartPicker} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
@@ -710,9 +366,9 @@ export function CreateSessionStep1({
               onChange={(_e, d) => { if (d) setDraftStartTime(d) }}
             />
           </View>
-        ) : null}
+        )}
 
-        {showEndPicker ? (
+        {showEndPicker && (
           <View style={{ marginBottom: 14, borderRadius: RADIUS.xl, overflow: 'hidden', borderWidth: BORDER.base, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest, alignItems: 'center' }}>
             <View style={pickerHeader}>
               <Pressable onPress={onCloseEndPicker} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
@@ -734,7 +390,7 @@ export function CreateSessionStep1({
               onChange={(_e, d) => { if (d) setDraftEndTime(d) }}
             />
           </View>
-        ) : null}
+        )}
 
         {/* Info note */}
         <View style={{ backgroundColor: '#E1F5EE', borderRadius: RADIUS.sm, padding: 12, flexDirection: 'row', gap: 10, marginBottom: 16 }}>
@@ -763,4 +419,3 @@ export function CreateSessionStep1({
     </View>
   )
 }
-

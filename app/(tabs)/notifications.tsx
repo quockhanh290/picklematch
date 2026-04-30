@@ -1,6 +1,5 @@
 import { timeAgo } from '@/lib/format'
 import { useState, useMemo } from 'react'
-import { colors } from '@/constants/colors'
 import { EmptyState, ScreenHeader } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
 import type { Notification } from '@/hooks/useNotifications'

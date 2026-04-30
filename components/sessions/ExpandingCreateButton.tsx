@@ -3,7 +3,7 @@ import { Pressable, Text, View } from 'react-native'
 import { Plus } from 'lucide-react-native'
 import { useRouter } from 'expo-router'
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming } from 'react-native-reanimated'
-import { colors } from '@/constants/colors'
+import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
 import { SCREEN_FONTS } from '@/constants/typography'
 
 export function ExpandingCreateButton() {
@@ -60,8 +60,8 @@ export function ExpandingCreateButton() {
         style={[
           {
             height: 44,
-            backgroundColor: colors.primary,
-            shadowColor: colors.primary,
+            backgroundColor: PROFILE_THEME_COLORS.primary,
+            shadowColor: PROFILE_THEME_COLORS.primary,
             shadowOpacity: 0.25,
             shadowRadius: 10,
             shadowOffset: { width: 0, height: 4 },

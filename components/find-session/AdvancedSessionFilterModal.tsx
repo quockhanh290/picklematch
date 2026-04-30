@@ -1,4 +1,4 @@
-import { colors } from '@/constants/colors'
+import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker'
 import Slider from '@react-native-community/slider'
 import React, { useState } from 'react'
@@ -43,20 +43,6 @@ type Props = {
   skillLevels?: { id: string; label: string }[]
 }
 
-
-const PROFILE_THEME_COLORS = {
-  primary: colors.primary,
-  onPrimary: '#FFFFFF',
-  background: colors.background,
-  onBackground: colors.text,
-  onSurface: colors.text,
-  onSurfaceVariant: colors.textSecondary,
-  outline: colors.textSecondary,
-  outlineVariant: colors.border,
-  surfaceContainerLow: colors.surface,
-  surfaceContainerHighest: colors.surfaceAlt,
-  error: colors.accentDark,
-} as const
 const PRICE_SLIDER_MAX = 300
 const FILTER_FONTS = {
   headline: SCREEN_FONTS.headline,

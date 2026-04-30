@@ -1,11 +1,16 @@
 import { ScreenHeader } from '@/components/design'
 import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
 import { SCREEN_FONTS } from '@/constants/typography'
-import { UserRound, Users } from 'lucide-react-native'
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native'
 
 import { CREATE_SESSION_SKILL_OPTIONS } from './skillLevelOptions'
 import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
+import { SectionDivider } from './SectionDivider'
+import { SkillRangeSelector } from './SkillRangeSelector'
+import { PlayerCountSelector } from './PlayerCountSelector'
+import { SessionToggles } from './SessionToggles'
+import { CostInput } from './CostInput'
+import { BookingStatusSection } from './BookingStatusSection'
 
 type Props = {
   onBack: () => void
@@ -42,113 +47,6 @@ type Props = {
   costPerPerson: number
   onContinue: () => void
   hideHeader?: boolean
-}
-
-function formatCurrencyInput(nextValue: string) {
-  const digits = nextValue.replace(/\D/g, '')
-  if (!digits) return ''
-  return Number(digits).toLocaleString('vi-VN')
-}
-
-function formatCurrencyLabel(value: number) {
-  return `${value.toLocaleString('vi-VN')} đ`
-}
-
-function SectionDivider({ index, title }: { index: string; title: string }) {
-  return (
-    <View style={{ marginBottom: 12, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-      <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 16, textTransform: 'uppercase', letterSpacing: 1.5, color: PROFILE_THEME_COLORS.outline }}>
-        {index} / {title}
-      </Text>
-      <View style={{ height: 1, flex: 1, backgroundColor: PROFILE_THEME_COLORS.outlineVariant }} />
-    </View>
-  )
-}
-
-function SkillRangeSelector({
-  minSkill,
-  maxSkill,
-  setMinSkill,
-  setMaxSkill,
-}: {
-  minSkill: number
-  maxSkill: number
-  setMinSkill: (n: number) => void
-  setMaxSkill: (n: number) => void
-}) {
-  function onSelectMin(level: number) {
-    if (level > maxSkill) setMaxSkill(level)
-    setMinSkill(level)
-  }
-
-  function onSelectMax(level: number) {
-    if (level < minSkill) setMinSkill(level)
-    setMaxSkill(level)
-  }
-
-  return (
-    <View style={{ gap: 12 }}>
-      <View>
-        <Text style={{ fontSize: 11, color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, marginBottom: 6 }}>Tối thiểu</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={{ flexDirection: 'row', gap: 6 }}>
-            {CREATE_SESSION_SKILL_OPTIONS.map((option) => {
-              const isSelected = option.id === minSkill
-              return (
-                <TouchableOpacity
-                  key={`min-${option.id}`}
-                  onPress={() => onSelectMin(option.id)}
-                  style={{
-                    paddingHorizontal: 12, paddingVertical: SPACING.xs,
-                    borderRadius: RADIUS.full,
-                    backgroundColor: isSelected ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surface,
-                    borderWidth: BORDER.base,
-                    borderColor: isSelected ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
-                  }}
-                >
-                  <Text style={{ fontSize: 12, fontFamily: SCREEN_FONTS.label, color: isSelected ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurface }}>
-                    {option.label}
-                  </Text>
-                </TouchableOpacity>
-              )
-            })}
-          </View>
-        </ScrollView>
-      </View>
-
-      <View>
-        <Text style={{ fontSize: 11, color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, marginBottom: 6 }}>Tối đa</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={{ flexDirection: 'row', gap: 6 }}>
-            {CREATE_SESSION_SKILL_OPTIONS.map((option) => {
-              const isSelected = option.id === maxSkill
-              return (
-                <TouchableOpacity
-                  key={`max-${option.id}`}
-                  onPress={() => onSelectMax(option.id)}
-                  style={{
-                    paddingHorizontal: 12, paddingVertical: SPACING.xs,
-                    borderRadius: RADIUS.full,
-                    backgroundColor: isSelected ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surface,
-                    borderWidth: BORDER.base,
-                    borderColor: isSelected ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
-                  }}
-                >
-                  <Text style={{ fontSize: 12, fontFamily: SCREEN_FONTS.label, color: isSelected ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurface }}>
-                    {option.label}
-                  </Text>
-                </TouchableOpacity>
-              )
-            })}
-          </View>
-        </ScrollView>
-      </View>
-
-      <Text style={{ fontFamily: SCREEN_FONTS.body, fontSize: 11, color: PROFILE_THEME_COLORS.onSecondaryContainer }}>
-        Bạn có thể chọn cùng một mức ở cả hai dòng để chỉ nhận đúng một trình độ.
-      </Text>
-    </View>
-  )
 }
 
 export function CreateSessionStep2({
@@ -241,81 +139,16 @@ export function CreateSessionStep2({
 
           <SectionDivider index="01" title="Cấu hình trận đấu" />
 
-          {/* Player count */}
-          <View style={{ borderRadius: RADIUS.md, borderWidth: BORDER.hairline, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surface, padding: SPACING.md, marginBottom: 16 }}>
-            <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 12, letterSpacing: 1.2, color: PROFILE_THEME_COLORS.primary, marginBottom: 10 }}>
-              {'SỐ LƯỢNG NGƯỜI CHƠI'}
-            </Text>
-            <View style={{ flexDirection: 'row', gap: 8 }}>
-              {[
-                { value: 2, label: 'Đơn (2)' },
-                { value: 4, label: 'Đôi (4)' },
-              ].map(({ value, label }) => {
-                const playerCount = value as 2 | 4
-                const isSelected = maxPlayers === playerCount
-                const Icon = playerCount === 2 ? UserRound : Users
-                return (
-                  <View key={playerCount} style={{ flex: 1 }}>
-                    <Pressable
-                      onPress={() => setMaxPlayers(playerCount)}
-                      style={({ pressed }) => ({ flex: 1, opacity: pressed ? 0.85 : 1 })}
-                    >
-                      <View style={{
-                        flex: 1, borderRadius: RADIUS.sm,
-                        backgroundColor: isSelected ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surface,
-                        paddingVertical: 12, paddingHorizontal: 8,
-                        alignItems: 'center', justifyContent: 'center', gap: 4,
-                        borderWidth: BORDER.medium,
-                        borderColor: isSelected ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
-                      }}>
-                        <Icon size={20} color={isSelected ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant} />
-                        <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 32, lineHeight: 36, color: isSelected ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant }}>
-                          {playerCount}
-                        </Text>
-                        <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 11, color: isSelected ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant }}>
-                          {label}
-                        </Text>
-                      </View>
-                    </Pressable>
-                  </View>
-                )
-              })}
-            </View>
-          </View>
+          <PlayerCountSelector maxPlayers={maxPlayers} setMaxPlayers={setMaxPlayers} />
 
-          {/* Toggles */}
-          <View style={{ borderRadius: RADIUS.xl, borderWidth: BORDER.base, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, padding: SPACING.lg, marginBottom: 16 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-              <View style={{ flex: 1, paddingRight: 12 }}>
-                <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 16, color: PROFILE_THEME_COLORS.primary }}>{'Tính điểm xếp hạng'}</Text>
-                <Text style={{ fontFamily: SCREEN_FONTS.body, fontSize: 12, color: PROFILE_THEME_COLORS.onSecondaryContainer, marginTop: 2 }}>{'Kết quả sẽ ảnh hưởng đến ELO của bạn'}</Text>
-              </View>
-              <Switch
-                value={isRanked}
-                onValueChange={setIsRanked}
-                disabled={!canToggleRanked}
-                trackColor={{ false: PROFILE_THEME_COLORS.surfaceDim, true: PROFILE_THEME_COLORS.surfaceTint }}
-                thumbColor={PROFILE_THEME_COLORS.surfaceContainerLowest}
-              />
-            </View>
-
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <View style={{ flex: 1, paddingRight: 12 }}>
-                <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 16, color: PROFILE_THEME_COLORS.primary }}>{'Yêu cầu phê duyệt'}</Text>
-                <Text style={{ fontFamily: SCREEN_FONTS.body, fontSize: 12, color: PROFILE_THEME_COLORS.onSecondaryContainer, marginTop: 2 }}>{'Chủ sân cần duyệt người tham gia'}</Text>
-              </View>
-              <Switch
-                value={requireApproval}
-                onValueChange={setRequireApproval}
-                trackColor={{ false: PROFILE_THEME_COLORS.surfaceDim, true: PROFILE_THEME_COLORS.surfaceTint }}
-                thumbColor={PROFILE_THEME_COLORS.surfaceContainerLowest}
-              />
-            </View>
-
-            {!canToggleRanked && rankedHelperText ? (
-              <Text style={{ marginTop: 10, fontFamily: SCREEN_FONTS.body, fontSize: 12, color: PROFILE_THEME_COLORS.onPrimaryFixedVariant }}>{rankedHelperText}</Text>
-            ) : null}
-          </View>
+          <SessionToggles
+            isRanked={isRanked}
+            setIsRanked={setIsRanked}
+            canToggleRanked={canToggleRanked}
+            rankedHelperText={rankedHelperText}
+            requireApproval={requireApproval}
+            setRequireApproval={setRequireApproval}
+          />
 
           {/* Skill range */}
           <View style={{ borderRadius: RADIUS.xl, borderWidth: BORDER.base, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, padding: SPACING.lg, marginBottom: 14 }}>
@@ -339,34 +172,11 @@ export function CreateSessionStep2({
 
           <SectionDivider index="02" title="Booking và chi phí" />
 
-          {/* Cost input */}
-          <View style={{ borderRadius: RADIUS.xl, borderWidth: BORDER.base, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, padding: SPACING.lg, marginBottom: 16 }}>
-            <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 12, letterSpacing: 1.2, color: PROFILE_THEME_COLORS.primary, marginBottom: 10 }}>
-              CHI PHÍ TRẬN ĐẤU
-            </Text>
-            <View style={{ gap: 8 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', borderRadius: RADIUS.md, borderWidth: BORDER.base, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest, paddingHorizontal: 12, paddingVertical: 9 }}>
-                  <TextInput
-                    value={totalCostStr}
-                    onChangeText={(value) => setTotalCostStr(formatCurrencyInput(value))}
-                    placeholder="Tổng chi phí sân (vd: 240000)"
-                    placeholderTextColor={PROFILE_THEME_COLORS.outline}
-                    keyboardType="number-pad"
-                    style={{ flex: 1, fontFamily: SCREEN_FONTS.body, fontSize: 14, color: PROFILE_THEME_COLORS.primary, padding: 0 }}
-                  />
-                  <Text style={{ fontSize: 12, color: PROFILE_THEME_COLORS.outline, marginLeft: 8 }}>VNĐ</Text>
-                </View>
-              </View>
-              <View style={{ backgroundColor: PROFILE_THEME_COLORS.primary, borderRadius: RADIUS.sm, padding: SPACING.sm }}>
-                <Text style={{ fontSize: 13, color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.label }}>
-                  {costPerPerson > 0
-                    ? `Chi phí / người: ${formatCurrencyLabel(costPerPerson)}`
-                    : 'Chi phí / người: Chưa có'}
-                </Text>
-              </View>
-            </View>
-          </View>
+          <CostInput
+            totalCostStr={totalCostStr}
+            setTotalCostStr={setTotalCostStr}
+            costPerPerson={costPerPerson}
+          />
 
           {/* Deadline */}
           <View style={{ borderRadius: RADIUS.xl, borderWidth: BORDER.base, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, padding: SPACING.lg, marginBottom: 16 }}>
@@ -405,130 +215,23 @@ export function CreateSessionStep2({
             </View>
           </View>
 
-          {/* Booking status */}
-          <View style={{ borderRadius: RADIUS.xl, borderWidth: BORDER.base, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, padding: SPACING.lg, marginBottom: 14 }}>
-            <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 12, letterSpacing: 1.2, color: PROFILE_THEME_COLORS.primary, marginBottom: 10 }}>
-              TÌNH TRẠNG SÂN
-            </Text>
-            <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 12, color: PROFILE_THEME_COLORS.onSecondaryContainer, marginBottom: 8 }}>
-              Trạng thái đặt sân
-            </Text>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
-              {[
-                { value: 'confirmed' as const, label: 'Đã đặt sân' },
-                { value: 'unconfirmed' as const, label: 'Chưa đặt sân' },
-              ].map((item) => {
-                const active = bookingStatus === item.value
-                return (
-                  <Pressable
-                    key={item.value}
-                    onPress={() => setBookingStatus(item.value)}
-                    style={({ pressed }) => ({ opacity: pressed ? 0.82 : 1 })}
-                  >
-                    <View style={{
-                      borderRadius: RADIUS.full, borderWidth: BORDER.base,
-                      borderColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
-                      backgroundColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surfaceContainerLowest,
-                      paddingHorizontal: SPACING.md, paddingVertical: 11, alignItems: 'center',
-                    }}>
-                      <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 13, color: active ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSecondaryContainer }}>
-                        {item.label}
-                      </Text>
-                    </View>
-                  </Pressable>
-                )
-              })}
-            </View>
-
-            {bookingStatus === 'unconfirmed' ? (
-              <View style={{ marginBottom: 12 }}>
-                <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 12, color: PROFILE_THEME_COLORS.onSecondaryContainer, marginBottom: 8 }}>
-                  Bạn có muốn đặt ngay bây giờ không?
-                </Text>
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                  {[
-                    { value: true, label: 'Có' },
-                    { value: false, label: 'Không' },
-                  ].map((item) => {
-                    const active = wantsBookingNow === item.value
-                    return (
-                      <Pressable
-                        key={item.label}
-                        onPress={() => setWantsBookingNow(item.value)}
-                        style={({ pressed }) => ({ opacity: pressed ? 0.82 : 1 })}
-                      >
-                        <View style={{
-                          borderRadius: RADIUS.full, borderWidth: BORDER.base,
-                          borderColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
-                          backgroundColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surfaceContainerLowest,
-                          paddingHorizontal: SPACING.md, paddingVertical: 9, alignItems: 'center',
-                        }}>
-                          <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 13, color: active ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSecondaryContainer }}>
-                            {item.label}
-                          </Text>
-                        </View>
-                      </Pressable>
-                    )
-                  })}
-                </View>
-              </View>
-            ) : null}
-
-            {showBookingLinkCta ? (
-              <Pressable onPress={onOpenBookingLink} style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1, marginBottom: 12 })}>
-                <View style={{ borderRadius: RADIUS.md, borderWidth: BORDER.base, borderColor: PROFILE_THEME_COLORS.secondaryFixedDim, backgroundColor: PROFILE_THEME_COLORS.secondaryContainer, paddingVertical: SPACING.sm, alignItems: 'center' }}>
-                  <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 13, color: PROFILE_THEME_COLORS.surfaceTint }}>Mở link đặt sân</Text>
-                </View>
-              </Pressable>
-            ) : null}
-
-            {shouldShowBookingDetails ? (
-              <View style={{ gap: 10 }}>
-                <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 12, color: PROFILE_THEME_COLORS.onSecondaryContainer }}>
-                  Thông tin booking
-                </Text>
-                <View style={{ borderRadius: RADIUS.md, borderWidth: BORDER.base, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest, paddingHorizontal: 12, paddingVertical: 9 }}>
-                  <TextInput
-                    value={bookingReference}
-                    onChangeText={setBookingReference}
-                    placeholder="Mã đặt sân"
-                    placeholderTextColor={PROFILE_THEME_COLORS.outline}
-                    style={{ fontFamily: SCREEN_FONTS.body, fontSize: 14, color: PROFILE_THEME_COLORS.primary, padding: 0 }}
-                  />
-                </View>
-                <View style={{ borderRadius: RADIUS.md, borderWidth: BORDER.base, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest, paddingHorizontal: 12, paddingVertical: 9 }}>
-                  <TextInput
-                    value={bookingName}
-                    onChangeText={setBookingName}
-                    placeholder="Tên người đặt sân"
-                    placeholderTextColor={PROFILE_THEME_COLORS.outline}
-                    style={{ fontFamily: SCREEN_FONTS.body, fontSize: 14, color: PROFILE_THEME_COLORS.primary, padding: 0 }}
-                  />
-                </View>
-                <View style={{ borderRadius: RADIUS.md, borderWidth: BORDER.base, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest, paddingHorizontal: 12, paddingVertical: 9 }}>
-                  <TextInput
-                    value={bookingPhone}
-                    onChangeText={setBookingPhone}
-                    placeholder="Số điện thoại"
-                    placeholderTextColor={PROFILE_THEME_COLORS.outline}
-                    keyboardType="phone-pad"
-                    style={{ fontFamily: SCREEN_FONTS.body, fontSize: 14, color: PROFILE_THEME_COLORS.primary, padding: 0 }}
-                  />
-                </View>
-                <View style={{ borderRadius: RADIUS.md, borderWidth: BORDER.base, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest, paddingHorizontal: 12, paddingVertical: SPACING.sm }}>
-                  <TextInput
-                    value={bookingNotes}
-                    onChangeText={setBookingNotes}
-                    placeholder="Ghi chú booking (tuỳ chọn)"
-                    placeholderTextColor={PROFILE_THEME_COLORS.outline}
-                    multiline
-                    textAlignVertical="top"
-                    style={{ minHeight: 68, fontFamily: SCREEN_FONTS.body, fontSize: 14, color: PROFILE_THEME_COLORS.primary, padding: 0 }}
-                  />
-                </View>
-              </View>
-            ) : null}
-          </View>
+          <BookingStatusSection
+            bookingStatus={bookingStatus}
+            setBookingStatus={setBookingStatus}
+            wantsBookingNow={wantsBookingNow}
+            setWantsBookingNow={setWantsBookingNow}
+            showBookingLinkCta={showBookingLinkCta}
+            onOpenBookingLink={onOpenBookingLink}
+            shouldShowBookingDetails={shouldShowBookingDetails}
+            bookingReference={bookingReference}
+            setBookingReference={setBookingReference}
+            bookingName={bookingName}
+            setBookingName={setBookingName}
+            bookingPhone={bookingPhone}
+            setBookingPhone={setBookingPhone}
+            bookingNotes={bookingNotes}
+            setBookingNotes={setBookingNotes}
+          />
         </ScrollView>
 
         {/* Bottom bar */}
@@ -550,4 +253,3 @@ export function CreateSessionStep2({
     </KeyboardAvoidingView>
   )
 }
-
