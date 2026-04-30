@@ -927,21 +927,21 @@ function SessionListCard({
 }) {
   const levelUi = getSkillLevelUi(item.levelId)
   const Icon = levelUi.icon
-  const [datePart, clockPart] = item.timeLabel.split('â€¢').map((part) => part.trim())
+  const [datePart, clockPart] = item.timeLabel.split('•').map((part) => part.trim())
   const timeRangeLabel = clockPart ?? item.timeLabel
   const compactDateLabel = clockPart ? datePart : item.timeLabel
   const localizedDateLabel = compactDateLabel
-    .replace('CN', 'Chá»§ nháº­t')
-    .replace('T2', 'Thá»© 2')
-    .replace('T3', 'Thá»© 3')
-    .replace('T4', 'Thá»© 4')
-    .replace('T5', 'Thá»© 5')
-    .replace('T6', 'Thá»© 6')
-    .replace('T7', 'Thá»© 7')
+    .replace('CN', 'Chủ nhật')
+    .replace('T2', 'Thứ 2')
+    .replace('T3', 'Thứ 3')
+    .replace('T4', 'Thứ 4')
+    .replace('T5', 'Thứ 5')
+    .replace('T6', 'Thứ 6')
+    .replace('T7', 'Thứ 7')
   const fullDateLabel = localizedDateLabel.replace(/,\s*(\d{1,2})\/(\d{1,2})$/, (_, day, month) => {
     const dayNumber = Number.parseInt(day, 10)
     const monthNumber = Number.parseInt(month, 10)
-    return `, ${dayNumber} ThÃ¡ng ${monthNumber}`
+    return `, ${dayNumber} Tháng ${monthNumber}`
   })
   const addressParts = item.address
     .split(',')
@@ -1085,7 +1085,7 @@ function SessionListCard({
       </View>
 
       <View className="mt-3 flex-row items-center gap-2">
-        {item.isRanked ? <MiniBadgeLight icon={Trophy} label="KÃ¨o tÃ­nh Ä‘iá»ƒm" tone="neutral" size="lg" /> : null}
+        {item.isRanked ? <MiniBadgeLight icon={Trophy} label="Kèo tính điểm" tone="neutral" size="lg" /> : null}
         <MiniBadgeLight icon={BookingStatusIcon} label={item.statusLabel} tone="neutral" size="lg" />
         <View
           className="flex-row items-center rounded-full px-3 py-2"
@@ -1195,7 +1195,7 @@ function SessionListCard({
                 fontSize: 10,
               }}
             >
-              ngÆ°á»i chÆ¡i
+              người chơi
             </Text>
           </View>
         </View>

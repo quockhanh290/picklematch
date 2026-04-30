@@ -1,13 +1,13 @@
 import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { getSkillLevelUi } from '@/lib/skillLevelUi'
-import { LinearGradient } from 'expo-linear-gradient'
-import { CreditCard, MapPin, MessageSquareText } from 'lucide-react-native'
+import { MapPin, MessageSquareText } from 'lucide-react-native'
 import { Text, View } from 'react-native'
 import { RADIUS, SPACING, SHADOW, BORDER } from '@/constants/screenLayout'
+import type { EloLevelId } from '@/lib/eloSystem'
 
 type Props = {
-  skillLevelId: string
+  skillLevelId: EloLevelId
   sessionSkillLabel: string
   courtBookingStatus: 'confirmed' | 'unconfirmed'
   courtName: string
@@ -45,7 +45,7 @@ export function SessionMetaCard({
   userResult,
   maxPlayers,
 }: Props) {
-  const levelUi = getSkillLevelUi(skillLevelId as any)
+  const levelUi = getSkillLevelUi(skillLevelId)
   const LevelIcon = levelUi.icon
   const [datePart, clockPart] = timeLabel.split('•').map((s) => s.trim())
   const timeRangeLabel = clockPart ?? timeLabel

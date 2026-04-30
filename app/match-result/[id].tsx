@@ -111,7 +111,7 @@ function formatMatchDateTime(start?: string | null) {
 
   const weekday = ['Chủ Nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'][startDate.getDay()]
   const pad = (value: number) => value.toString().padStart(2, '0')
-  return `${weekday}, ngày ${pad(startDate.getDate())}/${pad(startDate.getMonth() + 1)}`
+  return `${weekday}, ngày ${pad(startDate.getDate())}/${pad(startDate.getMonth() + 1)}/${startDate.getFullYear()}`
 }
 
 function formatTimeRange(start?: string | null, end?: string | null) {

@@ -80,7 +80,7 @@ export default function CreateSession() {
   const [requireApproval, setRequireApproval] = useState(false)
   const [isRanked, setIsRanked] = useState(true)
   const [canToggleRanked, setCanToggleRanked] = useState(false)
-  const [rankedHelperText, setRankedHelperText] = useState<string | null>('\u0110ang ki\u1ec3m tra quy\u1ec1n d\u00f9ng k\u00e8o t\u00ednh Elo...')
+  const [rankedHelperText, setRankedHelperText] = useState<string | null>('Đang kiểm tra quyền dùng kèo tính Elo...')
   const [totalCostStr, setTotalCostStr] = useState('')
   const [minSkill, setMinSkill] = useState(1)
   const [maxSkill, setMaxSkill] = useState(5)
@@ -124,8 +124,8 @@ export default function CreateSession() {
 
       if (!user) {
         setDialogConfig({
-          title: '\u0043\u1ea7n \u0111\u0103ng nh\u1eadp',
-          message: '\u0042\u1ea1n c\u1ea7n \u0111\u0103ng nh\u1eadp \u0111\u1ec3 ch\u1ec9nh s\u1eeda k\u00e8o.',
+          title: 'Cần đăng nhập',
+          message: 'Bạn cần đăng nhập để chỉnh sửa kèo.',
           actions: [{ label: 'OK', onPress: () => router.back() }],
         })
         return
@@ -133,8 +133,8 @@ export default function CreateSession() {
 
       if (detailResult.error || !session) {
         setDialogConfig({
-          title: '\u004c\u1ed7i',
-          message: detailResult.error?.message ?? 'Kh\u00f4ng t\u1ea3i \u0111\u01b0\u1ee3c d\u1eef li\u1ec7u k\u00e8o.',
+          title: 'Lỗi',
+          message: detailResult.error?.message ?? 'Không tải được dữ liệu kèo.',
           actions: [{ label: 'Quay lại', onPress: () => router.back() }],
         })
         return
@@ -142,8 +142,8 @@ export default function CreateSession() {
 
       if (session.host.id !== user.id) {
         setDialogConfig({
-          title: '\u004b\u00f4ng c\u00f3 quy\u1ec1n',
-          message: '\u0042\u1ea1n kh\u00f4ng ph\u1ea3i ch\u1ee7 k\u00e8o n\u00ean kh\u00f4ng th\u1ec3 ch\u1ec9nh s\u1eeda.',
+          title: 'Không có quyền',
+          message: 'Bạn không phải chủ kèo nên không thể chỉnh sửa.',
           actions: [{ label: 'Đã hiểu', onPress: () => router.back() }],
         })
         return
@@ -228,9 +228,9 @@ export default function CreateSession() {
     const closeMins = toMins(selectedCourt?.hours_close ?? '22:00')
     const timeMins = time.getHours() * 60 + time.getMinutes()
 
-    if (isToday && time <= now) return '\u0047i\u1edd b\u1eaft \u0111\u1ea7u ph\u1ea3i sau th\u1eddi gian hi\u1ec7n t\u1ea1i'
-    if (timeMins < openMins) return `S\u00e2n m\u1edf c\u1eeda l\u00fac ${selectedCourt?.hours_open ?? '06:00'}`
-    if (timeMins >= closeMins) return `S\u00e2n \u0111\u00f3ng c\u1eeda l\u00fac ${selectedCourt?.hours_close ?? '22:00'}`
+    if (isToday && time <= now) return 'Giờ bắt đầu phải sau thời gian hiện tại'
+    if (timeMins < openMins) return `Sân mở cửa lúc ${selectedCourt?.hours_open ?? '06:00'}`
+    if (timeMins >= closeMins) return `Sân đóng cửa lúc ${selectedCourt?.hours_close ?? '22:00'}`
     return null
   }, [selectedCourt?.hours_close, selectedCourt?.hours_open, selectedDate])
 
@@ -238,8 +238,8 @@ export default function CreateSession() {
     const closeMins = toMins(selectedCourt?.hours_close ?? '22:00')
     const endMins = end.getHours() * 60 + end.getMinutes()
 
-    if (end <= start) return '\u0047i\u1edd k\u1ebft th\u00fac ph\u1ea3i sau gi\u1edd b\u1eaft \u0111\u1ea7u'
-    if (endMins > closeMins) return `S\u00e2n \u0111\u00f3ng c\u1eeda l\u00fac ${selectedCourt?.hours_close ?? '22:00'}`
+    if (end <= start) return 'Giờ kết thúc phải sau giờ bắt đầu'
+    if (endMins > closeMins) return `Sân đóng cửa lúc ${selectedCourt?.hours_close ?? '22:00'}`
     return null
   }, [selectedCourt?.hours_close])
 
@@ -274,7 +274,7 @@ export default function CreateSession() {
         if (!mounted) return
         if (!isEditMode) setIsRanked(false)
         setCanToggleRanked(false)
-        setRankedHelperText('\u0110\u0103ng nh\u1eadp \u0111\u1ec3 ch\u1ecdn k\u00e8o c\u00f3 t\u00ednh Elo.')
+        setRankedHelperText('Đăng nhập để chọn kèo có tính Elo.')
         return
       }
 
@@ -333,8 +333,8 @@ export default function CreateSession() {
     const url = selectedCourt?.booking_url ?? selectedCourt?.google_maps_url
     if (!url) {
       setDialogConfig({
-        title: 'Ch\u01b0a c\u00f3 link \u0111\u1eb7t s\u00e2n',
-        message: 'S\u00e2n n\u00e0y ch\u01b0a c\u00f3 link booking. B\u1ea1n v\u1eabn c\u00f3 th\u1ec3 t\u1ef1 \u0111\u1eb7t r\u1ed3i nh\u1eadp th\u00f4ng tin b\u00ean d\u01b0\u1edbi.',
+        title: 'Chưa có link đặt sân',
+        message: 'Sân này chưa có link booking. Bạn vẫn có thể tự đặt rồi nhập thông tin bên dưới.',
         actions: [{ label: 'Đã hiểu' }],
       })
       return
@@ -344,8 +344,8 @@ export default function CreateSession() {
       await Linking.openURL(url)
     } catch {
       setDialogConfig({
-        title: 'Kh\u00f4ng m\u1edf \u0111\u01b0\u1ee3c link',
-        message: 'Vui l\u00f2ng th\u1eed l\u1ea1i ho\u1eb7c m\u1edf link booking c\u1ee7a s\u00e2n theo c\u00e1ch kh\u00e1c.',
+        title: 'Không mở được link',
+        message: 'Vui lòng thử lại hoặc mở link booking của sân theo cách khác.',
         actions: [{ label: 'Đã hiểu' }],
       })
     }
@@ -369,8 +369,8 @@ export default function CreateSession() {
 
     if (minElo > maxElo) {
       setDialogConfig({
-        title: 'L\u1ed7i',
-        message: 'Tr\u00ecnh \u0111\u1ed9 t\u1ed1i thi\u1ec3u kh\u00f4ng th\u1ec3 cao h\u01a1n tr\u00ecnh \u0111\u1ed9 t\u1ed1i \u0111a.',
+        title: 'Lỗi',
+        message: 'Trình độ tối thiểu không thể cao hơn trình độ tối đa.',
         actions: [{ label: 'Đã hiểu' }],
       })
       return
@@ -387,11 +387,11 @@ export default function CreateSession() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
         setDialogConfig({
-          title: '\u0043\u1ea7\u006e\u0020\u0111\u0103\u006e\u0067\u0020\u006e\u0068\u1ead\u0070',
-          message: `\u0042\u1ea1\u006e\u0020\u0063\u1ea7\u006e\u0020\u0111\u0103\u006e\u0067\u0020\u006e\u0068\u1ead\u0070\u0020\u0111\u1ec3\u0020${isEditMode ? '\u0063\u1ead\u0070\u0020\u006e\u0068\u1ead\u0074' : '\u0074\u1ea1\u006f'}\u0020\u006b\u00e8\u006f\u002e`,
+          title: 'Cần đăng nhập',
+          message: `Bạn cần đăng nhập để ${isEditMode ? 'cập nhật' : 'tạo'} kèo.`,
           actions: [
-            { label: '\u0110\u0103\u006e\u0067\u0020\u006e\u0068\u1ead\u0070', onPress: () => router.push('/login') },
-            { label: '\u0048\u1ee7\u0079', tone: 'secondary' },
+            { label: 'Đăng nhập', onPress: () => router.push('/login') },
+            { label: 'Hủy', tone: 'secondary' },
           ],
         })
         return
@@ -403,8 +403,8 @@ export default function CreateSession() {
       const fillDeadline = new Date(startTime.getTime() - deadlineMinutes * 60_000)
       if (fillDeadline.getTime() <= Date.now()) {
         setDialogConfig({
-          title: '\u0048\u1ea1\u006e\u0020\u0063\u0068\u00f3\u0074\u0020\u0063\u0068\u01b0\u0061\u0020\u0068\u1ee3\u0070\u0020\u006c\u1ec7',
-          message: '\u0048\u1ea1\u006e\u0020\u0063\u0068\u00f3\u0074\u0020\u0076\u00e0\u006f\u0020\u006b\u00e8\u006f\u0020\u0070\u0068\u1ea3\u0069\u0020\u006e\u1eb1\u006d\u0020\u0074\u0072\u006f\u006e\u0067\u0020\u0074\u01b0\u01a1\u006e\u0067\u0020\u006c\u0061\u0069\u002e\u0020\u0048\u00e3\u0079\u0020\u0063\u0068\u1ecd\u006e\u0020\u0067\u0069\u1edd\u0020\u0063\u0068\u01a1\u0069\u0020\u006d\u0075\u1ed9\u006e\u0020\u0068\u01a1\u006e\u0020\u0068\u006f\u1eb7\u0063\u0020\u0067\u0069\u1ea3\u006d\u0020\u006d\u1ed1\u0063\u0020\u0068\u1ea1\u006e\u0020\u0063\u0068\u00f3\u0074\u002e',
+          title: 'Hạn chót chưa hợp lệ',
+          message: 'Hạn chót vào kèo phải nằm trong tương lai. Hãy chọn giờ chơi muộn hơn hoặc giảm mốc hạn chót.',
           actions: [{ label: 'Đã hiểu' }],
         })
         return
@@ -416,8 +416,8 @@ export default function CreateSession() {
         const changedEnd = endTime.toISOString() !== lockedSlotSnapshot.endIso
         if (changedCourt || changedStart || changedEnd) {
           setDialogConfig({
-            title: 'Kh\u00f4ng th\u1ec3 thay \u0111\u1ed5i',
-            message: 'K\u00e8o \u0111\u00e3 \u0111\u1eb7t s\u00e2n n\u00ean kh\u00f4ng th\u1ec3 \u0111\u1ed5i s\u00e2n v\u00e0 ng\u00e0y gi\u1edd ch\u01a1i.',
+            title: 'Không thể thay đổi',
+            message: 'Kèo đã đặt sân nên không thể đổi sân và ngày giờ chơi.',
             actions: [{ label: 'Đã hiểu' }],
           })
           return
@@ -510,8 +510,8 @@ export default function CreateSession() {
 
         if (updateError || !updatedSessionId) {
           setDialogConfig({
-            title: '\u004c\u1ed7\u0069',
-            message: updateError?.message ?? '\u004b\u0068\u00f4\u006e\u0067\u0020\u0074\u0068\u1ec3\u0020\u0063\u1ead\u0070\u0020\u006e\u0068\u1ead\u0074\u0020\u006b\u00e8\u006f\u002e',
+            title: 'Lỗi',
+            message: updateError?.message ?? 'Không thể cập nhật kèo.',
             actions: [{ label: 'Đã hiểu' }],
           })
           return
@@ -540,8 +540,8 @@ export default function CreateSession() {
 
       if (createError || !newSessionId) {
         setDialogConfig({
-          title: '\u004c\u1ed7\u0069',
-          message: createError?.message ?? '\u004b\u0068\u00f4\u006e\u0067\u0020\u0074\u0068\u1ec3\u0020\u0074\u1ea1\u006f\u0020\u006b\u00e8\u006f\u002e',
+          title: 'Lỗi',
+          message: createError?.message ?? 'Không thể tạo kèo.',
           actions: [{ label: 'Đã hiểu' }],
         })
         return
@@ -555,10 +555,10 @@ export default function CreateSession() {
       const message = error instanceof Error
         ? error.message
         : isEditMode
-          ? '\u004b\u0068\u00f4\u006e\u0067\u0020\u0074\u0068\u1ec3\u0020\u0063\u1ead\u0070\u0020\u006e\u0068\u1ead\u0074\u0020\u006b\u00e8\u006f\u0020\u006c\u00fac\u0020\u006e\u00e0\u0079\u002e'
-          : '\u004b\u0068\u00f4\u006e\u0067\u0020\u0074\u0068\u1ec3\u0020\u0074\u1ea1\u006f\u0020\u006b\u00e8\u006f\u0020\u006c\u00fac\u0020\u006e\u00e0\u0079\u002e'
+          ? 'Không thể cập nhật kèo lúc này.'
+          : 'Không thể tạo kèo lúc này.'
       setDialogConfig({
-        title: '\u004c\u1ed7\u0069',
+        title: 'Lỗi',
         message: message,
         actions: [{ label: 'Đã hiểu' }],
       })
@@ -569,12 +569,8 @@ export default function CreateSession() {
 
   const { profile } = useHomeFeedData(userId, isLoading)
 
-  if (isEditMode && isHydratingEdit && !editHydrated) {
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: PROFILE_THEME_COLORS.background, alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator size="large" color={PROFILE_THEME_COLORS.primary} />
-      </SafeAreaView>
-    )
+  if (isLoading || (isEditMode && isHydratingEdit && !editHydrated)) {
+    return <AppLoading fullScreen />
   }
 
   const progressMap = { 1: 0.33, 2: 0.66, 3: 1 }
@@ -585,7 +581,6 @@ export default function CreateSession() {
         title="TẠO KÈO MỚI"
         showProgress
         progress={progressMap[step]}
-        rightSlot={<NavbarUserAvatar url={profile?.photo_url} name={profile?.name} />}
         onBackPress={() => {
           if (step === 1) router.back()
           else if (step === 2) setStep(1)
@@ -699,7 +694,7 @@ export default function CreateSession() {
             onBack={() => setStep(2)}
             onCreate={submit}
             submitting={submitting}
-            submitLabel={isEditMode ? 'L\u01b0u thay \u0111\u1ed5i' : 'T\u1ea1o k\u00e8o'}
+            submitLabel={isEditMode ? 'Lưu thay đổi' : 'Tạo kèo'}
             hideHeader
           />
         )}

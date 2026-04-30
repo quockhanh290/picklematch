@@ -1,4 +1,4 @@
-﻿export const colors = {
+export const colors = {
   // Brand
   primary: '#0F6E56',
   primaryLight: '#E1F5EE',

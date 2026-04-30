@@ -1,3 +1,4 @@
+import { timeAgo } from '@/lib/format'
 import { useState, useMemo } from 'react'
 import { colors } from '@/constants/colors'
 import { EmptyState, ScreenHeader } from '@/components/design'
@@ -31,16 +32,6 @@ function withAlpha(hex: string, alpha: number) {
   return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`
 }
 
-function timeAgo(dateStr: string) {
-  const diff = Date.now() - new Date(dateStr).getTime()
-  const mins = Math.floor(diff / 60_000)
-  if (mins < 1) return 'Vừa xong'
-  if (mins < 60) return `${mins} phút trước`
-  const hrs = Math.floor(mins / 60)
-  if (hrs < 24) return `${hrs} giờ trước`
-  const days = Math.floor(hrs / 24)
-  return `${days} ngày trước`
-}
 
 function typeMeta(type: string): {
   icon: LucideIcon

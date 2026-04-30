@@ -7,7 +7,7 @@ export type SessionPlayer = {
   elo_snapshot?: number | null
   status?: string | null
   match_result?: string | null
-  proposed_result?: string | null
+  proposed_result?: 'win' | 'loss' | 'draw' | null
   result_confirmation_status?: string | null
   result_dispute_note?: string | null
   player: {

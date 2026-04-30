@@ -4,6 +4,7 @@ import { ChevronLeft, Upload } from 'lucide-react-native'
 import type { ReactNode } from 'react'
 import { Image, Pressable, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import * as Haptics from 'expo-haptics'
 
 type SecondaryNavbarProps = {
   title?: string
@@ -44,7 +45,10 @@ export function SecondaryNavbar({
       >
         {/* Left Slot: Back Button */}
         <Pressable
-          onPress={handleBack}
+          onPress={() => {
+            void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+            handleBack()
+          }}
           className="h-9 w-9 items-center justify-center rounded-full border"
           style={{ backgroundColor: '#FFFFFF', borderColor: '#E5E3DC' }}
         >
@@ -98,7 +102,10 @@ export function SecondaryNavbar({
 
 export const NavbarShareButton = ({ onPress }: { onPress: () => void }) => (
   <Pressable
-    onPress={onPress}
+    onPress={() => {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+      onPress()
+    }}
     className="h-9 w-9 items-center justify-center rounded-full border"
     style={{ backgroundColor: '#FFFFFF', borderColor: '#E5E3DC' }}
   >
@@ -136,7 +143,10 @@ export const NavbarUserAvatar = ({ url, name }: { url?: string | null; name?: st
 
 export const NavbarDoneButton = ({ onPress, disabled = false }: { onPress: () => void; disabled?: boolean }) => (
   <Pressable
-    onPress={onPress}
+    onPress={() => {
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+      onPress()
+    }}
     disabled={disabled}
     className="rounded-full px-3.5 py-1.5"
     style={{ backgroundColor: '#E1F5EE', opacity: disabled ? 0.6 : 1 }}

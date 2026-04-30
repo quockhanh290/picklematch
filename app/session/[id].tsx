@@ -313,7 +313,7 @@ export default function SessionDetailScreen() {
       await Share.share({ message: `Tham gia kèo pickleball này nhé! ${url}` })
     } catch (error) {
       console.warn('[SessionDetail] Failed to share session:', error)
-      setDialogConfig({ title: '\u004b\u0068\u00f4\u006e\u0067\u0020\u0074\u0068\u1ec3\u0020\u0063\u0068\u0069\u0061\u0020\u0073\u1ebb', message: '\u0056\u0075\u0069\u0020\u006c\u00f2\u006e\u0067\u0020\u0074\u0068\u1eed\u0020\u006c\u1ea1\u0069\u0020\u0073\u0061\u0075\u0020\u00ed\u0074\u0020\u0070\u0068\u00fa\u0074\u002e', actions: [{ label: '\u0110\u00f3\u006e\u0067', tone: 'secondary' }] })
+      setDialogConfig({ title: 'Không thể chia sẻ', message: 'Vui lòng thử lại sau ít phút.', actions: [{ label: 'Đóng', tone: 'secondary' }] })
     }
   }
 
@@ -382,7 +382,7 @@ export default function SessionDetailScreen() {
                   : session.status
           }
           resultsStatus={session.results_status}
-          userResult={viewerSessionPlayer?.proposed_result as any}
+          userResult={viewerSessionPlayer?.proposed_result}
           courtBookingStatus={session.court_booking_status}
           courtName={session.slot.court.name}
           courtAddress={session.slot.court.address}

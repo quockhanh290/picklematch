@@ -34,9 +34,9 @@ import { SPACING, BORDER, RADIUS } from '@/constants/screenLayout'
 
 const ICON_STROKE = 2.5
 const QUICK_REPLY_TEMPLATES = [
-  '\u0054\u0072\u00EC\u006E\u0068\u0020\u0068\u01A1\u0069\u0020\u006C\u1EC7\u0063\u0068\u002C\u0020\u0062\u1EA1\u006E\u0020\u0063\u0068\u1EAF\u0063\u0020\u0063\u0068\u1EE9\u003F',
-  '\u0110\u1EE3\u0069\u0020\u006D\u00EC\u006E\u0068\u0020\u0067\u006F\u006D\u0020\u0111\u1EE7\u0020\u006E\u0067\u01B0\u1EDD\u0069\u0020\u0072\u1ED3\u0069\u0020\u0062\u00E1\u006F\u0020\u006E\u0068\u00E9\u002E',
-  '\u004D\u00EC\u006E\u0068\u0020\u01B0\u0075\u0020\u0074\u0069\u00EA\u006E\u0020\u0074\u0065\u0061\u006D\u0020\u0063\u00E2\u006E\u0020\u0068\u01A1\u006E\u0020\u006D\u1ED9\u0074\u0020\u0063\u0068\u00FA\u0074\u002E',
+  'Trình hơi lệch, bạn chắc chứ?',
+  'Đợi mình gom đủ người rồi báo nhé.',
+  'Minh ưu tiên team cân hơn một chút.',
 ]
 
 type SessionOverview = {
@@ -479,8 +479,8 @@ export default function HostReviewCenterScreen() {
 
     await insertNotification(
       playerId,
-      '\u0110\u01B0\u1EE3\u0063\u0020\u0064\u0075\u0079\u1EC7\u0074\u0021',
-      message.trim() || `\u0042\u1EA1\u006E\u0020\u0111\u00E3\u0020\u0111\u01B0\u1EE3\u0063\u0020\u0063\u0068\u1EA5\u0070\u0020\u006E\u0068\u1EAD\u006E\u0020\u0076\u00E0\u006F\u0020\u006B\u00E8\u006F\u0020\u006C\u00FA\u0063\u0020${slotTime}.`,
+      'Được duyệt!',
+      message.trim() || `Bạn đã được chấp nhận vào kèo lúc ${slotTime}.`,
       'join_approved',
       `/session/${session.id}`,
     )
@@ -516,7 +516,7 @@ export default function HostReviewCenterScreen() {
     await insertNotification(
       playerId,
       'Chưa phù hợp',
-      message.trim() || '\u0048\u006F\u0073\u0074\u0020\u0111\u00E3\u0020\u0074\u1EEB\u0020\u0063\u0068\u1ED1\u0069\u0020\u0079\u00EA\u0075\u0020\u0063\u1EA7\u0075\u0020\u0074\u0068\u0061\u006D\u0020\u0067\u0069\u0061\u0020\u0063\u1EE7\u0061\u0020\u0062\u1EA1\u006E\u002E',
+      message.trim() || 'Host đã từ chối yêu cầu tham gia của bạn.',
       'join_rejected',
       `/session/${session.id}`,
     )
@@ -541,7 +541,7 @@ export default function HostReviewCenterScreen() {
     setDialogConfig({
       title: isFull ? 'Kèo đã đủ người' : 'Hủy kèo?',
       message: isFull
-        ? '\u004B\u00E8\u006F\u0020\u0111\u00E3\u0020\u0111\u1EE7\u0020\u006E\u0067\u01B0\u1EDD\u0069\u0020\u0063\u0068\u01A1\u0069\u002C\u0020\u0076\u0069\u1EC7\u0063\u0020\u0068\u1EE7\u0079\u0020\u006B\u00E8\u006F\u0020\u0073\u1EBD\u0020\u1EA3\u006E\u0068\u0020\u0068\u01B0\u1EDF\u006E\u0067\u0020\u0111\u1EBF\u006E\u0020\u0074\u1EF7\u0020\u006C\u1EC7\u0020\u0075\u0079\u0020\u0074\u00ED\u006E\u0020\u0063\u1EE7\u0061\u0020\u0062\u1EA1\u006E\u002E\u0020\u0042\u1EA1\u006E\u0020\u0063\u00F3\u0020\u0063\u0068\u1EAF\u0063\u0020\u006B\u0068\u00F4\u006E\u0067\u003F'
+        ? 'Kèo đã đủ người chơi, việc hủy kèo sẽ ảnh hưởng đến tỷ lệ uy tín của bạn. Bạn có chắc không?'
         : 'Kèo sẽ bị hủy và toàn bộ người chơi sẽ được thông báo. Không thể hoàn tác.',
       actions: [
         { label: 'Không', tone: 'secondary' },
@@ -597,7 +597,7 @@ export default function HostReviewCenterScreen() {
   if (!session) {
     return (
       <SafeAreaView className="flex-1 items-center justify-center px-6" style={{ backgroundColor: PROFILE_THEME_COLORS.background }}>
-        <Text style={{ textAlign: 'center', fontSize: 15, fontFamily: SCREEN_FONTS.label, color: PROFILE_THEME_SEMANTIC.infoIcon }}>{'\u004B\u0068\u00F4\u006E\u0067\u0020\u0074\u00EC\u006D\u0020\u0074\u0068\u1EA5\u0079\u0020\u0064\u1EEF\u0020\u006C\u0069\u1EC7\u0075\u0020\u0072\u0065\u0076\u0069\u0065\u0077\u0020\u0063\u0068\u006F\u0020\u006B\u00E8\u006F\u0020\u006E\u00E0\u0079\u002E'}</Text>
+        <Text style={{ textAlign: 'center', fontSize: 15, fontFamily: SCREEN_FONTS.label, color: PROFILE_THEME_SEMANTIC.infoIcon }}>Không tìm thấy dữ liệu review cho kèo này.</Text>
       </SafeAreaView>
     )
   }
@@ -606,16 +606,16 @@ export default function HostReviewCenterScreen() {
     return (
       <SafeAreaView className="flex-1 items-center justify-center px-6" style={{ backgroundColor: PROFILE_THEME_COLORS.background }}>
         <CircleX size={28} color={PROFILE_THEME_SEMANTIC.dangerStrong} strokeWidth={ICON_STROKE} />
-        <Text className="mt-4 text-center" style={{ fontSize: 18, fontFamily: SCREEN_FONTS.headline, color: PROFILE_THEME_COLORS.onSurface }}>{'\u0042\u1EA1\u006E\u0020\u006B\u0068\u00F4\u006E\u0067\u0020\u0063\u00F3\u0020\u0071\u0075\u0079\u1EC1\u006E\u0020\u0074\u0072\u0075\u0079\u0020\u0063\u1EAD\u0070'}</Text>
+        <Text className="mt-4 text-center" style={{ fontSize: 18, fontFamily: SCREEN_FONTS.headline, color: PROFILE_THEME_COLORS.onSurface }}>Bạn không có quyền truy cập</Text>
         <Text className="mt-2 text-center text-[14px] leading-6" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant }}>
-          {'\u0043\u0068\u1EC9\u0020\u0068\u006F\u0073\u0074\u0020\u0063\u1EE7\u0061\u0020\u006B\u00E8\u006F\u0020\u006D\u1EDB\u0069\u0020\u0063\u00F3\u0020\u0074\u0068\u1EC3\u0020\u0078\u0065\u006D\u0020\u0076\u00E0\u0020\u0078\u1EED\u0020\u006C\u00FD\u0020\u0074\u0072\u0075\u006E\u0067\u0020\u0074\u00E2\u006D\u0020\u0064\u0075\u0079\u1EC7\u0074\u0020\u0079\u00EA\u0075\u0020\u0063\u1EA7\u0075\u0020\u006E\u00E0\u0079\u002E'}
+          Chỉ host của kèo mới có thể xem và xử lý trung tâm duyệt yêu cầu này.
         </Text>
         <Pressable
           onPress={() => router.back()}
           className="mt-6 active:scale-95 rounded-2xl px-5 py-3.5"
           style={{ backgroundColor: PROFILE_THEME_COLORS.primary }}
         >
-          <Text style={{ fontSize: 14, fontFamily: SCREEN_FONTS.headline, color: PROFILE_THEME_COLORS.onPrimary }}>{'\u0051\u0075\u0061\u0079\u0020\u006C\u1EA1\u0069'}</Text>
+          <Text style={{ fontSize: 14, fontFamily: SCREEN_FONTS.headline, color: PROFILE_THEME_COLORS.onPrimary }}>Quay lại</Text>
         </Pressable>
       </SafeAreaView>
     )
@@ -682,12 +682,12 @@ export default function HostReviewCenterScreen() {
                 <View className="h-14 w-14 items-center justify-center rounded-full" style={{ backgroundColor: PROFILE_THEME_SEMANTIC.successBg }}>
                   <ShieldCheck size={24} color={PROFILE_THEME_COLORS.surfaceTint} strokeWidth={ICON_STROKE} />
                 </View>
-                <Text className="mt-4 text-center" style={{ fontSize: 22, fontFamily: SCREEN_FONTS.headline, color: PROFILE_THEME_COLORS.onSurface }}>{'\u004B\u0068\u00F4\u006E\u0067\u0020\u0063\u00F2\u006E\u0020\u0079\u00EA\u0075\u0020\u0063\u1EA7\u0075\u0020\u0063\u0068\u1EDD\u0020\u0064\u0075\u0079\u1EC7\u0074'}</Text>
+                <Text className="mt-4 text-center" style={{ fontSize: 22, fontFamily: SCREEN_FONTS.headline, color: PROFILE_THEME_COLORS.onSurface }}>Không còn yêu cầu chờ duyệt</Text>
                 <Text
                   className="mt-2 text-center"
                   style={{ fontSize: 14, lineHeight: 24, fontFamily: SCREEN_FONTS.body, color: PROFILE_THEME_SEMANTIC.infoIcon }}
                 >
-                  {'\u0052\u0065\u0076\u0069\u0065\u0077\u0020\u0063\u0065\u006E\u0074\u0065\u0072\u0020\u0111\u0061\u006E\u0067\u0020\u0074\u0072\u1ED1\u006E\u0067\u002E\u0020\u004B\u0068\u0069\u0020\u0063\u00F3\u0020\u006E\u0067\u01B0\u1EDD\u0069\u0020\u006D\u0075\u1ED1\u006E\u0020\u0074\u0068\u0061\u006D\u0020\u0067\u0069\u0061\u002C\u0020\u0068\u1ED3\u0020\u0073\u01A1\u0020\u0063\u1EE7\u0061\u0020\u0068\u1ECD\u0020\u0073\u1EBD\u0020\u0078\u0075\u1EA5\u0074\u0020\u0068\u0069\u1EC7\u006E\u0020\u0074\u1EA1\u0069\u0020\u0111\u00E2\u0079\u002E'}
+                  Review center đang trống. Khi có người muốn tham gia, hồ sơ của họ sẽ xuất hiện tại đây.
                 </Text>
               </View>
             )}
