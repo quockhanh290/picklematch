@@ -182,7 +182,7 @@ function SessionResultMetaCard({
   const maxPlayers = session.max_players || 4
   const hostNote = session.booking_notes
   
-  const timeLabel = _formatTimeRange(startTime, endTime)
+  const timeLabel = _formatTimeRange(startTime || '', endTime || '')
   const [datePart, clockPart] = timeLabel.split('•').map((s) => s.trim())
   const priceLabel = formatPricePerPerson(price, maxPlayers)
 

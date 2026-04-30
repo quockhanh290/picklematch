@@ -21,6 +21,7 @@ import {
     Sparkles,
     X,
 } from 'lucide-react-native'
+import { haversineKm } from '@/lib/useNearbyCourts'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
     ActivityIndicator,
@@ -60,6 +61,8 @@ type Session = {
   } | null
   session_players?: { player_id: string }[]
   player_count: number
+  lat?: number | null
+  lng?: number | null
 }
 
 type QuickFilterId = 'nearby' | 'recent' | 'level3' | 'rescue'
@@ -147,7 +150,7 @@ function getCardStatus(session: Session): 'open' | 'starting_soon' | 'full' | 'p
   return 'open'
 }
 
-function SearchResultCard({ session, rescueMode: _rescueMode }: { session: Session; rescueMode: boolean }) {
+function SearchResultCard({ session, rescueMode: _rescueMode, userLocation }: { session: Session; rescueMode: boolean; userLocation: Location.LocationObject | null }) {
   const court = session.slot?.court
   const district = extractDistrict(court?.address) ?? court?.city ?? 'Khu vuc chua ro'
   const fullAddress = court?.address?.trim() || district
@@ -158,6 +161,9 @@ function SearchResultCard({ session, rescueMode: _rescueMode }: { session: Sessi
   const endTime = new Date(session.slot?.end_time ?? new Date().toISOString())
   const pricePerPlayer = session.max_players > 0 ? Math.round((session.slot?.price ?? 0) / session.max_players) : 0
   const status = getCardStatus(session)
+  const distance = session.lat != null && session.lng != null && userLocation 
+    ? haversineKm(userLocation.coords.latitude, userLocation.coords.longitude, session.lat, session.lng)
+    : undefined
 
   const openSessionDetail = () =>
     router.push({
@@ -171,7 +177,7 @@ function SearchResultCard({ session, rescueMode: _rescueMode }: { session: Sessi
         id: session.id,
         courtName: court?.name ?? 'Keo Pickleball',
         courtAddress: fullAddress,
-        distanceKm: undefined,
+        distanceKm: distance,
         courtBookingConfirmed: session.court_booking_status === 'confirmed',
         startTime,
         endTime,
@@ -202,6 +208,7 @@ function extractDistrict(address?: string | null): string | null {
 export default function FindSession() {
   const params = useLocalSearchParams<{ courtId?: string; courtName?: string }>()
   const [sessions, setSessions] = useState<Session[]>([])
+  const [userLocation, setUserLocation] = useState<Location.LocationObject | null>(null)
   const [loading, setLoading] = useState(true)
   const [dialogConfig, setDialogConfig] = useState<AppDialogConfig | null>(null)
   const [refreshing, setRefreshing] = useState(false)
@@ -253,7 +260,7 @@ export default function FindSession() {
         host:host_id ( id, name, is_provisional, current_elo, elo, self_assessed_level, skill_label ),
         slot:slot_id (
           start_time, end_time, price,
-          court:court_id ( id, name, address, city )
+          court:court_id ( id, name, address, city, lat, lng )
         ),
         session_players ( player_id )`,
       )
@@ -262,7 +269,12 @@ export default function FindSession() {
       .limit(50)
 
     if (!error && data) {
-      const normalized = data.map((s: any) => ({ ...s, player_count: (s.session_players ?? []).length })) as Session[]
+      const normalized = data.map((s: any) => ({ 
+        ...s, 
+        player_count: (s.session_players ?? []).length,
+        lat: s.slot?.court?.lat,
+        lng: s.slot?.court?.lng
+      })) as Session[]
       const visibleSessions = currentUserId
         ? normalized.filter((session) => {
             const joined = (session.session_players ?? []).some((player) => player.player_id === currentUserId)
@@ -328,7 +340,8 @@ export default function FindSession() {
       } catch {}
 
       const location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced })
-      
+      setUserLocation(location)
+
       // Enable nearby filter
       setQuickFilters(prev => ({ ...prev, nearby: true }))
       
@@ -426,8 +439,18 @@ export default function FindSession() {
         if (hoursUntilStart < 0 || hoursUntilStart > 48) return false
       }
       if (quickFilters.nearby) {
-        const city = normalizeText(session.slot?.court?.city)
-        if (!city.includes('ho chi minh') && !city.includes('thu duc')) return false
+        if (userLocation && session.lat != null && session.lng != null) {
+          const dist = haversineKm(
+            userLocation.coords.latitude, 
+            userLocation.coords.longitude, 
+            session.lat, 
+            session.lng
+          )
+          if (dist > 15) return false // Filter within 15km
+        } else {
+          const city = normalizeText(session.slot?.court?.city)
+          if (!city.includes('ho chi minh') && !city.includes('thu duc')) return false
+        }
       }
       // Preferred court
       if (preferredCourtFilter?.id) {
@@ -774,7 +797,11 @@ export default function FindSession() {
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <View className="px-5">
-              <SearchResultCard session={item} rescueMode={quickFilters.rescue} />
+              <SearchResultCard 
+                session={item} 
+                rescueMode={quickFilters.rescue} 
+                userLocation={userLocation}
+              />
             </View>
           )}
           ListHeaderComponent={listHeader}

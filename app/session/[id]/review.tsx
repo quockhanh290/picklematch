@@ -652,6 +652,7 @@ export default function HostReviewCenterScreen() {
               isRanked={session.is_ranked ?? true}
               hostNote={session.booking_notes}
               sessionStatus={session.status}
+              maxPlayers={session.max_players}
             />
           </View>
 

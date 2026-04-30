@@ -56,7 +56,7 @@ function skillLevelFromElo(elo: number, edge: 'min' | 'max'): number {
 }
 
 export default function CreateSession() {
-  const { userId, isAuthLoading } = useAuth()
+  const { userId, isLoading } = useAuth()
   const params = useLocalSearchParams<{ editSessionId?: string }>()
   const router = useRouter()
   const editSessionId = typeof params.editSessionId === 'string' ? params.editSessionId : null
@@ -567,7 +567,7 @@ export default function CreateSession() {
     }
   }
 
-  const { profile } = useHomeFeedData(userId, isAuthLoading)
+  const { profile } = useHomeFeedData(userId, isLoading)
 
   if (isEditMode && isHydratingEdit && !editHydrated) {
     return (

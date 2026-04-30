@@ -87,6 +87,7 @@ export type HomeProfile = {
   reliability_score?: number | null
   host_reputation?: number | null
   favorite_court_ids?: string[] | null
+  photo_url?: string | null
 }
 
 export type PlayerStatsRecord = {
@@ -156,6 +157,7 @@ export type MatchSession = {
   joined?: boolean
   carouselIndex?: number
   carouselTotal?: number
+  courtBookingConfirmed?: boolean
 }
 
 export type FamiliarCourt = {
@@ -393,6 +395,7 @@ export function mapLiveSessionToMatchSession(
     players,
     urgent,
     joined,
+    courtBookingConfirmed: session.court_booking_status === 'confirmed',
   }
 }
 

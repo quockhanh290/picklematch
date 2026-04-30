@@ -57,7 +57,7 @@ function pad2(value: number) {
 }
 
 function splitMatchTimeLabel(timeLabel: string) {
-  const parts = timeLabel.split(/\u2022|â€¢|Ã¢â‚¬Â¢/).map((part) => part.trim())
+  const parts = timeLabel.split(/\u2022/).map((part) => part.trim())
   return {
     datePart: parts.length > 1 ? parts[0] : '',
     timeRange: parts.length > 1 ? parts[1] : timeLabel.trim(),
@@ -74,11 +74,11 @@ function parseUpcomingStartDate(timeLabel: string, now: Date) {
   start.setHours(Number(timeMatch[1]), Number(timeMatch[2]), 0, 0)
 
   const normalizedDate = datePart.toLowerCase()
-  if (normalizedDate.includes('h\u00f4m nay') || normalizedDate.includes('hÃ´m nay') || normalizedDate.includes('hÃƒÂ´m nay')) {
+  if (normalizedDate.includes('hôm nay')) {
     return start
   }
 
-  if (normalizedDate.includes('ng\u00e0y mai') || normalizedDate.includes('ngÃ y mai') || normalizedDate.includes('ngÃƒÂ y mai')) {
+  if (normalizedDate.includes('ngày mai')) {
     start.setDate(now.getDate() + 1)
     return start
   }
@@ -96,7 +96,7 @@ function parseUpcomingStartDate(timeLabel: string, now: Date) {
 }
 
 function getFullWeekdayLabel(date: Date) {
-  return date.getDay() === 0 ? 'Ch\u1ee7 nh\u1eadt' : `Th\u1ee9 ${date.getDay() + 1}`
+  return date.getDay() === 0 ? 'Chủ nhật' : `Thứ ${date.getDay() + 1}`
 }
 
 function getHeaderTimeLabel(startDate: Date | null, now: Date) {
@@ -315,7 +315,7 @@ function HeroMatchSessionCard({ item }: { item: MatchSession; actionLabel: strin
   const emptySlots = Math.min(Math.max(item.maxPlayers - item.activePlayers, 0), Math.max(displayCap - visiblePlayers.length, 0))
   const waitingPlayers = Math.max(item.maxPlayers - item.activePlayers, 0)
   const playersLabel =
-    waitingPlayers === 0 ? '\u0110\u1ee7 ng\u01b0\u1eddi \u2713' : `${item.activePlayers}/${item.maxPlayers} \u00b7 ch\u1edd ${waitingPlayers} n\u1eefa`
+    waitingPlayers === 0 ? 'Đủ người ✓' : `${item.activePlayers}/${item.maxPlayers} · chờ ${waitingPlayers} nữa`
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -348,7 +348,7 @@ function HeroMatchSessionCard({ item }: { item: MatchSession; actionLabel: strin
                 letterSpacing: 0.8,
               }}
             >
-              {'K\u00c8O S\u1eaeP T\u1edaI'}
+              {'KÈO SẮP TỚI'}
             </Text>
           </View>
 
@@ -400,7 +400,7 @@ function HeroMatchSessionCard({ item }: { item: MatchSession; actionLabel: strin
         <View style={{ flexDirection: 'row', alignItems: 'flex-end', columnGap: 16 }}>
           <View>
             <Text style={{ color: '#A8D9C8', fontFamily: SCREEN_FONTS.body, fontSize: 10, lineHeight: 14, marginBottom: 2 }}>
-              {'B\u1eaft \u0111\u1ea7u l\u00fac'}
+              {'Bắt đầu lúc'}
             </Text>
             <Text
               style={{

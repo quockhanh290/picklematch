@@ -10,7 +10,7 @@ type Props = {
   onPress: () => void
   loading?: boolean
   disabled?: boolean
-  variant?: 'primary' | 'secondary' | 'ghost'
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger'
   fullWidth?: boolean
 }
 

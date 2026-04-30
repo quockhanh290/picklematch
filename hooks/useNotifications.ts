@@ -124,7 +124,6 @@ export function useNotifications(userId: string | null | undefined) {
       .eq('player_id', userId)
       .order('created_at', { ascending: false })
       .limit(50)
-    console.log('[useNotifications] fetch result:', { count: data?.length, error: error?.message })
     if (data) setNotifications((data as Notification[]).map(translateNotification))
   }
 

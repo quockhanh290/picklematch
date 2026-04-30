@@ -368,14 +368,14 @@ function MySessionCard({
   const userResult = item.user_result
 
   let statusLabel = isBooked ? 'Đã đặt sân' : 'Chưa đặt sân'
-  let statusColor = isBooked ? colors.successText : colors.warningDark
-  let dotColor = isBooked ? colors.success : colors.warning
+  let statusColor: string = isBooked ? colors.successText : colors.warningDark
+  let dotColor: string = isBooked ? colors.success : colors.warning
 
   if (isHistory) {
     if (item.status === 'cancelled') {
       statusLabel = 'Đã hủy'
-      statusColor = colors.error
-      dotColor = colors.error
+      statusColor = colors.accent
+      dotColor = colors.accent
     } else if (!item.is_ranked) {
       statusLabel = 'Đã kết thúc'
       statusColor = colors.textSecondary
@@ -387,8 +387,8 @@ function MySessionCard({
         dotColor = colors.success
       } else if (userResult === 'loss') {
         statusLabel = 'Thua'
-        statusColor = colors.error
-        dotColor = colors.error
+        statusColor = colors.accent
+        dotColor = colors.accent
       } else {
         statusLabel = 'Đã kết thúc'
         statusColor = colors.textSecondary

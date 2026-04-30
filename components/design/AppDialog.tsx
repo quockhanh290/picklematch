@@ -57,7 +57,7 @@ export function AppDialog({ visible, config, onClose }: Props) {
             style={{
               fontSize: 24,
               lineHeight: 28,
-              color: theme.onSurface,
+              color: theme.text,
               fontFamily: SCREEN_FONTS.headline,
               textTransform: 'uppercase',
             }}
