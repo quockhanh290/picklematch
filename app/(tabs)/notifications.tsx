@@ -42,80 +42,80 @@ function typeMeta(type: string): {
   if (type === 'join_request') {
     return {
       icon: UserPlus,
-      iconColor: PROFILE_THEME_COLORS.primary,
-      iconBackground: PROFILE_THEME_COLORS.primaryFixed,
+      iconColor: PROFILE_THEME_COLORS.onPrimary,
+      iconBackground: PROFILE_THEME_COLORS.primary,
       indicator: PROFILE_THEME_COLORS.primary,
     }
   }
   if (type === 'join_approved') {
     return {
       icon: CheckCircle2,
-      iconColor: PROFILE_THEME_COLORS.primary,
-      iconBackground: PROFILE_THEME_COLORS.secondaryContainer,
+      iconColor: PROFILE_THEME_COLORS.onPrimary,
+      iconBackground: PROFILE_THEME_COLORS.primary,
       indicator: PROFILE_THEME_COLORS.primary,
     }
   }
   if (type === 'join_rejected') {
     return {
       icon: XCircle,
-      iconColor: PROFILE_THEME_COLORS.error,
-      iconBackground: PROFILE_THEME_COLORS.errorContainer,
+      iconColor: PROFILE_THEME_COLORS.onPrimary,
+      iconBackground: PROFILE_THEME_COLORS.primary,
       indicator: PROFILE_THEME_COLORS.error,
     }
   }
   if (type === 'player_left') {
     return {
       icon: DoorOpen,
-      iconColor: PROFILE_THEME_COLORS.onPrimaryFixedVariant,
-      iconBackground: PROFILE_THEME_COLORS.primaryFixed,
+      iconColor: PROFILE_THEME_COLORS.onPrimary,
+      iconBackground: PROFILE_THEME_COLORS.primary,
       indicator: PROFILE_THEME_COLORS.surfaceTint,
     }
   }
   if (type === 'session_cancelled') {
     return {
       icon: Megaphone,
-      iconColor: PROFILE_THEME_COLORS.error,
-      iconBackground: PROFILE_THEME_COLORS.errorContainer,
+      iconColor: PROFILE_THEME_COLORS.onPrimary,
+      iconBackground: PROFILE_THEME_COLORS.primary,
       indicator: PROFILE_THEME_COLORS.error,
     }
   }
   if (type === 'session_updated') {
     return {
       icon: Sparkles,
-      iconColor: PROFILE_THEME_COLORS.onTertiaryFixedVariant,
-      iconBackground: PROFILE_THEME_COLORS.tertiaryFixed,
+      iconColor: PROFILE_THEME_COLORS.onPrimary,
+      iconBackground: PROFILE_THEME_COLORS.primary,
       indicator: PROFILE_THEME_COLORS.surfaceTint,
     }
   }
   if (type === 'join_request_reply') {
     return {
       icon: MessageCircleMore,
-      iconColor: PROFILE_THEME_COLORS.onSecondaryFixed,
-      iconBackground: PROFILE_THEME_COLORS.secondaryFixed,
+      iconColor: PROFILE_THEME_COLORS.onPrimary,
+      iconBackground: PROFILE_THEME_COLORS.primary,
       indicator: PROFILE_THEME_COLORS.primary,
     }
   }
   if (type === 'achievement_unlocked') {
     return {
       icon: Trophy,
-      iconColor: PROFILE_THEME_COLORS.tertiary,
-      iconBackground: PROFILE_THEME_COLORS.tertiaryContainer,
+      iconColor: PROFILE_THEME_COLORS.onPrimary,
+      iconBackground: PROFILE_THEME_COLORS.primary,
       indicator: PROFILE_THEME_COLORS.tertiary,
     }
   }
   if (type === 'host_unprofessional_reported') {
     return {
       icon: AlertTriangle,
-      iconColor: PROFILE_THEME_COLORS.error,
-      iconBackground: PROFILE_THEME_COLORS.errorContainer,
+      iconColor: PROFILE_THEME_COLORS.onPrimary,
+      iconBackground: PROFILE_THEME_COLORS.primary,
       indicator: PROFILE_THEME_COLORS.error,
     }
   }
   if (type === 'result_confirmation_request') {
     return {
       icon: CheckCircle2,
-      iconColor: PROFILE_THEME_COLORS.primary,
-      iconBackground: PROFILE_THEME_COLORS.secondaryContainer,
+      iconColor: PROFILE_THEME_COLORS.onPrimary,
+      iconBackground: PROFILE_THEME_COLORS.primary,
       indicator: PROFILE_THEME_COLORS.primary,
     }
   }
@@ -123,16 +123,16 @@ function typeMeta(type: string): {
   if (type === 'session_pending_completion' || type === 'session_results_submitted' || type === 'session_results_disputed' || type === 'session_auto_closed' || type === 'ghost_session_voided') {
     return {
       icon: Bell,
-      iconColor: PROFILE_THEME_COLORS.primary,
-      iconBackground: PROFILE_THEME_COLORS.primaryFixed,
+      iconColor: PROFILE_THEME_COLORS.onPrimary,
+      iconBackground: PROFILE_THEME_COLORS.primary,
       indicator: PROFILE_THEME_COLORS.primary,
     }
   }
   
   return {
     icon: Info,
-    iconColor: PROFILE_THEME_COLORS.onSurfaceVariant,
-    iconBackground: PROFILE_THEME_COLORS.surfaceVariant,
+    iconColor: PROFILE_THEME_COLORS.onPrimary,
+    iconBackground: PROFILE_THEME_COLORS.primary,
     indicator: PROFILE_THEME_COLORS.outline,
   }
 }

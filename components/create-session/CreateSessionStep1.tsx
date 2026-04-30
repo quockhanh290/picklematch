@@ -8,7 +8,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { ActivityIndicator, Keyboard, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 
 import type { NearByCourt } from '@/lib/useNearbyCourts'
-import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
+import { RADIUS, SPACING, BORDER, SHADOW } from '@/constants/screenLayout'
 import { AppFontSet } from '@/constants/typography'
 
 type Props = {
@@ -389,84 +389,98 @@ export function CreateSessionStep1({
         <View style={{ marginTop: 16, marginBottom: 24 }}>
           {selectedCourt ? (
             <>
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 15, color: PROFILE_THEME_COLORS.onSurface }}>Sân đã chọn</Text>
-                {isCourtScheduleLocked ? (
-                  <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 12, color: PROFILE_THEME_COLORS.outline }}>Đã khóa vì đã đặt sân</Text>
-                ) : (
-                  <Pressable
-                    onPress={() => {
-                      if (showCourtPicker) {
-                        setIsChoosingCourt(false)
-                        return
-                      }
-                      onChangeCourt()
-                      setIsChoosingCourt(true)
-                    }}
-                    style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
-                  >
-                    <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 13, color: PROFILE_THEME_COLORS.primary }}>
-                      {showCourtPicker ? 'Đóng chọn sân' : 'Đổi sân'}
-                    </Text>
-                  </Pressable>
-                )}
-              </View>
-
-              <View style={{ borderRadius: RADIUS.hero, overflow: 'hidden', shadowColor: PROFILE_THEME_COLORS.onBackground, shadowOpacity: 0.08, shadowRadius: 16, shadowOffset: { width: 0, height: 7 }, elevation: 3, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest }}>
-                <LinearGradient
-                  colors={[PROFILE_THEME_COLORS.primary, PROFILE_THEME_COLORS.surfaceTint]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}
-                />
-                <MapPin size={120} color="rgba(255,255,255,0.12)" style={{ position: 'absolute', right: -18, bottom: -16 }} />
-
-                <View style={{ paddingHorizontal: SPACING.lg, paddingTop: 16, paddingBottom: 14 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', borderRadius: RADIUS.full, paddingHorizontal: SPACING.sm, paddingVertical: SPACING.xs, backgroundColor: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.14), marginBottom: 8 }}>
-                    {selectedCourtOpen
-                      ? <ShieldCheck size={12} color={withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.84)} strokeWidth={2.5} />
-                      : <ShieldAlert size={12} color={withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.84)} strokeWidth={2.5} />}
-                    <Text style={{ marginLeft: 6, color: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.9), fontFamily: SCREEN_FONTS.label, fontSize: 12 }}>
-                      {selectedCourtOpen ? 'Đang mở' : 'Tạm đóng'}
+              <View style={{ 
+                borderRadius: RADIUS.lg, 
+                overflow: 'hidden', 
+                backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+                borderWidth: BORDER.base,
+                borderColor: PROFILE_THEME_COLORS.outlineVariant,
+                ...SHADOW.sm,
+              }}>
+                <View style={{ 
+                  backgroundColor: PROFILE_THEME_COLORS.primary,
+                  paddingHorizontal: 16,
+                  paddingVertical: 6,
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 6 }}>
+                    <View style={{ width: 5, height: 5, borderRadius: RADIUS.full, backgroundColor: PROFILE_THEME_COLORS.onPrimary }} />
+                    <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta, fontSize: 13, letterSpacing: 0.5 }}>
+                      {'SÂN ĐÃ CHỌN'}
                     </Text>
                   </View>
-                  <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
-                    <Text
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                      minimumFontScale={0.5}
-                      style={{ flex: 1, color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.headline, fontSize: 36, lineHeight: 46, letterSpacing: 0, textTransform: 'uppercase' }}
+                  
+                  {!isCourtScheduleLocked && (
+                    <TouchableOpacity 
+                      onPress={() => {
+                        if (showCourtPicker) {
+                          setIsChoosingCourt(false)
+                          return
+                        }
+                        onChangeCourt()
+                        setIsChoosingCourt(true)
+                      }}
                     >
-                      {selectedCourt.name}
-                    </Text>
-                  </View>
-
-                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', maxWidth: '100%' }}>
-                      <MapPin size={12} color={withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.84)} strokeWidth={2.5} />
-                      <Text numberOfLines={1} style={{ marginLeft: 6, color: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.9), fontFamily: SCREEN_FONTS.body, fontSize: 13, lineHeight: 18, letterSpacing: 0.2, flexShrink: 1 }}>
-                        {selectedCourtAddress}
+                      <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.headline, fontSize: 13, textTransform: 'uppercase' }}>
+                        {showCourtPicker ? 'Đóng' : 'Đổi sân'}
                       </Text>
-                    </View>
-                    {selectedCourtDistanceLabel ? (
-                      <View style={{ borderRadius: RADIUS.full, paddingHorizontal: SPACING.sm, paddingVertical: SPACING.xs, backgroundColor: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.14) }}>
-                        <Text style={{ color: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.9), fontFamily: SCREEN_FONTS.label, fontSize: 13 }}>
-                          {selectedCourtDistanceLabel}
-                        </Text>
-                      </View>
-                    ) : null}
-                  </View>
-
-                  {/* Price row */}
-                  <View style={{ marginTop: 12, paddingTop: 10, borderTopWidth: 0.5, borderTopColor: 'rgba(255,255,255,0.2)', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                    <Text style={{ fontFamily: SCREEN_FONTS.body, fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>💳 Giá sân</Text>
-                    <Text style={{ marginLeft: 'auto', fontFamily: SCREEN_FONTS.headline, fontSize: 24, color: 'white' }}>
-                      {selectedCourtPriceLabel ?? '—'}
-                    </Text>
-                  </View>
+                    </TouchableOpacity>
+                  )}
                 </View>
 
-                {/* Hide details row per user request */}
+                <View style={{ padding: 16 }}>
+                  <Text
+                    numberOfLines={2}
+                    style={{ 
+                      color: PROFILE_THEME_COLORS.onSurface, 
+                      fontFamily: SCREEN_FONTS.headline, 
+                      fontSize: 31, 
+                      lineHeight: 36, 
+                      letterSpacing: 0,
+                      marginBottom: 4,
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    {selectedCourt.name}
+                  </Text>
+
+                  <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 6, marginBottom: 12 }}>
+                    <MapPin size={13} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.5} />
+                    <Text numberOfLines={1} style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, fontSize: 13, lineHeight: 18, flexShrink: 1 }}>
+                      {selectedCourtAddress}
+                    </Text>
+                  </View>
+
+                </View>
+
+                <View style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceAlt, padding: 16 }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                    <View>
+                      <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.label, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>
+                        {'CHI PHÍ'}
+                      </Text>
+                      <Text style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.headline, fontSize: 24, lineHeight: 24 }}>
+                        {selectedCourtPriceLabel ?? '—'}
+                      </Text>
+                    </View>
+
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <View style={{ width: 6, height: 6, borderRadius: RADIUS.full, backgroundColor: selectedCourtOpen ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.error }} />
+                      <Text style={{ 
+                        marginLeft: 6, 
+                        color: selectedCourtOpen ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.error, 
+                        fontFamily: SCREEN_FONTS.cta, 
+                        fontSize: 10,
+                        textTransform: 'uppercase',
+                        letterSpacing: 0.5
+                      }}>
+                        {selectedCourtOpen ? 'Đang mở' : 'Tạm đóng'}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
               </View>
             </>
           ) : (
@@ -524,7 +538,7 @@ export function CreateSessionStep1({
               <View style={{ width: 28, height: 28, borderRadius: RADIUS.full, backgroundColor: PROFILE_THEME_COLORS.secondaryContainer, alignItems: 'center', justifyContent: 'center' }}>
                 <Calendar size={14} color={PROFILE_THEME_COLORS.surfaceTint} strokeWidth={2.6} />
               </View>
-              <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 11, textTransform: 'uppercase', letterSpacing: 1.2, color: PROFILE_THEME_COLORS.outline }}>
+              <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 13, textTransform: 'uppercase', letterSpacing: 1.2, color: PROFILE_THEME_COLORS.outline }}>
                 Ngày chơi
               </Text>
             </View>
@@ -555,11 +569,11 @@ export function CreateSessionStep1({
                         opacity: isCourtScheduleLocked ? 0.55 : pressed ? 0.85 : 1,
                       })}
                     >
-                      <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 12, textTransform: 'uppercase', textAlign: 'center', color: active ? PROFILE_THEME_COLORS.primary : weekend ? PROFILE_THEME_COLORS.error : PROFILE_THEME_COLORS.outline }}>
+                      <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 14, textTransform: 'uppercase', textAlign: 'center', color: active ? PROFILE_THEME_COLORS.primary : weekend ? PROFILE_THEME_COLORS.error : PROFILE_THEME_COLORS.outline }}>
                         {WEEKDAY_LABELS[day.getDay()]}
                       </Text>
                       <View style={{ marginTop: 4, width: 36, height: 36, borderRadius: RADIUS.full, alignItems: 'center', justifyContent: 'center', backgroundColor: active ? PROFILE_THEME_COLORS.primary : 'transparent' }}>
-                        <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 20, lineHeight: 24, textAlign: 'center', color: active ? PROFILE_THEME_COLORS.onPrimary : weekend ? PROFILE_THEME_COLORS.error : PROFILE_THEME_COLORS.onSurface }}>
+                        <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 22, lineHeight: 26, textAlign: 'center', color: active ? PROFILE_THEME_COLORS.onPrimary : weekend ? PROFILE_THEME_COLORS.error : PROFILE_THEME_COLORS.onSurface }}>
                           {day.getDate().toString().padStart(2, '0')}
                         </Text>
                       </View>
@@ -595,7 +609,7 @@ export function CreateSessionStep1({
                   <View style={{ width: 28, height: 28, borderRadius: RADIUS.full, backgroundColor: PROFILE_THEME_COLORS.secondaryContainer, alignItems: 'center', justifyContent: 'center' }}>
                     <Clock3 size={14} color={PROFILE_THEME_COLORS.surfaceTint} strokeWidth={2.6} />
                   </View>
-                  <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 11, textTransform: 'uppercase', letterSpacing: 1.2, color: PROFILE_THEME_COLORS.outline }}>Bắt đầu</Text>
+                  <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 13, textTransform: 'uppercase', letterSpacing: 1.2, color: PROFILE_THEME_COLORS.outline }}>Bắt đầu</Text>
                 </View>
                 <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 32, color: PROFILE_THEME_COLORS.surfaceTint, marginTop: 12, lineHeight: 36, textAlign: 'left' }}>
                   {formatTime(startTime)}
@@ -612,7 +626,7 @@ export function CreateSessionStep1({
                 })}
               >
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                  <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 11, textTransform: 'uppercase', letterSpacing: 1.2, color: PROFILE_THEME_COLORS.outline }}>Kết thúc</Text>
+                  <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 13, textTransform: 'uppercase', letterSpacing: 1.2, color: PROFILE_THEME_COLORS.outline }}>Kết thúc</Text>
                   <View style={{ width: 28, height: 28, borderRadius: RADIUS.full, backgroundColor: PROFILE_THEME_COLORS.secondaryContainer, alignItems: 'center', justifyContent: 'center' }}>
                     <Clock3 size={14} color={PROFILE_THEME_COLORS.surfaceTint} strokeWidth={2.6} />
                   </View>
@@ -652,13 +666,13 @@ export function CreateSessionStep1({
           <View style={{ marginBottom: 14, borderRadius: RADIUS.xl, overflow: 'hidden', borderWidth: BORDER.base, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, alignItems: 'center' }}>
             <View style={pickerHeader}>
               <Pressable onPress={() => setShowDatePicker(false)} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
-                <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 13, color: PROFILE_THEME_COLORS.onSurfaceVariant }}>Hủy</Text>
+                <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 18, color: PROFILE_THEME_COLORS.onSurfaceVariant }}>Hủy</Text>
               </Pressable>
-              <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 13, color: PROFILE_THEME_COLORS.onSurface }}>
+              <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 18, color: PROFILE_THEME_COLORS.onSurface }}>
                 {MONTH_LABELS[draftDate.getMonth()]}
               </Text>
               <Pressable onPress={confirmDraftDate} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
-                <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 13, color: PROFILE_THEME_COLORS.primary }}>Xong</Text>
+                <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 18, color: PROFILE_THEME_COLORS.primary }}>Xong</Text>
               </Pressable>
             </View>
             <DateTimePicker
@@ -678,11 +692,11 @@ export function CreateSessionStep1({
           <View style={{ marginBottom: 14, borderRadius: RADIUS.xl, overflow: 'hidden', borderWidth: BORDER.base, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest, alignItems: 'center' }}>
             <View style={pickerHeader}>
               <Pressable onPress={onCloseStartPicker} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
-                <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 13, color: PROFILE_THEME_COLORS.onSurfaceVariant }}>Hủy</Text>
+                <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 18, color: PROFILE_THEME_COLORS.onSurfaceVariant }}>Hủy</Text>
               </Pressable>
-              <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 13, color: PROFILE_THEME_COLORS.onSurface }}>Giờ bắt đầu</Text>
+              <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 18, color: PROFILE_THEME_COLORS.onSurface }}>Giờ bắt đầu</Text>
               <Pressable onPress={confirmDraftStartTime} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
-                <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 13, color: PROFILE_THEME_COLORS.primary }}>Xong</Text>
+                <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 18, color: PROFILE_THEME_COLORS.primary }}>Xong</Text>
               </Pressable>
             </View>
             <DateTimePicker
@@ -702,11 +716,11 @@ export function CreateSessionStep1({
           <View style={{ marginBottom: 14, borderRadius: RADIUS.xl, overflow: 'hidden', borderWidth: BORDER.base, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest, alignItems: 'center' }}>
             <View style={pickerHeader}>
               <Pressable onPress={onCloseEndPicker} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
-                <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 13, color: PROFILE_THEME_COLORS.onSurfaceVariant }}>Hủy</Text>
+                <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 18, color: PROFILE_THEME_COLORS.onSurfaceVariant }}>Hủy</Text>
               </Pressable>
-              <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 13, color: PROFILE_THEME_COLORS.onSurface }}>Giờ kết thúc</Text>
+              <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 18, color: PROFILE_THEME_COLORS.onSurface }}>Giờ kết thúc</Text>
               <Pressable onPress={confirmDraftEndTime} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
-                <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 13, color: PROFILE_THEME_COLORS.primary }}>Xong</Text>
+                <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 18, color: PROFILE_THEME_COLORS.primary }}>Xong</Text>
               </Pressable>
             </View>
             <DateTimePicker
