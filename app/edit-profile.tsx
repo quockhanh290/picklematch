@@ -120,19 +120,8 @@ export default function EditProfile() {
       setPlacementMatchesPlayed(data.placement_matches_played ?? 0)
       setBio(data.bio ?? '')
 
-      // DEBUG LOG
-      console.log('PLAYER DATA FETCHED:', {
-        id: data.id,
-        name: data.name,
-        skill_label: data.skill_label,
-        self_assessed_level: data.self_assessed_level,
-        elo: data.elo,
-        current_elo: data.current_elo
-      })
-
       // Fix skill level discrepancy: use same logic as profile screen
       const skill = getSkillLevelFromPlayer(data)
-      console.log('RESOLVED SKILL:', skill?.id, skill?.title)
       
       const levelId = skill?.id ?? 'level_1'
       setSelectedLevelId(levelId)
@@ -173,7 +162,6 @@ export default function EditProfile() {
       }
     } else {
       // Fallback for new users without a record yet
-      console.log('NO PLAYER DATA FOUND FOR ID:', user.id)
       setElo(800)
       setSelectedLevelId('level_1')
       initialStateRef.current = {

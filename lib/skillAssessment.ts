@@ -92,24 +92,20 @@ export function getSkillLevelFromPlayer(
 ) {
   const byId = getSkillLevelById(player?.self_assessed_level)
   if (byId) {
-    console.log('[SkillTrace] Resolved by self_assessed_level:', byId.id)
     return byId
   }
 
   const byTier = getSkillLevelFromTier(player?.skill_tier)
   if (byTier) {
-    console.log('[SkillTrace] Resolved by skill_tier:', byTier.id)
     return byTier
   }
 
   const byElo = getSkillLevelFromElo(player?.current_elo ?? player?.elo)
   if (byElo) {
-    console.log('[SkillTrace] Resolved by elo:', byElo.id)
     return byElo
   }
 
   const byLegacy = getSkillLevelFromLegacyLabel(player?.skill_label)
-  console.log('[SkillTrace] Resolved by legacy_label (or fallback):', byLegacy?.id)
   return byLegacy
 }
 

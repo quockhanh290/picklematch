@@ -23,6 +23,7 @@ type Params = {
   setHostResponseTemplate: (value: string | null) => void
   introNote: string
   onJoinModalClose: () => void
+  onJoinModalOpen: () => void
   refreshSession: () => Promise<void>
   presentDialog: (payload: { title: string; message: string; actions: DialogAction[] }) => void
 }
@@ -37,6 +38,7 @@ export function useSessionJoinActions({
   setHostResponseTemplate,
   introNote,
   onJoinModalClose,
+  onJoinModalOpen,
   refreshSession,
   presentDialog,
 }: Params) {
@@ -256,13 +258,13 @@ export function useSessionJoinActions({
     })
   }, [presentDialog, refreshSession, session, setRequestStatus, userId])
 
-  function handleSmartJoinPress(onOpenJoinModal: () => void) {
+  function handleSmartJoinPress() {
     if (matchStatus === 'MATCHED' && !hostRequiresApproval) {
       void directJoinSession()
       return
     }
 
-    onOpenJoinModal()
+    onJoinModalOpen()
   }
 
   return {

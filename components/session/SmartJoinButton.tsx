@@ -1,6 +1,7 @@
 import { Pressable, Text, View } from 'react-native'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { AlertCircle, Clock3 } from 'lucide-react-native'
+import { STRINGS } from '@/constants/strings'
 
 import { AppButton } from '@/components/design/AppButton'
 import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
@@ -49,7 +50,7 @@ export function SmartJoinButton({
                 letterSpacing: 0.5,
               }}
             >
-              Đang chờ host phản hồi
+              {STRINGS.session_join.button.waiting_host}
             </Text>
           </View>
           <Text
@@ -61,7 +62,7 @@ export function SmartJoinButton({
               color: PROFILE_THEME_COLORS.onPrimaryFixedVariant,
             }}
           >
-            Yêu cầu tham gia của bạn đã được gửi. Host sẽ xem và phản hồi sớm.
+            {STRINGS.session_join.button.waiting_host_sub}
           </Text>
           {hostResponseTemplate ? (
             <View
@@ -82,7 +83,7 @@ export function SmartJoinButton({
                   color: PROFILE_THEME_COLORS.onPrimaryFixedVariant,
                 }}
               >
-                Tin nhắn gần nhất
+                {STRINGS.session_join.button.recent_message}
               </Text>
               <Text
                 style={{
@@ -100,7 +101,7 @@ export function SmartJoinButton({
         </View>
 
         <AppButton 
-          label="Hủy yêu cầu tham gia" 
+          label={STRINGS.session_join.button.cancel_request} 
           onPress={onCancel || (() => {})} 
           variant="danger"
           loading={loading}
@@ -131,7 +132,7 @@ export function SmartJoinButton({
               letterSpacing: 0.5,
             }}
           >
-            Yêu cầu trước đó đã bị từ chối
+            {STRINGS.session_join.button.rejected}
           </Text>
         </View>
         {hostResponseTemplate ? (
@@ -153,7 +154,7 @@ export function SmartJoinButton({
                 color: PROFILE_THEME_COLORS.error,
               }}
             >
-              Phản hồi từ host
+              {STRINGS.session_join.button.host_feedback}
             </Text>
             <Text
               style={{
@@ -177,16 +178,16 @@ export function SmartJoinButton({
   const palette = isDirectJoin
     ? {
         variant: 'primary' as const,
-        label: 'Tham gia ngay',
+        label: STRINGS.session_join.button.join_now,
       }
     : matchStatus === 'WAITLIST'
       ? {
           variant: 'secondary' as const,
-          label: 'Đăng ký dự bị',
+          label: STRINGS.session_join.button.register_waitlist,
         }
       : {
           variant: 'primary' as const,
-          label: 'Xin vào kèo',
+          label: STRINGS.session_join.button.request_join,
         }
 
   return <AppButton label={palette.label} onPress={onPress} loading={loading} variant={palette.variant} />

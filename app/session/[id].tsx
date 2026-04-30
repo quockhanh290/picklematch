@@ -101,6 +101,7 @@ export default function SessionDetailScreen() {
     setHostResponseTemplate,
     introNote,
     onJoinModalClose: () => setJoinModalVisible(false),
+    onJoinModalOpen: () => setJoinModalVisible(true),
     refreshSession: fetchSession,
     presentDialog: (payload) => setDialogConfig(payload),
   })

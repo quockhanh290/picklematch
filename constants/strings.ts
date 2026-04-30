@@ -117,4 +117,113 @@ export const STRINGS = {
     next: 'Tiếp theo',
     start: 'Bắt đầu ngay',
   },
+  session_detail: {
+    title: 'CHI TIẾT KÈO',
+    status: {
+      updated: 'Đã cập nhật thông tin kèo',
+    },
+    elo_banner: {
+      title: 'KÈO TÍNH ĐIỂM ELO',
+      description: 'Kết quả trận đấu này sẽ ảnh hưởng đến trình độ (Elo) của bạn.',
+    },
+    errors: {
+      load_failed: 'Không thể tải thông tin kèo',
+      not_found: 'Không tìm thấy thông tin kèo hoặc kèo đã bị xóa.',
+      share_failed: 'Không thể chia sẻ kèo',
+    },
+  },
+  session_join: {
+    dialogs: {
+      login_required: {
+        title: 'Yêu cầu đăng nhập',
+        message: 'Bạn cần đăng nhập để tham gia kèo này.',
+      },
+      login_required_request: 'Bạn cần đăng nhập để gửi yêu cầu tham gia.',
+      deadline_passed: {
+        title: 'Hết hạn đăng ký',
+        message: 'Thời gian đăng ký tham gia kèo này đã kết thúc.',
+      },
+      join_failed: {
+        title: 'Tham gia thất bại',
+      },
+      join_success: {
+        title: 'Tham gia thành công',
+        message: 'Chào mừng bạn đến với kèo! Hãy chuẩn bị sẵn sàng nhé.',
+      },
+      request_failed: {
+        title: 'Gửi yêu cầu thất bại',
+      },
+      request_success: {
+        title: 'Đã gửi yêu cầu',
+        message: 'Yêu cầu của bạn đã được gửi tới host. Vui lòng chờ phản hồi nhé.',
+      },
+      waitlist_success: {
+        title: 'Đã đăng ký dự bị',
+        message: 'Bạn đã được thêm vào danh sách dự bị. Chúng tôi sẽ báo nếu có chỗ trống!',
+      },
+      leave_session: {
+        title: 'Rời kèo',
+        message: 'Bạn có chắc chắn muốn rời khỏi kèo này không?',
+        confirm: 'Rời kèo',
+      },
+      leave_failed: {
+        title: 'Rời kèo thất bại',
+      },
+      cancel_session: {
+        title: 'Hủy kèo',
+        message: 'Bạn là host. Việc hủy kèo sẽ thông báo tới tất cả thành viên. Bạn chắc chứ?',
+        confirm: 'Hủy kèo',
+      },
+      cancel_failed: {
+        title: 'Hủy kèo thất bại',
+      },
+      cancel_request: {
+        title: 'Hủy yêu cầu',
+        message: 'Bạn có muốn hủy yêu cầu tham gia kèo này không?',
+        confirm: 'Hủy yêu cầu',
+      },
+    },
+    button: {
+      waiting_host: 'Đang chờ host phản hồi',
+      waiting_host_sub: 'Yêu cầu tham gia của bạn đã được gửi. Host sẽ xem và phản hồi sớm.',
+      recent_message: 'Tin nhắn gần nhất',
+      cancel_request: 'Hủy yêu cầu tham gia',
+      rejected: 'Yêu cầu trước đó đã bị từ chối',
+      host_feedback: 'Phản hồi từ host',
+      join_now: 'Tham gia ngay',
+      register_waitlist: 'Đăng ký dự bị',
+      request_join: 'Xin vào kèo',
+    },
+    errors: {
+      cancel_request_failed: 'Không thể hủy yêu cầu: ',
+    },
+  },
+  join_modal: {
+    request: {
+      eyebrow: 'YÊU CẦU THAM GIA',
+      title: 'XIN VÀO KÈO',
+      description: 'Kèo này cần sự đồng ý của host. Hãy gửi lời chào và chờ host xác nhận nhé!',
+      submit: 'Gửi yêu cầu',
+    },
+    waitlist: {
+      eyebrow: 'DANH SÁCH DỰ BỊ',
+      title: 'ĐĂNG KÝ DỰ BỊ',
+      description: 'Kèo hiện đã đầy. Bạn có thể đăng ký dự bị để được ưu tiên nếu có thành viên rời kèo.',
+      submit: 'Đăng ký dự bị',
+    },
+    skill_warning: {
+      title: 'CHÊNH LỆCH TRÌNH ĐỘ',
+      description: 'Trình độ của bạn thấp hơn yêu cầu của kèo này. Host có quyền từ chối nếu muốn đảm bảo chất lượng trận đấu.',
+    },
+    intro: {
+      title: 'LỜI CHÀO (TÙY CHỌN)',
+      description: 'Hãy giới thiệu ngắn gọn về bản thân để host tin tưởng hơn nhé.',
+      placeholder_request: 'Chào host, mình muốn tham gia kèo này...',
+      placeholder_waitlist: 'Mình muốn đăng ký dự bị, nếu có slot báo mình nhé!',
+    },
+    privacy: {
+      title: 'QUYỀN RIÊNG TƯ',
+      description: 'Thông tin liên hệ (số điện thoại) của bạn sẽ chỉ hiển thị với thành viên trong kèo sau khi bạn được chấp nhận.',
+    },
+  },
 } as const
