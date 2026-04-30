@@ -168,7 +168,7 @@ export function ProfileSkillHero({
   }
 
   return (
-    <View className={`relative overflow-hidden shadow-sm mb-4 ${miniTitleOnly ? 'rounded-[24px] p-4' : 'rounded-[24px] p-6'}`}>
+    <View className={`relative overflow-hidden shadow-sm mb-4 ${miniTitleOnly ? 'rounded-[24px] p-4' : 'rounded-[24px] p-5'}`}>
       <LinearGradient
         colors={[heroColors.gradientStart, heroColors.gradientEnd]}
         start={{ x: 0, y: 0 }}
@@ -194,14 +194,19 @@ export function ProfileSkillHero({
       />
 
       {!miniTitleOnly ? (
-        <View className="flex-row items-center justify-between">
-          <View className="rounded-[12px] px-4 py-2 shadow-sm" style={{ backgroundColor: heroColors.eloChipBg }}>
-            <Text className="text-[20px]" style={{ color: heroColors.eloChipText, fontFamily: SCREEN_FONTS.headlineItalic }}>{elo} ELO</Text>
-          </View>
+        <View 
+          className="absolute right-5 top-5 rounded-full px-2.5 py-1 border shadow-sm" 
+          style={{ 
+            backgroundColor: PROFILE_THEME_COLORS.primary,
+            borderColor: '#FFFFFF',
+            zIndex: 10,
+          }}
+        >
+          <Text style={{ color: '#FFFFFF', fontFamily: SCREEN_FONTS.bold, fontSize: 11 }}>{elo} ELO</Text>
         </View>
       ) : null}
 
-      <View className={miniTitleOnly ? 'mt-1' : 'mt-8'} style={{ paddingRight: miniTitleOnly ? 10 : contentRightInset }}>
+      <View className={miniTitleOnly ? 'mt-1' : 'mt-4'} style={{ paddingRight: miniTitleOnly ? 10 : contentRightInset }}>
         <Text
           className={miniTitleOnly ? 'text-[26px] leading-tight uppercase tracking-wide' : 'text-[34px] leading-tight uppercase tracking-wider'}
           style={{ color: heroColors.title, fontFamily: SCREEN_FONTS.cta }}

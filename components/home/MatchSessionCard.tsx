@@ -100,29 +100,39 @@ function getFullWeekdayLabel(date: Date) {
 }
 
 function getHeaderTimeLabel(startDate: Date | null, now: Date) {
-  if (!startDate) return { label: '', pill: false }
+  if (!startDate) return { date: '', countdown: '', isUrgent: false, label: '' }
 
   const diffMs = startDate.getTime() - now.getTime()
   const totalMinutes = Math.max(0, Math.ceil(diffMs / (60 * 1000)))
+  
+  const dateLabel = `${getFullWeekdayLabel(startDate)}, ${pad2(startDate.getDate())}/${pad2(startDate.getMonth() + 1)}`.toLocaleUpperCase('vi-VN')
 
   if (diffMs > 24 * 60 * 60 * 1000) {
     return {
-      label: `${getFullWeekdayLabel(startDate)}, ${pad2(startDate.getDate())}/${pad2(startDate.getMonth() + 1)}`.toLocaleUpperCase('vi-VN'),
-      pill: false,
+      date: dateLabel,
+      countdown: '',
+      isUrgent: false,
+      label: dateLabel,
     }
   }
 
+  let countdown = ''
   if (totalMinutes < 30) {
-    return { label: 'S\u1eafp b\u1eaft \u0111\u1ea7u', pill: true }
+    countdown = 'Sắp bắt đầu'
+  } else if (totalMinutes < 120) {
+    countdown = `Còn ${totalMinutes}p`
+  } else {
+    const hours = Math.floor(totalMinutes / 60)
+    const minutes = totalMinutes % 60
+    countdown = `Còn ${hours}h ${minutes}p`
   }
 
-  if (totalMinutes < 120) {
-    return { label: `C\u00f2n ${totalMinutes}p`, pill: true }
+  return {
+    date: dateLabel,
+    countdown,
+    isUrgent: totalMinutes < 120,
+    label: countdown,
   }
-
-  const hours = Math.floor(totalMinutes / 60)
-  const minutes = totalMinutes % 60
-  return { label: `C\u00f2n ${hours}h ${minutes}m`, pill: true }
 }
 
 function getStartClock(timeRange: string) {
@@ -299,7 +309,7 @@ function HeroMatchSessionCard({ item }: { item: MatchSession; actionLabel: strin
 
     return parseUpcomingStartDate(item.timeLabel, now)
   }, [item.startTime, item.timeLabel, now])
-  const headerTimeLabel = getHeaderTimeLabel(startDate, now)
+  const timeInfo = getHeaderTimeLabel(startDate, now)
   const startClock = getStartClockFromDate(startDate, timeRange)
   const startSubLabel = getStartSubLabel(startDate, now)
   const distanceLabel = formatDistance((item as MatchSession & { distanceKm?: number }).distanceKm)
@@ -332,17 +342,17 @@ function HeroMatchSessionCard({ item }: { item: MatchSession; actionLabel: strin
       style={{ backgroundColor: colors.primary }}
     >
       <LinearGradient
-        colors={['#083D2B', '#0F6E56']}
+        colors={[PROFILE_THEME_COLORS.heroGradientStart, PROFILE_THEME_COLORS.primary]}
         start={{ x: 0.1, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={{ paddingTop: 18, paddingHorizontal: SPACING.xl, paddingBottom: 16 }}
       >
         <View className="flex-row items-center justify-between" style={{ marginBottom: 16 }}>
           <View className="flex-row items-center">
-            <View style={{ width: 5, height: 5, borderRadius: RADIUS.full, backgroundColor: '#5DCAA5', marginRight: 6 }} />
+            <View style={{ width: 5, height: 5, borderRadius: RADIUS.full, backgroundColor: PROFILE_THEME_COLORS.heroLiveDot, marginRight: 6 }} />
             <Text
               style={{
-                color: '#A8D9C8',
+                color: PROFILE_THEME_COLORS.heroBodyMuted,
                 fontFamily: SCREEN_FONTS.label,
                 fontSize: 13,
                 letterSpacing: 0.8,
@@ -352,54 +362,34 @@ function HeroMatchSessionCard({ item }: { item: MatchSession; actionLabel: strin
             </Text>
           </View>
 
-          {headerTimeLabel.label ? (
+          {timeInfo.countdown ? (
             <View
               style={{
-                backgroundColor: headerTimeLabel.pill ? 'rgba(0,0,0,0.2)' : 'transparent',
+                backgroundColor: PROFILE_THEME_COLORS.heroPillBg,
                 borderRadius: RADIUS.full,
-                paddingHorizontal: headerTimeLabel.pill ? 9 : 0,
-                paddingVertical: headerTimeLabel.pill ? 2 : 0,
+                paddingHorizontal: 9,
+                paddingVertical: 2,
               }}
             >
               <Text
                 style={{
-                  color: headerTimeLabel.pill ? '#FFD580' : '#A8D9C8',
+                  color: PROFILE_THEME_COLORS.heroCountdownText,
                   fontFamily: SCREEN_FONTS.cta,
                   fontSize: 13,
                   lineHeight: 18,
                 }}
               >
-                {headerTimeLabel.label}
+                {timeInfo.countdown}
               </Text>
             </View>
-          ) : null}
-
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginLeft: 12 }}>
-            <View 
-              style={{ 
-                width: 6, 
-                height: 6, 
-                borderRadius: 3, 
-                backgroundColor: item.courtBookingConfirmed ? '#5DCAA5' : '#FFD580' 
-              }} 
-            />
-            <Text 
-              style={{ 
-                fontFamily: SCREEN_FONTS.cta, 
-                fontSize: 10, 
-                color: item.courtBookingConfirmed ? '#A8D9C8' : '#FFD580',
-                textTransform: 'uppercase',
-                letterSpacing: 0.5
-              }}
-            >
-              {item.courtBookingConfirmed ? 'Đã đặt sân' : 'Chờ đặt sân'}
-            </Text>
-          </View>
+          ) : (
+            <View style={{ width: 40 }} />
+          )}
         </View>
 
         <View style={{ flexDirection: 'row', alignItems: 'flex-end', columnGap: 16 }}>
           <View>
-            <Text style={{ color: '#A8D9C8', fontFamily: SCREEN_FONTS.body, fontSize: 10, lineHeight: 14, marginBottom: 2 }}>
+            <Text style={{ color: PROFILE_THEME_COLORS.heroBodyMuted, fontFamily: SCREEN_FONTS.body, fontSize: 10, lineHeight: 14, marginBottom: 2 }}>
               {'Bắt đầu lúc'}
             </Text>
             <Text
@@ -413,7 +403,7 @@ function HeroMatchSessionCard({ item }: { item: MatchSession; actionLabel: strin
             >
               {startClock}
             </Text>
-            <Text style={{ color: '#A8D9C8', fontFamily: SCREEN_FONTS.body, fontSize: 12, lineHeight: 16 }}>
+            <Text style={{ color: PROFILE_THEME_COLORS.heroBodyMuted, fontFamily: SCREEN_FONTS.body, fontSize: 12, lineHeight: 16 }}>
               {startSubLabel}
             </Text>
           </View>
@@ -436,7 +426,7 @@ function HeroMatchSessionCard({ item }: { item: MatchSession; actionLabel: strin
             <View
               style={{
                 alignSelf: 'flex-start',
-                backgroundColor: 'rgba(255,255,255,0.15)',
+                backgroundColor: PROFILE_THEME_COLORS.heroChipBg,
                 borderRadius: 5,
                 paddingHorizontal: SPACING.sm,
                 paddingVertical: 3,
@@ -450,7 +440,7 @@ function HeroMatchSessionCard({ item }: { item: MatchSession; actionLabel: strin
             <Text
               numberOfLines={1}
               ellipsizeMode="tail"
-              style={{ color: '#A8D9C8', fontFamily: SCREEN_FONTS.body, fontSize: 12, lineHeight: 16 }}
+              style={{ color: PROFILE_THEME_COLORS.heroBodyMuted, fontFamily: SCREEN_FONTS.body, fontSize: 12, lineHeight: 16 }}
             >
               {compactAddress || item.address}
             </Text>
@@ -736,7 +726,7 @@ function UrgentFillCard({ item }: { item: MatchSession }) {
   const [now, setNow] = useState(() => new Date())
   const startDate = useMemo(() => parseSessionStartDate(item), [item])
   const endDate = parseSessionEndDate(item, startDate)
-  const headerTimeLabel = getHeaderTimeLabel(startDate, now)
+  const timeInfo = getHeaderTimeLabel(startDate, now)
   const dayInfo = getSuggestedDayInfo(startDate)
   const distanceLabel = formatDistance((item as MatchSession & { distanceKm?: number }).distanceKm)
   const addressParts = item.address
@@ -794,7 +784,7 @@ function UrgentFillCard({ item }: { item: MatchSession }) {
           </Text>
         </View>
 
-        {headerTimeLabel.label ? (
+        {timeInfo.label ? (
           <Text
             numberOfLines={1}
             style={{
@@ -805,7 +795,7 @@ function UrgentFillCard({ item }: { item: MatchSession }) {
               marginLeft: 10,
             }}
           >
-            {headerTimeLabel.label}
+            {timeInfo.label}
           </Text>
         ) : null}
       </View>

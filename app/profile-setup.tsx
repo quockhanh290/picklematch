@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 export default function ProfileSetup() {
   const [name, setName] = useState('')
   const [city, setCity] = useState('')
+  const [bio, setBio] = useState('')
   const [loading, setLoading] = useState(false)
   const [dialogConfig, setDialogConfig] = useState<AppDialogConfig | null>(null)
   const defaultBand = getEloBandByLegacySkillLabel('beginner')
@@ -47,6 +48,7 @@ export default function ProfileSetup() {
       phone: user.phone || null,
       name,
       city,
+      bio,
       skill_label: defaultBand.legacySkillLabel,
       skill_tier: defaultBand.tier,
       elo: defaultBand.seedElo,
@@ -95,11 +97,19 @@ export default function ProfileSetup() {
                 value={city}
                 onChangeText={setCity}
               />
+              <AppInput
+                label="Mô tả bản thân"
+                placeholder="Ví dụ: Đam mê Pickleball với lối chơi năng lượng..."
+                value={bio}
+                onChangeText={setBio}
+                multiline
+                numberOfLines={3}
+              />
             </View>
           </SectionCard>
 
           <SectionCard title="Bước tiếp theo" className="mb-6">
-            <Text className="text-sm leading-6" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant }}>
+            <Text className="text-sm leading-6" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body }}>
               Sau bước này, bạn sẽ trả lời vài câu hỏi ngắn về thói quen chơi. Hệ thống sẽ tự đề xuất mức khởi điểm và đánh dấu tài khoản provisional để tiếp tục hiệu chỉnh sau vài trận đầu.
             </Text>
           </SectionCard>

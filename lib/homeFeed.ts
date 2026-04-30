@@ -304,7 +304,7 @@ export function getLevelIdFromSession(session: Pick<HomeSessionRecord, 'elo_min'
 
   const hostLevel = session.host?.self_assessed_level as SkillAssessmentLevel['id'] | undefined
   if (hostLevel) return hostLevel
-  return 'level_3'
+  return 'level_1'
 }
 
 export function getLivePlayerBadge(player?: { reliability_score?: number | null }): Player['badge'] {
@@ -543,7 +543,7 @@ export function buildSkillLevelPreviewSessions(): MatchSession[] {
       address: '1 Hoa Su, Ward 7, Phu Nhuan, TP.HCM',
       timeLabel: '20:30 - 22:00',
       priceLabel: '95K',
-      levelId: 'level_3',
+      levelId: 'level_1',
       statusLabel: 'Đã đặt sân',
       isRanked: false,
       urgent: true,
@@ -610,7 +610,7 @@ export function buildUpcomingMatchPreviewSession(): MatchSession {
     vibe: 'Host đúng giờ, tổ chức kèo nhanh và rõ ràng',
   }
 
-  const levelId: SkillAssessmentLevel['id'] = 'level_3'
+  const levelId: SkillAssessmentLevel['id'] = 'level_1'
 
   return {
     id: 'mock-upcoming-hero',

@@ -81,13 +81,13 @@ export function getReliability(player?: ReliablePlayer | null) {
 
 export function getSkillLevelId(player?: SkillPlayer | null): EloLevelId {
   const levelId = player?.self_assessed_level
-  if (levelId) return getEloBandByLevelId(levelId)?.levelId ?? 'level_3'
+  if (levelId) return getEloBandByLevelId(levelId)?.levelId ?? 'level_1'
 
   const legacy = player?.skill_label
   if (legacy) return getEloBandByLegacySkillLabel(legacy).levelId
 
   const elo = getComparableElo(player)
-  return getEloBandForElo(elo)?.levelId ?? 'level_3'
+  return getEloBandForElo(elo)?.levelId ?? 'level_1'
 }
 
 export function getSkillTag(player?: SkillPlayer | null) {

@@ -286,10 +286,13 @@ export default function ProfileScreenContent() {
     )
   }
 
-  const effectiveElo = player.current_elo ?? player.elo
-  const calibratedSkill = getSkillLevelFromElo(effectiveElo)
-  const fallbackSkill = getSkillLevelFromPlayer(player)
-  const skill = calibratedSkill ?? fallbackSkill
+  const skill = getSkillLevelFromPlayer(player)
+  let effectiveElo = player.current_elo ?? player.elo ?? 0
+  
+  // If elo is 0, use the seed elo from the resolved skill level
+  if (effectiveElo === 0 && skill) {
+    effectiveElo = skill.id === 'level_1' ? 800 : (getEloBandByLevelId(skill.id)?.seedElo ?? 800)
+  }
   const reliability = calculateReliabilityScore(player.sessions_joined, player.no_show_count)
   const hostedCount = hostedSessionsCount
   const placementPlayed = player.placement_matches_played ?? 0
@@ -311,24 +314,23 @@ export default function ProfileScreenContent() {
       <ScrollView contentContainerStyle={{ paddingBottom: 96 }} showsVerticalScrollIndicator={false}>
         <View style={{ paddingTop: insets.top + 20, paddingHorizontal: SPACING.xl }}>
           <View className="pt-4 pb-6">
-            <View className="flex-row items-end justify-between gap-3">
-              <View className="flex-1 flex-row items-end flex-wrap gap-2">
-                <Text
-                  style={{
-                    flex: 1,
-                    color: PROFILE_PAGE_COLORS.primary,
-                    fontFamily: SCREEN_FONTS.headlineBlack,
-                    fontSize: 40,
-                    lineHeight: 48,
-                    textTransform: 'uppercase',
-                    letterSpacing: -1,
-                  }}
-                >
-                  {player.name}
-                </Text>
-                
+            <View className="flex-row items-end flex-wrap gap-x-3 gap-y-2">
+              <Text
+                style={{
+                  color: PROFILE_PAGE_COLORS.primary,
+                  fontFamily: SCREEN_FONTS.headlineBlack,
+                  fontSize: 40,
+                  lineHeight: 44, // Tighter line height for better alignment
+                  textTransform: 'uppercase',
+                  letterSpacing: -1,
+                }}
+              >
+                {player.name}
+              </Text>
+              
+              <View className="flex-row items-center gap-3 mb-1">
                 <View
-                  className="rounded-full px-3 py-1.5 mb-1"
+                  className="rounded-sm px-2 py-0.5"
                   style={{ backgroundColor: PROFILE_PAGE_COLORS.primaryContainer }}
                 >
                   <Text
@@ -337,27 +339,21 @@ export default function ProfileScreenContent() {
                       fontFamily: SCREEN_FONTS.cta,
                       fontSize: 10,
                       textTransform: 'uppercase',
-                      letterSpacing: 0.5,
+                      letterSpacing: 1,
                     }}
                   >
-                    TIN CẬY · {reliability === null ? '--' : `${reliability}%`}
+                    TIN CẬY {reliability === null ? '--' : `${reliability}%`}
                   </Text>
                 </View>
-              </View>
 
-              <TouchableOpacity
-                onPress={() => router.push('/edit-profile' as any)}
-                className="h-9 w-9 items-center justify-center rounded-full"
-                style={{
-                  backgroundColor: PROFILE_PAGE_COLORS.secondaryContainer,
-                  shadowColor: PROFILE_PAGE_COLORS.primary,
-                  shadowOpacity: 0.1,
-                  shadowRadius: 4,
-                  shadowOffset: { width: 0, height: 2 },
-                }}
-              >
-                <PencilLine size={18} color={PROFILE_PAGE_COLORS.primary} />
-              </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => router.push('/edit-profile' as any)}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  activeOpacity={0.7}
+                >
+                  <PencilLine size={18} color={PROFILE_PAGE_COLORS.primary} />
+                </TouchableOpacity>
+              </View>
             </View>
 
             <View className="mt-4 flex-row items-center gap-3">
@@ -391,7 +387,7 @@ export default function ProfileScreenContent() {
           </View>
 
             <Text className="mt-4 text-base leading-7" style={{ color: PROFILE_PAGE_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body }}>
-              Đam mê Pickleball với phong cách chơi năng lượng cao. Luôn tìm kiếm những trận đấu kịch tính và phù hợp trình độ.
+              {player.bio || 'Chưa có mô tả bản thân.'}
             </Text>
 
             <View className="mt-4">

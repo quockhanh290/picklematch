@@ -296,16 +296,16 @@ export default function NotificationsScreen() {
                     key={item.id}
                     onPress={() => handleTap(item)}
                     activeOpacity={0.9}
-                    className="relative overflow-hidden rounded-[20px] p-5"
+                    className="relative overflow-hidden rounded-[16px] p-4"
                     style={{
                       backgroundColor: item.is_read ? PROFILE_THEME_COLORS.surfaceContainerLow : PROFILE_THEME_COLORS.surfaceContainerLowest,
                       borderWidth: 1,
-                      borderColor: item.is_read ? 'transparent' : PROFILE_THEME_COLORS.primary + '20',
+                      borderColor: item.is_read ? 'transparent' : PROFILE_THEME_COLORS.primary + '15',
                       shadowColor: PROFILE_THEME_COLORS.onBackground,
-                      shadowOpacity: item.is_read ? 0 : 0.04,
-                      shadowRadius: 12,
-                      shadowOffset: { width: 0, height: 6 },
-                      elevation: item.is_read ? 0 : 2,
+                      shadowOpacity: item.is_read ? 0 : 0.03,
+                      shadowRadius: 10,
+                      shadowOffset: { width: 0, height: 4 },
+                      elevation: item.is_read ? 0 : 1.5,
                     }}
                   >
                     {!item.is_read ? (
@@ -315,21 +315,21 @@ export default function NotificationsScreen() {
                       />
                     ) : null}
 
-                    <View className="flex-row gap-4">
+                    <View className="flex-row gap-3">
                       <View
-                        className="h-12 w-12 items-center justify-center rounded-full"
+                        className="h-10 w-10 items-center justify-center rounded-full"
                         style={{ backgroundColor: meta.iconBackground }}
                       >
-                        <Icon size={22} color={meta.iconColor} />
+                        <Icon size={18} color={meta.iconColor} />
                       </View>
 
                       <View className="flex-1" style={{ opacity: item.is_read ? 0.72 : 1 }}>
-                        <View className="mb-1 flex-row items-start justify-between gap-3">
+                        <View className="mb-0.5 flex-row items-start justify-between gap-3">
                           <Text
-                            className="flex-1 text-[17px] leading-6"
+                            className="flex-1 text-[15px] leading-5"
                             style={{
                               color: PROFILE_THEME_COLORS.onSurface,
-                              fontFamily: item.is_read ? SCREEN_FONTS.headline : SCREEN_FONTS.headline,
+                              fontFamily: SCREEN_FONTS.headline,
                               textTransform: 'uppercase',
                               letterSpacing: 0.2,
                               opacity: item.is_read ? 0.7 : 1,
@@ -338,31 +338,31 @@ export default function NotificationsScreen() {
                             {item.title}
                           </Text>
                           <Text
-                            className="text-[10px] uppercase tracking-[1px]"
-                            style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: SCREEN_FONTS.cta, marginTop: 4 }}
+                            className="text-[9px] uppercase tracking-[0.5px]"
+                            style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: SCREEN_FONTS.cta, marginTop: 3 }}
                           >
                             {timeAgo(item.created_at)}
                           </Text>
                         </View>
 
                         <Text
-                          className="text-sm leading-6"
+                          className="text-[13px] leading-5"
                           style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body }}
-                          numberOfLines={3}
+                          numberOfLines={2}
                         >
                           {item.body}
                         </Text>
 
                         {isActionable(item) && !item.is_read ? (
-                          <View className="mt-5 flex-row gap-3">
+                          <View className="mt-3 flex-row gap-2.5">
                             <TouchableOpacity
                               activeOpacity={0.84}
                               onPress={() => handleTap(item)}
-                              className="flex-1 rounded-[12px] px-4 py-3 items-center justify-center"
+                              className="flex-1 rounded-[10px] px-3 py-2 items-center justify-center"
                               style={{ backgroundColor: PROFILE_THEME_COLORS.primary }}
                             >
                               <Text
-                                className="text-[13px] uppercase tracking-[1px]"
+                                className="text-[12px] uppercase tracking-[0.5px]"
                                 style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta }}
                               >
                                 CHẤP NHẬN
@@ -371,14 +371,14 @@ export default function NotificationsScreen() {
                             <TouchableOpacity
                               activeOpacity={0.84}
                               onPress={() => handleTap(item)}
-                              className="flex-1 rounded-[12px] px-4 py-3 items-center justify-center border"
+                              className="flex-1 rounded-[10px] px-3 py-2 items-center justify-center border"
                               style={{ 
                                 backgroundColor: 'transparent',
                                 borderColor: PROFILE_THEME_COLORS.outlineVariant 
                               }}
                             >
                               <Text
-                                className="text-[13px] uppercase tracking-[1px]"
+                                className="text-[12px] uppercase tracking-[0.5px]"
                                 style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.cta }}
                               >
                                 TỪ CHỐI

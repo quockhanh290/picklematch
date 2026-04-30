@@ -1,8 +1,8 @@
 import { AppDialog, type AppDialogConfig, AppInput, EmptyState, SecondaryNavbar, NavbarUserAvatar, StatusBadge } from '@/components/design'
 import { PROFILE_SKILL_HERO_TONE, ProfileSkillHero } from '@/components/profile/ProfileSections'
 import { PROFILE_THEME_COLORS as EDIT_PROFILE_COLORS } from '@/components/profile/profileTheme'
-import { getEloBandByLegacySkillLabel } from '@/lib/eloSystem'
-import { getSkillLevelById, type SkillAssessmentLevel } from '@/lib/skillAssessment'
+import { getEloBandByLegacySkillLabel, getEloBandForElo, getEloBandByLevelId } from '@/lib/eloSystem'
+import { getSkillLevelById, getSkillLevelFromPlayer, type SkillAssessmentLevel } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
 import { router } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
@@ -22,11 +22,9 @@ type EditProfileInitialState = {
   autoAccept: boolean
   favoriteCourts: Court[]
   favoriteCourtIds: string[]
+  bio: string
 }
 
-function inferLevelIdFromLegacySkill(skillLabel?: string | null): SkillAssessmentLevel['id'] {
-  return getEloBandByLegacySkillLabel(skillLabel).levelId
-}
 
 export default function EditProfile() {
   const { width } = useWindowDimensions()
@@ -37,16 +35,18 @@ export default function EditProfile() {
 
   const [name, setName] = useState('')
   const [city, setCity] = useState('')
-  const [selectedLevelId, setSelectedLevelId] = useState<SkillAssessmentLevel['id']>('level_3')
+  const [selectedLevelId, setSelectedLevelId] = useState<SkillAssessmentLevel['id']>('level_1')
   const [autoAccept, setAutoAccept] = useState(false)
   const [photoUrl, setPhotoUrl] = useState<string | null>(null)
   const [placementMatchesPlayed, setPlacementMatchesPlayed] = useState(0)
+  const [bio, setBio] = useState('')
 
   const [keyword, setKeyword] = useState('')
   const [courts, setCourts] = useState<Court[]>([])
   const [searching, setSearching] = useState(false)
   const [favCourts, setFavCourts] = useState<Court[]>([])
   const [favCourtIds, setFavCourtIds] = useState<string[]>([])
+  const [playerData, setPlayerData] = useState<any>(null)
 
   const [dialogConfig, setDialogConfig] = useState<AppDialogConfig | null>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -106,21 +106,43 @@ export default function EditProfile() {
 
     const { data } = await supabase
       .from('players')
-      .select('name, city, skill_label, self_assessed_level, auto_accept, favorite_court_ids, elo, current_elo, photo_url, placement_matches_played')
+      .select('name, city, skill_label, self_assessed_level, auto_accept, favorite_court_ids, elo, current_elo, photo_url, placement_matches_played, bio')
       .eq('id', user.id)
       .single()
 
+    setPlayerData(data)
     if (data) {
       setName(data.name ?? '')
       setCity(data.city ?? '')
       setPhotoUrl(data.photo_url ?? null)
-      setElo(data.current_elo ?? data.elo ?? 0)
+      const rawElo = data.current_elo ?? data.elo ?? 0
       setPlacementMatchesPlayed(data.placement_matches_played ?? 0)
+      setBio(data.bio ?? '')
 
-      const levelId =
-        (data.self_assessed_level as SkillAssessmentLevel['id'] | null) ?? inferLevelIdFromLegacySkill(data.skill_label)
+      // DEBUG LOG
+      console.log('PLAYER DATA FETCHED:', {
+        id: data.id,
+        name: data.name,
+        skill_label: data.skill_label,
+        self_assessed_level: data.self_assessed_level,
+        elo: data.elo,
+        current_elo: data.current_elo
+      })
 
+      // Fix skill level discrepancy: use same logic as profile screen
+      const skill = getSkillLevelFromPlayer(data)
+      console.log('RESOLVED SKILL:', skill?.id, skill?.title)
+      
+      const levelId = skill?.id ?? 'level_1'
       setSelectedLevelId(levelId)
+      
+      // If elo is 0, use the seed elo from the resolved skill level
+      let displayElo = rawElo
+      if (rawElo === 0 && skill) {
+        displayElo = skill.id === 'level_1' ? 800 : (getEloBandByLevelId(skill.id)?.seedElo ?? 800)
+      }
+      setElo(displayElo)
+      
       setAutoAccept(Boolean(data.auto_accept))
 
       const ids: string[] = data.favorite_court_ids ?? []
@@ -136,6 +158,7 @@ export default function EditProfile() {
           autoAccept: Boolean(data.auto_accept),
           favoriteCourts: loadedCourts,
           favoriteCourtIds: ids,
+          bio: data.bio ?? '',
         }
       } else {
         initialStateRef.current = {
@@ -144,7 +167,21 @@ export default function EditProfile() {
           autoAccept: Boolean(data.auto_accept),
           favoriteCourts: [],
           favoriteCourtIds: ids,
+          bio: data.bio ?? '',
         }
+      }
+    } else {
+      // Fallback for new users without a record yet
+      console.log('NO PLAYER DATA FOUND FOR ID:', user.id)
+      setElo(800)
+      setSelectedLevelId('level_1')
+      initialStateRef.current = {
+        name: '',
+        city: '',
+        autoAccept: false,
+        favoriteCourts: [],
+        favoriteCourtIds: [],
+        bio: '',
       }
     }
 
@@ -200,6 +237,7 @@ export default function EditProfile() {
     ? initialStateRef.current.name !== name ||
       initialStateRef.current.city !== city ||
       initialStateRef.current.autoAccept !== autoAccept ||
+      initialStateRef.current.bio !== bio ||
       !sameIds(initialStateRef.current.favoriteCourtIds, favCourtIds)
     : false
 
@@ -210,6 +248,7 @@ export default function EditProfile() {
     setName(initial.name)
     setCity(initial.city)
     setAutoAccept(initial.autoAccept)
+    setBio(initial.bio)
     setFavCourtIds([...initial.favoriteCourtIds])
     setFavCourts([...initial.favoriteCourts])
     setKeyword('')
@@ -233,11 +272,22 @@ export default function EditProfile() {
     const updates = {
       name: name.trim(),
       city,
+      bio: bio.trim(),
       favorite_court_ids: favCourtIds,
       auto_accept: autoAccept,
     }
 
-    const { error } = await supabase.from('players').update(updates).eq('id', myId)
+    const { error } = await supabase.from('players').upsert({
+      id: myId,
+      ...updates,
+      // Ensure we don't overwrite skill fields if we're creating for the first time
+      ...(playerData ? {} : {
+        current_elo: 800,
+        elo: 800,
+        self_assessed_level: 'level_1',
+        skill_label: 'beginner'
+      })
+    })
 
     setSaving(false)
 
@@ -365,6 +415,16 @@ export default function EditProfile() {
             
             <View className="gap-4">
               <AppInput label="Tên hiển thị" value={name} onChangeText={setName} placeholder="Nhập tên của bạn" maxLength={30} />
+              
+              <AppInput 
+                label="Mô tả bản thân" 
+                value={bio} 
+                onChangeText={setBio} 
+                placeholder="Ví dụ: Đam mê Pickleball với lối chơi năng lượng..." 
+                multiline
+                numberOfLines={3}
+                maxLength={200}
+              />
 
               <View>
                 <Text
@@ -413,11 +473,11 @@ export default function EditProfile() {
             </View>
 
             <ProfileSkillHero
-              elo={elo || 1200}
+              elo={elo}
               title={currentLevel?.title ?? 'Đang hiệu chỉnh'}
               subtitle={currentLevel?.subtitle ?? 'Mức khởi điểm hiện tại. Hệ thống sẽ tiếp tục tinh chỉnh sau vài trận.'}
               subtitleItalic
-              description=""
+              description={currentLevel?.description ?? ''}
               contentRightInset={12}
               levelId={selectedLevelId}
               colors={PROFILE_SKILL_HERO_TONE}

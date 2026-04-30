@@ -12,7 +12,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ActivityIndicator, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { SPACING } from '@/constants/screenLayout'
-import { AppDialog, type AppDialogConfig, NavbarUserAvatar, SecondaryNavbar } from '@/components/design'
+import { AppDialog, type AppDialogConfig, AppLoading, NavbarUserAvatar, SecondaryNavbar } from '@/components/design'
 import { useHomeFeedData } from '@/hooks/useHomeFeedData'
 import { useAuth } from '@/lib/useAuth'
 

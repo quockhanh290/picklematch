@@ -63,6 +63,7 @@ export type ProfilePlayer = {
   sessions_joined: number
   no_show_count: number
   created_at: string
+  bio?: string | null
 }
 
 export type ProfilePlayerStats = {

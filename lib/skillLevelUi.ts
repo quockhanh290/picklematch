@@ -75,8 +75,8 @@ export const SKILL_LEVEL_UI: Record<SkillAssessmentLevel['id'], SkillTierUi> = {
 }
 
 export function getSkillLevelUi(levelId?: SkillAssessmentLevel['id'] | null) {
-  if (!levelId) return SKILL_LEVEL_UI.level_3
-  return SKILL_LEVEL_UI[levelId] ?? SKILL_LEVEL_UI.level_3
+  if (!levelId) return SKILL_LEVEL_UI.level_1
+  return SKILL_LEVEL_UI[levelId] ?? SKILL_LEVEL_UI.level_1
 }
 
 export function getSkillTargetElo(eloMin: number, eloMax: number) {
