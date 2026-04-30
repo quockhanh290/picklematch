@@ -13,6 +13,12 @@ export const STRINGS = {
     delete: 'Xóa',
     confirm: 'Xác nhận',
     share: 'Chia sẻ',
+    later: 'Để sau',
+    login: 'Đăng nhập',
+    got_it: 'Đã hiểu',
+    great: 'Tuyệt vời',
+    stay: 'Ở lại',
+    keep: 'Giữ lại',
   },
   session: {
     status: {
@@ -90,7 +96,11 @@ export const STRINGS = {
   },
   profile: {
     title: 'HỒ SƠ',
+    edit_title: 'SỬA HỒ SƠ',
     sections: {
+      info: 'THÔNG TIN',
+      skill: 'TRÌNH ĐỘ',
+      connection: 'KHỚP KÈO NHANH',
       overview: 'TỔNG QUAN',
       community: 'CỘNG ĐỒNG',
       achievements: 'DANH HIỆU',
@@ -98,6 +108,15 @@ export const STRINGS = {
       history: 'LỊCH SỬ',
       account: 'TÀI KHOẢN',
       settings: 'CÀI ĐẶT',
+    },
+    fields: {
+      name: 'Tên',
+      bio: 'Giới thiệu',
+      city: 'Thành phố',
+      auto_accept: 'Tự động nhận kèo phù hợp',
+    },
+    placeholders: {
+      bio: 'Viết vài dòng về bạn...',
     },
     stats: {
       matches: 'Trận đấu',
@@ -108,8 +127,21 @@ export const STRINGS = {
     actions: {
       edit: 'Sửa hồ sơ',
       logout: 'Đăng xuất',
+      redo_assessment: 'Làm lại đánh giá',
+      save: 'Lưu thay đổi',
+      cancel: 'Hủy thay đổi',
       save_changes: 'Lưu thay đổi',
       cancel_changes: 'Hủy thay đổi',
+    },
+    status: {
+      saved: 'Đã lưu',
+    },
+    errors: {
+      max_courts: 'Đã đạt giới hạn sân yêu thích',
+    },
+    empty: {
+      no_courts: 'Chưa có sân yêu thích',
+      no_courts_sub: 'Thêm sân bạn hay chơi để nhận gợi ý kèo phù hợp hơn.',
     },
   },
   onboarding: {

@@ -1,10 +1,12 @@
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native'
 
+import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
 import { AppFontSet } from '@/constants/typography'
 
 import { useAppTheme } from '@/lib/theme-context'
 
-import { RADIUS, BORDER, SHADOW, SPACING, BUTTON } from '@/constants/screenLayout'
+import { RADIUS, SPACING, BUTTON } from '@/constants/screenLayout'
+
 type Props = {
   label: string
   onPress: () => void
@@ -12,6 +14,7 @@ type Props = {
   disabled?: boolean
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger'
   fullWidth?: boolean
+  textColor?: string
 }
 
 export function AppButton({
@@ -21,6 +24,7 @@ export function AppButton({
   disabled = false,
   variant = 'primary',
   fullWidth = true,
+  textColor,
 }: Props) {
   const theme = useAppTheme()
   const isPrimary = variant === 'primary'
@@ -35,15 +39,19 @@ export function AppButton({
 
   const buttonStyle = {
     ...baseStyle,
-    backgroundColor: isPrimary ? theme.primary : isDanger ? theme.danger : isSecondary ? theme.surface : 'transparent',
-    borderColor: isDanger ? theme.danger : theme.primary,
+    backgroundColor: isPrimary ? PROFILE_THEME_COLORS.primary : isDanger ? PROFILE_THEME_COLORS.error : 'transparent',
+    borderColor: isDanger ? PROFILE_THEME_COLORS.error : PROFILE_THEME_COLORS.primary,
   }
 
-  const textStyle = (isPrimary || isDanger)
-    ? { color: theme.primaryContrast }
-    : isSecondary
-      ? { color: theme.primaryStrong }
-      : { color: theme.textMuted }
+  const defaultTextColor = isPrimary
+    ? PROFILE_THEME_COLORS.onPrimary
+    : isDanger
+      ? PROFILE_THEME_COLORS.onError
+      : isSecondary
+        ? PROFILE_THEME_COLORS.primary
+        : theme.textMuted
+
+  const resolvedTextColor = textColor ?? defaultTextColor
 
   return (
     <TouchableOpacity
@@ -55,17 +63,16 @@ export function AppButton({
     >
       {loading ? (
         <View className="flex-row items-center gap-3">
-          <ActivityIndicator color={isPrimary ? theme.primaryContrast : theme.primaryStrong} />
-          <Text style={{ ...textStyle, fontFamily: 'BarlowCondensed-Bold', fontSize: 16, textTransform: 'uppercase' }}>
+          <ActivityIndicator color={resolvedTextColor} />
+          <Text style={{ color: resolvedTextColor, fontFamily: AppFontSet.cta, fontSize: 16, textTransform: 'uppercase' }}>
             Đang xử lý...
           </Text>
         </View>
       ) : (
-        <Text style={{ ...textStyle, fontFamily: 'BarlowCondensed-Bold', fontSize: 16, textTransform: 'uppercase' }}>
+        <Text style={{ color: resolvedTextColor, fontFamily: AppFontSet.cta, fontSize: 16, textTransform: 'uppercase' }}>
           {label}
         </Text>
       )}
     </TouchableOpacity>
   )
 }
-

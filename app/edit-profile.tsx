@@ -405,6 +405,7 @@ export default function EditProfile() {
             <View className="gap-4">
               <AppInput label={STRINGS.profile.fields.name} value={name} onChangeText={setName} placeholder="Nhập tên của bạn" maxLength={30} />
               
+              <AppInput
                 label={STRINGS.profile.fields.bio} 
                 value={bio} 
                 onChangeText={setBio} 

@@ -50,6 +50,8 @@ export default function SessionDetailScreen() {
     setRequestStatus,
     setHostResponseTemplate,
     introNote,
+    setIntroNote,
+    hostResponseTemplate,
     fetchSession,
     onRefresh,
     error,
@@ -87,7 +89,13 @@ export default function SessionDetailScreen() {
   } = useSessionArrangement(session, isHost, fetchSession, (payload) => setDialogConfig(payload))
 
   const {
+    requesting,
     leaving,
+    matchStatus,
+    hostRequiresApproval,
+    requestStatus: joinRequestStatus,
+    sendJoinRequest,
+    cancelJoinRequest,
     canShowJoinActions,
     leaveSession,
     handleSmartJoinPress,
@@ -337,6 +345,12 @@ export default function SessionDetailScreen() {
 
             {!isHost && canShowJoinActions && (
               <SmartJoinButton
+                matchStatus={matchStatus}
+                requestStatus={joinRequestStatus}
+                hostRequiresApproval={hostRequiresApproval}
+                hostResponseTemplate={hostResponseTemplate}
+                onCancel={() => void cancelJoinRequest()}
+                loading={requesting}
                 onPress={() => void handleSmartJoinPress()}
               />
             )}
@@ -346,11 +360,19 @@ export default function SessionDetailScreen() {
 
       <JoinRequestModal
         visible={joinModalVisible}
+        mode={matchStatus}
+        introNote={introNote}
+        setIntroNote={setIntroNote}
+        loading={requesting}
         onClose={() => setJoinModalVisible(false)}
-        session={session}
+        onSubmit={() => void sendJoinRequest()}
       />
 
-      <AppDialog config={dialogConfig} onDismiss={() => setDialogConfig(null)} />
+      <AppDialog
+        visible={Boolean(dialogConfig)}
+        config={dialogConfig}
+        onClose={() => setDialogConfig(null)}
+      />
     </View>
   )
 }

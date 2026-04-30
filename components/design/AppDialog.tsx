@@ -3,7 +3,7 @@ import { Modal, Pressable, Text, View } from 'react-native'
 
 import { AppButton } from '@/components/design/AppButton'
 import { useAppTheme } from '@/lib/theme-context'
-import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
+import { RADIUS, SPACING } from '@/constants/screenLayout'
 
 export type AppDialogAction = {
   label: string
@@ -78,8 +78,8 @@ export function AppDialog({ visible, config, onClose }: Props) {
           </Text>
 
           <View style={{ marginTop: 28, gap: 12 }}>
-            {actions.map((action) => (
-              <View key={action.label}>
+            {actions.map((action, index) => (
+              <View key={`${action.label}-${index}`}>
                 <AppButton
                   label={action.label}
                   onPress={() => void handleActionPress(action)}
