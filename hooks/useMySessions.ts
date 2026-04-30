@@ -111,7 +111,7 @@ export function useMySessions() {
   }, [])
 
   const fetchMySessions = useCallback(
-    async (nextUserId: string, options?: { showLoader?: boolean; runMaintenance?: boolean }) => {
+    async (nextUserId: string, options?: { showLoader?: boolean }) => {
       if (fetchInFlightRef.current) {
         await fetchInFlightRef.current
         return
@@ -119,23 +119,8 @@ export function useMySessions() {
 
       const run = async () => {
         const showLoader = options?.showLoader ?? false
-        const runMaintenance = options?.runMaintenance ?? false
 
         if (showLoader) setLoading(true)
-
-        // Architectural improvement: MAINTENANCE RPCs SHOULD BE BACKEND-ONLY.
-        // We keep them here but marked for removal once a cron is established.
-        if (runMaintenance) {
-          try {
-             await Promise.all([
-              supabase.rpc('process_fill_deadline_session_closures'),
-              supabase.rpc('process_pending_session_completions'),
-              supabase.rpc('process_overdue_session_closures'),
-            ])
-          } catch (e) {
-            console.warn('[MySessions] maintenance RPCs failed:', e)
-          }
-        }
 
         const { data, error } = await supabase.rpc('get_my_sessions_overview')
         if (error) {
@@ -388,11 +373,11 @@ export function useMySessions() {
 
       const hydrated = await hydrateCachedSessions(userId)
       if (hydrated) {
-        void fetchMySessions(userId, { showLoader: false, runMaintenance: false })
+        void fetchMySessions(userId, { showLoader: false })
         return
       }
 
-      await fetchMySessions(userId, { showLoader: true, runMaintenance: true })
+      await fetchMySessions(userId, { showLoader: true })
     } finally {
       initInFlightRef.current = false
     }
@@ -405,7 +390,7 @@ export function useMySessions() {
   useFocusEffect(
     useCallback(() => {
       if (!userId) return
-      void fetchMySessions(userId, { showLoader: false, runMaintenance: false })
+      void fetchMySessions(userId, { showLoader: false })
     }, [fetchMySessions, userId]),
   )
 
@@ -413,7 +398,7 @@ export function useMySessions() {
     if (!userId) return
     setRefreshing(true)
     try {
-      await fetchMySessions(userId, { showLoader: false, runMaintenance: true })
+      await fetchMySessions(userId, { showLoader: false })
     } finally {
       setRefreshing(false)
     }

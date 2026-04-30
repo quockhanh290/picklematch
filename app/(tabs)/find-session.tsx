@@ -252,7 +252,6 @@ export default function FindSession() {
     } = await supabase.auth.getUser()
     const currentUserId = user?.id ?? null
 
-    await supabase.rpc('process_fill_deadline_session_closures')
     const { data, error } = await supabase
       .from('sessions')
       .select(
