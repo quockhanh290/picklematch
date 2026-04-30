@@ -13,7 +13,7 @@ import {
 import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context'
 
 import { AppDialog, type AppDialogConfig, NavbarShareButton, SecondaryNavbar } from '@/components/design'
-import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/theme/profileTheme'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/profileTheme'
 import { supabase } from '@/lib/supabase'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { RADIUS, SPACING, BORDER, SHADOW } from '@/constants/screenLayout'

@@ -1,4 +1,4 @@
-import { PROFILE_THEME_COLORS } from '@/constants/theme/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { Repeat2, Shuffle } from 'lucide-react-native'
 import { Pressable, Text, View } from 'react-native'
@@ -251,3 +251,4 @@ export function PlayerRosterSection({
     </View>
   )
 }
+

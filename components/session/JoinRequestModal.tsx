@@ -3,7 +3,7 @@ import { SCREEN_FONTS } from '@/constants/typography'
 import { AlertCircle, Clock3, Send, Users } from 'lucide-react-native'
 
 import { AppButton } from '@/components/design/AppButton'
-import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/theme/profileTheme'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/profileTheme'
 import type { MatchStatus } from '@/lib/matchmaking'
 import { useAppTheme } from '@/lib/theme-context'
 import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
@@ -280,3 +280,4 @@ export function JoinRequestModal({
     </Modal>
   )
 }
+

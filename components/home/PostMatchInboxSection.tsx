@@ -2,7 +2,7 @@ import { router } from 'expo-router'
 import { useMemo, useState } from 'react'
 import { Pressable, Text, View, ScrollView, useWindowDimensions } from 'react-native'
 
-import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/theme/profileTheme'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/profileTheme'
 import { RADIUS, SHADOW, SPACING, BORDER } from '@/constants/screenLayout'
 import { SCREEN_FONTS } from '@/constants/typography'
 import type { PendingMatch, PostMatchAction } from '@/lib/homeFeed'
@@ -280,3 +280,4 @@ export function PostMatchInboxSection({
     </View>
   )
 }
+

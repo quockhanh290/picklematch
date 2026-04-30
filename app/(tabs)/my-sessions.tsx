@@ -18,7 +18,7 @@ import {
 } from 'lucide-react-native'
 import { router } from 'expo-router'
 import { MainHeader } from '@/components/design'
-import { PROFILE_THEME_COLORS } from '@/constants/theme/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
 import { MySessionCard, type MySession, type SessionTab } from '@/components/sessions/MySessionCard'
@@ -626,3 +626,4 @@ export default function MySessions() {
     </View>
   )
 }
+

@@ -1,5 +1,5 @@
 import { ScreenHeader } from '@/components/design'
-import { PROFILE_THEME_COLORS } from '@/constants/theme/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
 import { SCREEN_FONTS } from '@/constants/typography'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -763,3 +763,4 @@ export function CreateSessionStep1({
     </View>
   )
 }
+

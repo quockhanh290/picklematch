@@ -2,7 +2,7 @@ import type { LucideIcon } from 'lucide-react-native'
 import { ShieldCheck, TrendingUp, Zap } from 'lucide-react-native'
 import { Text, View } from 'react-native'
 
-import { PROFILE_THEME_COLORS } from '@/constants/theme/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { getShadowStyle } from '@/lib/designSystem'
 import { useAppTheme } from '@/lib/theme-context'
@@ -79,3 +79,4 @@ export function DashboardStatsStrip({ items }: { items: DashboardStatItem[] }) {
     </View>
   )
 }
+

@@ -1,5 +1,5 @@
 import { ActivityIndicator, View, ViewStyle, StyleSheet, Text } from 'react-native'
-import { PROFILE_THEME_COLORS } from '@/constants/theme/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
 import { SCREEN_FONTS } from '@/constants/typography'
 
 interface AppLoadingProps {
@@ -63,3 +63,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   }
 })
+

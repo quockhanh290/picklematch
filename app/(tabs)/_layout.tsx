@@ -1,4 +1,4 @@
-import { PROFILE_THEME_COLORS } from '@/constants/theme/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
 import { AppFontSet } from '@/constants/typography'
 import { useNotificationsContext } from '@/lib/NotificationsContext'
 import { Tabs } from 'expo-router'
@@ -153,4 +153,5 @@ export default function TabLayout() {
     </Tabs>
   )
 }
+
 

@@ -1,4 +1,4 @@
-import { PROFILE_THEME_COLORS } from '@/constants/theme/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { ReactNode } from 'react'
 import { Text, View, ViewStyle } from 'react-native'
@@ -63,3 +63,4 @@ export function MainHeader({ title, subtitle, rightElement, style }: MainHeaderP
     </View>
   )
 }
+

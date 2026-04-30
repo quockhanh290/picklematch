@@ -4,7 +4,7 @@ import {
     AdvancedSessionFilterModal,
 } from '@/components/find-session/AdvancedSessionFilterModal'
 import { AppDialog, AppLoading, type AppDialogConfig, MainHeader } from '@/components/design'
-import { PROFILE_THEME_COLORS } from '@/constants/theme/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
 import SessionCard from '@/components/sessions/SessionCard'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { getSkillLevelFromEloRange, getSkillLevelFromPlayer, getSkillScoreFromLevelId } from '@/lib/skillAssessment'
@@ -252,33 +252,46 @@ export default function FindSession() {
     } = await supabase.auth.getUser()
     const currentUserId = user?.id ?? null
 
-    const { data, error } = await supabase
-      .from('sessions')
-      .select(
-        `id, host_id, elo_min, elo_max, max_players, status, court_booking_status,
-        host:host_id ( id, name, is_provisional, current_elo, elo, self_assessed_level, skill_label ),
-        slot:slot_id (
-          start_time, end_time, price,
-          court:court_id ( id, name, address, city, lat, lng )
-        ),
-        session_players ( player_id )`,
-      )
-      .eq('status', 'open')
-      .order('created_at', { ascending: false })
-      .limit(50)
+    const [sessionsResult, pendingRequestsResult] = await Promise.all([
+      supabase
+        .from('sessions')
+        .select(
+          `id, host_id, elo_min, elo_max, max_players, status, court_booking_status,
+          host:host_id ( id, name, is_provisional, current_elo, elo, self_assessed_level, skill_label ),
+          slot:slot_id (
+            start_time, end_time, price,
+            court:court_id ( id, name, address, city, lat, lng )
+          ),
+          session_players ( player_id )`,
+        )
+        .eq('status', 'open')
+        .order('created_at', { ascending: false })
+        .limit(50),
+      currentUserId
+        ? supabase
+            .from('join_requests')
+            .select('match_id')
+            .eq('player_id', currentUserId)
+            .eq('status', 'pending')
+        : Promise.resolve({ data: [] }),
+    ])
+
+    const { data, error } = sessionsResult
+    const pendingRequestIds = new Set((pendingRequestsResult.data ?? []).map((r: any) => r.match_id))
 
     if (!error && data) {
-      const normalized = data.map((s: any) => ({ 
-        ...s, 
+      const normalized = data.map((s: any) => ({
+        ...s,
         player_count: (s.session_players ?? []).length,
         lat: s.slot?.court?.lat,
-        lng: s.slot?.court?.lng
+        lng: s.slot?.court?.lng,
       })) as Session[]
       const visibleSessions = currentUserId
         ? normalized.filter((session) => {
             const joined = (session.session_players ?? []).some((player) => player.player_id === currentUserId)
             const hosted = session.host_id === currentUserId
-            return !joined && !hosted
+            const requested = pendingRequestIds.has(session.id)
+            return !joined && !hosted && !requested
           })
         : normalized
       setSessions(visibleSessions)
@@ -830,6 +843,7 @@ export default function FindSession() {
     </View>
   )
 }
+
 
 
 

@@ -3,7 +3,7 @@ import type { LucideIcon } from 'lucide-react-native'
 import { Check, Lock } from 'lucide-react-native'
 import { ScrollView, Text, View } from 'react-native'
 
-import { PROFILE_THEME_COLORS, getTrophyBadgePalette, type ProfileBadgeTone } from '@/constants/theme/profileTheme'
+import { PROFILE_THEME_COLORS, getTrophyBadgePalette, type ProfileBadgeTone } from '@/constants/profileTheme'
 import { SCREEN_FONTS } from '@/constants/typography'
 
 type BadgeTone = ProfileBadgeTone
@@ -137,3 +137,4 @@ export function TrophyRoom({ badges = [], hideHeader = false, flushBottom = fals
 }
 
 export default TrophyRoom
+

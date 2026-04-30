@@ -46,6 +46,7 @@ export default function RootLayout() {
     const firstSegment = segments[0] ?? ''
     const isPublicRoute = firstSegment === 'login'
     const isOnboardingRoute = firstSegment === 'onboarding'
+    const isProfileSetupRoute = firstSegment === 'profile-setup'
 
     if (!userId && !isPublicRoute) {
       router.replace('/login')
@@ -58,8 +59,8 @@ export default function RootLayout() {
         return
       }
 
-      // Onboarding Guard
-      const checkOnboarding = async () => {
+      // Production Guard: Ensure Profile & Onboarding are complete
+      const checkGuard = async () => {
         try {
           const { data, error } = await supabase
             .from('players')
@@ -68,21 +69,36 @@ export default function RootLayout() {
             .maybeSingle()
 
           if (error) {
-            console.error('[RootLayout] Failed to check onboarding status:', error.message)
+            console.error('[RootLayout] Guard check failed:', error.message)
             return
           }
 
-          if (data && !data.onboarding_completed && !isOnboardingRoute) {
-            router.replace('/onboarding')
-          } else if (data?.onboarding_completed && isOnboardingRoute) {
+          // Case 1: No player record yet -> Profile Setup
+          if (!data) {
+            if (!isProfileSetupRoute) {
+              router.replace('/profile-setup')
+            }
+            return
+          }
+
+          // Case 2: Record exists but onboarding not done -> Onboarding
+          if (!data.onboarding_completed) {
+            if (!isOnboardingRoute) {
+              router.replace('/onboarding')
+            }
+            return
+          }
+
+          // Case 3: Fully onboarded but somehow on setup/onboarding routes -> Home
+          if (data.onboarding_completed && (isOnboardingRoute || isProfileSetupRoute)) {
             router.replace('/(tabs)')
           }
         } catch (e) {
-          console.error('[RootLayout] Onboarding check error:', e)
+          console.error('[RootLayout] Guard execution error:', e)
         }
       }
 
-      checkOnboarding()
+      checkGuard()
     }
   }, [fontsLoaded, isLoading, router, segments, userId])
 

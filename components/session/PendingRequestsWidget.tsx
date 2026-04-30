@@ -1,7 +1,7 @@
 import { ChevronRight, Users } from 'lucide-react-native'
 import { Image, Pressable, Text, View } from 'react-native'
 
-import { PROFILE_THEME_COLORS } from '@/constants/theme/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
 import { SCREEN_FONTS } from '@/constants/typography'
 
 type Props = {
@@ -133,3 +133,4 @@ export function PendingRequestsWidget({ count, avatars, onPress }: Props) {
     </Pressable>
   )
 }
+

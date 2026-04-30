@@ -1,7 +1,7 @@
 import { Check, ChevronRight, MessageSquareText, ShieldAlert, X } from 'lucide-react-native'
 import { Text, TouchableOpacity, View } from 'react-native'
 
-import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/theme/profileTheme'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/profileTheme'
 import { SCREEN_FONTS } from '@/constants/typography'
 
 type RequestItem = {
@@ -202,3 +202,4 @@ export function HostRequestReview({
     </View>
   )
 }
+

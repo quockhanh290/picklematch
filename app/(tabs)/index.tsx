@@ -18,7 +18,7 @@ import { HomeCarouselSection } from '@/components/home/HomeCarouselSection'
 import { HomeGreetingHeader } from '@/components/home/HomeGreetingHeader'
 import { MatchSessionCard } from '@/components/home/MatchSessionCard'
 import { PostMatchInboxSection } from '@/components/home/PostMatchInboxSection'
-import { PROFILE_THEME_COLORS } from '@/constants/theme/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
 import { AppLoading } from '@/components/design/AppLoading'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { useHomeFeedData } from '@/hooks/useHomeFeedData'
@@ -363,3 +363,4 @@ export default function HomeScreen() {
     </View>
   )
 }
+

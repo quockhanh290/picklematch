@@ -1,7 +1,7 @@
 import { router } from 'expo-router'
 import { AlertTriangle, CheckCheck, Clock3 } from 'lucide-react-native'
 import { Pressable, Text, View } from 'react-native'
-import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/theme/profileTheme'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/profileTheme'
 
 import type { PostMatchAction } from '@/lib/homeFeed'
 
@@ -81,6 +81,7 @@ export function PostMatchActionsSection({ items }: { items: PostMatchAction[] })
     </View>
   )
 }
+
 
 
 

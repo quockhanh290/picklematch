@@ -1,6 +1,6 @@
 import React from 'react'
 import { Text, View } from 'react-native'
-import { PROFILE_THEME_COLORS } from '@/constants/theme/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
 import { SCREEN_FONTS } from '@/constants/typography'
 
 export type SessionTab = 'upcoming' | 'pending' | 'history'
@@ -75,3 +75,4 @@ export function MySessionsEmptyState({ activeTab }: { activeTab: SessionTab }) {
     </View>
   )
 }
+

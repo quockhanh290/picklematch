@@ -1,4 +1,4 @@
-import { PROFILE_THEME_COLORS } from '@/constants/theme/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { router } from 'expo-router'
 import { Image, Pressable, Text, View } from 'react-native'
@@ -89,3 +89,4 @@ export function HomeGreetingHeader({
     </View>
   )
 }
+

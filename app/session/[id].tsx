@@ -2,6 +2,7 @@ import * as Linking from 'expo-linking'
 import { router, useLocalSearchParams } from 'expo-router'
 import {
   CheckCheck,
+  CheckCircle2,
   KeyRound,
   LogOut,
   PencilLine,
@@ -25,7 +26,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { AppDialog, type AppDialogConfig, AppLoading, NavbarShareButton, SecondaryNavbar } from '@/components/design'
-import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/theme/profileTheme'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/profileTheme'
 import { JoinRequestModal } from '@/components/session/JoinRequestModal'
 import { PlayerRosterSection } from '@/components/session/PlayerRosterSection'
 import { SessionMetaCard } from '@/components/session/SessionMetaCard'
@@ -106,10 +107,12 @@ export default function SessionDetailScreen() {
     requesting,
     leaving,
     matchStatus,
+    hostRequiresApproval,
     canShowJoinActions,
     leaveSession,
     sendJoinRequest,
     handleSmartJoinPress,
+    cancelJoinRequest,
   } = useSessionJoinActions({
     session,
     userId,
@@ -174,10 +177,16 @@ export default function SessionDetailScreen() {
   const hostPrimaryMode: 'edit' | 'arranging' | 'save' =
     !isArranging ? 'edit' : arrangementDirty ? 'save' : 'arranging'
   const hostPrimaryDisabled = hostActionBusy || hostPrimaryMode === 'arranging'
+  const hasActedOnResult = 
+    viewerSessionPlayer?.result_confirmation_status === 'confirmed' || 
+    viewerSessionPlayer?.result_confirmation_status === 'disputed' ||
+    !!viewerSessionPlayer?.proposed_result
+
   const canRespondToResult =
     !isHost &&
     hasJoined &&
     viewerSessionPlayer?.status === 'confirmed' &&
+    !hasActedOnResult &&
     (
       session.results_status === 'pending_confirmation' ||
       session.results_status === 'disputed' ||
@@ -1030,8 +1039,10 @@ export default function SessionDetailScreen() {
               <SmartJoinButton
                 matchStatus={matchStatus}
                 requestStatus={requestStatus}
+                hostRequiresApproval={hostRequiresApproval}
                 hostResponseTemplate={hostResponseTemplate}
                 loading={joining || requesting}
+                onCancel={cancelJoinRequest}
                 onPress={() => handleSmartJoinPress(() => setJoinModalVisible(true))}
               />
             )}

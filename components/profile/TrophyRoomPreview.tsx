@@ -2,7 +2,7 @@ import type { LucideIcon } from 'lucide-react-native'
 import { Check, Lock } from 'lucide-react-native'
 import { Text, View } from 'react-native'
 
-import { PROFILE_THEME_COLORS, getTrophyBadgePalette } from '@/constants/theme/profileTheme'
+import { PROFILE_THEME_COLORS, getTrophyBadgePalette } from '@/constants/profileTheme'
 
 type BadgeTone = 'emerald' | 'amber' | 'rose' | 'sky' | 'violet'
 
@@ -183,3 +183,4 @@ export function TrophyRoom({ badges = [] }: Props) {
 }
 
 export default TrophyRoom
+

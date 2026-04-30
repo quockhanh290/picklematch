@@ -2,7 +2,7 @@ import React from 'react'
 import { Pressable, Text, View } from 'react-native'
 import { CheckCircle2, AlertCircle, PencilLine, Star, Users, Search, ChevronRight, Share2, Pencil as Edit3 } from 'lucide-react-native'
 import { router } from 'expo-router'
-import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/theme/profileTheme'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/profileTheme'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
 import { getSessionSkillLabel } from '@/lib/sessionDetail'
@@ -436,3 +436,4 @@ export function MySessionCard({
     </Pressable>
   )
 }
+

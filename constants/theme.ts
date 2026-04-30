@@ -7,7 +7,7 @@ import {
   type ProfileThemeColors,
   type ProfileThemeId,
   type ProfileThemeSemantic,
-} from './theme/profileTheme';
+} from './profileTheme';
 
 export type AppTheme = {
   id: string;

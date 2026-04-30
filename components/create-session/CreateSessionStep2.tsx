@@ -1,5 +1,5 @@
 import { ScreenHeader } from '@/components/design'
-import { PROFILE_THEME_COLORS } from '@/constants/theme/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { UserRound, Users } from 'lucide-react-native'
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native'
@@ -550,3 +550,4 @@ export function CreateSessionStep2({
     </KeyboardAvoidingView>
   )
 }
+

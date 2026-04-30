@@ -15,7 +15,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { getUserDescriptionForTier } from '@/lib/eloSystem'
-import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/theme/profileTheme'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/profileTheme'
 import {
     calculateInitialElo,
     getLegacySkillLabelForTier,
@@ -535,3 +535,4 @@ export default function OnboardingScreen() {
     </View>
   )
 }
+

@@ -1,5 +1,5 @@
 import { colors } from '@/constants/colors'
-import { PROFILE_THEME_COLORS } from '@/constants/theme/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { typography } from '@/constants/typography'
 import {
@@ -193,10 +193,25 @@ export default function SessionCard({ session, onPress, onJoinPress }: SessionCa
         </View>
 
         <View style={styles.priceWrap}>
-          <Text style={[styles.priceValue, { color: disabled ? colors.textMuted : colors.text }]}>{formatVND(session.pricePerPerson)}</Text>
-          <Text style={[typography.bodyXs, styles.priceUnit, { color: disabled ? colors.textMuted : colors.textSecondary }]}>
-            {session.pricePerPerson > 0 ? '/người' : ''}
+          <Text
+            style={[
+              styles.priceValue,
+              {
+                color: disabled ? colors.textMuted : colors.text,
+                fontSize: 26,
+                lineHeight: 30, // Slightly more than fontSize to help centering
+                includeFontPadding: false,
+                textAlignVertical: 'center',
+              },
+            ]}
+          >
+            {formatVND(session.pricePerPerson)}
           </Text>
+          {session.pricePerPerson > 0 && (
+            <Text style={[typography.bodyXs, styles.priceUnit, { color: disabled ? colors.textMuted : colors.textSecondary }]}>
+              /người
+            </Text>
+          )}
         </View>
       </View>
 
@@ -420,3 +435,4 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
 })
+

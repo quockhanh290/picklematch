@@ -1,7 +1,7 @@
 import { AppDialogConfig } from '@/components/design'
 import { supabase } from '@/lib/supabase'
 import { router } from 'expo-router'
-import { PROFILE_THEME_COLORS } from '@/constants/theme/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
 import { Code2, LockKeyhole, Mail } from 'lucide-react-native'
 import { useState } from 'react'
 import { Pressable, Text, TextInput, View } from 'react-native'
@@ -213,6 +213,7 @@ export default function DevLoginSection({
     </View>
   )
 }
+
 
 
 

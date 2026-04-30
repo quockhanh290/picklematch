@@ -1,7 +1,7 @@
 import { CreateSessionStep1 } from '@/components/create-session/CreateSessionStep1'
 import { CreateSessionStep2 } from '@/components/create-session/CreateSessionStep2'
 import { CreateSessionStep3 } from '@/components/create-session/CreateSessionStep3'
-import { PROFILE_THEME_COLORS } from '@/constants/theme/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { View } from 'react-native'
 import { SPACING } from '@/constants/screenLayout'
@@ -225,3 +225,4 @@ export default function CreateSession() {
     </View>
   )
 }
+

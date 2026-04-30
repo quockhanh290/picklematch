@@ -115,18 +115,45 @@ export function useHomeFeedData(userId?: string | null, isAuthLoading?: boolean)
             .limit(10)
         : Promise.resolve({ data: [] })
 
+      const pendingJoinRequestsPromise = userId
+        ? supabase
+            .from('join_requests')
+            .select('match_id')
+            .eq('player_id', userId)
+            .eq('status', 'pending')
+        : Promise.resolve({ data: [] })
+
       const overviewPromise = userId ? supabase.rpc('get_my_sessions_overview') : Promise.resolve({ data: [] })
 
-      const [openSessionsResult, profileResult, playerStatsResult, pendingMatchesResult, playerPostMatchActionsResult, overviewResult] = await Promise.all([
+      const [
+        openSessionsResult, 
+        profileResult, 
+        playerStatsResult, 
+        pendingMatchesResult, 
+        playerPostMatchActionsResult, 
+        overviewResult,
+        pendingJoinRequestsResult
+      ] = await Promise.all([
         openSessionsPromise,
         profilePromise,
         playerStatsPromise,
         pendingMatchesPromise,
         playerPostMatchActionsPromise,
         overviewPromise,
+        pendingJoinRequestsPromise,
       ])
 
-      const openSessions = ((openSessionsResult.data ?? []) as unknown as HomeSessionRecordRaw[]).map(normalizeHomeSessionRecord)
+      const openSessionsRaw = (openSessionsResult.data ?? []) as unknown as HomeSessionRecordRaw[]
+      const pendingJoinRequestIds = new Set((pendingJoinRequestsResult.data ?? []).map((r: any) => r.match_id))
+
+      const openSessions = openSessionsRaw
+        .map(normalizeHomeSessionRecord)
+        .filter(session => {
+          if (!userId) return true
+          const isJoined = session.host_id === userId || session.session_players.some(p => p.player_id === userId)
+          const hasPendingRequest = pendingJoinRequestIds.has(session.id)
+          return !isJoined && !hasPendingRequest
+        })
       const nextProfile = (profileResult.data ?? null) as HomeProfile | null
       const nextPlayerStats = (playerStatsResult.data ?? null) as PlayerStatsRecord | null
       const favoriteCourtIds = nextProfile?.favorite_court_ids?.filter(Boolean) ?? []

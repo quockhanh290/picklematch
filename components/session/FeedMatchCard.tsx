@@ -12,7 +12,7 @@ import {
 } from 'lucide-react-native'
 import { Pressable, Text, View } from 'react-native'
 
-import { PROFILE_THEME_COLORS } from '@/constants/theme/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { RADIUS, BORDER } from '@/constants/screenLayout'
 
@@ -410,5 +410,6 @@ export function FeedMatchCard({
     </Pressable>
   )
 }
+
 
 

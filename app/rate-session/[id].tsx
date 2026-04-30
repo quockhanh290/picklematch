@@ -1,5 +1,5 @@
 import { AppButton, AppDialog, AppLoading, type AppDialogConfig, EmptyState, NavbarStepCounter, SecondaryNavbar } from '@/components/design'
-import { PROFILE_THEME_COLORS } from '@/constants/theme/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
 import { getShortSkillLabel, getSkillLevelFromPlayer } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
 import { router, useLocalSearchParams } from 'expo-router'

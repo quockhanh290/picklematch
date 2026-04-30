@@ -8,7 +8,7 @@ import Animated, {
   type SharedValue,
 } from 'react-native-reanimated'
 
-import { PROFILE_THEME_COLORS } from '@/constants/theme/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
 import { SCREEN_FONTS } from '@/constants/typography'
 
 const screenPadding = 20
@@ -187,3 +187,4 @@ export function HomeCarouselSection<T>({
     </View>
   )
 }
+

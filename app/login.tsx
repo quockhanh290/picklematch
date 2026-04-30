@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase'
 import { router } from 'expo-router'
 import { ShieldCheck, Smartphone, CheckCircle2 } from 'lucide-react-native'
 import DevLoginSection from '@/components/auth/DevLoginSection'
-import { PROFILE_THEME_COLORS } from '@/constants/theme/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
 import { StatusBar } from 'expo-status-bar'
 import { useState } from 'react'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -430,3 +430,4 @@ export default function LoginScreen() {
 
 // Keeping the import of TouchableOpacity since it's used in the code
 import { TouchableOpacity } from 'react-native'
+

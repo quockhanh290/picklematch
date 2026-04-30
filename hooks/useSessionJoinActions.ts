@@ -228,6 +228,43 @@ export function useSessionJoinActions({
     })
   }, [isHost, presentDialog, refreshSession, session, userId])
 
+  const cancelJoinRequest = useCallback(async () => {
+    if (!session || !userId) return
+
+    presentDialog({
+      title: 'Hủy yêu cầu?',
+      message: 'Bạn chắc chắn muốn hủy yêu cầu tham gia kèo này?',
+      actions: [
+        { label: 'Giữ lại', tone: 'secondary' },
+        {
+          label: 'Hủy yêu cầu',
+          tone: 'danger',
+          onPress: async () => {
+            setRequesting(true)
+            const { error } = await supabase
+              .from('join_requests')
+              .delete()
+              .eq('match_id', session.id)
+              .eq('player_id', userId)
+            setRequesting(false)
+
+            if (error) {
+              presentDialog({
+                title: 'Lỗi',
+                message: 'Không thể hủy yêu cầu: ' + error.message,
+                actions: [{ label: 'Đóng', tone: 'secondary' }],
+              })
+              return
+            }
+
+            setRequestStatus('none')
+            await refreshSession()
+          },
+        },
+      ],
+    })
+  }, [presentDialog, refreshSession, session, setRequestStatus, userId])
+
   function handleSmartJoinPress(onOpenJoinModal: () => void) {
     if (matchStatus === 'MATCHED' && !hostRequiresApproval) {
       void directJoinSession()
@@ -247,6 +284,7 @@ export function useSessionJoinActions({
     requestStatus,
     directJoinSession,
     sendJoinRequest,
+    cancelJoinRequest,
     leaveSession,
     handleSmartJoinPress,
   }
