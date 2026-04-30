@@ -1,10 +1,13 @@
 import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
 import { SCREEN_FONTS } from '@/constants/typography'
-import { Repeat2, Shuffle } from 'lucide-react-native'
-import { Pressable, Text, View } from 'react-native'
+import { Repeat2, Shuffle, KeyRound } from 'lucide-react-native'
+import { Pressable, Text, View, TouchableOpacity } from 'react-native'
+import { router } from 'expo-router'
 
 import type { ArrangementPlayer } from '@/lib/sessionDetail'
 import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
+import { getInitials } from '@/lib/sessionDetail'
+import { getSkillLevelUi } from '@/lib/skillLevelUi'
 
 type Props = {
   arrangedPlayers: ArrangementPlayer[]
@@ -12,6 +15,7 @@ type Props = {
   sessionStatus: string
   spotsLeft: number
   isHost: boolean
+  hostId?: string
   isArranging: boolean
   setIsArranging: (value: boolean | ((prev: boolean) => boolean)) => void
   onAutoBalance: () => void
@@ -19,7 +23,7 @@ type Props = {
   teamB: ArrangementPlayer[]
   averageTeamA: number
   averageTeamB: number
-  renderPlayerRow: (player: ArrangementPlayer, mode: 'normal' | 'arranging') => React.ReactNode
+  switchTeam: (playerId: string) => void
   hideEmptySlots?: boolean
 }
 
@@ -123,6 +127,7 @@ export function PlayerRosterSection({
   sessionStatus,
   spotsLeft,
   isHost,
+  hostId,
   isArranging,
   setIsArranging,
   onAutoBalance,
@@ -130,9 +135,115 @@ export function PlayerRosterSection({
   teamB,
   averageTeamA,
   averageTeamB,
-  renderPlayerRow,
+  switchTeam,
   hideEmptySlots = false,
 }: Props) {
+  function renderPlayerRow(player: ArrangementPlayer, mode: 'normal' | 'arranging') {
+    const levelUi = getSkillLevelUi(player.levelId)
+    const isHostPlayer = player.id === hostId
+
+    return (
+      <View
+        key={`${mode}-${player.id}`}
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          borderRadius: RADIUS.lg,
+          borderWidth: BORDER.base,
+          borderColor: PROFILE_THEME_COLORS.outlineVariant,
+          backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+          paddingHorizontal: 16,
+          paddingVertical: 12,
+          gap: 12,
+        }}
+      >
+        <TouchableOpacity
+          onPress={() => router.push({ pathname: '/player/[id]' as never, params: { id: player.id } })}
+          activeOpacity={0.86}
+          style={{
+            width: 44,
+            height: 44,
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: RADIUS.full,
+            backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 14,
+              fontFamily: SCREEN_FONTS.headline,
+              color: PROFILE_THEME_COLORS.primary,
+            }}
+          >
+            {getInitials(player.name)}
+          </Text>
+        </TouchableOpacity>
+
+        <View style={{ flex: 1 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Text
+              numberOfLines={1}
+              style={{
+                fontSize: 15,
+                fontFamily: SCREEN_FONTS.headline,
+                color: PROFILE_THEME_COLORS.onSurface,
+                textTransform: 'uppercase',
+              }}
+            >
+              {player.name}
+            </Text>
+            {isHostPlayer && (
+              <KeyRound size={12} color={PROFILE_THEME_COLORS.surfaceTint} strokeWidth={2.5} />
+            )}
+          </View>
+          <Text style={{ fontSize: 10, fontFamily: SCREEN_FONTS.label, color: PROFILE_THEME_COLORS.outline, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+            {isHostPlayer ? 'Chủ kèo' : 'Thành viên'}
+          </Text>
+        </View>
+
+        <View
+          style={{
+            backgroundColor: levelUi.iconColor + '15',
+            borderRadius: 6,
+            paddingHorizontal: 10,
+            paddingVertical: 5,
+            borderWidth: 1,
+            borderColor: levelUi.iconColor + '30',
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 11,
+              fontFamily: SCREEN_FONTS.headline,
+              color: levelUi.iconColor,
+              textTransform: 'uppercase',
+              letterSpacing: 0.5,
+            }}
+          >
+            {levelUi.shortLabel}
+          </Text>
+        </View>
+
+        {mode === 'arranging' && (
+          <TouchableOpacity
+            onPress={() => switchTeam(player.id)}
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: RADIUS.full,
+              backgroundColor: PROFILE_THEME_COLORS.primary,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Repeat2 size={16} color={PROFILE_THEME_COLORS.onPrimary} />
+          </TouchableOpacity>
+        )}
+      </View>
+    )
+  }
+
   return (
     <View style={{ marginTop: 24 }}>
       {/* Section header */}
@@ -202,7 +313,7 @@ export function PlayerRosterSection({
             }}
           >
             <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 13, lineHeight: 20, color: PROFILE_THEME_COLORS.surfaceTint }}>
-              Nhấn icon đổi đội để chuyển người chơi giữa Đội A và Đội B.
+              Nhấn icon đổi đội để chuyển người chơi giữa Đội A and Đội B.
             </Text>
           </View>
           <Pressable

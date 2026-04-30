@@ -1,13 +1,11 @@
-import { colors } from '@/constants/colors'
-import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
-import { SCREEN_FONTS } from '@/constants/typography'
-import { typography } from '@/constants/typography'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/profileTheme'
+import { SCREEN_FONTS, typography } from '@/constants/typography'
+import { STRINGS } from '@/constants/strings'
 import {
   formatDistance,
   formatRelativeDate,
   formatTimeRange,
   formatVND,
-  getAvatarColor,
   getCourtNameSize,
 } from '@/utils/formatters'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
@@ -43,7 +41,6 @@ type ChipVariant = 'urgent' | 'warn' | 'neutral'
 
 const CARD_HEIGHT = 271
 
-// Decorative avatar tones — intentionally static palette, not theme-sensitive
 const AVATAR_PALETTE = [
   { bg: '#E1F5EE', text: '#0F6E56' },
   { bg: '#FAECE7', text: '#993C1D' },
@@ -58,15 +55,15 @@ type ChipState = {
 
 function getStatusChip(status: SessionCardProps['session']['status'], enrolledCount: number, capacity: number): ChipState | null {
   if (status === 'starting_soon') {
-    return { variant: 'warn', label: 'Sắp bắt đầu' }
+    return { variant: 'warn', label: STRINGS.session.status.starting_soon }
   }
 
   if (status === 'full') {
-    return { variant: 'neutral', label: 'Đã đầy' }
+    return { variant: 'neutral', label: STRINGS.session.status.full }
   }
 
   if (status === 'past') {
-    return { variant: 'neutral', label: 'Đã kết thúc' }
+    return { variant: 'neutral', label: STRINGS.session.status.past }
   }
 
   const remaining = capacity - enrolledCount
@@ -80,10 +77,10 @@ function getStatusChip(status: SessionCardProps['session']['status'], enrolledCo
 function Chip({ variant, label }: { variant: ChipVariant; label: string }) {
   const chipStyle =
     variant === 'urgent'
-      ? { backgroundColor: colors.accentLight, textColor: colors.accentDark }
+      ? { backgroundColor: PROFILE_THEME_SEMANTIC.warningBg, textColor: PROFILE_THEME_SEMANTIC.warningText }
       : variant === 'warn'
-        ? { backgroundColor: colors.warningLight, textColor: colors.warningDark }
-        : { backgroundColor: colors.surfaceAlt, textColor: colors.textSecondary }
+        ? { backgroundColor: PROFILE_THEME_SEMANTIC.warningBg, textColor: PROFILE_THEME_SEMANTIC.warningText }
+        : { backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, textColor: PROFILE_THEME_COLORS.onSurfaceVariant }
 
   return (
     <View style={[styles.statusChip, { backgroundColor: chipStyle.backgroundColor }]}>
@@ -101,14 +98,13 @@ function getDayBadgeBackground(startTime: Date) {
   const tomorrowLabel = formatRelativeDate(tomorrow)
   const dateLabel = formatRelativeDate(startTime)
 
-  if (dateLabel === todayLabel) return colors.primary
-  if (dateLabel === tomorrowLabel) return colors.textSecondary
-  return colors.textMuted
+  if (dateLabel === todayLabel) return PROFILE_THEME_COLORS.primary
+  if (dateLabel === tomorrowLabel) return PROFILE_THEME_COLORS.onSurfaceVariant
+  return PROFILE_THEME_COLORS.outline
 }
 
 export default function SessionCard({ session, onPress, onJoinPress }: SessionCardProps) {
   const disabled = session.status === 'full' || session.status === 'past'
-  const isFull = session.status === 'full'
   const chip = getStatusChip(session.status, session.enrolledCount, session.capacity)
   const avatarTone = AVATAR_PALETTE[Math.abs(session.host.id.split('').reduce((a, b) => a + b.charCodeAt(0), 0)) % AVATAR_PALETTE.length]
   const distance = formatDistance(session.distanceKm)
@@ -118,7 +114,7 @@ export default function SessionCard({ session, onPress, onJoinPress }: SessionCa
   const compactCourtNameSize = courtNameSize === 26 ? 24 : courtNameSize
   const courtNameLineHeight = compactCourtNameSize === 24 ? 26 : compactCourtNameSize === 22 ? 24 : 20
 
-  const ctaLabel = session.status === 'past' ? 'Đã kết thúc' : session.status === 'full' ? 'Đã đầy' : 'Vào kèo'
+  const ctaLabel = session.status === 'past' ? STRINGS.session.status.past : session.status === 'full' ? STRINGS.session.status.full : STRINGS.session.actions.join
   const levelChipLabel = session.levelDescription?.trim() || `Level ${session.level}`
   const dateLabel = formatRelativeDate(session.startTime)
   const dayBadgeBackground = getDayBadgeBackground(session.startTime)
@@ -135,7 +131,7 @@ export default function SessionCard({ session, onPress, onJoinPress }: SessionCa
               {
                 fontSize: compactCourtNameSize,
                 lineHeight: courtNameLineHeight,
-                color: disabled ? colors.textMuted : colors.text,
+                color: disabled ? PROFILE_THEME_COLORS.outline : PROFILE_THEME_COLORS.onSurface,
               },
             ]}
           >
@@ -144,7 +140,7 @@ export default function SessionCard({ session, onPress, onJoinPress }: SessionCa
         </View>
 
         <View style={styles.subHeaderRow}>
-          <Text numberOfLines={1} style={[typography.bodyMd, styles.addressText, { color: disabled ? colors.textMuted : colors.textSecondary }]}>
+          <Text numberOfLines={1} style={[typography.bodyMd, styles.addressText, { color: disabled ? PROFILE_THEME_COLORS.outline : PROFILE_THEME_COLORS.onSurfaceVariant }]}>
             {addressLine}
           </Text>
           {chip ? <Chip variant={chip.variant} label={chip.label} /> : <View style={styles.statusChipPlaceholder} />}
@@ -155,25 +151,25 @@ export default function SessionCard({ session, onPress, onJoinPress }: SessionCa
             <View style={[styles.dayBadge, { backgroundColor: dayBadgeBackground }]}>
               <Text style={styles.dayBadgeText}>{dateLabel.toLocaleUpperCase('vi-VN')}</Text>
             </View>
-            <Text style={[styles.timeText, { color: disabled ? colors.textMuted : colors.text }]}>
+            <Text style={[styles.timeText, { color: disabled ? PROFILE_THEME_COLORS.outline : PROFILE_THEME_COLORS.onSurface }]}>
               {formatTimeRange(session.startTime, session.endTime)}
             </Text>
           </View>
 
           <View style={styles.bookingWrap}>
-            <View style={[styles.statusDot, { backgroundColor: session.courtBookingConfirmed ? colors.success : colors.warning }]} />
-            <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 10, color: session.courtBookingConfirmed ? colors.successText : colors.warningDark, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-              {session.courtBookingConfirmed ? 'Đã đặt sân' : 'Chờ đặt sân'}
+            <View style={[styles.statusDot, { backgroundColor: session.courtBookingConfirmed ? PROFILE_THEME_SEMANTIC.successText : PROFILE_THEME_SEMANTIC.warningText }]} />
+            <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 10, color: session.courtBookingConfirmed ? PROFILE_THEME_SEMANTIC.successText : PROFILE_THEME_SEMANTIC.warningText, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+              {session.courtBookingConfirmed ? STRINGS.session.booking.confirmed : STRINGS.session.booking.waiting}
             </Text>
           </View>
         </View>
 
         <View style={styles.levelRow}>
-          <Text style={[styles.levelLabel, { color: colors.textSecondary }]}>Trình độ</Text>
+          <Text style={[styles.levelLabel, { color: PROFILE_THEME_COLORS.onSurfaceVariant }]}>Trình độ</Text>
           <View style={styles.levelChip}>
-            <Text style={[styles.levelChipText, { color: colors.primary }]}>{levelChipLabel}</Text>
+            <Text style={[styles.levelChipText, { color: PROFILE_THEME_COLORS.primary }]}>{levelChipLabel}</Text>
           </View>
-          <Text style={[styles.levelMatchHint, { color: colors.textSecondary }]}>
+          <Text style={[styles.levelMatchHint, { color: PROFILE_THEME_COLORS.onSurfaceVariant }]}>
             {session.levelMatchesUser ? 'khớp với bạn' : 'chưa khớp'}
           </Text>
         </View>
@@ -185,10 +181,10 @@ export default function SessionCard({ session, onPress, onJoinPress }: SessionCa
             <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 18, color: avatarTone.text }}>{session.host.initial}</Text>
           </View>
           <View style={styles.hostMeta}>
-            <Text numberOfLines={1} style={[styles.hostName, { color: disabled ? colors.textMuted : colors.text }]}>
+            <Text numberOfLines={1} style={[styles.hostName, { color: disabled ? PROFILE_THEME_COLORS.outline : PROFILE_THEME_COLORS.onSurface }]}>
               {session.host.name}
             </Text>
-            <Text style={[typography.bodyXs, { color: disabled ? colors.textMuted : colors.textSecondary }]}>{`Chủ kèo · ${session.enrolledCount}/${session.capacity} đã vào`}</Text>
+            <Text style={[typography.bodyXs, { color: disabled ? PROFILE_THEME_COLORS.outline : PROFILE_THEME_COLORS.onSurfaceVariant }]}>{`Chủ kèo · ${session.enrolledCount}/${session.capacity} đã vào`}</Text>
           </View>
         </View>
 
@@ -197,9 +193,9 @@ export default function SessionCard({ session, onPress, onJoinPress }: SessionCa
             style={[
               styles.priceValue,
               {
-                color: disabled ? colors.textMuted : colors.text,
+                color: disabled ? PROFILE_THEME_COLORS.outline : PROFILE_THEME_COLORS.onSurface,
                 fontSize: 26,
-                lineHeight: 30, // Slightly more than fontSize to help centering
+                lineHeight: 30,
                 includeFontPadding: false,
                 textAlignVertical: 'center',
               },
@@ -208,7 +204,7 @@ export default function SessionCard({ session, onPress, onJoinPress }: SessionCa
             {formatVND(session.pricePerPerson)}
           </Text>
           {session.pricePerPerson > 0 && (
-            <Text style={[typography.bodyXs, styles.priceUnit, { color: disabled ? colors.textMuted : colors.textSecondary }]}>
+            <Text style={[typography.bodyXs, styles.priceUnit, { color: disabled ? PROFILE_THEME_COLORS.outline : PROFILE_THEME_COLORS.onSurfaceVariant }]}>
               /người
             </Text>
           )}
@@ -226,7 +222,7 @@ export default function SessionCard({ session, onPress, onJoinPress }: SessionCa
           }}
           style={[styles.ctaButton, disabled ? styles.ctaButtonDisabled : styles.ctaButtonActive]}
         >
-          <Text style={[styles.ctaText, { color: colors.surface }]}>{ctaLabel.toLocaleUpperCase('vi-VN')}</Text>
+          <Text style={[styles.ctaText, { color: PROFILE_THEME_COLORS.onPrimary }]}>{ctaLabel.toLocaleUpperCase('vi-VN')}</Text>
         </Pressable>
       </View>
     </Pressable>
@@ -239,8 +235,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderRadius: RADIUS.md,
     borderWidth: BORDER.hairline,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
+    borderColor: PROFILE_THEME_COLORS.outlineVariant,
+    backgroundColor: PROFILE_THEME_COLORS.surface,
     overflow: 'hidden',
   },
   topSection: {
@@ -278,7 +274,7 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   timeBlock: {
-    backgroundColor: colors.surfaceAlt,
+    backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
     borderRadius: RADIUS.sm,
     paddingVertical: 8,
     paddingHorizontal: 12,
@@ -300,7 +296,7 @@ const styles = StyleSheet.create({
     fontFamily: SCREEN_FONTS.headline,
     fontSize: 12,
     lineHeight: 16,
-    color: colors.surface,
+    color: PROFILE_THEME_COLORS.onPrimary,
   },
   timeText: {
     fontFamily: SCREEN_FONTS.headline,
@@ -332,7 +328,7 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   levelChip: {
-    backgroundColor: colors.primaryLight,
+    backgroundColor: PROFILE_THEME_COLORS.secondaryContainer,
     borderRadius: RADIUS.xs,
     paddingHorizontal: SPACING.sm,
     paddingVertical: 2,
@@ -351,7 +347,7 @@ const styles = StyleSheet.create({
   footerSection: {
     height: 52,
     borderTopWidth: 0.5,
-    borderTopColor: colors.border,
+    borderTopColor: PROFILE_THEME_COLORS.outlineVariant,
     paddingVertical: SPACING.sm,
     paddingHorizontal: 16,
     flexDirection: 'row',
@@ -407,25 +403,21 @@ const styles = StyleSheet.create({
   ctaButton: {
     width: '100%',
     height: 48,
-    borderWidth: BORDER.base,
-    borderColor: colors.primaryDark,
     borderRadius: RADIUS.sm,
     paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: colors.primaryDark,
+    shadowColor: PROFILE_THEME_COLORS.primary,
     shadowOpacity: 0.06,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
     elevation: 2,
   },
   ctaButtonActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primaryDark,
+    backgroundColor: PROFILE_THEME_COLORS.primary,
   },
   ctaButtonDisabled: {
     backgroundColor: PROFILE_THEME_COLORS.outline,
-    borderColor: PROFILE_THEME_COLORS.outline,
   },
   ctaText: {
     fontFamily: SCREEN_FONTS.headline,
@@ -435,4 +427,3 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
 })
-

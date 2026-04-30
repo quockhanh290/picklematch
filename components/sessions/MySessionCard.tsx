@@ -6,7 +6,6 @@ import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/profil
 import { SCREEN_FONTS } from '@/constants/typography'
 import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
 import { getSessionSkillLabel } from '@/lib/sessionDetail'
-import { colors } from '@/constants/colors'
 
 export type SessionRequestStatus = 'pending' | 'accepted' | 'rejected' | null
 export type SessionRole = 'host' | 'player'
@@ -190,7 +189,7 @@ export function MySessionCard({
 
         <View
           style={{
-            backgroundColor: PROFILE_THEME_COLORS.surfaceAlt,
+            backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
             borderRadius: RADIUS.sm,
             paddingHorizontal: 12,
             paddingVertical: 8,
@@ -354,7 +353,7 @@ export function MySessionCard({
         style={{
           paddingHorizontal: 16,
           paddingVertical: 14,
-          backgroundColor: colors.surfaceAlt,
+          backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
         }}
       >
         {tab === 'pending' && (
@@ -365,13 +364,13 @@ export function MySessionCard({
               alignItems: 'center',
             }}
           >
-            <Users size={14} color={item.role === 'host' ? colors.primary : colors.textSecondary} />
+            <Users size={14} color={item.role === 'host' ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.onSurfaceVariant} />
             <Text 
               style={{ 
                 marginLeft: 8, 
                 fontSize: 13, 
                 fontFamily: SCREEN_FONTS.headline,
-                color: item.role === 'host' ? colors.primary : colors.textSecondary,
+                color: item.role === 'host' ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.onSurfaceVariant,
                 textTransform: 'uppercase',
                 letterSpacing: 0.4,
               }}
@@ -436,4 +435,3 @@ export function MySessionCard({
     </Pressable>
   )
 }
-

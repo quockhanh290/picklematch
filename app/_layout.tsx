@@ -12,7 +12,7 @@ import { PlusJakartaSans_800ExtraBold_Italic } from '@expo-google-fonts/plus-jak
 import { useFonts } from 'expo-font'
 import { Stack, useRouter, useSegments } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import '../global.css'
 import { SCREEN_FONTS } from '@/constants/typography'
@@ -40,6 +40,8 @@ export default function RootLayout() {
     }
   }, [fontsLoaded])
 
+  const onboardingVerified = useRef<string | null>(null) // 'userId:completed', etc.
+
   useEffect(() => {
     if (isLoading || !fontsLoaded) return
 
@@ -61,6 +63,14 @@ export default function RootLayout() {
 
       // Production Guard: Ensure Profile & Onboarding are complete
       const checkGuard = async () => {
+        // Optimization: If we already verified 'completed' for this userId, skip
+        if (onboardingVerified.current === `${userId}:completed`) {
+          if (isOnboardingRoute || isProfileSetupRoute) {
+            router.replace('/(tabs)')
+          }
+          return
+        }
+
         try {
           const { data, error } = await supabase
             .from('players')
@@ -75,6 +85,7 @@ export default function RootLayout() {
 
           // Case 1: No player record yet -> Profile Setup
           if (!data) {
+            onboardingVerified.current = `${userId}:setup`
             if (!isProfileSetupRoute) {
               router.replace('/profile-setup')
             }
@@ -83,6 +94,7 @@ export default function RootLayout() {
 
           // Case 2: Record exists but onboarding not done -> Onboarding
           if (!data.onboarding_completed) {
+            onboardingVerified.current = `${userId}:pending`
             if (!isOnboardingRoute) {
               router.replace('/onboarding')
             }
@@ -90,6 +102,7 @@ export default function RootLayout() {
           }
 
           // Case 3: Fully onboarded but somehow on setup/onboarding routes -> Home
+          onboardingVerified.current = `${userId}:completed`
           if (data.onboarding_completed && (isOnboardingRoute || isProfileSetupRoute)) {
             router.replace('/(tabs)')
           }

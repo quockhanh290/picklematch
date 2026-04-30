@@ -1,0 +1,50 @@
+export const STRINGS = {
+  common: {
+    confirmed: 'Đã xác nhận',
+    pending: 'Đang chờ',
+    cancelled: 'Đã hủy',
+    loading: 'Đang tải...',
+    error: 'Đã có lỗi xảy ra',
+    retry: 'Thử lại',
+    close: 'Đóng',
+    back: 'Quay lại',
+    save: 'Lưu',
+    edit: 'Sửa',
+    delete: 'Xóa',
+    confirm: 'Xác nhận',
+    share: 'Chia sẻ',
+  },
+  session: {
+    status: {
+      open: 'Đang mở',
+      full: 'Đã đầy',
+      starting_soon: 'Sắp bắt đầu',
+      past: 'Đã kết thúc',
+      cancelled: 'Đã hủy',
+      in_progress: 'Đang diễn ra',
+    },
+    booking: {
+      confirmed: 'Đã đặt sân',
+      unconfirmed: 'Chưa đặt sân',
+      waiting: 'Chờ đặt sân',
+    },
+    roles: {
+      host: 'Chủ kèo',
+      player: 'Thành viên',
+    },
+    actions: {
+      join: 'Vào kèo',
+      leave: 'Rời kèo',
+      cancel_request: 'Hủy yêu cầu',
+      review_requests: 'Duyệt yêu cầu',
+      edit_session: 'Sửa kèo',
+      report_result: 'Báo kết quả',
+      confirm_result: 'Xác nhận kết quả',
+    },
+  },
+  onboarding: {
+    complete: 'Hoàn tất',
+    next: 'Tiếp theo',
+    start: 'Bắt đầu ngay',
+  },
+} as const

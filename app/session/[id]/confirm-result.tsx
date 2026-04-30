@@ -503,6 +503,65 @@ export default function ConfirmSessionResultScreen() {
             />
           </View>
 
+          {/* Status banner for players who have already acted */}
+          {hasActed && !isFinalized && (
+            <View
+              style={{
+                marginTop: 20,
+                padding: 16,
+                borderRadius: RADIUS.lg,
+                backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHigh,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 12,
+                borderWidth: BORDER.base,
+                borderColor: PROFILE_THEME_COLORS.outlineVariant,
+              }}
+            >
+              <View
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: RADIUS.full,
+                  backgroundColor: (myEntry.result_confirmation_status === 'disputed' ? PROFILE_THEME_SEMANTIC.dangerStrong : PROFILE_THEME_COLORS.primary) + '15',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                {myEntry.result_confirmation_status === 'disputed' ? (
+                  <ShieldAlert size={20} color={PROFILE_THEME_SEMANTIC.dangerStrong} strokeWidth={2.5} />
+                ) : (
+                  <CheckCheck size={20} color={PROFILE_THEME_COLORS.primary} strokeWidth={2.5} />
+                )}
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={{
+                    fontFamily: SCREEN_FONTS.headline,
+                    fontSize: 15,
+                    color: PROFILE_THEME_COLORS.onSurface,
+                  }}
+                >
+                  {myEntry.result_confirmation_status === 'disputed'
+                    ? 'Bạn đã gửi khiếu nại'
+                    : 'Bạn đã xác nhận kết quả'}
+                </Text>
+                <Text
+                  style={{
+                    fontFamily: SCREEN_FONTS.body,
+                    fontSize: 13,
+                    color: PROFILE_THEME_COLORS.onSurfaceVariant,
+                    marginTop: 2,
+                  }}
+                >
+                  {myEntry.result_confirmation_status === 'disputed'
+                    ? 'Hệ thống đang xem xét nội dung khiếu nại của bạn.'
+                    : 'Đang chờ các người chơi khác xác nhận để hoàn tất trận đấu.'}
+                </Text>
+              </View>
+            </View>
+          )}
+
           {/* Dispute Form (if not acted yet) */}
           {!hasActed && (
             <View style={{ marginTop: 32 }}>
