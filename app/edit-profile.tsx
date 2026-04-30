@@ -12,6 +12,7 @@ import { ActivityIndicator, FlatList, ImageBackground, Keyboard, ScrollView, Swi
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { RADIUS, BORDER, SHADOW } from '@/constants/screenLayout'
+import { STRINGS } from '@/constants/strings'
 
 const CITIES = ['Hồ Chí Minh', 'Hà Nội', 'Đà Nẵng', 'Cần Thơ', 'Hải Phòng']
 const HERO_IMAGE = require('../assets/images/login-electric-court-hero.png')
@@ -193,9 +194,9 @@ export default function EditProfile() {
 
     if (favCourtIds.length >= 5) {
       setDialogConfig({
-        title: 'Tối đa 5 sân',
+        title: STRINGS.profile.errors.max_courts,
         message: 'Xóa bớt sân để thêm sân mới.',
-        actions: [{ label: 'Đã hiểu' }],
+        actions: [{ label: STRINGS.common.back }],
       })
       return
     }
@@ -219,10 +220,10 @@ export default function EditProfile() {
 
   function handleRedoAssessment() {
     setDialogConfig({
-      title: 'Làm lại bài đánh giá?',
+      title: STRINGS.profile.actions.redo_assessment,
       message: 'Mức hiện tại sẽ được giữ nguyên cho tới khi bạn hoàn thành bài đánh giá mới. Sau đó hệ thống sẽ cập nhật mức khởi điểm phù hợp hơn.',
       actions: [
-        { label: 'Để sau', tone: 'secondary' },
+        { label: STRINGS.common.back, tone: 'secondary' },
         { label: 'Bắt đầu', onPress: () => router.push('/onboarding' as any) },
       ],
     })
@@ -301,7 +302,7 @@ export default function EditProfile() {
     }
 
     setDialogConfig({
-      title: 'Đã lưu',
+      title: STRINGS.profile.status.saved,
       message: 'Hồ sơ của bạn đã được cập nhật.',
       actions: [{ label: 'OK', onPress: () => router.back() }],
     })
@@ -325,7 +326,7 @@ export default function EditProfile() {
       <StatusBar style="dark" translucent backgroundColor={EDIT_PROFILE_COLORS.background} />
 
       <SecondaryNavbar
-        title="HỒ SƠ"
+        title={STRINGS.profile.title}
         onBackPress={() => router.back()}
       />
       <ScrollView ref={scrollViewRef} contentContainerStyle={{ paddingBottom: 325, paddingTop: 12 }} keyboardShouldPersistTaps="always" keyboardDismissMode="on-drag">
@@ -350,7 +351,7 @@ export default function EditProfile() {
                   textTransform: 'uppercase',
                 }}
               >
-                HỒ SƠ CỦA BẠN.
+                {STRINGS.profile.edit_title}
               </Text>
             </View>
 
@@ -396,7 +397,7 @@ export default function EditProfile() {
                     letterSpacing: 0.5,
                   }}
                 >
-                  Sửa
+                  {STRINGS.common.edit}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -408,19 +409,18 @@ export default function EditProfile() {
           <View>
             <View className="mb-6 flex-row items-center gap-4">
               <Text className="text-[11px] uppercase tracking-[4px]" style={{ color: EDIT_PROFILE_COLORS.outline, fontFamily: SCREEN_FONTS.cta }}>
-                01 / THÔNG TIN
+                01 / {STRINGS.profile.sections.info}
               </Text>
               <View className="h-px flex-1" style={{ backgroundColor: EDIT_PROFILE_COLORS.outlineVariant }} />
             </View>
             
             <View className="gap-4">
-              <AppInput label="Tên hiển thị" value={name} onChangeText={setName} placeholder="Nhập tên của bạn" maxLength={30} />
+              <AppInput label={STRINGS.profile.fields.name} value={name} onChangeText={setName} placeholder="Nhập tên của bạn" maxLength={30} />
               
-              <AppInput 
-                label="Mô tả bản thân" 
+                label={STRINGS.profile.fields.bio} 
                 value={bio} 
                 onChangeText={setBio} 
-                placeholder="Ví dụ: Đam mê Pickleball với lối chơi năng lượng..." 
+                placeholder={STRINGS.profile.placeholders.bio} 
                 multiline
                 numberOfLines={3}
                 maxLength={200}
@@ -431,7 +431,7 @@ export default function EditProfile() {
                   className="text-xs font-bold uppercase tracking-wider px-1 mb-2"
                   style={{ color: EDIT_PROFILE_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.cta }}
                 >
-                  Thành phố
+                  {STRINGS.profile.fields.city}
                 </Text>
                 <View className="flex-row flex-wrap gap-2">
                   {CITIES.map((item) => {
@@ -467,7 +467,7 @@ export default function EditProfile() {
           <View>
             <View className="mb-6 flex-row items-center gap-4">
               <Text className="text-[11px] uppercase tracking-[4px]" style={{ color: EDIT_PROFILE_COLORS.outline, fontFamily: SCREEN_FONTS.cta }}>
-                02 / KỸ NĂNG
+                02 / {STRINGS.profile.sections.skill}
               </Text>
               <View className="h-px flex-1" style={{ backgroundColor: EDIT_PROFILE_COLORS.outlineVariant }} />
             </View>
@@ -495,7 +495,7 @@ export default function EditProfile() {
                     className="text-center text-base font-extrabold"
                     style={{ color: EDIT_PROFILE_COLORS.onError, fontFamily: SCREEN_FONTS.cta }}
                   >
-                    Làm lại bài đánh giá
+                    {STRINGS.profile.actions.redo_assessment}
                   </Text>
                 </TouchableOpacity>
                 <Text
@@ -521,7 +521,7 @@ export default function EditProfile() {
           <View>
             <View className="mb-6 flex-row items-center gap-4">
               <Text className="text-[11px] uppercase tracking-[4px]" style={{ color: EDIT_PROFILE_COLORS.outline, fontFamily: SCREEN_FONTS.cta }}>
-                03 / KẾT NỐI
+                03 / {STRINGS.profile.sections.connection}
               </Text>
               <View className="h-px flex-1" style={{ backgroundColor: EDIT_PROFILE_COLORS.outlineVariant }} />
             </View>
@@ -529,7 +529,7 @@ export default function EditProfile() {
             <View className="flex-row items-center gap-3 rounded-2xl p-4" style={{ backgroundColor: EDIT_PROFILE_COLORS.secondaryContainer }}>
               <View className="flex-1">
                 <Text className="text-sm font-extrabold" style={{ color: EDIT_PROFILE_COLORS.onSecondaryContainer, fontFamily: SCREEN_FONTS.cta }}>
-                  Tự động ghép kèo nhanh
+                  {STRINGS.profile.fields.auto_accept}
                 </Text>
                 <Text className="mt-2 text-sm leading-6" style={{ color: EDIT_PROFILE_COLORS.secondary, fontFamily: SCREEN_FONTS.body }}>
                   Khi bật, người chơi được hệ thống đánh giá là phù hợp sẽ vào kèo ngay.
@@ -548,7 +548,7 @@ export default function EditProfile() {
           <View>
             <View className="mb-6 flex-row items-center gap-4">
               <Text className="text-[11px] uppercase tracking-[4px]" style={{ color: EDIT_PROFILE_COLORS.outline, fontFamily: SCREEN_FONTS.cta }}>
-                04 / SÂN ĐẤU
+                04 / {STRINGS.profile.sections.courts}
               </Text>
               <View className="h-px flex-1" style={{ backgroundColor: EDIT_PROFILE_COLORS.outlineVariant }} />
             </View>
@@ -642,8 +642,8 @@ export default function EditProfile() {
               {favCourts.length === 0 && favCourtIds.length === 0 ? (
                 <EmptyState
                   icon={<MapPin size={28} color={EDIT_PROFILE_COLORS.outline} />}
-                  title="Chưa có sân ưa thích"
-                  description="Thêm vài sân bạn hay chơi để app gợi ý kèo sát nhu cầu hơn."
+                  title={STRINGS.profile.empty.no_courts}
+                  description={STRINGS.profile.empty.no_courts_sub}
                 />
               ) : null}
             </View>
@@ -673,7 +673,7 @@ export default function EditProfile() {
               className="text-[13px] tracking-[0.5px] uppercase"
               style={{ color: EDIT_PROFILE_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.cta }}
             >
-              Hủy thay đổi
+              {STRINGS.profile.actions.cancel}
             </Text>
           </TouchableOpacity>
 
@@ -699,7 +699,7 @@ export default function EditProfile() {
                 className="text-[13px] tracking-[0.5px] uppercase"
                 style={{ color: EDIT_PROFILE_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta }}
               >
-                Lưu thay đổi
+                {STRINGS.profile.actions.save}
               </Text>
             )}
           </TouchableOpacity>

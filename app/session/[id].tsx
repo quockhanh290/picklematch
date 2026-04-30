@@ -30,6 +30,7 @@ import {
 import { useAuth } from '@/lib/useAuth'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
+import { STRINGS } from '@/constants/strings'
 
 export default function SessionDetailScreen() {
   const { id, updated } = useLocalSearchParams<{ id: string; updated?: string }>()
@@ -57,9 +58,9 @@ export default function SessionDetailScreen() {
   useEffect(() => {
     if (error) {
       setDialogConfig({
-        title: 'Không tải được kèo',
+        title: STRINGS.session_detail.errors.load_failed,
         message: error,
-        actions: [{ label: 'Đã hiểu' }],
+        actions: [{ label: STRINGS.common.back }],
       })
     }
   }, [error])
@@ -127,7 +128,7 @@ export default function SessionDetailScreen() {
   if (!session) {
     return (
       <SafeAreaView className="flex-1 items-center justify-center px-6" style={{ backgroundColor: PROFILE_THEME_COLORS.background }}>
-        <Text style={{ textAlign: 'center', fontSize: 15, fontFamily: SCREEN_FONTS.label, color: PROFILE_THEME_COLORS.onSurfaceVariant }}>Không tìm thấy kèo này.</Text>
+        <Text style={{ textAlign: 'center', fontSize: 15, fontFamily: SCREEN_FONTS.label, color: PROFILE_THEME_COLORS.onSurfaceVariant }}>{STRINGS.session_detail.errors.not_found}</Text>
       </SafeAreaView>
     )
   }
@@ -178,14 +179,14 @@ export default function SessionDetailScreen() {
       await Share.share({ message: `Tham gia kèo pickleball này nhé! ${url}` })
     } catch (error) {
       console.warn('[SessionDetail] Failed to share session:', error)
-      setDialogConfig({ title: 'Không thể chia sẻ', message: 'Vui lòng thử lại sau ít phút.', actions: [{ label: 'Đóng', tone: 'secondary' }] })
+      setDialogConfig({ title: STRINGS.session_detail.errors.share_failed, message: 'Vui lòng thử lại sau ít phút.', actions: [{ label: STRINGS.common.back, tone: 'secondary' }] })
     }
   }
 
   return (
     <View className="flex-1" style={{ backgroundColor: PROFILE_THEME_COLORS.background }}>
       <SecondaryNavbar
-        title="CHI TIẾT KÈO"
+        title={STRINGS.session_detail.title}
         onBackPress={() => router.back()}
         rightSlot={<NavbarShareButton onPress={() => void handleShare()} />}
       />
@@ -219,7 +220,7 @@ export default function SessionDetailScreen() {
               color: PROFILE_THEME_COLORS.primary,
             }}
           >
-            Đã cập nhật kèo
+            {STRINGS.session_detail.status.updated}
           </Text>
         </View>
       ) : null}
@@ -278,10 +279,10 @@ export default function SessionDetailScreen() {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: 13, fontFamily: SCREEN_FONTS.headline, color: PROFILE_THEME_COLORS.primary }}>
-                Kèo tính điểm ELO
+                {STRINGS.session_detail.elo_banner.title}
               </Text>
               <Text style={{ fontSize: 11, fontFamily: SCREEN_FONTS.body, color: PROFILE_THEME_COLORS.primary, marginTop: 1, opacity: 0.8 }}>
-                Kết quả trận đấu này sẽ được dùng để cập nhật trình độ và bảng xếp hạng.
+                {STRINGS.session_detail.elo_banner.description}
               </Text>
             </View>
           </View>

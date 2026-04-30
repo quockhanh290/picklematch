@@ -35,6 +35,7 @@ import {
 
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
+import { STRINGS } from '@/constants/strings'
 
 type Session = {
   id: string
@@ -531,8 +532,8 @@ export default function FindSession() {
   const listHeader = useMemo(() => (
     <View>
       <MainHeader
-        title="Tìm kèo"
-        subtitle={loading ? 'Đang cập nhật...' : `${filteredSessions.length} kèo phù hợp`}
+        title={STRINGS.find_session.title}
+        subtitle={loading ? STRINGS.common.loading : `${filteredSessions.length} kèo phù hợp`}
         rightElement={
           <Pressable
             onPress={() => void handleNearbyFilter()}
@@ -563,7 +564,7 @@ export default function FindSession() {
           <TextInput
             value={query}
             onChangeText={setQuery}
-            placeholder="Tìm sân, quận hoặc trình độ..."
+            placeholder={STRINGS.find_session.search_placeholder}
             placeholderTextColor={PROFILE_THEME_COLORS.outline}
             style={{
               flex: 1,
@@ -608,7 +609,7 @@ export default function FindSession() {
               textTransform: 'uppercase',
             }}
           >
-            {activeAdvancedFiltersCount > 0 ? `Bộ lọc (${activeAdvancedFiltersCount})` : 'Bộ lọc nâng cao'}
+            {activeAdvancedFiltersCount > 0 ? `${STRINGS.find_session.filters.title} (${activeAdvancedFiltersCount})` : STRINGS.find_session.filters.title}
           </Text>
         </Pressable>
 
@@ -720,10 +721,10 @@ export default function FindSession() {
           }}
         >
           <Text style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: SCREEN_FONTS.headline, fontSize: 10, letterSpacing: 2, textTransform: 'uppercase' }}>
-            Chưa có kèo khớp
+            {STRINGS.find_session.empty.no_results}
           </Text>
           <Text className="mt-3" style={{ color: PROFILE_THEME_COLORS.onBackground, fontFamily: SCREEN_FONTS.headline, fontSize: 22, lineHeight: 28, textTransform: 'uppercase', letterSpacing: 1 }}>
-            Thử đổi bộ lọc hoặc bật gợi ý hợp gu
+            {STRINGS.find_session.empty.no_results_sub}
           </Text>
           <Text className="mt-2" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, fontSize: 14, lineHeight: 22 }}>
             Hệ thống sẽ tiếp tục săn trận phù hợp để bạn không bỏ lỡ cơ hội vào sân đúng gu.

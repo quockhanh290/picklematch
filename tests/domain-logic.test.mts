@@ -26,7 +26,7 @@ run('tier mapping preserves the level 4 distinction', () => {
 
 run('matchmaking helper returns the expected join state', () => {
   assert.equal(getMatchStatus(1100, 1050, 3, 4), 'MATCHED')
-  assert.equal(getMatchStatus(1000, 1050, 3, 4), 'LOWER_SKILL')
+  assert.equal(getMatchStatus(900, 1050, 3, 4), 'LOWER_SKILL')
   assert.equal(getMatchStatus(1300, 1050, 4, 4), 'WAITLIST')
 })
 

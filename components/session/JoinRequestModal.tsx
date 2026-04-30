@@ -1,6 +1,7 @@
 import { KeyboardAvoidingView, Modal, Platform, ScrollView, Text, TextInput, View } from 'react-native'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { AlertCircle, Clock3, Send, Users } from 'lucide-react-native'
+import { STRINGS } from '@/constants/strings'
 
 import { AppButton } from '@/components/design/AppButton'
 import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/profileTheme'
@@ -38,12 +39,12 @@ export function JoinRequestModal({
   const isLowerSkill = mode === 'LOWER_SKILL'
   const isWaitlist = mode === 'WAITLIST'
 
-  const title = isWaitlist ? 'Đăng ký dự bị' : 'Xin vào kèo'
-  const eyebrow = isWaitlist ? 'Dự bị' : 'Yêu cầu tham gia'
+  const title = isWaitlist ? STRINGS.join_modal.waitlist.title : STRINGS.join_modal.request.title
+  const eyebrow = isWaitlist ? STRINGS.join_modal.waitlist.eyebrow : STRINGS.join_modal.request.eyebrow
   const description = isWaitlist
-    ? 'Kèo đang đủ người. Bạn có thể để lại lời nhắn để chủ kèo gọi bạn vào nếu có người rời kèo.'
-    : 'Giới thiệu ngắn để chủ kèo hiểu thêm về bạn trước khi quyết định nhé.'
-  const submitLabel = isWaitlist ? 'Gửi đăng ký dự bị' : 'Gửi yêu cầu'
+    ? STRINGS.join_modal.waitlist.description
+    : STRINGS.join_modal.request.description
+  const submitLabel = isWaitlist ? STRINGS.join_modal.waitlist.submit : STRINGS.join_modal.request.submit
 
   const HeaderIcon = isWaitlist ? Users : isLowerSkill ? AlertCircle : Send
 
@@ -156,7 +157,7 @@ export function JoinRequestModal({
                         color: PROFILE_THEME_COLORS.onPrimaryFixedVariant,
                       }}
                     >
-                      Cảnh báo biến động Elo
+                      {STRINGS.join_modal.skill_warning.title}
                     </Text>
                   </View>
                   <Text
@@ -168,7 +169,7 @@ export function JoinRequestModal({
                       fontFamily: SCREEN_FONTS.body,
                     }}
                   >
-                    Trình độ hiện tại của bạn đang thấp hơn mặt bằng kèo này. Nếu được chủ kèo chấp nhận, Elo có thể biến động mạnh hơn sau trận.
+                    {STRINGS.join_modal.skill_warning.description}
                   </Text>
                 </View>
               ) : null}
@@ -183,7 +184,7 @@ export function JoinRequestModal({
                     color: PROFILE_THEME_COLORS.outline,
                   }}
                 >
-                  Lời nhắn giới thiệu
+                  {STRINGS.join_modal.intro.title}
                 </Text>
                 <Text
                   style={{
@@ -194,7 +195,7 @@ export function JoinRequestModal({
                     fontFamily: SCREEN_FONTS.body,
                   }}
                 >
-                  Bạn có thể giới thiệu ngắn về lối chơi, thái độ trên sân, hoặc thời gian có mặt.
+                  {STRINGS.join_modal.intro.description}
                 </Text>
 
                 <TextInput
@@ -203,8 +204,8 @@ export function JoinRequestModal({
                   onChangeText={setIntroNote}
                   placeholder={
                     isWaitlist
-                      ? 'Ví dụ: Nếu có slot trống bạn báo mình nhé.'
-                      : 'Ví dụ: Mình đánh đều, giữ bóng tốt và rất đúng giờ.'
+                      ? STRINGS.join_modal.intro.placeholder_waitlist
+                      : STRINGS.join_modal.intro.placeholder_request
                   }
                   placeholderTextColor={withAlpha(PROFILE_THEME_COLORS.onSurfaceVariant, 0.6)}
                   textAlignVertical="top"
@@ -248,7 +249,7 @@ export function JoinRequestModal({
                       color: PROFILE_THEME_COLORS.primary,
                     }}
                   >
-                    Riêng tư
+                    {STRINGS.join_modal.privacy.title}
                   </Text>
                 </View>
                 <Text
@@ -260,13 +261,13 @@ export function JoinRequestModal({
                     fontFamily: SCREEN_FONTS.body,
                   }}
                 >
-                  Chủ kèo chỉ thấy lời nhắn này khi xem yêu cầu. Bạn có thể chỉnh lại ở lần gửi sau nếu trạng thái thay đổi.
+                  {STRINGS.join_modal.privacy.description}
                 </Text>
               </View>
 
               <View style={{ marginTop: 16, flexDirection: 'row', gap: 10 }}>
                 <View style={{ flex: 1 }}>
-                  <AppButton label="Quay lại" onPress={onClose} variant="secondary" />
+                  <AppButton label={STRINGS.common.back} onPress={onClose} variant="secondary" />
                 </View>
                 <View style={{ flex: 1 }}>
                   <AppButton label={submitLabel} onPress={onSubmit} loading={loading} variant="primary" />

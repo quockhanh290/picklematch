@@ -5,6 +5,7 @@ import type { RequestStatus, SessionDetailRecord, ViewerPlayer } from '@/hooks/u
 import { getMatchStatus, type MatchStatus } from '@/lib/matchmaking'
 import { getComparableElo } from '@/lib/sessionDetail'
 import { supabase } from '@/lib/supabase'
+import { STRINGS } from '@/constants/strings'
 
 type DialogAction = {
   label: string
@@ -68,11 +69,11 @@ export function useSessionJoinActions({
   const directJoinSession = useCallback(async () => {
     if (!userId) {
       presentDialog({
-        title: 'Cần đăng nhập',
-        message: 'Bạn cần đăng nhập để tham gia kèo.',
+        title: STRINGS.session_join.dialogs.login_required.title,
+        message: STRINGS.session_join.dialogs.login_required.message,
         actions: [
-          { label: 'Để sau', tone: 'secondary' },
-          { label: 'Đăng nhập', onPress: () => router.push('/login') },
+          { label: STRINGS.common.later, tone: 'secondary' },
+          { label: STRINGS.common.login, onPress: () => router.push('/login') },
         ],
       })
       return
@@ -81,35 +82,25 @@ export function useSessionJoinActions({
     if (!session) return
     if (!isJoinWindowOpen) {
       presentDialog({
-        title: 'Kèo đã ngưng nhận người',
-        message: 'Kèo này đã qua hạn chốt nhận người chơi mới.',
-        actions: [{ label: 'Đã hiểu' }],
+        title: STRINGS.session_join.dialogs.deadline_passed.title,
+        message: STRINGS.session_join.dialogs.deadline_passed.message,
+        actions: [{ label: STRINGS.common.got_it }],
       })
       return
     }
 
     setJoining(true)
-    const { error } = await supabase.from('session_players').insert({
-      session_id: session.id,
-      player_id: userId,
-      status: 'confirmed',
+    const { error } = await supabase.rpc('join_session', {
+      p_session_id: session.id,
     })
-
-    if (!error) {
-      await supabase
-        .from('join_requests')
-        .update({ status: 'accepted' })
-        .eq('match_id', session.id)
-        .eq('player_id', userId)
-    }
 
     setJoining(false)
 
     if (error) {
       presentDialog({
-        title: 'Không thể tham gia kèo',
+        title: STRINGS.session_join.dialogs.join_failed.title,
         message: error.message,
-        actions: [{ label: 'Đóng', tone: 'secondary' }],
+        actions: [{ label: STRINGS.common.close, tone: 'secondary' }],
       })
       return
     }
@@ -117,9 +108,9 @@ export function useSessionJoinActions({
     setRequestStatus('accepted')
     onJoinModalClose()
     presentDialog({
-      title: 'Tham gia thành công',
-      message: 'Bạn đã vào kèo này rồi nhé.',
-      actions: [{ label: 'Tuyệt vời' }],
+      title: STRINGS.session_join.dialogs.join_success.title,
+      message: STRINGS.session_join.dialogs.join_success.message,
+      actions: [{ label: STRINGS.common.great }],
     })
     await refreshSession()
   }, [isJoinWindowOpen, onJoinModalClose, presentDialog, refreshSession, session, setRequestStatus, userId])
@@ -127,11 +118,11 @@ export function useSessionJoinActions({
   const sendJoinRequest = useCallback(async () => {
     if (!userId) {
       presentDialog({
-        title: 'Cần đăng nhập',
-        message: 'Bạn cần đăng nhập để gửi yêu cầu.',
+        title: STRINGS.session_join.dialogs.login_required.title,
+        message: STRINGS.session_join.dialogs.login_required_request,
         actions: [
-          { label: 'Để sau', tone: 'secondary' },
-          { label: 'Đăng nhập', onPress: () => router.push('/login') },
+          { label: STRINGS.common.later, tone: 'secondary' },
+          { label: STRINGS.common.login, onPress: () => router.push('/login') },
         ],
       })
       return
@@ -140,9 +131,9 @@ export function useSessionJoinActions({
     if (!session) return
     if (!isJoinWindowOpen) {
       presentDialog({
-        title: 'Kèo đã ngưng nhận người',
-        message: 'Kèo này đã qua hạn chốt nhận người chơi mới.',
-        actions: [{ label: 'Đã hiểu' }],
+        title: STRINGS.session_join.dialogs.deadline_passed.title,
+        message: STRINGS.session_join.dialogs.deadline_passed.message,
+        actions: [{ label: STRINGS.common.got_it }],
       })
       return
     }
@@ -161,9 +152,9 @@ export function useSessionJoinActions({
 
     if (error) {
       presentDialog({
-        title: 'Không thể gửi yêu cầu',
+        title: STRINGS.session_join.dialogs.request_failed.title,
         message: error.message,
-        actions: [{ label: 'Đóng', tone: 'secondary' }],
+        actions: [{ label: STRINGS.common.close, tone: 'secondary' }],
       })
       return
     }
@@ -172,12 +163,12 @@ export function useSessionJoinActions({
     setHostResponseTemplate(null)
     onJoinModalClose()
     presentDialog({
-      title: matchStatus === 'WAITLIST' ? 'Đã đăng ký dự bị' : 'Đã gửi yêu cầu',
+      title: matchStatus === 'WAITLIST' ? STRINGS.session_join.dialogs.waitlist_success.title : STRINGS.session_join.dialogs.request_success.title,
       message:
         matchStatus === 'WAITLIST'
-          ? 'Host sẽ thấy bạn trong danh sách dự bị nếu có chỗ trống.'
-          : 'Chờ host duyệt nhé.',
-      actions: [{ label: 'Đã rõ' }],
+          ? STRINGS.session_join.dialogs.waitlist_success.message
+          : STRINGS.session_join.dialogs.request_success.message,
+      actions: [{ label: STRINGS.common.got_it }],
     })
     await refreshSession()
   }, [introNote, isJoinWindowOpen, matchStatus, onJoinModalClose, presentDialog, refreshSession, session, setHostResponseTemplate, setRequestStatus, userId])
@@ -186,17 +177,17 @@ export function useSessionJoinActions({
     if (!session || !userId) return
 
     const hostFlow = isHost
-    const title = hostFlow ? 'Hủy kèo?' : 'Rời kèo?'
+    const title = hostFlow ? STRINGS.session_join.dialogs.cancel_session.title : STRINGS.session_join.dialogs.leave_session.title
     const message = hostFlow
-      ? 'Bạn chắc chắn muốn hủy kèo này? Kèo sẽ bị hủy cho tất cả người chơi.'
-      : 'Bạn chắc chắn muốn rời kèo này?'
-    const destructiveText = hostFlow ? 'Hủy kèo' : 'Rời kèo'
+      ? STRINGS.session_join.dialogs.cancel_session.message
+      : STRINGS.session_join.dialogs.leave_session.message
+    const destructiveText = hostFlow ? STRINGS.session_join.dialogs.cancel_session.confirm : STRINGS.session_join.dialogs.leave_session.confirm
 
     presentDialog({
       title,
       message,
       actions: [
-        { label: 'Ở lại', tone: 'secondary' },
+        { label: STRINGS.common.stay, tone: 'secondary' },
         {
           label: destructiveText,
           tone: 'danger',
@@ -214,9 +205,9 @@ export function useSessionJoinActions({
 
             if (error) {
               presentDialog({
-                title: hostFlow ? 'Không thể hủy kèo' : 'Không thể rời kèo',
+                title: hostFlow ? STRINGS.session_join.dialogs.cancel_failed.title : STRINGS.session_join.dialogs.leave_failed.title,
                 message: error.message,
-                actions: [{ label: 'Đóng', tone: 'secondary' }],
+                actions: [{ label: STRINGS.common.close, tone: 'secondary' }],
               })
               return
             }
@@ -232,12 +223,12 @@ export function useSessionJoinActions({
     if (!session || !userId) return
 
     presentDialog({
-      title: 'Hủy yêu cầu?',
-      message: 'Bạn chắc chắn muốn hủy yêu cầu tham gia kèo này?',
+      title: STRINGS.session_join.dialogs.cancel_request.title,
+      message: STRINGS.session_join.dialogs.cancel_request.message,
       actions: [
-        { label: 'Giữ lại', tone: 'secondary' },
+        { label: STRINGS.common.keep, tone: 'secondary' },
         {
-          label: 'Hủy yêu cầu',
+          label: STRINGS.session_join.dialogs.cancel_request.confirm,
           tone: 'danger',
           onPress: async () => {
             setRequesting(true)
@@ -250,9 +241,9 @@ export function useSessionJoinActions({
 
             if (error) {
               presentDialog({
-                title: 'Lỗi',
-                message: 'Không thể hủy yêu cầu: ' + error.message,
-                actions: [{ label: 'Đóng', tone: 'secondary' }],
+                title: STRINGS.common.error,
+                message: STRINGS.session_join.errors.cancel_request_failed + error.message,
+                actions: [{ label: STRINGS.common.close, tone: 'secondary' }],
               })
               return
             }

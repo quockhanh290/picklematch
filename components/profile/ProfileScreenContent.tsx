@@ -42,6 +42,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { SPACING } from '@/constants/screenLayout'
+import { STRINGS } from '@/constants/strings'
 
 const PROFILE_PAGE_COLORS = PROFILE_THEME_COLORS
 
@@ -199,12 +200,12 @@ export default function ProfileScreenContent() {
 
   async function logout() {
     setDialogConfig({
-      title: 'Đăng xuất?',
+      title: `${STRINGS.profile.actions.logout}?`,
       message: 'Bạn chắc muốn đăng xuất không?',
       actions: [
-        { label: 'Huỷ', tone: 'secondary' },
+        { label: STRINGS.common.back, tone: 'secondary' },
         {
-          label: 'Đăng xuất',
+          label: STRINGS.profile.actions.logout,
           tone: 'danger',
           onPress: async () => {
             await supabase.auth.signOut()
@@ -251,7 +252,7 @@ export default function ProfileScreenContent() {
       <View className="flex-1" style={{ backgroundColor: theme.backgroundMuted, paddingTop: insets.top }}>
         <ScreenHeader
           compact
-          title="Hồ sơ"
+          title={STRINGS.profile.title}
         />
         <EmptyState
           icon={<UserCircle2 size={28} color={PROFILE_THEME_COLORS.outline} />}
@@ -260,7 +261,7 @@ export default function ProfileScreenContent() {
         />
         <View className="mt-6 gap-3 px-5">
           <AppButton label="Đăng nhập" onPress={() => router.push('/login' as any)} />
-          <AppButton label="Về trang chủ" onPress={() => router.replace('/(tabs)')} variant="secondary" />
+          <AppButton label={STRINGS.common.back} onPress={() => router.replace('/(tabs)')} variant="secondary" />
         </View>
       </View>
     )
@@ -403,15 +404,15 @@ export default function ProfileScreenContent() {
             </View>
 
           <View className="mb-10 gap-4">
-            <ProfileSectionDivider index="01" title="TỔNG QUAN" />
+            <ProfileSectionDivider index="01" title={STRINGS.profile.sections.overview} />
             <View className="flex-row justify-between gap-4">
               <View className="flex-1 rounded-[24px] p-4" style={{ backgroundColor: PROFILE_PAGE_COLORS.surfaceContainerLow }}>
                 <Swords size={22} color={PROFILE_PAGE_COLORS.primary} />
                 <Text className="mt-4 text-[28px]" style={{ color: PROFILE_PAGE_COLORS.primary, fontFamily: SCREEN_FONTS.cta }}>
                   {player.sessions_joined ?? 0}
                 </Text>
-                <Text className="mt-1 text-[12px] uppercase tracking-[2px]" style={{ color: PROFILE_PAGE_COLORS.outline, fontFamily: SCREEN_FONTS.cta }}>
-                  Trận đấu
+                <Text className="mt-1 text-[12px] uppercase tracking-[2px]" style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: SCREEN_FONTS.cta }}>
+                  {STRINGS.profile.stats.matches}
                 </Text>
               </View>
 
@@ -420,8 +421,8 @@ export default function ProfileScreenContent() {
                 <Text className="mt-4 text-[28px]" style={{ color: PROFILE_PAGE_COLORS.surfaceTint, fontFamily: SCREEN_FONTS.cta }}>
                   {hostedCount}
                 </Text>
-                <Text className="mt-1 text-[12px] uppercase tracking-[2px]" style={{ color: PROFILE_PAGE_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.cta }}>
-                  Đã host
+                <Text className="mt-1 text-[12px] uppercase tracking-[2px]" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.cta }}>
+                  {STRINGS.profile.stats.hosted}
                 </Text>
               </View>
             </View>
@@ -430,17 +431,17 @@ export default function ProfileScreenContent() {
           <ProfileWinStreak current={currentWinStreak} active={streakActive} />
 
           <View className="mt-0 mb-6">
-            <ProfileSectionDivider index="02" title="CỘNG ĐỒNG" />
+            <ProfileSectionDivider index="02" title={STRINGS.profile.sections.community} />
             <CommunityFeedbackPanel title="" traits={displayCommunityTraits} flushBottom />
           </View>
 
           <View className="mb-6">
-            <ProfileSectionDivider index="03" title="DANH HIỆU" />
+            <ProfileSectionDivider index="03" title={STRINGS.profile.sections.achievements} />
             <TrophyRoomSection badges={displayAchievements} hideHeader flushBottom />
           </View>
 
           <View className="mt-6">
-            <ProfileSectionDivider index="04" title="TÀI KHOẢN" />
+            <ProfileSectionDivider index="04" title={STRINGS.profile.sections.account} />
             <View className="flex-row gap-3">
               <TouchableOpacity
                 className="flex-1 rounded-full py-4 items-center"
@@ -448,7 +449,7 @@ export default function ProfileScreenContent() {
                 onPress={() => router.push('/edit-profile' as any)}
                 activeOpacity={0.9}
               >
-                <Text style={{ color: PROFILE_PAGE_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta }}>Sửa hồ sơ</Text>
+                <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta }}>{STRINGS.profile.actions.edit}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 className="flex-1 rounded-full py-4 items-center"
@@ -456,7 +457,7 @@ export default function ProfileScreenContent() {
                 onPress={logout}
                 activeOpacity={0.9}
               >
-                <Text style={{ color: PROFILE_PAGE_COLORS.primary, fontFamily: SCREEN_FONTS.cta }}>Đăng xuất</Text>
+                <Text style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.cta }}>{STRINGS.profile.actions.logout}</Text>
               </TouchableOpacity>
             </View>
           </View>

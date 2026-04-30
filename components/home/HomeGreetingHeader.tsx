@@ -4,14 +4,15 @@ import { router } from 'expo-router'
 import { Image, Pressable, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { SPACING } from '@/constants/screenLayout'
+import { STRINGS } from '@/constants/strings'
 
 function getGreetingLabel() {
   const hour = new Date().getHours()
 
-  if (hour >= 5 && hour <= 11) return 'Chào buổi sáng ☀️'
-  if (hour >= 12 && hour <= 17) return 'Chào buổi chiều 🌤️'
-  if (hour >= 18 && hour <= 21) return 'Chào buổi tối 🌙'
-  return 'Xin chào 👋'
+  if (hour >= 5 && hour <= 11) return `${STRINGS.home.greeting.morning} ☀️`
+  if (hour >= 12 && hour <= 17) return `${STRINGS.home.greeting.afternoon} 🌤️`
+  if (hour >= 18 && hour <= 21) return `${STRINGS.home.greeting.evening} 🌙`
+  return `${STRINGS.home.greeting.default} 👋`
 }
 
 export function HomeGreetingHeader({

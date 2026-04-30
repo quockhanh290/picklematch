@@ -18,6 +18,7 @@ import { supabase } from '@/lib/supabase'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { RADIUS, SPACING, BORDER, SHADOW } from '@/constants/screenLayout'
 import { formatPricePerPerson, formatTimeRange as _formatTimeRange } from '@/lib/sessionDetail'
+import { STRINGS } from '@/constants/strings'
 
 function withAlpha(hex: string, alpha: number) {
   const clean = hex.replace('#', '')
@@ -112,12 +113,12 @@ function buildTeams(session: ConfirmableSession | null): TeamSummary[] {
   return [
     {
       id: 'A',
-      name: 'Đội A',
+      name: STRINGS.session_detail.result.team_a,
       players: distributed.filter((item) => item.teamNo === 1).map((item) => ({ id: item.id, name: item.name })),
     },
     {
       id: 'B',
-      name: 'Đội B',
+      name: STRINGS.session_detail.result.team_b,
       players: distributed.filter((item) => item.teamNo === 2).map((item) => ({ id: item.id, name: item.name })),
     },
   ]
@@ -179,7 +180,7 @@ function SessionResultMetaCard({
         <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 6 }}>
           <View style={{ width: 5, height: 5, borderRadius: RADIUS.full, backgroundColor: PROFILE_THEME_COLORS.onPrimary }} />
           <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta, fontSize: 11, letterSpacing: 0.5 }}>
-            XÁC NHẬN KẾT QUẢ
+            {STRINGS.session_detail.result.confirm_title}
           </Text>
         </View>
         <Text style={{ color: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.8), fontFamily: SCREEN_FONTS.label, fontSize: 11 }}>
@@ -224,7 +225,7 @@ function SessionResultMetaCard({
               marginBottom: 8,
               textAlign: 'center'
             }}>
-              {scoreA > scoreB ? 'THẮNG' : scoreA < scoreB ? 'THUA' : 'HÒA'}
+              {scoreA > scoreB ? STRINGS.session_detail.result.win : scoreA < scoreB ? STRINGS.session_detail.result.loss : STRINGS.session_detail.result.draw}
             </Text>
             
             <View style={{ 
@@ -271,7 +272,7 @@ function SessionResultMetaCard({
               marginBottom: 8,
               textAlign: 'center'
             }}>
-              {scoreB > scoreA ? 'THẮNG' : scoreB < scoreA ? 'THUA' : 'HÒA'}
+              {scoreB > scoreA ? STRINGS.session_detail.result.win : scoreB < scoreA ? STRINGS.session_detail.result.loss : STRINGS.session_detail.result.draw}
             </Text>
 
             <View style={{ 
@@ -312,7 +313,7 @@ function SessionResultMetaCard({
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           <View>
             <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.label, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>
-              THỜI GIAN
+              {STRINGS.session_detail.meta.time}
             </Text>
             <Text style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.headline, fontSize: 26, lineHeight: 28 }}>
               {clockPart}
@@ -324,7 +325,7 @@ function SessionResultMetaCard({
 
           <View style={{ alignItems: 'flex-end' }}>
             <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.label, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>
-              CHI PHÍ
+              {STRINGS.session_detail.meta.cost}
             </Text>
             <Text style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.headline, fontSize: 26, lineHeight: 28 }}>
               {priceLabel}
@@ -346,7 +347,7 @@ function SessionResultMetaCard({
             <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
               <View style={{ flex: 1 }}>
                 <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.label, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8 }}>
-                  LỜI NHẮN
+                  {STRINGS.session_detail.meta.notes}
                 </Text>
                 <Text style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.body, fontSize: 13, marginTop: 2 }}>
                   {hostNote.trim()}
@@ -543,8 +544,8 @@ export default function ConfirmSessionResultScreen() {
                   }}
                 >
                   {myEntry.result_confirmation_status === 'disputed'
-                    ? 'Bạn đã gửi khiếu nại'
-                    : 'Bạn đã xác nhận kết quả'}
+                    ? STRINGS.session_detail.result.status.disputed
+                    : STRINGS.session_detail.result.status.confirmed}
                 </Text>
                 <Text
                   style={{
@@ -568,7 +569,7 @@ export default function ConfirmSessionResultScreen() {
               <View style={{ marginBottom: 8, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <ShieldAlert size={16} color={RESULT_THEME.title} />
                 <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 18, color: RESULT_THEME.title, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                  Khiếu nại (nếu có)
+                  {STRINGS.session_detail.result.dispute_title}
                 </Text>
               </View>
               <TextInput 
@@ -586,7 +587,7 @@ export default function ConfirmSessionResultScreen() {
                   fontSize: 13, 
                   color: RESULT_THEME.inputText,
                 }}
-                placeholder="Nếu kết quả không đúng, hãy nhập lý do tại đây..."
+                placeholder={STRINGS.session_detail.result.dispute_placeholder}
                 placeholderTextColor={RESULT_THEME.inputPlaceholder}
               />
             </View>
@@ -598,7 +599,7 @@ export default function ConfirmSessionResultScreen() {
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                 <ShieldAlert size={18} color={PROFILE_THEME_SEMANTIC.dangerStrong} />
                 <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 18, color: PROFILE_THEME_SEMANTIC.dangerText, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                  Nội dung khiếu nại
+                  {STRINGS.session_detail.result.dispute_content}
                 </Text>
               </View>
               <Text style={{ fontFamily: SCREEN_FONTS.body, fontSize: 13, color: PROFILE_THEME_SEMANTIC.dangerText, lineHeight: 18 }}>
@@ -637,7 +638,7 @@ export default function ConfirmSessionResultScreen() {
               }}
             >
               <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 15, color: PROFILE_THEME_COLORS.onSurface, textTransform: 'uppercase' }}>
-                Quay lại
+                {STRINGS.common.back}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -656,7 +657,7 @@ export default function ConfirmSessionResultScreen() {
             >
               <Share2 size={18} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.5} />
               <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 15, color: PROFILE_THEME_COLORS.onPrimary, textTransform: 'uppercase' }}>
-                Chia sẻ kết quả
+                {STRINGS.session_detail.result.share}
               </Text>
             </TouchableOpacity>
           </>
@@ -681,7 +682,7 @@ export default function ConfirmSessionResultScreen() {
                 <ActivityIndicator color={RESULT_THEME.danger} />
               ) : (
                 <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 15, color: RESULT_THEME.danger, textTransform: 'uppercase' }}>
-                  Khiếu nại
+                  {STRINGS.session_detail.result.dispute_action}
                 </Text>
               )}
             </TouchableOpacity>
@@ -707,7 +708,7 @@ export default function ConfirmSessionResultScreen() {
                 <>
                   <CheckCheck size={18} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.5} />
                   <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 15, color: PROFILE_THEME_COLORS.onPrimary, textTransform: 'uppercase' }}>
-                    Xác nhận kết quả →
+                    {STRINGS.session_detail.result.confirm_action}
                   </Text>
                 </>
               )}

@@ -26,6 +26,7 @@ import type { FamiliarCourt, MatchSession } from '@/lib/homeFeed'
 import { useAppTheme } from '@/lib/theme-context'
 import { useAuth } from '@/lib/useAuth'
 import { SPACING } from '@/constants/screenLayout'
+import { STRINGS } from '@/constants/strings'
 
 const CAROUSEL_SECTION_HEIGHT = 430
 const COURT_CAROUSEL_HEIGHT = 272
@@ -37,11 +38,11 @@ function withAlpha(hex: string, alpha: number) {
 }
 
 const SmartMatchCard = memo(function SmartMatchCard({ item, accentMode = 'default' }: { item: MatchSession; accentMode?: 'default' | 'rescue' }) {
-  return <MatchSessionCard item={item} variant="standard" actionLabel={item.joined ? 'XEM KÈO' : 'VÀO KÈO'} accentMode={accentMode} />
+  return <MatchSessionCard item={item} variant="standard" actionLabel={item.joined ? STRINGS.home.actions.view_session : STRINGS.home.actions.join_session} accentMode={accentMode} />
 })
 
 const SmartQueueHeroStyledCard = memo(function SmartQueueHeroStyledCard({ item }: { item: MatchSession }) {
-  return <MatchSessionCard item={item} variant="smart" actionLabel={item.joined ? 'XEM KÈO' : 'ƯU TIÊN GHÉP'} />
+  return <MatchSessionCard item={item} variant="smart" actionLabel={item.joined ? STRINGS.home.actions.view_session : STRINGS.home.actions.prioritize_match} />
 })
 
 const HeroThemeCard = memo(function HeroThemeCard({
@@ -90,7 +91,7 @@ const HomeStreakCard = memo(function HomeStreakCard({ current }: { current: numb
           className="mb-1 text-[10px] uppercase"
           style={{ color: PROFILE_THEME_COLORS.secondaryFixed, fontFamily: SCREEN_FONTS.label, letterSpacing: 0.5, lineHeight: 14 }}
         >
-          CHUỖI RA SÂN
+          {STRINGS.home.sections.streak}
         </Text>
         <View className="flex-row" style={{ columnGap: 4 }}>
           {Array.from({ length: 10 }).map((_, index) => (
@@ -237,7 +238,7 @@ function ExpandingCreateFAB() {
               textShadowRadius: 2
             }}
           >
-            Tạo kèo mới
+            {STRINGS.home.actions.create_session}
           </Text>
         </Animated.View>
       </Animated.View>
@@ -312,13 +313,13 @@ export default function HomeScreen() {
             <View className="mt-4">
               <View className="mb-5">
                 <Text className="mb-3 text-[11px] uppercase tracking-[0.16em]" style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: SCREEN_FONTS.headline }}>
-                  Sắp diễn ra
+                  {STRINGS.home.sections.upcoming_sub}
                 </Text>
                 <Text className="text-[24px]" style={{ color: PROFILE_THEME_COLORS.onBackground, fontFamily: SCREEN_FONTS.headline, lineHeight: 32 }}>
-                  Trận của bạn
+                  {STRINGS.home.sections.upcoming}
                 </Text>
               </View>
-              <HeroThemeCard item={upcomingMatch} actionLabel="Sẵn sàng" />
+              <HeroThemeCard item={upcomingMatch} actionLabel={STRINGS.home.actions.ready} />
             </View>
           ) : null}
 
@@ -326,8 +327,8 @@ export default function HomeScreen() {
           <HomeCarouselSection
             visible={personalizedSessions.length > 0}
             marginTopClassName="mt-10"
-            eyebrow="Gợi ý hợp gu"
-            title="Dành riêng cho bạn"
+            eyebrow={STRINGS.home.sections.personalized_sub}
+            title={STRINGS.home.sections.personalized}
             items={personalizedSessions}
             activeIndex={personalizedIndex}
             containerHeight={CAROUSEL_SECTION_HEIGHT}
@@ -337,8 +338,8 @@ export default function HomeScreen() {
 
           <HomeCarouselSection
             visible={rescueSessions.length > 0}
-            eyebrow="Cần người gấp"
-            title="Cứu nét khẩn cấp"
+            eyebrow={STRINGS.home.sections.rescue_sub}
+            title={STRINGS.home.sections.rescue}
             items={rescueSessions}
             activeIndex={rescueIndex}
             containerHeight={CAROUSEL_SECTION_HEIGHT}
@@ -348,8 +349,8 @@ export default function HomeScreen() {
 
           <HomeCarouselSection
             visible={familiarCourts.length > 0}
-            eyebrow="Sân quen"
-            title="Sân quen của bạn"
+            eyebrow={STRINGS.home.sections.familiar_courts_sub}
+            title={STRINGS.home.sections.familiar_courts}
             items={familiarCourts}
             activeIndex={courtIndex}
             containerHeight={COURT_CAROUSEL_HEIGHT}
