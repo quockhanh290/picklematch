@@ -614,7 +614,6 @@ export default function MatchResultEntryScreen() {
       <SecondaryNavbar
         title="KẾT QUẢ TRẬN ĐẤU"
         onBackPress={() => router.back()}
-        rightSlot={<NavbarDoneButton onPress={() => void onSaveResult()} />}
       />
       <View style={{ flex: 1 }}>
         <ScrollView 

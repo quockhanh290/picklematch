@@ -277,7 +277,6 @@ export default function EditProfile() {
       <SecondaryNavbar
         title="HỒ SƠ"
         onBackPress={() => router.back()}
-        rightSlot={<NavbarUserAvatar url={photoUrl} name={name} />}
       />
       <ScrollView ref={scrollViewRef} contentContainerStyle={{ paddingBottom: 325, paddingTop: 12 }} keyboardShouldPersistTaps="always" keyboardDismissMode="on-drag">
 

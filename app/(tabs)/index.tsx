@@ -1,8 +1,17 @@
 import { router } from 'expo-router'
 import { Plus } from 'phosphor-react-native'
-import { memo, useCallback, useState } from 'react'
+import { memo, useCallback, useEffect, useState } from 'react'
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import Animated, { 
+  useAnimatedStyle, 
+  useSharedValue, 
+  withRepeat,
+  withSequence,
+  withSpring, 
+  withTiming 
+} from 'react-native-reanimated'
+import { LinearGradient } from 'expo-linear-gradient'
 
 import { FamiliarCourtCard } from '@/components/home/FamiliarCourtCard'
 import { HomeCarouselSection } from '@/components/home/HomeCarouselSection'
@@ -106,6 +115,136 @@ const HomeStreakCard = memo(function HomeStreakCard({ current }: { current: numb
   )
 })
 
+function ExpandingCreateFAB() {
+  const [expanded, setExpanded] = useState(false)
+  const width = useSharedValue(60) // Slightly larger
+  const opacity = useSharedValue(0)
+  const scale = useSharedValue(1)
+
+  // Continuous subtle pulse effect when NOT expanded
+  useEffect(() => {
+    if (!expanded) {
+      scale.value = withRepeat(
+        withSequence(
+          withTiming(1.08, { duration: 1000 }),
+          withTiming(1, { duration: 1000 })
+        ),
+        -1, // Infinite
+        true
+      )
+    } else {
+      scale.value = withSpring(1)
+    }
+  }, [expanded])
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    width: width.value,
+    transform: [{ scale: scale.value }]
+  }))
+
+  const textStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }))
+
+  const handlePress = async () => {
+    if (!expanded) {
+      setExpanded(true)
+      // Haptic feedback for expansion
+      try {
+        const { selectionAsync } = require('expo-haptics')
+        await selectionAsync()
+      } catch {}
+
+      width.value = withSpring(200, { damping: 15, stiffness: 100 })
+      opacity.value = withTiming(1, { duration: 200 })
+
+      // Auto-collapse if not tapped again within 3.5 seconds
+      setTimeout(() => {
+        setExpanded((curr) => {
+          if (curr) {
+            width.value = withSpring(60)
+            opacity.value = withTiming(0)
+            return false
+          }
+          return curr
+        })
+      }, 3500)
+    } else {
+      // Haptic feedback for navigation
+      try {
+        const { notificationAsync, NotificationFeedbackType } = require('expo-haptics')
+        await notificationAsync(NotificationFeedbackType.Success)
+      } catch {}
+
+      router.push('/create-session' as never)
+      
+      // Reset immediately so it's clean when coming back
+      setTimeout(() => {
+        width.value = 60
+        opacity.value = 0
+        setExpanded(false)
+      }, 500)
+    }
+  }
+
+  return (
+    <Pressable 
+      onPress={handlePress}
+      style={{
+        position: 'absolute',
+        bottom: 100,
+        right: 24,
+        zIndex: 100,
+      }}
+    >
+      <Animated.View
+        className="flex-row items-center justify-center overflow-hidden rounded-full"
+        style={[
+          {
+            height: 60,
+            backgroundColor: PROFILE_THEME_COLORS.primary,
+            shadowColor: PROFILE_THEME_COLORS.primary,
+            shadowOpacity: 0.45, // Deeper shadow
+            shadowRadius: 18, // Softer, larger glow
+            shadowOffset: { width: 0, height: 8 },
+            elevation: 12,
+            borderWidth: 1.5,
+            borderColor: 'rgba(255, 255, 255, 0.2)', // Highlight rim
+          },
+          animatedStyle,
+        ]}
+      >
+        <LinearGradient
+          colors={[PROFILE_THEME_COLORS.primary, PROFILE_THEME_COLORS.surfaceTint]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+        />
+        
+        <View className="absolute left-[16px]">
+          <Plus size={28} color="#FFFFFF" strokeWidth={3} />
+        </View>
+        <Animated.View style={[{ marginLeft: 48 }, textStyle]}>
+          <Text
+            className="text-[16px] uppercase tracking-[1.5px]"
+            numberOfLines={1}
+            style={{ 
+              color: '#FFFFFF', 
+              fontFamily: SCREEN_FONTS.headlineBlack, // Even bolder
+              top: 1,
+              textShadowColor: 'rgba(0, 0, 0, 0.2)',
+              textShadowOffset: { width: 0, height: 1 },
+              textShadowRadius: 2
+            }}
+          >
+            Tạo kèo mới
+          </Text>
+        </Animated.View>
+      </Animated.View>
+    </Pressable>
+  )
+}
+
 export default function HomeScreen() {
   const theme = useAppTheme()
   const { userId, isLoading: isAuthLoading } = useAuth()
@@ -183,19 +322,6 @@ export default function HomeScreen() {
             </View>
           ) : null}
 
-          {loading && !refreshing ? (
-            <AppLoading
-              label="Đang tải dữ liệu thật từ hệ thống..."
-              style={{
-                marginTop: 32,
-                paddingVertical: 48,
-                borderRadius: 24,
-                borderWidth: 1,
-                borderColor: PROFILE_THEME_COLORS.outlineVariant,
-                backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
-              }}
-            />
-          ) : null}
 
           <HomeCarouselSection
             visible={personalizedSessions.length > 0}
@@ -233,26 +359,7 @@ export default function HomeScreen() {
         </View>
       </ScrollView>
 
-        <Pressable
-          onPress={() => router.push('/create-session' as never)}
-          className="absolute flex-row items-center rounded-full px-8 py-5"
-          style={{
-            bottom: 100,
-            right: 24,
-            zIndex: 100,
-            borderColor: PROFILE_THEME_COLORS.primaryFixed,
-            backgroundColor: PROFILE_THEME_COLORS.primary,
-            shadowColor: PROFILE_THEME_COLORS.primary,
-            shadowOpacity: 0.28,
-            shadowRadius: 24,
-            shadowOffset: { width: 0, height: 16 },
-          }}
-        >
-          <Plus size={20} color={PROFILE_THEME_COLORS.onPrimary} />
-          <Text className="ml-3 text-[15px] uppercase tracking-[1.3px]" style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.headline }}>
-            Tạo kèo mới
-          </Text>
-        </Pressable>
-      </View>
+      <ExpandingCreateFAB />
+    </View>
   )
 }
