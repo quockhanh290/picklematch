@@ -1,4 +1,4 @@
-export const STRINGS = {
+﻿export const STRINGS = {
   common: {
     confirmed: 'Đã xác nhận',
     pending: 'Đang chờ',
@@ -153,6 +153,29 @@ export const STRINGS = {
     title: 'CHI TIẾT KÈO',
     status: {
       updated: 'Đã cập nhật thông tin kèo',
+    },
+    meta: {
+      time: 'Thời gian',
+      cost: 'Chi phí',
+      notes: 'Ghi chú',
+    },
+    result: {
+      team_a: 'Đội A',
+      team_b: 'Đội B',
+      confirm_title: 'Xác nhận kết quả',
+      win: 'THẮNG',
+      loss: 'THUA',
+      draw: 'HÒA',
+      dispute_title: 'Khiếu nại kết quả',
+      dispute_placeholder: 'Nhập lý do khiếu nại...',
+      dispute_content: 'Nội dung khiếu nại',
+      dispute_action: 'Khiếu nại',
+      confirm_action: 'Xác nhận',
+      share: 'Chia sẻ',
+      status: {
+        confirmed: 'Bạn đã xác nhận kết quả',
+        disputed: 'Bạn đã khiếu nại kết quả',
+      },
     },
     elo_banner: {
       title: 'KÈO TÍNH ĐIỂM ELO',

@@ -113,12 +113,12 @@ function buildTeams(session: ConfirmableSession | null): TeamSummary[] {
   return [
     {
       id: 'A',
-      name: STRINGS.session_detail.result.team_a,
+      name: STRINGS.session_detail?.result?.team_a ?? 'Đội A',
       players: distributed.filter((item) => item.teamNo === 1).map((item) => ({ id: item.id, name: item.name })),
     },
     {
       id: 'B',
-      name: STRINGS.session_detail.result.team_b,
+      name: STRINGS.session_detail?.result?.team_b ?? 'Đội B',
       players: distributed.filter((item) => item.teamNo === 2).map((item) => ({ id: item.id, name: item.name })),
     },
   ]

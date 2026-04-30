@@ -270,10 +270,21 @@ function SessionResultMetaCard({
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               {!isSubmitted && (
                 <TouchableOpacity 
+                  activeOpacity={0.85}
                   onPress={() => setScoreA(s => Math.max(0, s - 1))}
-                  style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: PROFILE_THEME_COLORS.surfaceContainer, alignItems: 'center', justifyContent: 'center' }}
+                  style={{
+                    width: 30,
+                    height: 30,
+                    borderRadius: 15,
+                    backgroundColor: PROFILE_THEME_COLORS.primary,
+                    borderWidth: 1,
+                    borderColor: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.22),
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    ...SHADOW.sm,
+                  }}
                 >
-                  <Minus size={12} color={PROFILE_THEME_COLORS.onSurface} />
+                  <Minus size={14} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.8} />
                 </TouchableOpacity>
               )}
               
@@ -300,10 +311,21 @@ function SessionResultMetaCard({
 
               {!isSubmitted && (
                 <TouchableOpacity 
+                  activeOpacity={0.85}
                   onPress={() => setScoreA(s => Math.min(99, s + 1))}
-                  style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: PROFILE_THEME_COLORS.surfaceContainer, alignItems: 'center', justifyContent: 'center' }}
+                  style={{
+                    width: 30,
+                    height: 30,
+                    borderRadius: 15,
+                    backgroundColor: PROFILE_THEME_COLORS.primary,
+                    borderWidth: 1,
+                    borderColor: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.22),
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    ...SHADOW.sm,
+                  }}
                 >
-                  <Plus size={12} color={PROFILE_THEME_COLORS.onSurface} />
+                  <Plus size={14} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.8} />
                 </TouchableOpacity>
               )}
             </View>
@@ -337,10 +359,21 @@ function SessionResultMetaCard({
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               {!isSubmitted && (
                 <TouchableOpacity 
+                  activeOpacity={0.85}
                   onPress={() => setScoreB(s => Math.max(0, s - 1))}
-                  style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: PROFILE_THEME_COLORS.surfaceContainer, alignItems: 'center', justifyContent: 'center' }}
+                  style={{
+                    width: 30,
+                    height: 30,
+                    borderRadius: 15,
+                    backgroundColor: PROFILE_THEME_COLORS.primary,
+                    borderWidth: 1,
+                    borderColor: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.22),
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    ...SHADOW.sm,
+                  }}
                 >
-                  <Minus size={12} color={PROFILE_THEME_COLORS.onSurface} />
+                  <Minus size={14} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.8} />
                 </TouchableOpacity>
               )}
 
@@ -367,10 +400,21 @@ function SessionResultMetaCard({
 
               {!isSubmitted && (
                 <TouchableOpacity 
+                  activeOpacity={0.85}
                   onPress={() => setScoreB(s => Math.min(99, s + 1))}
-                  style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: PROFILE_THEME_COLORS.surfaceContainer, alignItems: 'center', justifyContent: 'center' }}
+                  style={{
+                    width: 30,
+                    height: 30,
+                    borderRadius: 15,
+                    backgroundColor: PROFILE_THEME_COLORS.primary,
+                    borderWidth: 1,
+                    borderColor: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.22),
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    ...SHADOW.sm,
+                  }}
                 >
-                  <Plus size={12} color={PROFILE_THEME_COLORS.onSurface} />
+                  <Plus size={14} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.8} />
                 </TouchableOpacity>
               )}
             </View>
