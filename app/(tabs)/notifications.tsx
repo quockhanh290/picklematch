@@ -220,8 +220,8 @@ export default function NotificationsScreen() {
               activeOpacity={0.84}
               className="rounded-full px-4 py-2.5"
               style={{
-                backgroundColor: unreadCount > 0 ? colors.accent : colors.textMuted,
-                shadowColor: unreadCount > 0 ? colors.accent : '#000',
+                backgroundColor: unreadCount > 0 ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outline,
+                shadowColor: unreadCount > 0 ? PROFILE_THEME_COLORS.primary : '#000',
                 shadowOpacity: unreadCount > 0 ? 0.2 : 0,
                 shadowRadius: 10,
                 shadowOffset: { width: 0, height: 4 },
@@ -229,7 +229,7 @@ export default function NotificationsScreen() {
             >
               <Text
                 style={{
-                  color: '#FFFFFF',
+                  color: PROFILE_THEME_COLORS.onPrimary,
                   fontFamily: SCREEN_FONTS.cta,
                   fontSize: 12,
                   letterSpacing: 0.8,
@@ -255,13 +255,13 @@ export default function NotificationsScreen() {
                   onPress={() => setActiveCategory(cat.key)}
                   className="mr-3 rounded-full px-5 py-2.5 border"
                   style={{
-                    backgroundColor: active ? colors.primary : 'transparent',
-                    borderColor: active ? colors.primary : colors.border,
+                    backgroundColor: active ? PROFILE_THEME_COLORS.primary : 'transparent',
+                    borderColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
                   }}
                 >
                   <Text
                     style={{
-                      color: active ? '#FFFFFF' : colors.textSecondary,
+                      color: active ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.onSurfaceVariant,
                       fontFamily: SCREEN_FONTS.cta,
                       fontSize: 13,
                       textTransform: 'uppercase',

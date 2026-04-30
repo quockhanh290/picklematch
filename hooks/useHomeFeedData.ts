@@ -94,7 +94,7 @@ export function useHomeFeedData(userId?: string | null, isAuthLoading?: boolean)
             `,
             )
             .eq('host_id', userId)
-            .eq('results_status', 'not_submitted')
+            .in('results_status', ['not_submitted', 'disputed'])
             .in('status', ['pending_completion', 'done'])
             .order('created_at', { ascending: false })
             .limit(8)
@@ -105,7 +105,7 @@ export function useHomeFeedData(userId?: string | null, isAuthLoading?: boolean)
             .from('session_players')
             .select(
               `
-              player_id, status,
+              player_id, status, result_confirmation_status,
               session:session_id (
                 id, status, results_status, host_id,
                 slot:slot_id (
@@ -140,6 +140,7 @@ export function useHomeFeedData(userId?: string | null, isAuthLoading?: boolean)
       const postMatchRows = (playerPostMatchActionsResult.data ?? []) as Array<{
         player_id: string
         status?: string | null
+        result_confirmation_status?: string | null
         session?: {
           id: string
           status: string
@@ -205,6 +206,7 @@ export function useHomeFeedData(userId?: string | null, isAuthLoading?: boolean)
             timeLabel: formatPendingResultTimeLabel(endTime),
             startTime,
             endTime,
+            resultsStatus: item.results_status,
           }
         })
         .filter((item) => {
@@ -226,6 +228,11 @@ export function useHomeFeedData(userId?: string | null, isAuthLoading?: boolean)
           if (!slot || Number.isNaN(endMs) || endMs > Date.now()) return acc
 
           if (session.results_status === 'pending_confirmation' || session.results_status === 'disputed') {
+            // Skip if this specific player has already acted
+            if (row.result_confirmation_status === 'confirmed' || row.result_confirmation_status === 'disputed') {
+              return acc
+            }
+
             acc.push({
               id: session.id,
               courtName: court?.name ?? 'K??o Pickleball',

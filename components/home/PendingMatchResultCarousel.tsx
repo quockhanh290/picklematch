@@ -70,19 +70,23 @@ function PendingMatchResultCard({ item }: { item: PendingMatch }) {
       </View>
 
       <View className="min-w-0 flex-1">
-        <Text className="text-[14px] font-black" style={{ color: PROFILE_THEME_COLORS.onPrimaryFixedVariant }}>Cần nhập kết quả</Text>
+        <Text className="text-[14px] font-black" style={{ color: PROFILE_THEME_COLORS.onPrimaryFixedVariant }}>
+          {item.resultsStatus === 'disputed' ? 'Kết quả bị khiếu nại' : 'Cần nhập kết quả'}
+        </Text>
         <Text className="mt-2 truncate text-[11px] font-bold uppercase tracking-tight" style={{ color: withAlpha(PROFILE_THEME_COLORS.onPrimaryFixedVariant, 0.6) }}>
           {item.courtName}
         </Text>
         <Text className="mt-1 text-[13px] font-semibold" style={{ color: PROFILE_THEME_COLORS.onPrimaryFixedVariant }}>{item.timeLabel}</Text>
       </View>
-
+ 
       <Pressable
         onPress={() => router.push({ pathname: '/match-result/[id]' as any, params: { id: item.id } })}
         className="rounded-full px-4 py-2.5"
         style={{ backgroundColor: PROFILE_THEME_COLORS.primaryContainer }}
       >
-        <Text className="text-[11px] font-black uppercase" style={{ color: PROFILE_THEME_COLORS.onPrimary }}>NHẬP NGAY</Text>
+        <Text className="text-[11px] font-black uppercase" style={{ color: PROFILE_THEME_COLORS.onPrimary }}>
+          {item.resultsStatus === 'disputed' ? 'SỬA NGAY' : 'NHẬP NGAY'}
+        </Text>
       </Pressable>
     </View>
   )

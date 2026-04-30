@@ -57,6 +57,7 @@ export type ProfileThemeColors = {
   heroAvatarBorder: string
   heroSlotBg: string
   heroSlotText: string
+  surfaceAlt: string
 }
 
 const FOREST_DEFAULT: ProfileThemeColors = {
@@ -118,6 +119,7 @@ const FOREST_DEFAULT: ProfileThemeColors = {
   heroAvatarBorder: 'rgba(255,255,255,0.3)',
   heroSlotBg: 'rgba(255,255,255,0.12)',
   heroSlotText: 'rgba(255,255,255,0.4)',
+  surfaceAlt: '#F5F1E8',
 }
 
 export type ProfileThemeId = 'forest-default'

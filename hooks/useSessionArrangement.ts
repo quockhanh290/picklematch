@@ -44,6 +44,16 @@ export function useSessionArrangement(
   const onSaveArrangement = useCallback(async () => {
     if (!session || !isHost) return
 
+    const expectedPerTeam = session.max_players / 2
+    if (teamA.length > expectedPerTeam || teamB.length > expectedPerTeam) {
+      presentDialog?.({
+        title: 'Đội hình không hợp lệ',
+        message: `Mỗi đội chỉ được phép có tối đa ${expectedPerTeam} người cho kèo ${session.max_players === 4 ? 'đánh đôi' : 'đánh đơn'}.`,
+        actions: [{ label: 'Đã hiểu' }],
+      })
+      return
+    }
+
     setSavingArrangement(true)
 
     const { error } = await supabase.rpc('save_session_teams', {
@@ -74,7 +84,7 @@ export function useSessionArrangement(
       actions: [{ label: 'Đã hiểu' }],
     })
     await refreshSession()
-  }, [arrangedPlayers, isHost, refreshSession, session])
+  }, [arrangedPlayers, isHost, refreshSession, session, teamA, teamB])
 
   const teamA = useMemo(
     () => arrangedPlayers.filter((player) => player.team === 1),

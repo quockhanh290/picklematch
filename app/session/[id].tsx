@@ -554,9 +554,9 @@ export default function SessionDetailScreen() {
               if (isFinalized) {
                 const label = hasRated ? 'XEM KẾT QUẢ TRẬN' : 'ĐÁNH GIÁ TRẬN ĐẤU'
                 const action = hasRated 
-                  ? () => router.push({ pathname: '/session/[id]/confirm-result' as any, params: { id } })
+                  ? () => router.push({ pathname: '/match-result/[id]' as any, params: { id } })
                   : () => router.push({ pathname: '/rate-session/[id]' as any, params: { id } })
-                const Icon = hasRated ? CheckCheck : Star
+                const Icon = hasRated ? Trophy : Star
 
                 return (
                   <TouchableOpacity
@@ -834,12 +834,49 @@ export default function SessionDetailScreen() {
                   </View>
                 )
               }
+ 
+              if (isHost && (session?.results_status === 'pending_confirmation' || session?.results_status === 'disputed')) {
+                const label = session.results_status === 'disputed' ? 'CẬP NHẬT KẾT QUẢ' : 'XEM KẾT QUẢ ĐÃ BÁO'
+                const action = () => router.push({ pathname: '/match-result/[id]' as any, params: { id } })
+                const Icon = session.results_status === 'disputed' ? ShieldAlert : CheckCheck
+
+                return (
+                  <TouchableOpacity
+                    onPress={action}
+                    activeOpacity={0.84}
+                    style={{
+                      alignSelf: 'center',
+                      paddingHorizontal: SPACING.xl,
+                      minHeight: 52,
+                      paddingVertical: 11,
+                      borderRadius: RADIUS.full,
+                      backgroundColor: session.results_status === 'disputed' ? PROFILE_THEME_COLORS.error : PROFILE_THEME_COLORS.primary,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <Icon size={18} strokeWidth={2.5} color={PROFILE_THEME_COLORS.onPrimary} />
+                      <Text style={{ 
+                        fontSize: 15, 
+                        fontFamily: SCREEN_FONTS.headline, 
+                        color: PROFILE_THEME_COLORS.onPrimary, 
+                        textTransform: 'uppercase' 
+                      }}>
+                        {label}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                )
+              }
 
               if (isFinalized) {
                 const label = hasRated ? 'XEM KẾT QUẢ TRẬN ĐẤU' : 'ĐÁNH GIÁ TRẬN ĐẤU'
-                const action = hasRated 
-                  ? () => router.push({ pathname: '/session/[id]/confirm-result' as any, params: { id } })
-                  : () => router.push({ pathname: '/rate-session/[id]' as any, params: { id } })
+                const action = !hasRated 
+                  ? () => router.push({ pathname: '/rate-session/[id]' as any, params: { id } })
+                  : isHost
+                    ? () => router.push({ pathname: '/match-result/[id]' as any, params: { id } })
+                    : () => router.push({ pathname: '/session/[id]/confirm-result' as any, params: { id } })
                 const Icon = hasRated ? CheckCheck : Star
 
                 return (
@@ -867,9 +904,12 @@ export default function SessionDetailScreen() {
                 )
               }
 
-              if (isPendingConfirm) {
-                const label = 'XÁC NHẬN KẾT QUẢ'
+              const hasConfirmed = !isHost && (viewerSessionPlayer?.result_confirmation_status === 'confirmed' || viewerSessionPlayer?.result_confirmation_status === 'disputed')
+
+              if (isPendingConfirm || (hasConfirmed && !isFinalized)) {
+                const label = hasConfirmed ? 'XEM KẾT QUẢ' : 'XÁC NHẬN KẾT QUẢ'
                 const action = () => router.push({ pathname: '/session/[id]/confirm-result' as any, params: { id } })
+                const Icon = hasConfirmed ? CheckCircle2 : PencilLine
 
                 return (
                   <TouchableOpacity
@@ -881,17 +921,19 @@ export default function SessionDetailScreen() {
                       minHeight: 52,
                       paddingVertical: 11,
                       borderRadius: RADIUS.full,
-                      backgroundColor: PROFILE_THEME_COLORS.primary,
+                      backgroundColor: hasConfirmed ? PROFILE_THEME_COLORS.surfaceContainerHigh : PROFILE_THEME_COLORS.primary,
+                      borderWidth: hasConfirmed ? BORDER.base : 0,
+                      borderColor: hasConfirmed ? PROFILE_THEME_COLORS.outlineVariant : 'transparent',
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                      <PencilLine size={18} strokeWidth={2.5} color={PROFILE_THEME_COLORS.onPrimary} />
+                      <Icon size={18} strokeWidth={2.5} color={hasConfirmed ? PROFILE_THEME_COLORS.outline : PROFILE_THEME_COLORS.onPrimary} />
                       <Text style={{ 
                         fontSize: 15, 
                         fontFamily: SCREEN_FONTS.headline, 
-                        color: PROFILE_THEME_COLORS.onPrimary, 
+                        color: hasConfirmed ? PROFILE_THEME_COLORS.outline : PROFILE_THEME_COLORS.onPrimary, 
                         textTransform: 'uppercase' 
                       }}>
                         {label}

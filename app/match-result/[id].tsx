@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router'
-import { ArrowLeft, Minus, Plus, Save, Clock, MapPin, Trophy, CheckCheck, Info, ShieldAlert } from 'lucide-react-native'
+import { ArrowLeft, Minus, Plus, Save, Clock, MapPin, Trophy, CheckCheck, Info, ShieldAlert, Share2 } from 'lucide-react-native'
 import { useEffect, useMemo, useState } from 'react'
 import {
   ActivityIndicator,
@@ -8,11 +8,12 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Share,
 } from 'react-native'
 import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context'
 
 import { AppDialog, type AppDialogConfig, NavbarDoneButton, SecondaryNavbar } from '@/components/design'
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
 import { supabase } from '@/lib/supabase'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { RADIUS, SPACING, BORDER, SHADOW } from '@/constants/screenLayout'
@@ -26,13 +27,13 @@ function withAlpha(hex: string, alpha: number) {
 }
 
 const RESULT_THEME = {
-  pageBg: PROFILE_THEME_COLORS.surfaceContainerLow,
+  pageBg: PROFILE_THEME_COLORS.background,
   accent: PROFILE_THEME_COLORS.primary,
   accentSoft: withAlpha(PROFILE_THEME_COLORS.primary, 0.1),
   cardBg: PROFILE_THEME_COLORS.surfaceContainerLowest,
   cardBorder: PROFILE_THEME_COLORS.outlineVariant,
   title: PROFILE_THEME_COLORS.primary,
-  subtitle: PROFILE_THEME_COLORS.onSecondaryContainer,
+  subtitle: PROFILE_THEME_COLORS.onSurfaceVariant,
   muted: PROFILE_THEME_COLORS.outline,
   
   teamABg: PROFILE_THEME_COLORS.primary,
@@ -40,9 +41,9 @@ const RESULT_THEME = {
   teamBBg: PROFILE_THEME_COLORS.surfaceContainerHighest,
   teamBText: PROFILE_THEME_COLORS.primary,
   
-  inputBg: PROFILE_THEME_COLORS.surfaceContainer,
+  inputBg: PROFILE_THEME_COLORS.surfaceVariant,
   inputText: PROFILE_THEME_COLORS.onSurface,
-  inputPlaceholder: PROFILE_THEME_COLORS.outline,
+  inputPlaceholder: PROFILE_THEME_COLORS.onSurfaceVariant,
   
   primaryCta: PROFILE_THEME_COLORS.primary,
   primaryCtaText: PROFILE_THEME_COLORS.onPrimary,
@@ -207,7 +208,7 @@ function SessionResultMetaCard({
       {/* Brand Header */}
       <View
         style={{
-          backgroundColor: '#1D9E75',
+          backgroundColor: PROFILE_THEME_COLORS.primary,
           paddingHorizontal: 16,
           paddingVertical: SPACING.xs,
           flexDirection: 'row',
@@ -216,12 +217,12 @@ function SessionResultMetaCard({
         }}
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 6 }}>
-          <View style={{ width: 5, height: 5, borderRadius: RADIUS.full, backgroundColor: '#FFFFFF' }} />
-          <Text style={{ color: '#FFFFFF', fontFamily: SCREEN_FONTS.cta, fontSize: 11, letterSpacing: 0.5 }}>
+          <View style={{ width: 5, height: 5, borderRadius: RADIUS.full, backgroundColor: PROFILE_THEME_COLORS.onPrimary }} />
+          <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta, fontSize: 11, letterSpacing: 0.5 }}>
             KẾT QUẢ TRẬN ĐẤU
           </Text>
         </View>
-        <Text style={{ color: 'rgba(255,255,255,0.8)', fontFamily: SCREEN_FONTS.label, fontSize: 11 }}>
+        <Text style={{ color: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.8), fontFamily: SCREEN_FONTS.label, fontSize: 11 }}>
           {maxPlayers === 2 ? 'Đánh đơn' : 'Đánh đôi'}
         </Text>
       </View>
@@ -231,7 +232,7 @@ function SessionResultMetaCard({
         <Text
           numberOfLines={2}
           style={{
-            color: '#1A2E2A',
+            color: PROFILE_THEME_COLORS.onSurface,
             fontFamily: SCREEN_FONTS.headline,
             fontSize: 31,
             lineHeight: 36,
@@ -242,20 +243,20 @@ function SessionResultMetaCard({
           {courtName}
         </Text>
         <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 6 }}>
-          <MapPin size={13} color="#7A8884" strokeWidth={2.5} />
-          <Text numberOfLines={1} style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 13, flexShrink: 1 }}>
+          <MapPin size={13} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.5} />
+          <Text numberOfLines={1} style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, fontSize: 13, flexShrink: 1 }}>
             {compactAddress}
           </Text>
         </View>
       </View>
 
       {/* Main Scoreboard */}
-      <View style={{ backgroundColor: '#F5F1E8', paddingHorizontal: 16, paddingVertical: 20 }}>
+      <View style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceAlt, paddingHorizontal: 16, paddingVertical: 20 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
           {/* Team A */}
           <View style={{ alignItems: 'center', flex: 1 }}>
             <Text numberOfLines={1} style={{ 
-              color: scoreA > scoreB ? '#1D9E75' : scoreA < scoreB ? '#7A8884' : '#7A8884', 
+              color: scoreA > scoreB ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.onSurfaceVariant, 
               fontFamily: SCREEN_FONTS.headline, 
               fontSize: 16, 
               textTransform: 'uppercase', 
@@ -270,25 +271,25 @@ function SessionResultMetaCard({
               {!isSubmitted && (
                 <TouchableOpacity 
                   onPress={() => setScoreA(s => Math.max(0, s - 1))}
-                  style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: 'rgba(0,0,0,0.04)', alignItems: 'center', justifyContent: 'center' }}
+                  style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: PROFILE_THEME_COLORS.surfaceContainer, alignItems: 'center', justifyContent: 'center' }}
                 >
-                  <Minus size={12} color="#1A2E2A" />
+                  <Minus size={12} color={PROFILE_THEME_COLORS.onSurface} />
                 </TouchableOpacity>
               )}
               
               <View style={{ 
-                backgroundColor: '#FFFFFF', 
+                backgroundColor: PROFILE_THEME_COLORS.surface, 
                 borderRadius: RADIUS.md, 
                 paddingHorizontal: 12, 
                 paddingVertical: 6,
                 minWidth: 80,
                 alignItems: 'center',
                 borderWidth: 1,
-                borderColor: scoreA > scoreB ? '#1D9E75' : 'rgba(0,0,0,0.05)',
+                borderColor: scoreA > scoreB ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
                 ...SHADOW.sm,
               }}>
                 <Text style={{ 
-                  color: scoreA > scoreB ? '#1D9E75' : '#1A2E2A', 
+                  color: scoreA > scoreB ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.onSurface, 
                   fontFamily: SCREEN_FONTS.headline, 
                   fontSize: 64, 
                   lineHeight: 68 
@@ -300,29 +301,29 @@ function SessionResultMetaCard({
               {!isSubmitted && (
                 <TouchableOpacity 
                   onPress={() => setScoreA(s => Math.min(99, s + 1))}
-                  style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: 'rgba(0,0,0,0.04)', alignItems: 'center', justifyContent: 'center' }}
+                  style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: PROFILE_THEME_COLORS.surfaceContainer, alignItems: 'center', justifyContent: 'center' }}
                 >
-                  <Plus size={12} color="#1A2E2A" />
+                  <Plus size={12} color={PROFILE_THEME_COLORS.onSurface} />
                 </TouchableOpacity>
               )}
             </View>
 
             <View style={{ marginTop: 10, alignItems: 'center' }}>
-              <Text numberOfLines={1} style={{ color: '#1A2E2A', fontFamily: SCREEN_FONTS.headline, fontSize: 14, textTransform: 'uppercase', letterSpacing: 0.5, textAlign: 'center' }}>
+              <Text numberOfLines={1} style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.headline, fontSize: 14, textTransform: 'uppercase', letterSpacing: 0.5, textAlign: 'center' }}>
                 {teams[0].name}
               </Text>
-              <Text numberOfLines={1} style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 11, textAlign: 'center', marginTop: 2 }}>
+              <Text numberOfLines={1} style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, fontSize: 11, textAlign: 'center', marginTop: 2 }}>
                 {teams[0].players.map(p => p.name).join(' · ')}
               </Text>
             </View>
           </View>
 
-          <View style={{ width: 1, height: 100, backgroundColor: '#7A8884', opacity: 0.15, alignSelf: 'center', marginTop: 10, marginHorizontal: 24 }} />
+          <View style={{ width: 1, height: 100, backgroundColor: PROFILE_THEME_COLORS.outlineVariant, opacity: 0.5, alignSelf: 'center', marginTop: 10, marginHorizontal: 24 }} />
 
           {/* Team B */}
           <View style={{ alignItems: 'center', flex: 1 }}>
             <Text numberOfLines={1} style={{ 
-              color: scoreB > scoreA ? '#1D9E75' : scoreB < scoreA ? '#7A8884' : '#7A8884', 
+              color: scoreB > scoreA ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.onSurfaceVariant, 
               fontFamily: SCREEN_FONTS.headline, 
               fontSize: 16, 
               textTransform: 'uppercase', 
@@ -337,25 +338,25 @@ function SessionResultMetaCard({
               {!isSubmitted && (
                 <TouchableOpacity 
                   onPress={() => setScoreB(s => Math.max(0, s - 1))}
-                  style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: 'rgba(0,0,0,0.04)', alignItems: 'center', justifyContent: 'center' }}
+                  style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: PROFILE_THEME_COLORS.surfaceContainer, alignItems: 'center', justifyContent: 'center' }}
                 >
-                  <Minus size={12} color="#1A2E2A" />
+                  <Minus size={12} color={PROFILE_THEME_COLORS.onSurface} />
                 </TouchableOpacity>
               )}
 
               <View style={{ 
-                backgroundColor: '#FFFFFF', 
+                backgroundColor: PROFILE_THEME_COLORS.surface, 
                 borderRadius: RADIUS.md, 
                 paddingHorizontal: 12, 
                 paddingVertical: 6,
                 minWidth: 80,
                 alignItems: 'center',
                 borderWidth: 1,
-                borderColor: scoreB > scoreA ? '#1D9E75' : 'rgba(0,0,0,0.05)',
+                borderColor: scoreB > scoreA ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
                 ...SHADOW.sm,
               }}>
                 <Text style={{ 
-                  color: scoreB > scoreA ? '#1D9E75' : '#1A2E2A', 
+                  color: scoreB > scoreA ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.onSurface, 
                   fontFamily: SCREEN_FONTS.headline, 
                   fontSize: 64, 
                   lineHeight: 68 
@@ -367,50 +368,49 @@ function SessionResultMetaCard({
               {!isSubmitted && (
                 <TouchableOpacity 
                   onPress={() => setScoreB(s => Math.min(99, s + 1))}
-                  style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: 'rgba(0,0,0,0.04)', alignItems: 'center', justifyContent: 'center' }}
+                  style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: PROFILE_THEME_COLORS.surfaceContainer, alignItems: 'center', justifyContent: 'center' }}
                 >
-                  <Plus size={12} color="#1A2E2A" />
+                  <Plus size={12} color={PROFILE_THEME_COLORS.onSurface} />
                 </TouchableOpacity>
               )}
             </View>
 
             <View style={{ marginTop: 10, alignItems: 'center' }}>
-              <Text numberOfLines={1} style={{ color: '#1A2E2A', fontFamily: SCREEN_FONTS.headline, fontSize: 14, textTransform: 'uppercase', letterSpacing: 0.5, textAlign: 'center' }}>
+              <Text numberOfLines={1} style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.headline, fontSize: 14, textTransform: 'uppercase', letterSpacing: 0.5, textAlign: 'center' }}>
                 {teams[1].name}
               </Text>
-              <Text numberOfLines={1} style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 11, textAlign: 'center', marginTop: 2 }}>
+              <Text numberOfLines={1} style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, fontSize: 11, textAlign: 'center', marginTop: 2 }}>
                 {teams[1].players.map(p => p.name).join(' · ')}
               </Text>
             </View>
           </View>
         </View>
 
-
-        <View style={{ height: 1, backgroundColor: 'rgba(0,0,0,0.06)', marginVertical: 16 }} />
+        <View style={{ height: 1, backgroundColor: PROFILE_THEME_COLORS.outlineVariant, opacity: 0.5, marginVertical: 16 }} />
 
         {/* Time & Price Info */}
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           <View>
-            <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.label, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>
+            <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.label, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>
               THỜI GIAN
             </Text>
-            <Text style={{ color: '#1A2E2A', fontFamily: SCREEN_FONTS.headline, fontSize: 26, lineHeight: 28 }}>
+            <Text style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.headline, fontSize: 26, lineHeight: 28 }}>
               {clockPart}
             </Text>
-            <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 13, marginTop: 2 }}>
+            <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, fontSize: 13, marginTop: 2 }}>
               {datePart}
             </Text>
           </View>
 
           <View style={{ alignItems: 'flex-end' }}>
-            <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.label, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>
+            <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.label, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>
               CHI PHÍ
             </Text>
-            <Text style={{ color: '#1D9E75', fontFamily: SCREEN_FONTS.headline, fontSize: 26, lineHeight: 28 }}>
+            <Text style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.headline, fontSize: 26, lineHeight: 28 }}>
               {priceLabel}
             </Text>
             {priceLabel !== 'Miễn phí' && (
-              <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 13, marginTop: 2 }}>
+              <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, fontSize: 13, marginTop: 2 }}>
                 /người
               </Text>
             )}
@@ -420,13 +420,13 @@ function SessionResultMetaCard({
         {/* Note */}
         {hostNote && hostNote.trim().length > 0 && (
           <>
-            <View style={{ height: 1, backgroundColor: 'rgba(0,0,0,0.06)', marginVertical: 16 }} />
+            <View style={{ height: 1, backgroundColor: PROFILE_THEME_COLORS.outlineVariant, opacity: 0.5, marginVertical: 16 }} />
             <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
               <View style={{ flex: 1 }}>
-                <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.label, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8 }}>
+                <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.label, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8 }}>
                   LỜI NHẮN
                 </Text>
-                <Text style={{ color: '#1A2E2A', fontFamily: SCREEN_FONTS.body, fontSize: 13, marginTop: 2 }}>
+                <Text style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.body, fontSize: 13, marginTop: 2 }}>
                   {hostNote.trim()}
                 </Text>
               </View>
@@ -544,12 +544,13 @@ export default function MatchResultEntryScreen() {
   async function onSaveResult() {
     if (!session || !id) return
     const hostId = typeof session.host === 'string' ? session.host : session.host?.id
-    if (!currentUserId || hostId !== currentUserId) return
+    if (!currentUserId || hostId !== currentUserId || isSubmitted) return
 
-    if (!teams[0].players.length || !teams[1].players.length) {
+    const expectedPerTeam = session.max_players / 2
+    if (teams[0].players.length !== expectedPerTeam || teams[1].players.length !== expectedPerTeam) {
       openDialog({
         title: 'Thiếu người chơi',
-        message: 'Trận đấu cần có người chơi ở cả 2 đội để tính điểm elo.',
+        message: `Kèo này là ${session.max_players === 4 ? 'đánh đôi' : 'đánh đơn'}. Mỗi đội phải có đúng ${expectedPerTeam} người chơi mới có thể nhập kết quả.`,
         actions: [{ label: 'Đã hiểu' }],
       })
       return
@@ -595,6 +596,13 @@ export default function MatchResultEntryScreen() {
     })
   }
 
+  async function onShare() {
+    if (!id) return
+    try {
+      await Share.share({ message: `Xem kết quả trận đấu tại PickleMatch: /session/${id}` })
+    } catch {}
+  }
+
   const insets = useSafeAreaInsets()
 
   if (loading) {
@@ -616,6 +624,23 @@ export default function MatchResultEntryScreen() {
         onBackPress={() => router.back()}
       />
       <View style={{ flex: 1 }}>
+        {isSubmitted && session.results_status === 'finalized' && (
+          <View style={{ 
+            backgroundColor: withAlpha(PROFILE_THEME_COLORS.primary, 0.08), 
+            paddingHorizontal: 20, 
+            paddingVertical: 12, 
+            flexDirection: 'row', 
+            alignItems: 'center', 
+            gap: 10,
+            borderBottomWidth: 1,
+            borderBottomColor: withAlpha(PROFILE_THEME_COLORS.primary, 0.1)
+          }}>
+            <Trophy size={18} color={PROFILE_THEME_COLORS.primary} strokeWidth={2.5} />
+            <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 13, color: PROFILE_THEME_COLORS.primary, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+              Kết quả đã được chốt và không thể thay đổi
+            </Text>
+          </View>
+        )}
         <ScrollView 
           contentContainerStyle={{ paddingHorizontal: SPACING.xl, paddingBottom: insets.bottom + 40, paddingTop: 16 }}
           showsVerticalScrollIndicator={false}
@@ -626,26 +651,26 @@ export default function MatchResultEntryScreen() {
               style={{
                 marginTop: 16,
                 padding: 16,
-                backgroundColor: '#FEF2F2',
+                backgroundColor: PROFILE_THEME_SEMANTIC.dangerBg,
                 borderRadius: RADIUS.lg,
                 borderWidth: 1,
-                borderColor: '#FECACA',
+                borderColor: PROFILE_THEME_SEMANTIC.dangerBorderSoft,
                 gap: 12,
               }}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <ShieldAlert size={18} color="#EF4444" strokeWidth={2.5} />
-                <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 14, color: '#991B1B', textTransform: 'uppercase' }}>
+                <ShieldAlert size={18} color={PROFILE_THEME_SEMANTIC.dangerStrong} strokeWidth={2.5} />
+                <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 14, color: PROFILE_THEME_SEMANTIC.dangerText, textTransform: 'uppercase' }}>
                   Nội dung khiếu nại từ người chơi
                 </Text>
               </View>
               <View style={{ gap: 8 }}>
                 {disputeNotes.map((dn, idx) => (
-                  <View key={idx} style={{ paddingLeft: 8, borderLeftWidth: 2, borderLeftColor: '#FCA5A5' }}>
-                    <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 12, color: '#B91C1C' }}>
+                  <View key={idx} style={{ paddingLeft: 8, borderLeftWidth: 2, borderLeftColor: PROFILE_THEME_SEMANTIC.dangerStrong }}>
+                    <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 12, color: PROFILE_THEME_SEMANTIC.dangerText }}>
                       {dn.name}:
                     </Text>
-                    <Text style={{ fontFamily: SCREEN_FONTS.body, fontSize: 13, color: '#991B1B', marginTop: 2 }}>
+                    <Text style={{ fontFamily: SCREEN_FONTS.body, fontSize: 13, color: PROFILE_THEME_SEMANTIC.dangerText, marginTop: 2 }}>
                       {dn.note}
                     </Text>
                   </View>
@@ -707,9 +732,9 @@ export default function MatchResultEntryScreen() {
         paddingHorizontal: 16, 
         paddingTop: 12, 
         paddingBottom: Math.max(insets.bottom, 28), 
-        backgroundColor: '#F2F0E8',
+        backgroundColor: PROFILE_THEME_COLORS.background,
         borderTopWidth: 0.5,
-        borderTopColor: '#E5E3DC',
+        borderTopColor: PROFILE_THEME_COLORS.outlineVariant,
       }}>
         <TouchableOpacity
           onPress={() => router.back()}
@@ -718,34 +743,57 @@ export default function MatchResultEntryScreen() {
             height: 50,
             borderRadius: RADIUS.full, 
             borderWidth: BORDER.medium, 
-            borderColor: '#E5E3DC', 
+            borderColor: PROFILE_THEME_COLORS.outlineVariant, 
             alignItems: 'center', 
             justifyContent: 'center',
-            backgroundColor: 'white' 
+            backgroundColor: PROFILE_THEME_COLORS.surface 
           }}
         >
-          <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 15, color: '#1A2E2A', textTransform: 'uppercase' }}>
+          <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 15, color: PROFILE_THEME_COLORS.onSurface, textTransform: 'uppercase' }}>
             Hủy
           </Text>
         </TouchableOpacity>
 
         {isSubmitted ? (
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => router.back()}
-            style={{
-              flex: 2,
-              height: 50,
-              borderRadius: RADIUS.full,
-              backgroundColor: RESULT_THEME.secondaryCta,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 15, color: RESULT_THEME.secondaryCtaText, textTransform: 'uppercase' }}>
-              Xong
-            </Text>
-          </TouchableOpacity>
+          <>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => router.back()}
+              style={{
+                flex: 1,
+                height: 50,
+                borderRadius: RADIUS.full,
+                backgroundColor: PROFILE_THEME_COLORS.surface,
+                borderWidth: BORDER.medium,
+                borderColor: PROFILE_THEME_COLORS.outlineVariant,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 15, color: PROFILE_THEME_COLORS.onSurface, textTransform: 'uppercase' }}>
+                Xong
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={onShare}
+              style={{
+                flex: 2,
+                height: 50,
+                borderRadius: RADIUS.full,
+                backgroundColor: PROFILE_THEME_COLORS.primary,
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexDirection: 'row',
+                gap: 8,
+              }}
+            >
+              <Share2 size={18} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.5} />
+              <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 15, color: PROFILE_THEME_COLORS.onPrimary, textTransform: 'uppercase' }}>
+                Chia sẻ
+              </Text>
+            </TouchableOpacity>
+          </>
         ) : (
           <TouchableOpacity
             activeOpacity={0.8}
@@ -755,7 +803,7 @@ export default function MatchResultEntryScreen() {
               flex: 2,
               height: 50,
               borderRadius: RADIUS.full,
-              backgroundColor: '#0F6E56',
+              backgroundColor: PROFILE_THEME_COLORS.primary,
               alignItems: 'center',
               justifyContent: 'center',
               flexDirection: 'row',
@@ -764,10 +812,10 @@ export default function MatchResultEntryScreen() {
             }}
           >
             {submitting ? (
-              <ActivityIndicator color="white" />
+              <ActivityIndicator color={PROFILE_THEME_COLORS.onPrimary} />
             ) : (
               <>
-                <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 15, color: 'white', textTransform: 'uppercase' }}>
+                <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 15, color: PROFILE_THEME_COLORS.onPrimary, textTransform: 'uppercase' }}>
                   Lưu kết quả →
                 </Text>
               </>

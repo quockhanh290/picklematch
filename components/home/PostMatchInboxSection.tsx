@@ -17,6 +17,7 @@ type InboxItem = {
   endTime?: string
   deadlineAt?: string
   kind: 'confirm' | 'submit' | 'report'
+  resultsStatus?: string | null
 }
 
 const DAY_LABELS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
@@ -38,6 +39,7 @@ function buildInboxItems(pendingMatches: PendingMatch[], postMatchActions: PostM
     endTime: item.endTime,
     deadlineAt: deadlineFromEndTime(item.endTime),
     kind: 'submit',
+    resultsStatus: item.resultsStatus,
   }))
 
   const itemsFromActions: InboxItem[] = postMatchActions.map((item) => ({
@@ -49,6 +51,7 @@ function buildInboxItems(pendingMatches: PendingMatch[], postMatchActions: PostM
     endTime: item.endTime,
     deadlineAt: deadlineFromEndTime(item.endTime),
     kind: item.actionType === 'confirm' ? 'confirm' : 'report',
+    resultsStatus: item.resultsStatus,
   }))
 
   const priority: Record<InboxItem['kind'], number> = {
@@ -69,7 +72,7 @@ function buildInboxItems(pendingMatches: PendingMatch[], postMatchActions: PostM
   })
 }
 
-function itemPresentation(kind: InboxItem['kind']) {
+function itemPresentation(kind: InboxItem['kind'], item?: InboxItem) {
   if (kind === 'confirm') {
     return {
       chip: 'CẦN XÁC NHẬN',
@@ -79,9 +82,10 @@ function itemPresentation(kind: InboxItem['kind']) {
   }
 
   if (kind === 'submit') {
+    const isDisputed = item?.resultsStatus === 'disputed'
     return {
-      chip: 'CẦN NHẬP KẾT QUẢ',
-      cta: 'Nhập ngay',
+      chip: isDisputed ? 'KẾT QUẢ BỊ KHIẾU NẠI' : 'CẦN NHẬP KẾT QUẢ',
+      cta: isDisputed ? 'Sửa ngay' : 'Nhập ngay',
       onPress: (id: string) => router.push({ pathname: '/match-result/[id]' as never, params: { id } }),
     }
   }
@@ -89,7 +93,7 @@ function itemPresentation(kind: InboxItem['kind']) {
   return {
     chip: 'CẦN ĐÁNH GIÁ',
     cta: 'Đánh giá',
-    onPress: (id: string) => router.push({ pathname: '/session/[id]/confirm-result' as never, params: { id } }),
+    onPress: (id: string) => router.push({ pathname: '/rate-session/[id]' as never, params: { id } }),
   }
 }
 
@@ -138,7 +142,7 @@ function getDeadlineInfo(deadlineAt?: string) {
 }
 
 function InboxCard({ item }: { item: InboxItem }) {
-  const presentation = itemPresentation(item.kind)
+  const presentation = itemPresentation(item.kind, item)
   const deadline = getDeadlineInfo(item.deadlineAt)
 
   return (

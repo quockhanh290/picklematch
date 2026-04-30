@@ -120,6 +120,7 @@ export type PendingMatch = {
   timeLabel: string
   startTime?: string
   endTime: string
+  resultsStatus?: 'not_submitted' | 'pending_confirmation' | 'disputed' | 'finalized' | 'void' | null
 }
 
 export type PostMatchAction = {

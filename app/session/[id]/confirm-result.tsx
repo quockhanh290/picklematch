@@ -13,7 +13,7 @@ import {
 import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context'
 
 import { AppDialog, type AppDialogConfig, NavbarShareButton, SecondaryNavbar } from '@/components/design'
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
 import { supabase } from '@/lib/supabase'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { RADIUS, SPACING, BORDER, SHADOW } from '@/constants/screenLayout'
@@ -27,22 +27,22 @@ function withAlpha(hex: string, alpha: number) {
 }
 
 const RESULT_THEME = {
-  pageBg: '#F2F0E8',
-  accent: '#0F6E56',
-  accentSoft: '#E1F5EE',
-  cardBg: '#FFFFFF',
-  cardBorder: '#E5E3DC',
-  title: '#1A2E2A',
-  subtitle: '#7A8884',
-  muted: '#B4B2A9',
+  pageBg: PROFILE_THEME_COLORS.background,
+  accent: PROFILE_THEME_COLORS.primary,
+  accentSoft: withAlpha(PROFILE_THEME_COLORS.primary, 0.1),
+  cardBg: PROFILE_THEME_COLORS.surfaceContainerLowest,
+  cardBorder: PROFILE_THEME_COLORS.outlineVariant,
+  title: PROFILE_THEME_COLORS.primary,
+  subtitle: PROFILE_THEME_COLORS.onSurfaceVariant,
+  muted: PROFILE_THEME_COLORS.outline,
   
-  inputBg: '#F5F1E8',
-  inputText: '#1A2E2A',
-  inputPlaceholder: '#7A8884',
+  inputBg: PROFILE_THEME_COLORS.surfaceVariant,
+  inputText: PROFILE_THEME_COLORS.onSurface,
+  inputPlaceholder: PROFILE_THEME_COLORS.onSurfaceVariant,
   
-  secondaryCta: '#F5F1E8',
-  secondaryCtaText: '#1A2E2A',
-  danger: '#E53935',
+  secondaryCta: PROFILE_THEME_COLORS.surfaceContainerHigh,
+  secondaryCtaText: PROFILE_THEME_COLORS.onSurfaceVariant,
+  danger: PROFILE_THEME_COLORS.error,
 } as const
 
 type SessionPlayerRecord = {
@@ -168,7 +168,7 @@ function SessionResultMetaCard({
       {/* Brand Header */}
       <View
         style={{
-          backgroundColor: '#1D9E75',
+          backgroundColor: PROFILE_THEME_COLORS.primary,
           paddingHorizontal: 16,
           paddingVertical: 8,
           flexDirection: 'row',
@@ -177,12 +177,12 @@ function SessionResultMetaCard({
         }}
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 6 }}>
-          <View style={{ width: 5, height: 5, borderRadius: RADIUS.full, backgroundColor: '#FFFFFF' }} />
-          <Text style={{ color: '#FFFFFF', fontFamily: SCREEN_FONTS.cta, fontSize: 11, letterSpacing: 0.5 }}>
+          <View style={{ width: 5, height: 5, borderRadius: RADIUS.full, backgroundColor: PROFILE_THEME_COLORS.onPrimary }} />
+          <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta, fontSize: 11, letterSpacing: 0.5 }}>
             XÁC NHẬN KẾT QUẢ
           </Text>
         </View>
-        <Text style={{ color: 'rgba(255,255,255,0.8)', fontFamily: SCREEN_FONTS.label, fontSize: 11 }}>
+        <Text style={{ color: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.8), fontFamily: SCREEN_FONTS.label, fontSize: 11 }}>
           {maxPlayers === 2 ? 'Đánh đơn' : 'Đánh đôi'}
         </Text>
       </View>
@@ -192,7 +192,7 @@ function SessionResultMetaCard({
         <Text
           numberOfLines={2}
           style={{
-            color: '#1A2E2A',
+            color: PROFILE_THEME_COLORS.onSurface,
             fontFamily: SCREEN_FONTS.headline,
             fontSize: 31,
             lineHeight: 36,
@@ -203,20 +203,20 @@ function SessionResultMetaCard({
           {courtName}
         </Text>
         <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 6 }}>
-          <MapPin size={13} color="#7A8884" strokeWidth={2.5} />
-          <Text numberOfLines={1} style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 13, flexShrink: 1 }}>
+          <MapPin size={13} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.5} />
+          <Text numberOfLines={1} style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, fontSize: 13, flexShrink: 1 }}>
             {compactAddress}
           </Text>
         </View>
       </View>
 
       {/* Main Scoreboard */}
-      <View style={{ backgroundColor: '#F5F1E8', paddingHorizontal: 16, paddingVertical: 20 }}>
+      <View style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceAlt, paddingHorizontal: 16, paddingVertical: 20 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
           {/* Team A */}
           <View style={{ alignItems: 'center', flex: 1 }}>
             <Text numberOfLines={1} style={{ 
-              color: scoreA > scoreB ? '#1D9E75' : scoreA < scoreB ? '#7A8884' : '#7A8884', 
+              color: scoreA > scoreB ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.onSurfaceVariant, 
               fontFamily: SCREEN_FONTS.headline, 
               fontSize: 16, 
               textTransform: 'uppercase', 
@@ -228,18 +228,18 @@ function SessionResultMetaCard({
             </Text>
             
             <View style={{ 
-              backgroundColor: '#FFFFFF', 
+              backgroundColor: PROFILE_THEME_COLORS.surface, 
               borderRadius: RADIUS.md, 
               paddingHorizontal: 12, 
               paddingVertical: 6,
               minWidth: 80,
               alignItems: 'center',
               borderWidth: 1,
-              borderColor: scoreA > scoreB ? '#1D9E75' : 'rgba(0,0,0,0.05)',
+              borderColor: scoreA > scoreB ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
               ...SHADOW.sm,
             }}>
               <Text style={{ 
-                color: scoreA > scoreB ? '#1D9E75' : '#1A2E2A', 
+                color: scoreA > scoreB ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.onSurface, 
                 fontFamily: SCREEN_FONTS.headline, 
                 fontSize: 64, 
                 lineHeight: 68 
@@ -249,21 +249,21 @@ function SessionResultMetaCard({
             </View>
 
             <View style={{ marginTop: 10, alignItems: 'center' }}>
-              <Text numberOfLines={1} style={{ color: '#1A2E2A', fontFamily: SCREEN_FONTS.headline, fontSize: 14, textTransform: 'uppercase', letterSpacing: 0.5, textAlign: 'center' }}>
+              <Text numberOfLines={1} style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.headline, fontSize: 14, textTransform: 'uppercase', letterSpacing: 0.5, textAlign: 'center' }}>
                 {teams[0].name}
               </Text>
-              <Text numberOfLines={1} style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 11, textAlign: 'center', marginTop: 2 }}>
+              <Text numberOfLines={1} style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, fontSize: 11, textAlign: 'center', marginTop: 2 }}>
                 {teams[0].players.map(p => p.name).join(' · ')}
               </Text>
             </View>
           </View>
 
-          <View style={{ width: 1, height: 100, backgroundColor: '#7A8884', opacity: 0.15, alignSelf: 'center', marginTop: 10, marginHorizontal: 24 }} />
+          <View style={{ width: 1, height: 100, backgroundColor: PROFILE_THEME_COLORS.outlineVariant, opacity: 0.5, alignSelf: 'center', marginTop: 10, marginHorizontal: 24 }} />
 
           {/* Team B */}
           <View style={{ alignItems: 'center', flex: 1 }}>
             <Text numberOfLines={1} style={{ 
-              color: scoreB > scoreA ? '#1D9E75' : scoreB < scoreA ? '#7A8884' : '#7A8884', 
+              color: scoreB > scoreA ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.onSurfaceVariant, 
               fontFamily: SCREEN_FONTS.headline, 
               fontSize: 16, 
               textTransform: 'uppercase', 
@@ -275,18 +275,18 @@ function SessionResultMetaCard({
             </Text>
 
             <View style={{ 
-              backgroundColor: '#FFFFFF', 
+              backgroundColor: PROFILE_THEME_COLORS.surface, 
               borderRadius: RADIUS.md, 
               paddingHorizontal: 12, 
               paddingVertical: 6,
               minWidth: 80,
               alignItems: 'center',
               borderWidth: 1,
-              borderColor: scoreB > scoreA ? '#1D9E75' : 'rgba(0,0,0,0.05)',
+              borderColor: scoreB > scoreA ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
               ...SHADOW.sm,
             }}>
               <Text style={{ 
-                color: scoreB > scoreA ? '#1D9E75' : '#1A2E2A', 
+                color: scoreB > scoreA ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.onSurface, 
                 fontFamily: SCREEN_FONTS.headline, 
                 fontSize: 64, 
                 lineHeight: 68 
@@ -296,41 +296,41 @@ function SessionResultMetaCard({
             </View>
 
             <View style={{ marginTop: 10, alignItems: 'center' }}>
-              <Text numberOfLines={1} style={{ color: '#1A2E2A', fontFamily: SCREEN_FONTS.headline, fontSize: 14, textTransform: 'uppercase', letterSpacing: 0.5, textAlign: 'center' }}>
+              <Text numberOfLines={1} style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.headline, fontSize: 14, textTransform: 'uppercase', letterSpacing: 0.5, textAlign: 'center' }}>
                 {teams[1].name}
               </Text>
-              <Text numberOfLines={1} style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 11, textAlign: 'center', marginTop: 2 }}>
+              <Text numberOfLines={1} style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, fontSize: 11, textAlign: 'center', marginTop: 2 }}>
                 {teams[1].players.map(p => p.name).join(' · ')}
               </Text>
             </View>
           </View>
         </View>
 
-        <View style={{ height: 1, backgroundColor: 'rgba(0,0,0,0.06)', marginVertical: 16 }} />
+        <View style={{ height: 1, backgroundColor: PROFILE_THEME_COLORS.outlineVariant, opacity: 0.5, marginVertical: 16 }} />
 
         {/* Time & Price Info */}
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           <View>
-            <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.label, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>
+            <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.label, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>
               THỜI GIAN
             </Text>
-            <Text style={{ color: '#1A2E2A', fontFamily: SCREEN_FONTS.headline, fontSize: 26, lineHeight: 28 }}>
+            <Text style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.headline, fontSize: 26, lineHeight: 28 }}>
               {clockPart}
             </Text>
-            <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 13, marginTop: 2 }}>
+            <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, fontSize: 13, marginTop: 2 }}>
               {datePart}
             </Text>
           </View>
 
           <View style={{ alignItems: 'flex-end' }}>
-            <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.label, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>
+            <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.label, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>
               CHI PHÍ
             </Text>
-            <Text style={{ color: '#1D9E75', fontFamily: SCREEN_FONTS.headline, fontSize: 26, lineHeight: 28 }}>
+            <Text style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.headline, fontSize: 26, lineHeight: 28 }}>
               {priceLabel}
             </Text>
             {priceLabel !== 'Miễn phí' && (
-              <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.body, fontSize: 13, marginTop: 2 }}>
+              <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, fontSize: 13, marginTop: 2 }}>
                 /người
               </Text>
             )}
@@ -341,14 +341,14 @@ function SessionResultMetaCard({
       {/* Note / Host message */}
       {hostNote && hostNote.trim().length > 0 && (
         <>
-          <View style={{ height: 1, backgroundColor: 'rgba(0,0,0,0.06)', marginVertical: 16 }} />
+          <View style={{ height: 1, backgroundColor: PROFILE_THEME_COLORS.outlineVariant, opacity: 0.5, marginVertical: 16 }} />
           <View style={{ paddingHorizontal: 16, paddingBottom: 16 }}>
             <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
               <View style={{ flex: 1 }}>
-                <Text style={{ color: '#7A8884', fontFamily: SCREEN_FONTS.label, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8 }}>
+                <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.label, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8 }}>
                   LỜI NHẮN
                 </Text>
-                <Text style={{ color: '#1A2E2A', fontFamily: SCREEN_FONTS.body, fontSize: 13, marginTop: 2 }}>
+                <Text style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.body, fontSize: 13, marginTop: 2 }}>
                   {hostNote.trim()}
                 </Text>
               </View>
@@ -535,14 +535,14 @@ export default function ConfirmSessionResultScreen() {
 
           {/* Dispute Summary (if already disputed) */}
           {myEntry.result_confirmation_status === 'disputed' && (
-            <View style={{ marginTop: 32, padding: 20, borderRadius: RADIUS.lg, backgroundColor: withAlpha(RESULT_THEME.danger, 0.08), borderWidth: BORDER.base, borderColor: withAlpha(RESULT_THEME.danger, 0.2) }}>
+            <View style={{ marginTop: 32, padding: 20, borderRadius: RADIUS.lg, backgroundColor: PROFILE_THEME_SEMANTIC.dangerBg, borderWidth: BORDER.base, borderColor: PROFILE_THEME_SEMANTIC.dangerBorderSoft }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <ShieldAlert size={18} color={RESULT_THEME.danger} />
-                <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 18, color: RESULT_THEME.danger, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                <ShieldAlert size={18} color={PROFILE_THEME_SEMANTIC.dangerStrong} />
+                <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 18, color: PROFILE_THEME_SEMANTIC.dangerText, textTransform: 'uppercase', letterSpacing: 0.5 }}>
                   Nội dung khiếu nại
                 </Text>
               </View>
-              <Text style={{ fontFamily: SCREEN_FONTS.body, fontSize: 13, color: RESULT_THEME.inputText, lineHeight: 18 }}>
+              <Text style={{ fontFamily: SCREEN_FONTS.body, fontSize: 13, color: PROFILE_THEME_SEMANTIC.dangerText, lineHeight: 18 }}>
                 {myEntry.result_dispute_note}
               </Text>
             </View>
@@ -557,11 +557,11 @@ export default function ConfirmSessionResultScreen() {
         paddingHorizontal: 16, 
         paddingTop: 12, 
         paddingBottom: Math.max(insets.bottom, 28), 
-        backgroundColor: '#F2F0E8',
+        backgroundColor: PROFILE_THEME_COLORS.background,
         borderTopWidth: 0.5,
-        borderTopColor: '#E5E3DC',
+        borderTopColor: PROFILE_THEME_COLORS.outlineVariant,
       }}>
-        {hasActed ? (
+        {(hasActed || isFinalized) ? (
           <>
             <TouchableOpacity
               activeOpacity={0.8}
@@ -570,14 +570,14 @@ export default function ConfirmSessionResultScreen() {
                 flex: 1,
                 height: 50,
                 borderRadius: RADIUS.full,
-                backgroundColor: 'white',
+                backgroundColor: PROFILE_THEME_COLORS.surface,
                 borderWidth: BORDER.medium,
-                borderColor: '#E5E3DC',
+                borderColor: PROFILE_THEME_COLORS.outlineVariant,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 15, color: '#1A2E2A', textTransform: 'uppercase' }}>
+              <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 15, color: PROFILE_THEME_COLORS.onSurface, textTransform: 'uppercase' }}>
                 Quay lại
               </Text>
             </TouchableOpacity>
@@ -588,15 +588,15 @@ export default function ConfirmSessionResultScreen() {
                 flex: 2,
                 height: 50,
                 borderRadius: RADIUS.full,
-                backgroundColor: '#0F6E56',
+                backgroundColor: PROFILE_THEME_COLORS.primary,
                 alignItems: 'center',
                 justifyContent: 'center',
                 flexDirection: 'row',
                 gap: 8,
               }}
             >
-              <Share2 size={18} color="white" strokeWidth={2.5} />
-              <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 15, color: 'white', textTransform: 'uppercase' }}>
+              <Share2 size={18} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.5} />
+              <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 15, color: PROFILE_THEME_COLORS.onPrimary, textTransform: 'uppercase' }}>
                 Chia sẻ kết quả
               </Text>
             </TouchableOpacity>
@@ -612,8 +612,8 @@ export default function ConfirmSessionResultScreen() {
                 height: 50,
                 borderRadius: RADIUS.full,
                 borderWidth: BORDER.medium,
-                borderColor: '#E5E3DC',
-                backgroundColor: 'white',
+                borderColor: PROFILE_THEME_COLORS.outlineVariant,
+                backgroundColor: PROFILE_THEME_COLORS.surface,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
@@ -635,7 +635,7 @@ export default function ConfirmSessionResultScreen() {
                 flex: 2,
                 height: 50,
                 borderRadius: RADIUS.full,
-                backgroundColor: '#0F6E56',
+                backgroundColor: PROFILE_THEME_COLORS.primary,
                 alignItems: 'center',
                 justifyContent: 'center',
                 flexDirection: 'row',
@@ -643,11 +643,11 @@ export default function ConfirmSessionResultScreen() {
               }}
             >
               {submitting === 'confirmed' ? (
-                <ActivityIndicator color="white" />
+                <ActivityIndicator color={PROFILE_THEME_COLORS.onPrimary} />
               ) : (
                 <>
-                  <CheckCheck size={18} color="white" strokeWidth={2.5} />
-                  <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 15, color: 'white', textTransform: 'uppercase' }}>
+                  <CheckCheck size={18} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.5} />
+                  <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 15, color: PROFILE_THEME_COLORS.onPrimary, textTransform: 'uppercase' }}>
                     Xác nhận kết quả →
                   </Text>
                 </>

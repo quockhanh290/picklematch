@@ -41,23 +41,7 @@ import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming } from 'react-native-reanimated'
 
 
-const PROFILE_THEME_COLORS = {
-  primary: colors.primary,
-  onPrimary: '#FFFFFF',
-  background: colors.background,
-  onBackground: colors.text,
-  onSurface: colors.text,
-  onSurfaceVariant: colors.textSecondary,
-  outline: colors.textSecondary,
-  outlineVariant: colors.border,
-  surfaceContainerLow: colors.surface,
-  surfaceContainerLowest: colors.surface,
-  surfaceContainerHighest: colors.surfaceAlt,
-  primaryContainer: colors.primaryLight,
-  onPrimaryContainer: colors.primaryDark,
-  secondaryContainer: colors.primaryLight,
-  onSecondaryContainer: colors.primaryDark,
-} as const
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
 
 function hexToRgb(hex: string) {
   const clean = hex.replace('#', '')
@@ -232,7 +216,7 @@ function getDayBadgeBackground(value: string) {
     startDate.getMonth() === today.getMonth() &&
     startDate.getDate() === today.getDate()
   ) {
-    return colors.primary
+    return PROFILE_THEME_COLORS.primary
   }
 
   if (
@@ -240,10 +224,10 @@ function getDayBadgeBackground(value: string) {
     startDate.getMonth() === tomorrow.getMonth() &&
     startDate.getDate() === tomorrow.getDate()
   ) {
-    return colors.textSecondary
+    return PROFILE_THEME_COLORS.onSurfaceVariant
   }
 
-  return colors.textMuted
+  return PROFILE_THEME_COLORS.outline
 }
 
 function isSessionInPast(session: Pick<MySession, 'start_time' | 'end_time'>, nowMs = Date.now()) {
@@ -368,40 +352,40 @@ function MySessionCard({
   const userResult = item.user_result
 
   let statusLabel = isBooked ? 'Đã đặt sân' : 'Chưa đặt sân'
-  let statusColor: string = isBooked ? colors.successText : colors.warningDark
-  let dotColor: string = isBooked ? colors.success : colors.warning
+  let statusColor: string = isBooked ? PROFILE_THEME_SEMANTIC.successText : PROFILE_THEME_SEMANTIC.warningText
+  let dotColor: string = isBooked ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_SEMANTIC.warningStrong
 
   if (isHistory) {
     if (item.status === 'cancelled') {
       statusLabel = 'Đã hủy'
-      statusColor = colors.accent
-      dotColor = colors.accent
+      statusColor = PROFILE_THEME_SEMANTIC.dangerStrong
+      dotColor = PROFILE_THEME_SEMANTIC.dangerStrong
     } else if (!item.is_ranked) {
       statusLabel = 'Đã kết thúc'
-      statusColor = colors.textSecondary
-      dotColor = colors.textSecondary
+      statusColor = PROFILE_THEME_COLORS.onSurfaceVariant
+      dotColor = PROFILE_THEME_COLORS.outline
     } else if (isFinalized) {
       if (userResult === 'win') {
         statusLabel = 'Thắng'
-        statusColor = colors.successText
-        dotColor = colors.success
+        statusColor = PROFILE_THEME_SEMANTIC.successText
+        dotColor = PROFILE_THEME_COLORS.primary
       } else if (userResult === 'loss') {
         statusLabel = 'Thua'
-        statusColor = colors.accent
-        dotColor = colors.accent
+        statusColor = PROFILE_THEME_SEMANTIC.dangerStrong
+        dotColor = PROFILE_THEME_SEMANTIC.dangerStrong
       } else {
         statusLabel = 'Đã kết thúc'
-        statusColor = colors.textSecondary
-        dotColor = colors.textSecondary
+        statusColor = PROFILE_THEME_COLORS.onSurfaceVariant
+        dotColor = PROFILE_THEME_COLORS.outline
       }
     } else if (item.results_status === 'not_submitted') {
       statusLabel = 'Chờ nhập kết quả'
-      statusColor = colors.warningDark
-      dotColor = colors.warning
+      statusColor = PROFILE_THEME_SEMANTIC.warningText
+      dotColor = PROFILE_THEME_SEMANTIC.warningStrong
     } else {
       statusLabel = 'Đang xác nhận'
-      statusColor = colors.warningDark
-      dotColor = colors.warning
+      statusColor = PROFILE_THEME_SEMANTIC.warningText
+      dotColor = PROFILE_THEME_SEMANTIC.warningStrong
     }
   }
 
@@ -455,7 +439,7 @@ function MySessionCard({
 
         <View
           style={{
-            backgroundColor: colors.surfaceAlt,
+            backgroundColor: PROFILE_THEME_COLORS.surfaceAlt,
             borderRadius: RADIUS.sm,
             paddingHorizontal: 12,
             paddingVertical: 8,
@@ -497,13 +481,13 @@ function MySessionCard({
           <View
             style={{
               marginLeft: 8,
-              backgroundColor: colors.primaryLight,
+              backgroundColor: PROFILE_THEME_COLORS.secondaryContainer,
               borderRadius: RADIUS.xs,
               paddingHorizontal: SPACING.sm,
               paddingVertical: 2,
             }}
           >
-            <Text style={{ color: colors.primary, fontFamily: SCREEN_FONTS.label, fontSize: 12, lineHeight: 16 }}>
+            <Text style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.label, fontSize: 12, lineHeight: 16 }}>
               {getSessionSkillLabel(item.elo_min ?? 0, item.elo_max ?? 0)}
             </Text>
           </View>

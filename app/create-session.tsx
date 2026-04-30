@@ -576,7 +576,7 @@ export default function CreateSession() {
   const progressMap = { 1: 0.33, 2: 0.66, 3: 1 }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#F2F0E8' }}>
+    <View style={{ flex: 1, backgroundColor: PROFILE_THEME_COLORS.surfaceAlt }}>
       <SecondaryNavbar
         title="TẠO KÈO MỚI"
         showProgress
