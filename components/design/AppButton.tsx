@@ -35,7 +35,7 @@ export function AppButton({
     ? BUTTON.primary
     : isSecondary
       ? BUTTON.secondary
-      : { borderRadius: RADIUS.full, paddingVertical: 13, paddingHorizontal: SPACING.xl }
+      : { borderRadius: RADIUS.md, paddingVertical: 13, paddingHorizontal: SPACING.xl }
 
   const buttonStyle = {
     ...baseStyle,

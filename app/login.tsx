@@ -16,6 +16,7 @@ import {
   ScrollView,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from 'react-native'
 
@@ -64,7 +65,7 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false)
   const [dialogConfig, setDialogConfig] = useState<AppDialogConfig | null>(null)
 
-  function nextRouteForPlayer(player: any) {
+  function nextRouteForPlayer(player: { onboarding_completed?: boolean; self_assessed_level?: any } | null) {
     if (!player) return '/profile-setup'
     if (!player.onboarding_completed || !player.self_assessed_level) return '/onboarding'
     return '/(tabs)'
@@ -428,6 +429,4 @@ export default function LoginScreen() {
   )
 }
 
-// Keeping the import of TouchableOpacity since it's used in the code
-import { TouchableOpacity } from 'react-native'
 

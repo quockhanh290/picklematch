@@ -109,13 +109,13 @@ export const BORDER = {
 export const BUTTON = {
   /** Full-width primary CTA (Tạo kèo, Tiếp tục, Vào kèo) */
   primary: {
-    borderRadius: RADIUS.full,
+    borderRadius: RADIUS.md,
     paddingVertical: 13,
     paddingHorizontal: SPACING.xl,
   },
   /** Full-width secondary outline (Quay lại) */
   secondary: {
-    borderRadius: RADIUS.full,
+    borderRadius: RADIUS.md,
     paddingVertical: 13,
     paddingHorizontal: SPACING.xl,
     borderWidth: BORDER.medium,

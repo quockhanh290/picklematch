@@ -1,5 +1,5 @@
-import ProfileScreenContent from '@/components/profile/ProfileScreenContent'
+import { ProfileScreen } from '@/features/profile/ProfileScreen'
 
-export default function ProfileScreen() {
-  return <ProfileScreenContent />
+export default function ProfileRoute() {
+  return <ProfileScreen />
 }

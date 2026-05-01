@@ -8,6 +8,6 @@ module.exports = {
     '^@/(.*)$': '<rootDir>/$1',
     '^nativewind$': '<rootDir>/tests/mocks/nativewind.js',
   },
-  testMatch: ['<rootDir>/tests/snapshots.test.tsx'],
+  testMatch: ['<rootDir>/tests/**/*.test.{ts,tsx}'],
   testPathIgnorePatterns: ['/node_modules/', '/e2e/'],
 };

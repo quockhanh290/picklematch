@@ -324,8 +324,9 @@ export function MySessionCard({
           >
             <Pressable
               onPress={action}
-              className="flex-row items-center justify-center rounded-full py-2.5"
+              className="flex-row items-center justify-center py-2.5"
               style={{
+                borderRadius: RADIUS.md,
                 backgroundColor: PROFILE_THEME_COLORS.primary,
                 shadowColor: PROFILE_THEME_COLORS.primary,
                 shadowOpacity: 0.15,
@@ -389,8 +390,11 @@ export function MySessionCard({
                   onOpenSessionDetail(item.id)
                 }
               }}
-              className="flex-1 flex-row items-center justify-center rounded-[10px] px-4 py-3"
-              style={{ backgroundColor: PROFILE_THEME_COLORS.primary }}
+              className="flex-1 flex-row items-center justify-center px-4 py-3"
+              style={{ 
+                backgroundColor: PROFILE_THEME_COLORS.primary,
+                borderRadius: RADIUS.md 
+              }}
             >
                 {tab === 'pending' ? (
                   item.role === 'host' ? (
@@ -417,8 +421,11 @@ export function MySessionCard({
 
             <Pressable
               onPress={() => void onShare(item)}
-              className="flex-1 flex-row items-center justify-center rounded-[10px] px-4 py-3"
-              style={{ backgroundColor: PROFILE_THEME_COLORS.secondaryContainer }}
+              className="flex-1 flex-row items-center justify-center px-4 py-3"
+              style={{ 
+                backgroundColor: PROFILE_THEME_COLORS.secondaryContainer,
+                borderRadius: RADIUS.md
+              }}
             >
               <Share2 size={15} color={PROFILE_THEME_COLORS.onSecondaryContainer} strokeWidth={2.3} />
               <Text

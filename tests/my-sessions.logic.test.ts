@@ -1,5 +1,3 @@
-/* eslint-disable import/no-unresolved */
-import { describe, it, expect } from 'vitest'
 import { resolveTab } from '../lib/mySessionsLogic'
 
 describe('resolveTab', () => {

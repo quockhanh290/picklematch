@@ -6,7 +6,6 @@ import type { FeedbackTrait } from '@/components/profile/CommunityFeedbackSectio
 import CommunityFeedbackPanel from '@/components/profile/CommunityFeedbackSection'
 import {
     PROFILE_SKILL_HERO_TONE,
-    ProfileHistoryList,
     ProfileSkillHero,
     ProfileWinStreak,
 } from '@/components/profile/ProfileSections'
@@ -14,35 +13,39 @@ import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
 import { SCREEN_FONTS } from '@/constants/typography'
 import type { TrophyBadge } from '@/components/profile/TrophyRoom'
 import TrophyRoomSection from '@/components/profile/TrophyRoom'
-import {
-    FEEDBACK_META,
-    buildCommunityTraits,
-    calculateReliabilityScore,
-    clearCurrentPlayerProfileCache,
-    fetchCurrentPlayerProfileData,
-    getBadgeIcon,
-    getBadgeTone,
-    type ProfilePlayer as Player,
-    type ProfilePlayerStats as PlayerStats,
-    type ProfileSessionHistory as SessionHistory,
-} from '@/lib/profileData'
-import { getSkillLevelFromElo, getSkillLevelFromPlayer } from '@/lib/skillAssessment'
+import { getSkillLevelFromPlayer, getEloBandByLevelId } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
 import { useAppTheme } from '@/lib/theme-context'
 import { router, useFocusEffect } from 'expo-router'
 import {
     CalendarDays,
     CircleAlert,
-    Menu,
     PencilLine,
     Swords,
     UserCircle2
 } from 'lucide-react-native'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native'
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { SPACING } from '@/constants/screenLayout'
 import { STRINGS } from '@/constants/strings'
+
+import type { 
+    ProfilePlayer as Player, 
+    ProfilePlayerStats as PlayerStats, 
+    ProfileSessionHistory as SessionHistory 
+} from './types'
+import { 
+    calculateReliabilityScore, 
+    buildCommunityTraits, 
+    FEEDBACK_META, 
+    getBadgeIcon, 
+    getBadgeTone 
+} from './utils'
+import { 
+    fetchCurrentPlayerProfileDataApi, 
+    clearCurrentPlayerProfileCacheApi 
+} from './api'
 
 const PROFILE_PAGE_COLORS = PROFILE_THEME_COLORS
 
@@ -115,17 +118,6 @@ const PROFILE_MOCK_BADGES: TrophyBadge[] = [
     earned: true,
     earnedAt: '02/04/2026',
   },
-  {
-    key: 'win_streak_3',
-    title: 'Hot Streak',
-    category: 'momentum',
-    description: 'Giữ chuỗi thắng liên tiếp và duy trì phong độ ổn định.',
-    requirement: 'Đạt chuỗi thắng 3 trận',
-    icon: getBadgeIcon('flame'),
-    tone: getBadgeTone('momentum'),
-    earned: true,
-    earnedAt: '08/04/2026',
-  },
 ]
 
 const PROFILE_MOCK_HISTORY: SessionHistory[] = [
@@ -139,29 +131,9 @@ const PROFILE_MOCK_HISTORY: SessionHistory[] = [
       court: { name: 'Saigon Pickle Dome', city: 'TP.HCM' },
     },
   },
-  {
-    id: 'mock-session-2',
-    status: 'done',
-    is_host: false,
-    slot: {
-      start_time: '2026-04-09T11:00:00.000Z',
-      end_time: '2026-04-09T13:00:00.000Z',
-      court: { name: 'Sunrise Courts', city: 'Thủ Đức' },
-    },
-  },
-  {
-    id: 'mock-session-3',
-    status: 'done',
-    is_host: true,
-    slot: {
-      start_time: '2026-04-05T08:30:00.000Z',
-      end_time: '2026-04-05T10:30:00.000Z',
-      court: { name: 'Riverside Pickle Club', city: 'Quận 7' },
-    },
-  },
 ]
 
-export default function ProfileScreenContent() {
+export function ProfileScreen() {
   const insets = useSafeAreaInsets()
   const theme = useAppTheme()
   const { width } = useWindowDimensions()
@@ -174,13 +146,11 @@ export default function ProfileScreenContent() {
   const [history, setHistory] = useState<SessionHistory[]>([])
   const [hostedSessionsCount, setHostedSessionsCount] = useState(0)
   const [loading, setLoading] = useState(false)
-  const [nameFitsOneLine, setNameFitsOneLine] = useState<boolean | null>(null)
-  const [nameMeasureWidth, setNameMeasureWidth] = useState(0)
   const [dialogConfig, setDialogConfig] = useState<AppDialogConfig | null>(null)
 
   const init = useCallback(async () => {
     setLoading(true)
-    const snapshot = await fetchCurrentPlayerProfileData()
+    const snapshot = await fetchCurrentPlayerProfileDataApi()
     setLoggedIn(snapshot.loggedIn)
     setPlayer(snapshot.player)
     setPlayerStats(snapshot.playerStats)
@@ -209,7 +179,7 @@ export default function ProfileScreenContent() {
           tone: 'danger',
           onPress: async () => {
             await supabase.auth.signOut()
-            clearCurrentPlayerProfileCache()
+            clearCurrentPlayerProfileCacheApi()
             setLoggedIn(false)
             setPlayer(null)
             setPlayerStats(null)
@@ -224,20 +194,7 @@ export default function ProfileScreenContent() {
     })
   }
 
-  function formatTime(start: string) {
-    const date = new Date(start)
-    const weekday = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][date.getDay()]
-    const day = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}`
-    const hh = date.getHours().toString().padStart(2, '0')
-    const mm = date.getMinutes().toString().padStart(2, '0')
-    return `${weekday} ${day} · ${hh}:${mm}`
-  }
-
   const communityTraits = useMemo<FeedbackTrait[]>(() => buildCommunityTraits(ratingTags), [ratingTags])
-
-  useEffect(() => {
-    setNameFitsOneLine(null)
-  }, [player?.name, width])
 
   if (checking) {
     return (
@@ -290,7 +247,6 @@ export default function ProfileScreenContent() {
   const skill = getSkillLevelFromPlayer(player)
   let effectiveElo = player.current_elo ?? player.elo ?? 0
   
-  // If elo is 0, use the seed elo from the resolved skill level
   if (effectiveElo === 0 && skill) {
     effectiveElo = skill.id === 'level_1' ? 800 : (getEloBandByLevelId(skill.id)?.seedElo ?? 800)
   }
@@ -299,67 +255,61 @@ export default function ProfileScreenContent() {
   const placementPlayed = player.placement_matches_played ?? 0
   const currentWinStreak = playerStats?.current_win_streak ?? 0
   const streakActive = playerStats?.streak_fire_active ?? currentWinStreak > 0
-  const nameParts = (player.name || '').trim().split(/\s+/).filter(Boolean)
-  const headlineMainName = nameParts.length > 1 ? nameParts.slice(0, -1).join(' ') : player.name
-  const headlineSubName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : ''
   const joinedYear = player.created_at ? new Date(player.created_at).getFullYear() : null
-  const editorialNameSize = width < 360 ? 42 : width < 420 ? 50 : 58
-  const editorialNameLineHeight = width < 360 ? 52 : width < 420 ? 62 : 72
-  const shouldUseSplitEditorialName = Boolean(headlineSubName) && nameFitsOneLine === false
   const displayCommunityTraits = communityTraits.length > 0 ? communityTraits : PROFILE_MOCK_TRAITS
   const displayAchievements = achievements.length > 0 ? achievements : PROFILE_MOCK_BADGES
-  const displayHistory = history.length > 0 ? history : PROFILE_MOCK_HISTORY
 
   return (
     <View className="flex-1" style={{ backgroundColor: PROFILE_PAGE_COLORS.background }}>
       <ScrollView contentContainerStyle={{ paddingBottom: 96 }} showsVerticalScrollIndicator={false}>
         <View style={{ paddingTop: insets.top + 20, paddingHorizontal: SPACING.xl }}>
           <View className="pt-4 pb-6">
-            <View className="flex-row items-end flex-wrap gap-x-3 gap-y-2">
+            <View className="flex-row items-center justify-between">
               <Text
                 style={{
                   color: PROFILE_PAGE_COLORS.primary,
                   fontFamily: SCREEN_FONTS.headlineBlack,
                   fontSize: 40,
-                  lineHeight: 44, // Tighter line height for better alignment
+                  lineHeight: 48, 
                   textTransform: 'uppercase',
                   letterSpacing: -1,
+                  flex: 1,
                 }}
+                numberOfLines={1}
               >
                 {player.name}
               </Text>
               
-              <View className="flex-row items-center gap-3 mb-1">
-                <View
-                  className="rounded-sm px-2 py-0.5"
-                  style={{ backgroundColor: PROFILE_PAGE_COLORS.primaryContainer }}
-                >
-                  <Text
-                    style={{
-                      color: '#FFFFFF',
-                      fontFamily: SCREEN_FONTS.cta,
-                      fontSize: 10,
-                      textTransform: 'uppercase',
-                      letterSpacing: 1,
-                    }}
-                  >
-                    TIN CẬY {reliability === null ? '--' : `${reliability}%`}
-                  </Text>
-                </View>
-
-                <TouchableOpacity
-                  onPress={() => router.push('/edit-profile' as any)}
-                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                  activeOpacity={0.7}
-                >
-                  <PencilLine size={18} color={PROFILE_PAGE_COLORS.primary} />
-                </TouchableOpacity>
-              </View>
+              <TouchableOpacity
+                onPress={() => router.push('/edit-profile' as any)}
+                hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+                activeOpacity={0.7}
+                className="ml-4"
+              >
+                <PencilLine size={22} color={PROFILE_PAGE_COLORS.primary} />
+              </TouchableOpacity>
             </View>
 
-            <View className="mt-4 flex-row items-center gap-3">
+            <View className="mt-4 flex-row items-center flex-wrap gap-2">
               <View
-                className="rounded-full px-4 py-1.5"
+                className="rounded-full px-3 py-1"
+                style={{ backgroundColor: PROFILE_PAGE_COLORS.primaryContainer }}
+              >
+                <Text
+                  style={{
+                    color: '#FFFFFF',
+                    fontFamily: SCREEN_FONTS.cta,
+                    fontSize: 10,
+                    textTransform: 'uppercase',
+                    letterSpacing: 1,
+                  }}
+                >
+                  TIN CẬY {reliability === null ? '--' : `${reliability}%`}
+                </Text>
+              </View>
+
+              <View
+                className="rounded-full px-3 py-1"
                 style={{ backgroundColor: PROFILE_PAGE_COLORS.primary }}
               >
                 <Text
@@ -379,7 +329,8 @@ export default function ProfileScreenContent() {
                 style={{
                   color: PROFILE_PAGE_COLORS.onSurfaceVariant,
                   fontFamily: SCREEN_FONTS.body,
-                  fontSize: 13,
+                  fontSize: 12,
+                  marginLeft: 4,
                 }}
               >
                 Thành viên từ {joinedYear ?? 'N/A'}
@@ -471,6 +422,3 @@ export default function ProfileScreenContent() {
     </View>
   )
 }
-
-
-

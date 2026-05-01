@@ -12,61 +12,6 @@ export type Notification = {
   created_at: string
 }
 
-function translateNotification(n: any): Notification {
-  if (!n) return n;
-  const item = { ...n } as Notification;
-
-  if (item.type === 'join_request') {
-    if (item.title === 'Yeu cau tham gia moi') {
-      item.title = 'Yêu cầu tham gia mới';
-    }
-    item.body = item.body
-      .replace('Mot nguoi choi', 'Một người chơi')
-      .replace(' vua gui yeu cau tham gia keo cua ban.', ' vừa gửi yêu cầu tham gia kèo của bạn.');
-  } else if (item.type === 'host_unprofessional_reported') {
-    if (item.title === 'Host bi bao van hanh kem') {
-      item.title = 'Chủ kèo bị báo cáo vận hành kém';
-    }
-    item.body = item.body
-      .replace('Mot nguoi choi da bao cao rang ban khong xac nhan ket qua dung han.', 'Một người chơi đã báo cáo rằng bạn không xác nhận kết quả đúng hạn.');
-  } else if (item.type === 'join_approved') {
-    if (item.title === 'Yeu cau duoc chap thuan') {
-      item.title = 'Yêu cầu đã được chấp thuận';
-    }
-    item.body = item.body
-      .replace('Ban da duoc chap thuan tham gia keo', 'Bạn đã được chấp thuận tham gia kèo')
-      .replace('vao keo luc', 'vào kèo lúc');
-  } else if (item.type === 'join_rejected') {
-    if (item.title === 'Yeu cau bi tu choi') {
-      item.title = 'Yêu cầu đã bị từ chối';
-    }
-    item.body = item.body
-      .replace('Yeu cau tham gia keo', 'Yêu cầu tham gia kèo')
-      .replace('cua ban da bi tu choi', 'của bạn đã bị từ chối');
-  } else if (item.type === 'player_left') {
-    if (item.title === 'Nguoi choi da roi keo') {
-      item.title = 'Người chơi đã rời kèo';
-    }
-    item.body = item.body
-      .replace('da roi khoi keo', 'đã rời khỏi kèo');
-  } else if (item.type === 'session_cancelled') {
-    if (item.title === 'Host da huy keo') {
-      item.title = 'Chủ kèo đã hủy kèo';
-    }
-    item.body = item.body
-      .replace('Keo luc', 'Kèo lúc')
-      .replace('da bi host huy', 'đã bị chủ kèo hủy');
-  } else if (item.type === 'session_updated') {
-    if (item.title === 'Thong tin keo thay doi') {
-      item.title = 'Thông tin kèo thay đổi';
-    }
-    item.body = item.body
-      .replace('Thong tin keo', 'Thông tin kèo')
-      .replace('da duoc cap nhat', 'đã được cập nhật');
-  }
-
-  return item;
-}
 
 export function useNotifications(userId: string | null | undefined) {
   const [notifications, setNotifications] = useState<Notification[]>([])
@@ -92,7 +37,7 @@ export function useNotifications(userId: string | null | undefined) {
           filter: `player_id=eq.${userId}`,
         },
         (payload) => {
-          setNotifications((prev) => [translateNotification(payload.new), ...prev])
+          setNotifications((prev) => [payload.new as Notification, ...prev])
         },
       )
       .on(
@@ -105,7 +50,7 @@ export function useNotifications(userId: string | null | undefined) {
         },
         (payload) => {
           setNotifications((prev) =>
-            prev.map((n) => (n.id === payload.new.id ? translateNotification(payload.new) : n)),
+            prev.map((n) => (n.id === payload.new.id ? (payload.new as Notification) : n)),
           )
         },
       )
@@ -124,7 +69,7 @@ export function useNotifications(userId: string | null | undefined) {
       .eq('player_id', userId)
       .order('created_at', { ascending: false })
       .limit(50)
-    if (data) setNotifications((data as Notification[]).map(translateNotification))
+    if (data) setNotifications(data as Notification[])
   }
 
   async function markAsRead(notificationId: string) {

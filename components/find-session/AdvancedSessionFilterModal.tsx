@@ -134,6 +134,7 @@ export function AdvancedSessionFilterModal({
   skillLevels = [],
 }: Props) {
   const [showDatePicker, setShowDatePicker] = useState(false)
+  if (!filter) return null
 
   const dateChips = React.useMemo(() => buildDateChips(), [])
   const isQuickDate = dateChips.some((c) => c.value === filter.date)

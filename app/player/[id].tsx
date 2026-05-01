@@ -3,7 +3,7 @@ import type { FeedbackTrait } from '@/components/profile/CommunityFeedbackSectio
 import CommunityFeedbackPanel from '@/components/profile/CommunityFeedbackSection'
 import { ProfileHistoryList, ProfileSkillHero, ProfileWinStreak } from '@/components/profile/ProfileSections'
 import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
-import { FEEDBACK_META, calculateReliabilityScore } from '@/lib/profileData'
+import { FEEDBACK_META, calculateReliabilityScore } from '@/features/profile/utils'
 import { getSkillLevelFromElo, getSkillLevelFromPlayer } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'

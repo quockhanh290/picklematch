@@ -373,9 +373,11 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   hostName: {
-    fontFamily: SCREEN_FONTS.label,
-    fontSize: 13,
+    fontFamily: SCREEN_FONTS.headline,
+    fontSize: 15,
     lineHeight: 18,
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
   },
   hostMeta: {
     marginLeft: 8,
@@ -403,7 +405,7 @@ const styles = StyleSheet.create({
   ctaButton: {
     width: '100%',
     height: 48,
-    borderRadius: RADIUS.sm,
+    borderRadius: RADIUS.md,
     paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',

@@ -6,6 +6,8 @@ import { CREATE_SESSION_ELO_LEVELS, ELO_BANDS } from '@/lib/eloSystem'
 import { useAuth } from '@/lib/useAuth'
 import type { SessionDetailRecord } from '@/hooks/useSessionDetail'
 import * as Linking from 'expo-linking'
+import * as Haptics from 'expo-haptics'
+import { fetchSessionDetailForEditApi, createSessionApi, updateSessionApi } from '../api'
 
 function toMins(hhmm: string): number {
   const [h, m] = hhmm.split(':').map(Number)
@@ -46,7 +48,7 @@ function skillLevelFromElo(elo: number, edge: 'min' | 'max'): number {
   return levels.length
 }
 
-export function useCreateSession(editSessionId: string | null) {
+export function useCreateSessionController(editSessionId: string | null) {
   const { userId, isLoading } = useAuth()
   const router = useRouter()
   const isEditMode = Boolean(editSessionId)
@@ -104,7 +106,7 @@ export function useCreateSession(editSessionId: string | null) {
 
       const [{ data: authData }, detailResult] = await Promise.all([
         supabase.auth.getUser(),
-        supabase.rpc('get_session_detail_overview', { p_session_id: editSessionId }),
+        fetchSessionDetailForEditApi(editSessionId),
       ])
 
       const user = authData.user
@@ -281,12 +283,12 @@ export function useCreateSession(editSessionId: string | null) {
       setCanToggleRanked(onboardingCompleted)
       if (!onboardingCompleted) {
         if (!isEditMode) setIsRanked(false)
-        setRankedHelperText('Ho\u00e0n t\u1ea5t onboarding \u0111\u1ec3 d\u00f9ng k\u00e8o t\u00ednh Elo.')
+        setRankedHelperText('Hoàn tất onboarding để dùng kèo tính Elo.')
         return
       }
 
       if (!isEditMode) setIsRanked(true)
-      setRankedHelperText('B\u1ea1n c\u00f3 th\u1ec3 b\u1eadt ho\u1eb7c t\u1eaft Elo cho k\u00e8o n\u00e0y tr\u01b0\u1edbc khi \u0111\u0103ng.')
+      setRankedHelperText('Bạn có thể bật hoặc tắt Elo cho kèo này trước khi đăng.')
     }
 
     void loadRankedEligibility()
@@ -350,6 +352,7 @@ export function useCreateSession(editSessionId: string | null) {
 
   function goToStep2() {
     if (!selectedCourt || !selectedDate || !startTime || !endTime || timeError) return
+    try { Haptics.selectionAsync() } catch {}
     setStep(2)
   }
 
@@ -368,11 +371,22 @@ export function useCreateSession(editSessionId: string | null) {
 
     setEloMin(minElo)
     setEloMax(maxElo)
+    try { Haptics.selectionAsync() } catch {}
     setStep(3)
   }
 
   async function submit() {
     if (!selectedCourt || !startTime || !endTime) return
+
+    // Hardening: Basic validation
+    if (totalCost > 2000000) {
+      setDialogConfig({
+        title: 'Chi phí không hợp lệ',
+        message: 'Chi phí sân quá lớn. Vui lòng kiểm tra lại số tiền nhập.',
+        actions: [{ label: 'Sửa lại' }],
+      })
+      return
+    }
 
     try {
       const { data: { user } } = await supabase.auth.getUser()
@@ -438,114 +452,34 @@ export function useCreateSession(editSessionId: string | null) {
         p_booking_confirmed_at: bookingStatus === 'confirmed' ? new Date().toISOString() : null,
       }
 
+      let finalSessionId: string | null = null
+
       if (isEditMode && editSessionId) {
-        let { data: updatedSessionId, error: updateError } = await supabase.rpc('update_session_with_host', {
-          p_session_id: editSessionId,
-          ...fullPayload,
-        })
-
-        const missingUpdateFunction =
-          Boolean(updateError?.message?.includes('Could not find the function public.update_session_with_host')) ||
-          updateError?.code === '42883'
-
-        if (missingUpdateFunction) {
-          const { data: currentSession, error: fetchSessionError } = await supabase
-            .from('sessions')
-            .select('id, slot_id, host_id')
-            .eq('id', editSessionId)
-            .eq('host_id', user.id)
-            .single()
-
-          if (fetchSessionError || !currentSession?.slot_id) {
-            updateError = fetchSessionError ?? updateError
-          } else {
-            const sessionUpdate = await supabase
-              .from('sessions')
-              .update({
-                elo_min: eloMin,
-                elo_max: eloMax,
-                is_ranked: isRanked,
-                max_players: maxPlayers,
-                fill_deadline: fillDeadline.toISOString(),
-                total_cost: totalCost || null,
-                require_approval: requireApproval,
-                court_booking_status: bookingStatus,
-                booking_reference: sendBookingDetails ? bookingReference.trim() || null : null,
-                booking_name: sendBookingDetails ? bookingName.trim() || null : null,
-                booking_phone: sendBookingDetails ? bookingPhone.trim() || null : null,
-                booking_notes: sendBookingDetails ? bookingNotes.trim() || null : null,
-                booking_confirmed_at: bookingStatus === 'confirmed' ? new Date().toISOString() : null,
-              })
-              .eq('id', editSessionId)
-              .eq('host_id', user.id)
-
-            if (sessionUpdate.error) {
-              updateError = sessionUpdate.error
-            } else {
-              const slotUpdate = await supabase
-                .from('court_slots')
-                .update({
-                  court_id: selectedCourt.id,
-                  start_time: startTime.toISOString(),
-                  end_time: endTime.toISOString(),
-                  price: totalCost || 0,
-                  status: 'booked',
-                })
-                .eq('id', currentSession.slot_id)
-
-              updateError = slotUpdate.error ?? null
-              updatedSessionId = editSessionId
-            }
-          }
-        }
-
+        const { data: updatedSessionId, error: updateError } = await updateSessionApi(editSessionId, fullPayload)
+        
         if (updateError || !updatedSessionId) {
-          setDialogConfig({
-            title: 'Lỗi',
-            message: updateError?.message ?? 'Không thể cập nhật kèo.',
-            actions: [{ label: 'Đã hiểu' }],
-          })
-          return
+          throw new Error(updateError?.message ?? 'Không thể cập nhật kèo.')
         }
-
-        router.replace({
-          pathname: '/session/[id]',
-          params: { id: updatedSessionId, updated: '1' },
-        } as never)
-        return
+        finalSessionId = updatedSessionId
+      } else {
+        const { data: newSessionId, error: createError } = await createSessionApi(fullPayload)
+        
+        if (createError || !newSessionId) {
+          throw new Error(createError?.message ?? 'Không thể tạo kèo.')
+        }
+        finalSessionId = newSessionId
       }
 
-      let { data: newSessionId, error: createError } = await supabase.rpc('create_session_with_host', fullPayload)
-
-      const missingFunction =
-        Boolean(createError?.message?.includes('Could not find the function public.create_session_with_host')) ||
-        createError?.code === '42883'
-
-      if (missingFunction) {
-        const fallbackResult = await supabase.rpc('create_session_with_host', basePayload)
-        newSessionId = fallbackResult.data
-        createError = fallbackResult.error
-      }
-
-      if (createError || !newSessionId) {
-        setDialogConfig({
-          title: 'Lỗi',
-          message: createError?.message ?? 'Không thể tạo kèo.',
-          actions: [{ label: 'Đã hiểu' }],
-        })
-        return
-      }
+      try { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success) } catch {}
 
       router.replace({
         pathname: '/session/[id]',
-        params: { id: newSessionId, created: '1' },
+        params: { id: finalSessionId, [isEditMode ? 'updated' : 'created']: '1' },
       } as never)
+
     } catch (error) {
-      const message = error instanceof Error
-        ? error.message
-        : isEditMode
-          ? 'Không thể cập nhật kèo lúc này.'
-          : 'Không thể tạo kèo lúc này.'
+      try { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error) } catch {}
+      const message = error instanceof Error ? error.message : 'Đã có lỗi xảy ra. Vui lòng thử lại.'
       setDialogConfig({
         title: 'Lỗi',
         message: message,

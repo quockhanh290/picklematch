@@ -1,5 +1,5 @@
-import ProfileScreenContent from '@/components/profile/ProfileScreenContent'
+import { ProfileScreen } from '@/features/profile/ProfileScreen'
 
 export default function ProfilePreviewScreen() {
-  return <ProfileScreenContent />
+  return <ProfileScreen />
 }
