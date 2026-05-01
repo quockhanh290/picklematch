@@ -173,8 +173,8 @@ export function CreateSessionStep1({
               />
 
               {/* Progress bar */}
-              <View style={{ height: 3, backgroundColor: '#E5E3DC', borderRadius: RADIUS.full, marginTop: 12, marginBottom: 24, overflow: 'hidden' }}>
-                <View style={{ height: '100%', width: '33%', backgroundColor: '#0F6E56', borderRadius: RADIUS.full }} />
+              <View style={{ height: 3, backgroundColor: PROFILE_THEME_COLORS.outlineVariant, borderRadius: RADIUS.full, marginTop: 12, marginBottom: 24, overflow: 'hidden' }}>
+                <View style={{ height: '100%', width: '33%', backgroundColor: PROFILE_THEME_COLORS.primary, borderRadius: RADIUS.full }} />
               </View>
             </>
           )}
@@ -182,11 +182,11 @@ export function CreateSessionStep1({
           {/* Step title */}
           <View style={{ marginBottom: 20 }}>
             <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 4, marginBottom: 6 }}>
-              <Text style={{ fontFamily: SCREEN_FONTS.headlineItalic, fontSize: 52, color: '#0F6E56', lineHeight: 54, opacity: 0.2, letterSpacing: -1, paddingRight: 6, paddingTop: 6 }}>
+              <Text style={{ fontFamily: SCREEN_FONTS.headlineItalic, fontSize: 52, color: PROFILE_THEME_COLORS.primary, lineHeight: 54, opacity: 0.2, letterSpacing: -1, paddingRight: 6, paddingTop: 6 }}>
                 01
               </Text>
               <Text
-                style={{ fontFamily: SCREEN_FONTS.headlineItalic, fontSize: 28, color: '#0F6E56', lineHeight: 30, letterSpacing: -0.3, flex: 1, paddingBottom: 2 }}
+                style={{ fontFamily: SCREEN_FONTS.headlineItalic, fontSize: 28, color: PROFILE_THEME_COLORS.primary, lineHeight: 30, letterSpacing: -0.3, flex: 1, paddingBottom: 2 }}
                 numberOfLines={1}
                 adjustsFontSizeToFit
                 minimumFontScale={0.8}
@@ -200,7 +200,7 @@ export function CreateSessionStep1({
           <SectionDivider index="01" title="Chọn sân" />
 
           {/* Search bar */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: RADIUS.full, borderWidth: BORDER.hairline, borderColor: '#E5E3DC', backgroundColor: 'white', paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: RADIUS.lg, borderWidth: BORDER.hairline, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surface, paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm }}>
             <Search size={16} color={PROFILE_THEME_COLORS.outline} />
             <TextInput
               value={keyword}
@@ -215,11 +215,11 @@ export function CreateSessionStep1({
                 setIsChoosingCourt(true)
               }}
               placeholder="Tìm tên sân hoặc khu vực..."
-              placeholderTextColor="#B4B2A9"
+              placeholderTextColor={PROFILE_THEME_COLORS.outline}
               style={{ flex: 1, fontFamily: SCREEN_FONTS.body, fontSize: 13, color: PROFILE_THEME_COLORS.onSurface, padding: 0 }}
               returnKeyType="search"
             />
-            <View style={{ width: 34, height: 34, borderRadius: RADIUS.full, backgroundColor: '#0F6E56', alignItems: 'center', justifyContent: 'center', opacity: isCourtScheduleLocked ? 0.45 : 1 }}>
+            <View style={{ width: 34, height: 34, borderRadius: RADIUS.full, backgroundColor: PROFILE_THEME_COLORS.primary, alignItems: 'center', justifyContent: 'center', opacity: isCourtScheduleLocked ? 0.45 : 1 }}>
               <SlidersHorizontal size={14} color="white" strokeWidth={2.6} />
             </View>
           </View>
@@ -393,27 +393,27 @@ export function CreateSessionStep1({
         )}
 
         {/* Info note */}
-        <View style={{ backgroundColor: '#E1F5EE', borderRadius: RADIUS.sm, padding: 12, flexDirection: 'row', gap: 10, marginBottom: 16 }}>
+        <View style={{ backgroundColor: PROFILE_THEME_COLORS.secondaryContainer, borderRadius: RADIUS.sm, padding: 12, flexDirection: 'row', gap: 10, marginBottom: 16 }}>
           <Text style={{ fontSize: 14 }}>ℹ️</Text>
-          <Text style={{ fontSize: 12, color: '#0F6E56', lineHeight: 18, flex: 1, fontFamily: SCREEN_FONTS.body }}>
+          <Text style={{ fontSize: 12, color: PROFILE_THEME_COLORS.primary, lineHeight: 18, flex: 1, fontFamily: SCREEN_FONTS.body }}>
             Vui lòng đảm bảo bạn đã liên hệ đặt sân trước khi tạo kèo trên hệ thống.
           </Text>
         </View>
       </ScrollView>
 
       {/* Bottom bar */}
-      <View style={{ flexDirection: 'row', gap: 10, marginHorizontal: -20, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 28, backgroundColor: '#F2F0E8', borderTopWidth: 0.5, borderTopColor: '#E5E3DC' }}>
+      <View style={{ flexDirection: 'row', gap: 10, marginHorizontal: -20, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 28, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, borderTopWidth: 0.5, borderTopColor: PROFILE_THEME_COLORS.outlineVariant }}>
         <TouchableOpacity
           onPress={onBack}
-          style={{ flex: 1, borderRadius: RADIUS.full, borderWidth: BORDER.medium, borderColor: '#E5E3DC', paddingVertical: 13, alignItems: 'center', backgroundColor: 'white' }}
+          style={{ flex: 1, borderRadius: RADIUS.md, borderWidth: BORDER.medium, borderColor: PROFILE_THEME_COLORS.outlineVariant, paddingVertical: 13, alignItems: 'center', backgroundColor: PROFILE_THEME_COLORS.surface }}
         >
-          <Text style={{ fontSize: 15, fontWeight: '700', color: '#1A2E2A', fontFamily: SCREEN_FONTS.cta, textTransform: 'uppercase' }}>Quay lại</Text>
+          <Text style={{ fontSize: 15, fontWeight: '700', color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.cta, textTransform: 'uppercase' }}>Quay lại</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={onContinue}
-          style={{ flex: 2, borderRadius: RADIUS.full, backgroundColor: '#0F6E56', paddingVertical: 13, alignItems: 'center' }}
+          style={{ flex: 2, borderRadius: RADIUS.md, backgroundColor: PROFILE_THEME_COLORS.primary, paddingVertical: 13, alignItems: 'center' }}
         >
-          <Text style={{ fontSize: 15, fontWeight: '700', color: 'white', fontFamily: SCREEN_FONTS.cta, textTransform: 'uppercase' }}>Tiếp tục →</Text>
+          <Text style={{ fontSize: 15, fontWeight: '700', color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta, textTransform: 'uppercase' }}>Tiếp tục →</Text>
         </TouchableOpacity>
       </View>
     </View>

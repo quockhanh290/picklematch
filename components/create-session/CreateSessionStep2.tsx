@@ -200,7 +200,7 @@ export function CreateSessionStep2({
                     onPress={() => setDeadlineMinutes(option.value)}
                     style={{
                       paddingHorizontal: 16, paddingVertical: 8,
-                      borderRadius: RADIUS.full,
+                      borderRadius: RADIUS.md,
                       backgroundColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surface,
                       borderWidth: BORDER.medium,
                       borderColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
@@ -238,13 +238,13 @@ export function CreateSessionStep2({
         <View style={{ flexDirection: 'row', gap: 10, marginHorizontal: -20, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 28, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, borderTopWidth: 0.5, borderTopColor: PROFILE_THEME_COLORS.outlineVariant }}>
           <TouchableOpacity
             onPress={onBack}
-            style={{ flex: 1, borderRadius: RADIUS.full, borderWidth: BORDER.medium, borderColor: PROFILE_THEME_COLORS.outlineVariant, paddingVertical: 13, alignItems: 'center', backgroundColor: PROFILE_THEME_COLORS.surface }}
+            style={{ flex: 1, borderRadius: RADIUS.md, borderWidth: BORDER.medium, borderColor: PROFILE_THEME_COLORS.outlineVariant, paddingVertical: 13, alignItems: 'center', backgroundColor: PROFILE_THEME_COLORS.surface }}
           >
             <Text style={{ fontSize: 15, color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.cta, textTransform: 'uppercase' }}>Quay lại</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={onContinue}
-            style={{ flex: 2, borderRadius: RADIUS.full, backgroundColor: PROFILE_THEME_COLORS.primary, paddingVertical: 13, alignItems: 'center' }}
+            style={{ flex: 2, borderRadius: RADIUS.md, backgroundColor: PROFILE_THEME_COLORS.primary, paddingVertical: 13, alignItems: 'center' }}
           >
             <Text style={{ fontSize: 15, color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta, textTransform: 'uppercase' }}>Tiếp tục →</Text>
           </TouchableOpacity>

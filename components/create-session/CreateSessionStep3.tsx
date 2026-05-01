@@ -212,14 +212,14 @@ export function CreateSessionStep3({
         <TouchableOpacity
           onPress={onBack}
           disabled={submitting}
-          style={{ flex: 1, borderRadius: RADIUS.full, borderWidth: BORDER.medium, borderColor: PROFILE_THEME_COLORS.outlineVariant, paddingVertical: 13, alignItems: 'center', backgroundColor: PROFILE_THEME_COLORS.surface, opacity: submitting ? 0.5 : 1 }}
+          style={{ flex: 1, borderRadius: RADIUS.md, borderWidth: BORDER.medium, borderColor: PROFILE_THEME_COLORS.outlineVariant, paddingVertical: 13, alignItems: 'center', backgroundColor: PROFILE_THEME_COLORS.surface, opacity: submitting ? 0.5 : 1 }}
         >
           <Text style={{ fontSize: 15, color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.cta, textTransform: 'uppercase' }}>Quay lại</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={onCreate}
           disabled={submitting}
-          style={{ flex: 2, borderRadius: RADIUS.full, backgroundColor: PROFILE_THEME_COLORS.primary, paddingVertical: 13, alignItems: 'center', opacity: submitting ? 0.7 : 1 }}
+          style={{ flex: 2, borderRadius: RADIUS.md, backgroundColor: PROFILE_THEME_COLORS.primary, paddingVertical: 13, alignItems: 'center', opacity: submitting ? 0.7 : 1 }}
         >
           <Text style={{ fontSize: 15, color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta, textTransform: 'uppercase' }}>
             {submitting ? 'Đang tạo...' : 'Tạo kèo ngay'}

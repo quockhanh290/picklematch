@@ -297,7 +297,7 @@ export function ProfileScreen() {
               >
                 <Text
                   style={{
-                    color: '#FFFFFF',
+                    color: PROFILE_PAGE_COLORS.onPrimary,
                     fontFamily: SCREEN_FONTS.cta,
                     fontSize: 10,
                     textTransform: 'uppercase',
@@ -314,7 +314,7 @@ export function ProfileScreen() {
               >
                 <Text
                   style={{
-                    color: '#FFFFFF',
+                    color: PROFILE_PAGE_COLORS.onPrimary,
                     fontFamily: SCREEN_FONTS.cta,
                     fontSize: 10,
                     textTransform: 'uppercase',
@@ -395,16 +395,16 @@ export function ProfileScreen() {
             <ProfileSectionDivider index="04" title={STRINGS.profile.sections.account} />
             <View className="flex-row gap-3">
               <TouchableOpacity
-                className="flex-1 rounded-full py-4 items-center"
-                style={{ backgroundColor: PROFILE_PAGE_COLORS.primary }}
+                className="flex-1 py-4 items-center"
+                style={{ backgroundColor: PROFILE_PAGE_COLORS.primary, borderRadius: RADIUS.md }}
                 onPress={() => router.push('/edit-profile' as any)}
                 activeOpacity={0.9}
               >
                 <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta }}>{STRINGS.profile.actions.edit}</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                className="flex-1 rounded-full py-4 items-center"
-                style={{ backgroundColor: PROFILE_PAGE_COLORS.secondaryFixed }}
+                className="flex-1 py-4 items-center"
+                style={{ backgroundColor: PROFILE_PAGE_COLORS.secondaryFixed, borderRadius: RADIUS.md }}
                 onPress={logout}
                 activeOpacity={0.9}
               >
