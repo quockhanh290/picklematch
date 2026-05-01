@@ -172,6 +172,11 @@ export function useFindSessionController() {
     [playerProfile, smartQueueStorageKey],
   )
 
+  const clearCourtFilter = useCallback(() => {
+    setPreferredCourtFilter(null)
+    setQuery('')
+  }, [])
+
   useEffect(() => {
     if (!smartQueueHydrated || !playerProfile?.id || !smartQueueEnabled) return
     void applySmartQueueFilters(true)
@@ -270,6 +275,7 @@ export function useFindSessionController() {
     setSortMode,
     quickFilters,
     preferredCourtFilter,
+    clearCourtFilter,
     setPreferredCourtFilter,
     filterModalVisible,
     setFilterModalVisible,

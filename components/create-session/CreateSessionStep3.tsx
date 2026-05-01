@@ -74,6 +74,8 @@ export function CreateSessionStep3({
     priceLabel: formatPrice(pricePerPerson),
     openSlotsLabel: `${Math.max(maxPlayers - 1, 0)} chỗ trống`,
     statusLabel: getStatusLabel(bookingStatus, 'open'),
+    courtBookingConfirmed: bookingStatus === 'confirmed',
+    isBooked: bookingStatus === 'confirmed',
     isRanked: true,
     activePlayers: 1,
     maxPlayers,

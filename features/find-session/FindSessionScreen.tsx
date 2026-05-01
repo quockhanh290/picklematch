@@ -42,6 +42,7 @@ export function FindSessionScreen() {
     sortMode,
     setSortMode,
     preferredCourtFilter,
+    clearCourtFilter,
     setPreferredCourtFilter,
     filterModalVisible,
     setFilterModalVisible,
@@ -230,7 +231,7 @@ export function FindSessionScreen() {
             </Text>
           </View>
           <Pressable
-            onPress={() => setPreferredCourtFilter(null)}
+            onPress={clearCourtFilter}
             className="flex-row items-center rounded-full px-3 py-2"
             style={{ backgroundColor: withAlpha(PROFILE_THEME_COLORS.onSecondaryContainer, 0.12) }}
           >

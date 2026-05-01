@@ -138,7 +138,7 @@ export function HeroMatchSessionCard({ item }: HeroMatchSessionCardProps) {
 
           <View style={{ flex: 1 }}>
             <Text
-              numberOfLines={2}
+              numberOfLines={1}
               ellipsizeMode="tail"
               style={{
                 color: PROFILE_THEME_COLORS.onPrimary,
@@ -170,7 +170,7 @@ export function HeroMatchSessionCard({ item }: HeroMatchSessionCardProps) {
               ellipsizeMode="tail"
               style={{ color: PROFILE_THEME_COLORS.heroBodyMuted, fontFamily: SCREEN_FONTS.body, fontSize: 12, lineHeight: 16 }}
             >
-              {compactAddress || item.address}
+              {item.address}
             </Text>
           </View>
         </View>

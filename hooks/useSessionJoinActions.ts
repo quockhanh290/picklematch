@@ -57,7 +57,7 @@ export function useSessionJoinActions({
     [eloMin, maxPlayers, playerCount, viewerElo],
   )
 
-  const hostRequiresApproval = Boolean(session?.require_approval || session?.host.auto_accept === false)
+  const hostRequiresApproval = Boolean(session?.require_approval)
   const isJoinWindowOpen = useMemo(() => {
     if (session?.status !== 'open') return false
     if (!session?.fill_deadline) return true

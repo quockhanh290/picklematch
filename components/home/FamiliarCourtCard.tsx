@@ -29,42 +29,23 @@ export function FamiliarCourtCard({ item, onPress }: { item: FamiliarCourt; onPr
         className="h-full w-full"
       >
         <View className="flex-1 justify-between bg-black/15" style={{ padding: SPACING.xl, borderRadius: RADIUS.lg }}>
-          <View className="flex-row items-start justify-between">
+          <View className="flex-row items-start justify-end">
             <View
               className="flex-row items-center"
               style={{
                 borderRadius: RADIUS.full,
                 borderWidth: BORDER.base,
-                paddingHorizontal: SPACING.md,
-                paddingVertical: SPACING.sm - 2, // 8px
-                borderColor: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.32),
-                backgroundColor: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.16),
-              }}
-            >
-              <Home size={14} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={iconStroke} />
-              <Text
-                className="ml-2 text-xs uppercase tracking-[2.2px]"
-                style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta }}
-              >
-                Sân quen
-              </Text>
-            </View>
-
-            <View
-              className="flex-row items-center"
-              style={{
-                borderRadius: RADIUS.full,
-                borderWidth: BORDER.base,
-                paddingHorizontal: SPACING.md,
-                paddingVertical: SPACING.sm - 2, // 8px
+                paddingHorizontal: SPACING.lg,
+                paddingVertical: SPACING.sm,
                 borderColor: PROFILE_THEME_COLORS.primaryFixed,
                 backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+                ...SHADOW.sm,
               }}
             >
-              <Zap size={14} color={PROFILE_THEME_COLORS.primary} strokeWidth={iconStroke} />
+              <Zap size={16} color={PROFILE_THEME_COLORS.primary} strokeWidth={3} />
               <Text
-                className="ml-2 text-xs"
-                style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.headline }}
+                className="ml-2 text-sm uppercase"
+                style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.headline, letterSpacing: 0.5 }}
               >
                 {item.openMatches} kèo đang mở
               </Text>
@@ -73,51 +54,56 @@ export function FamiliarCourtCard({ item, onPress }: { item: FamiliarCourt; onPr
 
           <View
             style={{
-              borderRadius: RADIUS.lg,
+              borderRadius: RADIUS.md + 4,
               borderWidth: BORDER.base,
-              padding: SPACING.md,
+              paddingHorizontal: SPACING.md,
+              paddingVertical: SPACING.sm + 2,
               borderColor: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.7),
               backgroundColor: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.9),
               ...SHADOW.lg,
             }}
           >
-            <View className="flex-row items-center justify-between">
+            <View className="flex-row items-start justify-between">
               <Text
-                className="flex-1 text-[22px]"
-                numberOfLines={1}
-                style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.headline, lineHeight: 30 }}
+                className="flex-1 text-[19px]"
+                numberOfLines={2}
+                ellipsizeMode="tail"
+                style={{ 
+                  color: PROFILE_THEME_COLORS.onSurface, 
+                  fontFamily: SCREEN_FONTS.headline,
+                  includeFontPadding: false,
+                  lineHeight: 24
+                }}
               >
                 {item.name}
               </Text>
               {item.rating != null && (
-                <View className="ml-2 flex-row items-center">
-                  <Star size={14} color="#F59E0B" fill="#F59E0B" />
+                <View className="ml-3 flex-row items-center" style={{ marginTop: 2 }}>
+                  <Star size={13} color="#F59E0B" fill="#F59E0B" />
                   <Text
                     className="ml-1 text-sm font-bold"
-                    style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.headline }}
+                    style={{ 
+                      color: PROFILE_THEME_COLORS.onSurface, 
+                      fontFamily: SCREEN_FONTS.headline,
+                      includeFontPadding: false
+                    }}
                   >
                     {item.rating.toFixed(1)}
                   </Text>
                 </View>
               )}
             </View>
-
-            <View className="mt-2 flex-row items-center">
-              <MapPin size={14} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={iconStroke} />
+ 
+            <View className="mt-1 flex-row items-center">
+              <MapPin size={12} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={iconStroke} />
               <Text
-                className="ml-2 flex-1 text-sm"
+                className="ml-1.5 flex-1 text-[12px]"
                 numberOfLines={1}
                 style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.label }}
               >
                 {item.area}
               </Text>
             </View>
-            <Text
-              className="mt-3 text-sm"
-              style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, lineHeight: 22 }}
-            >
-              {item.note}
-            </Text>
           </View>
         </View>
       </ImageBackground>

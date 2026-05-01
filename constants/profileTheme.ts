@@ -156,6 +156,8 @@ export type ProfileThemeSemantic = {
   // Rescue / urgent fill card tokens
   rescueAccent: string
   rescueBorder: string
+  rescueStrong: string
+  rescueSoft: string
 }
 
 const FOREST_DEFAULT_SEMANTIC: ProfileThemeSemantic = {
@@ -177,6 +179,8 @@ const FOREST_DEFAULT_SEMANTIC: ProfileThemeSemantic = {
   // Rescue / urgent fill card tokens
   rescueAccent: '#D85A30',
   rescueBorder: '#F5D5CB',
+  rescueStrong: '#D85A30',
+  rescueSoft: '#FDF2F0',
 }
 
 export const PROFILE_THEME_SEMANTICS: Record<ProfileThemeId, ProfileThemeSemantic> = {
