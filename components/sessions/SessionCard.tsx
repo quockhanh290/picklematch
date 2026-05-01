@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
     height: 1,
   },
   statusChip: {
-    borderRadius: RADIUS.full,
+    borderRadius: RADIUS.sm,
     paddingVertical: 4,
     paddingHorizontal: SPACING.sm,
     flexShrink: 0,

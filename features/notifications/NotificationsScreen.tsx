@@ -10,6 +10,7 @@ import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { validateDeepLink } from '@/utils/routing'
+import { RADIUS } from '@/constants/screenLayout'
 
 import type { Notification, NotificationCategory } from './types'
 import { typeMeta, isActionable } from './utils'
@@ -92,10 +93,11 @@ export function NotificationsScreen() {
             <TouchableOpacity
               onPress={markAllAsRead}
               activeOpacity={0.84}
-              className="rounded-full px-4 py-2.5"
+              className="px-4 py-2.5"
               style={{
+                borderRadius: RADIUS.md,
                 backgroundColor: unreadCount > 0 ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outline,
-                shadowColor: unreadCount > 0 ? PROFILE_THEME_COLORS.primary : '#000',
+                shadowColor: unreadCount > 0 ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.onBackground,
                 shadowOpacity: unreadCount > 0 ? 0.2 : 0,
                 shadowRadius: 10,
                 shadowOffset: { width: 0, height: 4 },
@@ -126,8 +128,9 @@ export function NotificationsScreen() {
                 <TouchableOpacity
                   key={cat.key}
                   onPress={() => setActiveCategory(cat.key)}
-                  className="mr-3 rounded-full px-5 py-2.5 border"
+                  className="mr-3 px-5 py-2.5 border"
                   style={{
+                    borderRadius: RADIUS.md,
                     backgroundColor: active ? PROFILE_THEME_COLORS.primary : 'transparent',
                     borderColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
                   }}
@@ -169,8 +172,9 @@ export function NotificationsScreen() {
                     key={item.id}
                     onPress={() => handleTap(item as Notification)}
                     activeOpacity={0.9}
-                    className="relative overflow-hidden rounded-[16px] p-4"
+                    className="relative overflow-hidden p-4"
                     style={{
+                      borderRadius: RADIUS.lg,
                       backgroundColor: item.is_read ? PROFILE_THEME_COLORS.surfaceContainerLow : PROFILE_THEME_COLORS.surfaceContainerLowest,
                       borderWidth: 1,
                       borderColor: item.is_read ? 'transparent' : PROFILE_THEME_COLORS.primary + '15',
@@ -231,8 +235,8 @@ export function NotificationsScreen() {
                             <TouchableOpacity
                               activeOpacity={0.84}
                               onPress={() => handleTap(item as Notification)}
-                              className="flex-1 rounded-[10px] px-3 py-2 items-center justify-center"
-                              style={{ backgroundColor: PROFILE_THEME_COLORS.primary }}
+                              className="flex-1 px-3 py-2 items-center justify-center"
+                              style={{ backgroundColor: PROFILE_THEME_COLORS.primary, borderRadius: RADIUS.md }}
                             >
                               <Text
                                 className="text-[12px] uppercase tracking-[0.5px]"
@@ -244,10 +248,11 @@ export function NotificationsScreen() {
                             <TouchableOpacity
                               activeOpacity={0.84}
                               onPress={() => handleTap(item as Notification)}
-                              className="flex-1 rounded-[10px] px-3 py-2 items-center justify-center border"
+                              className="flex-1 px-3 py-2 items-center justify-center border"
                               style={{ 
                                 backgroundColor: 'transparent',
-                                borderColor: PROFILE_THEME_COLORS.outlineVariant 
+                                borderColor: PROFILE_THEME_COLORS.outlineVariant,
+                                borderRadius: RADIUS.md
                               }}
                             >
                               <Text

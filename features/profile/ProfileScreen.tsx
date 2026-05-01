@@ -27,7 +27,7 @@ import {
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { SPACING } from '@/constants/screenLayout'
+import { RADIUS, SPACING } from '@/constants/screenLayout'
 import { STRINGS } from '@/constants/strings'
 
 import type { 
@@ -292,8 +292,8 @@ export function ProfileScreen() {
 
             <View className="mt-4 flex-row items-center flex-wrap gap-2">
               <View
-                className="rounded-full px-3 py-1"
-                style={{ backgroundColor: PROFILE_PAGE_COLORS.primaryContainer }}
+                className="px-3 py-1"
+                style={{ backgroundColor: PROFILE_PAGE_COLORS.primaryContainer, borderRadius: RADIUS.md }}
               >
                 <Text
                   style={{
@@ -309,8 +309,8 @@ export function ProfileScreen() {
               </View>
 
               <View
-                className="rounded-full px-3 py-1"
-                style={{ backgroundColor: PROFILE_PAGE_COLORS.primary }}
+                className="px-3 py-1"
+                style={{ backgroundColor: PROFILE_PAGE_COLORS.primary, borderRadius: RADIUS.md }}
               >
                 <Text
                   style={{
@@ -357,7 +357,7 @@ export function ProfileScreen() {
           <View className="mb-10 gap-4">
             <ProfileSectionDivider index="01" title={STRINGS.profile.sections.overview} />
             <View className="flex-row justify-between gap-4">
-              <View className="flex-1 rounded-[24px] p-4" style={{ backgroundColor: PROFILE_PAGE_COLORS.surfaceContainerLow }}>
+              <View className="flex-1 p-4" style={{ backgroundColor: PROFILE_PAGE_COLORS.surfaceContainerLow, borderRadius: RADIUS.xl }}>
                 <Swords size={22} color={PROFILE_PAGE_COLORS.primary} />
                 <Text className="mt-4 text-[28px]" style={{ color: PROFILE_PAGE_COLORS.primary, fontFamily: SCREEN_FONTS.cta }}>
                   {player.sessions_joined ?? 0}
@@ -367,7 +367,7 @@ export function ProfileScreen() {
                 </Text>
               </View>
 
-              <View className="flex-1 rounded-[24px] p-4" style={{ backgroundColor: PROFILE_PAGE_COLORS.secondaryContainer }}>
+              <View className="flex-1 p-4" style={{ backgroundColor: PROFILE_PAGE_COLORS.secondaryContainer, borderRadius: RADIUS.xl }}>
                 <CalendarDays size={22} color={PROFILE_PAGE_COLORS.surfaceTint} />
                 <Text className="mt-4 text-[28px]" style={{ color: PROFILE_PAGE_COLORS.surfaceTint, fontFamily: SCREEN_FONTS.cta }}>
                   {hostedCount}

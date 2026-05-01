@@ -156,7 +156,7 @@ export function FindSessionScreen() {
             gap: 4,
             padding: 4,
             backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
-            borderRadius: 16,
+            borderRadius: RADIUS.lg,
             borderWidth: 1,
             borderColor: PROFILE_THEME_COLORS.outlineVariant,
             overflow: 'hidden',
@@ -167,7 +167,7 @@ export function FindSessionScreen() {
             className="flex-1 items-center justify-center py-2.5"
             style={{
               backgroundColor: sortMode === 'match' ? PROFILE_THEME_COLORS.primary : 'transparent',
-              borderRadius: 12,
+              borderRadius: RADIUS.md,
             }}
           >
             <Text
@@ -188,7 +188,7 @@ export function FindSessionScreen() {
             className="flex-1 items-center justify-center py-2.5"
             style={{
               backgroundColor: sortMode === 'time' ? PROFILE_THEME_COLORS.primary : 'transparent',
-              borderRadius: 12,
+              borderRadius: RADIUS.md,
             }}
           >
             <Text
@@ -209,9 +209,10 @@ export function FindSessionScreen() {
       {/* Preferred court filter banner */}
       {preferredCourtFilter ? (
         <View
-          className="mx-5 mb-4 flex-row items-center rounded-[20px] px-4 py-3"
+          className="mx-5 mb-4 flex-row items-center px-4 py-3"
           style={{
             backgroundColor: PROFILE_THEME_COLORS.secondaryContainer,
+            borderRadius: RADIUS.xl,
           }}
         >
           <View className="flex-1 pr-3">

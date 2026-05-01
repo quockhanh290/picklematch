@@ -3,12 +3,13 @@ import { supabase } from '@/lib/supabase'
 import { router } from 'expo-router'
 import { ShieldCheck, Smartphone, CheckCircle2 } from 'lucide-react-native'
 import DevLoginSection from '@/components/auth/DevLoginSection'
-import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/profileTheme'
 import { StatusBar } from 'expo-status-bar'
 import { useState } from 'react'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { RADIUS, SPACING, BORDER, SHADOW } from '@/constants/screenLayout'
+import { STRINGS } from '@/constants/strings'
 import {
   KeyboardAvoidingView,
   Platform,
@@ -160,12 +161,12 @@ export default function LoginScreen() {
       >
         {/* Editorial Hero Section */}
         <View style={{ 
-          backgroundColor: '#0F6E56', 
+          backgroundColor: PROFILE_THEME_COLORS.primary, 
           paddingTop: insets.top + 40,
           paddingBottom: 90,
           paddingHorizontal: 24,
-          borderBottomLeftRadius: 48,
-          borderBottomRightRadius: 48,
+          borderBottomLeftRadius: RADIUS.hero,
+          borderBottomRightRadius: RADIUS.hero,
         }}>
           <View style={{ marginBottom: 24 }}>
             <View style={{ width: 48, height: 6, backgroundColor: 'white', borderRadius: RADIUS.full, marginBottom: 20, opacity: 0.8 }} />
@@ -239,7 +240,7 @@ export default function LoginScreen() {
                 fontFamily: SCREEN_FONTS.headline,
                 textTransform: 'uppercase'
               }}>
-                {step === 'phone' ? 'Đăng nhập' : 'Xác thực OTP'}
+                {step === 'phone' ? STRINGS.auth.login_title : STRINGS.auth.otp_title}
               </Text>
               <Text style={{ 
                 marginTop: 4, 
@@ -248,8 +249,8 @@ export default function LoginScreen() {
                 fontFamily: SCREEN_FONTS.body 
               }}>
                 {step === 'phone' 
-                  ? 'Sử dụng số điện thoại để tiếp tục' 
-                  : `Mã đã gửi tới ${formattedPhonePreview}`}
+                  ? STRINGS.auth.phone_sub 
+                  : `${STRINGS.auth.otp_sub} ${formattedPhonePreview}`}
               </Text>
             </View>
 
@@ -277,7 +278,7 @@ export default function LoginScreen() {
                   <TextInput
                     value={phone}
                     onChangeText={setPhone}
-                    placeholder="Nhập số điện thoại"
+                    placeholder={STRINGS.auth.phone_placeholder}
                     placeholderTextColor={PROFILE_THEME_COLORS.outline}
                     keyboardType="phone-pad"
                     maxLength={10}
@@ -298,7 +299,7 @@ export default function LoginScreen() {
                   fontFamily: SCREEN_FONTS.body,
                   lineHeight: 18
                 }}>
-                  Chúng tôi sẽ gửi một mã xác thực 6 số qua SMS để bảo mật tài khoản của bạn.
+                  {STRINGS.auth.phone_hint}
                 </Text>
               </View>
             ) : (
@@ -324,7 +325,7 @@ export default function LoginScreen() {
                     fontSize: 14,
                     textDecorationLine: 'underline'
                   }}>
-                    Gửi lại mã xác thực
+                    {STRINGS.auth.resend_otp}
                   </Text>
                 </Pressable>
               </View>
@@ -336,7 +337,7 @@ export default function LoginScreen() {
               style={{
                 marginTop: 32,
                 height: 56,
-                borderRadius: RADIUS.full,
+                borderRadius: RADIUS.md,
                 backgroundColor: PROFILE_THEME_COLORS.primary,
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -350,7 +351,7 @@ export default function LoginScreen() {
                 textTransform: 'uppercase',
                 letterSpacing: 1
               }}>
-                {loading ? 'Đang xử lý...' : step === 'phone' ? 'Tiếp tục →' : 'Xác nhận'}
+                {loading ? STRINGS.auth.processing : step === 'phone' ? STRINGS.auth.submit_phone : STRINGS.auth.submit_otp}
               </Text>
             </TouchableOpacity>
 
@@ -364,7 +365,7 @@ export default function LoginScreen() {
                   fontFamily: SCREEN_FONTS.label,
                   fontSize: 13
                 }}>
-                  Đổi số điện thoại
+                  {STRINGS.auth.change_phone}
                 </Text>
               </Pressable>
             )}
@@ -374,18 +375,18 @@ export default function LoginScreen() {
           <View style={{ 
             marginTop: 24, 
             flexDirection: 'row', 
-            backgroundColor: '#E1F5EE',
-            borderRadius: RADIUS.lg,
+            backgroundColor: PROFILE_THEME_COLORS.secondaryContainer,
+            borderRadius: RADIUS.md,
             padding: 16,
             gap: 12
           }}>
-            <ShieldCheck size={20} color="#0F6E56" />
+            <ShieldCheck size={20} color={PROFILE_THEME_COLORS.primary} />
             <View style={{ flex: 1 }}>
-              <Text style={{ color: '#0F6E56', fontFamily: SCREEN_FONTS.headline, fontSize: 12, textTransform: 'uppercase' }}>
-                Bảo mật tuyệt đối
+              <Text style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.headline, fontSize: 12, textTransform: 'uppercase' }}>
+                {STRINGS.auth.trust_title}
               </Text>
-              <Text style={{ color: '#0F6E56', fontFamily: SCREEN_FONTS.body, fontSize: 12, lineHeight: 18, marginTop: 2, opacity: 0.8 }}>
-                Thông tin của bạn được mã hóa và bảo mật theo tiêu chuẩn cao nhất.
+              <Text style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.body, fontSize: 12, lineHeight: 18, marginTop: 2, opacity: 0.8 }}>
+                {STRINGS.auth.trust_sub}
               </Text>
             </View>
           </View>
@@ -396,8 +397,8 @@ export default function LoginScreen() {
               fontFamily: SCREEN_FONTS.body,
               fontSize: 14 
             }}>
-              Chưa có tài khoản?{' '}
-              <Text style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.headline }}>Tham gia ngay</Text>
+              {STRINGS.auth.no_account}{' '}
+              <Text style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.headline }}>{STRINGS.auth.join_now}</Text>
             </Text>
             
             <View style={{ flexDirection: 'row', gap: 12, marginTop: 24, opacity: 0.5 }}>

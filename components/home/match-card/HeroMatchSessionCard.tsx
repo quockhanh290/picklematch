@@ -122,7 +122,7 @@ export function HeroMatchSessionCard({ item }: HeroMatchSessionCardProps) {
             </Text>
             <Text
               style={{
-                color: '#FFFFFF',
+                color: PROFILE_THEME_COLORS.onPrimary,
                 fontFamily: SCREEN_FONTS.headline,
                 fontSize: 52,
                 lineHeight: 54,
@@ -141,7 +141,7 @@ export function HeroMatchSessionCard({ item }: HeroMatchSessionCardProps) {
               numberOfLines={2}
               ellipsizeMode="tail"
               style={{
-                color: '#FFFFFF',
+                color: PROFILE_THEME_COLORS.onPrimary,
                 fontFamily: AppFontSet.headline,
                 fontSize: 19,
                 lineHeight: 21,
@@ -161,7 +161,7 @@ export function HeroMatchSessionCard({ item }: HeroMatchSessionCardProps) {
                 marginBottom: 8,
               }}
             >
-              <Text style={{ color: '#FFFFFF', fontFamily: SCREEN_FONTS.label, fontSize: 12, lineHeight: 16 }}>
+              <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.label, fontSize: 12, lineHeight: 16 }}>
                 {item.skillLabel}
               </Text>
             </View>
@@ -248,9 +248,9 @@ export function HeroMatchSessionCard({ item }: HeroMatchSessionCardProps) {
             event.stopPropagation()
             router.push({ pathname: '/session/[id]' as never, params: { id: item.id } })
           }}
-          style={{ backgroundColor: '#FFFFFF', ...BUTTON.pill, flexShrink: 0 }}
+          style={{ backgroundColor: PROFILE_THEME_COLORS.surface, ...BUTTON.pill, flexShrink: 0 }}
         >
-          <Text style={{ color: '#0F6E56', fontFamily: SCREEN_FONTS.headline, fontSize: 15, lineHeight: 18, textTransform: 'uppercase' }}>
+          <Text style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.headline, fontSize: 15, lineHeight: 18, textTransform: 'uppercase' }}>
             {'Xem \u2192'}
           </Text>
         </Pressable>

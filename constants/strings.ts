@@ -1,4 +1,4 @@
-﻿export const STRINGS = {
+export const STRINGS = {
   common: {
     confirmed: 'Đã xác nhận',
     pending: 'Đang chờ',
@@ -142,12 +142,41 @@
     empty: {
       no_courts: 'Chưa có sân yêu thích',
       no_courts_sub: 'Thêm sân bạn hay chơi để nhận gợi ý kèo phù hợp hơn.',
+      login_required: 'Đăng nhập để xem hồ sơ',
+      login_required_sub: 'Quản lý thông tin cá nhân và lịch sử tham gia kèo của bạn ở một nơi gọn gàng hơn.',
+      not_found: 'Không tìm thấy hồ sơ',
+      not_found_sub: 'Thử tải lại hoặc đăng nhập lại để tiếp tục.',
     },
   },
   onboarding: {
     complete: 'Hoàn tất',
     next: 'Tiếp theo',
     start: 'Bắt đầu ngay',
+    title: 'PHÂN LOẠI TRÌNH ĐỘ',
+    step_label: 'BƯỚC',
+    result_title: 'KẾT QUẢ TỰ ĐÁNH GIÁ',
+    initial_elo: 'Elo khởi điểm dự kiến',
+    redo_quiz: 'LÀM LẠI QUIZ',
+    view_result: 'Xem kết quả',
+    confirm_level: 'XÁC NHẬN MỨC NÀY',
+    submit_error: 'Không thể lưu kết quả lúc này. Vui lòng thử lại sau ít phút.',
+  },
+  auth: {
+    login_title: 'Đăng nhập',
+    otp_title: 'Xác thực OTP',
+    phone_sub: 'Sử dụng số điện thoại để tiếp tục',
+    otp_sub: 'Mã đã gửi tới',
+    phone_placeholder: 'Nhập số điện thoại',
+    phone_hint: 'Chúng tôi sẽ gửi một mã xác thực 6 số qua SMS để bảo mật tài khoản của bạn.',
+    resend_otp: 'Gửi lại mã xác thực',
+    change_phone: 'Đổi số điện thoại',
+    submit_phone: 'Tiếp tục →',
+    submit_otp: 'Xác nhận',
+    processing: 'Đang xử lý...',
+    trust_title: 'Bảo mật tuyệt đối',
+    trust_sub: 'Thông tin của bạn được mã hóa và bảo mật theo tiêu chuẩn cao nhất.',
+    no_account: 'Chưa có tài khoản?',
+    join_now: 'Tham gia ngay',
   },
   session_detail: {
     title: 'CHI TIẾT KÈO',

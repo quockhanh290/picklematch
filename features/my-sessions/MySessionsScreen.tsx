@@ -206,7 +206,7 @@ export function MySessionsScreen() {
                     gap: 4,
                     padding: 4,
                     backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
-                    borderRadius: 16,
+                    borderRadius: RADIUS.lg,
                     borderWidth: 1,
                     borderColor: PROFILE_THEME_COLORS.outlineVariant,
                     overflow: 'hidden',
@@ -220,7 +220,7 @@ export function MySessionsScreen() {
                         onPress={() => setActiveTab(tab.key)}
                         className="flex-1 py-2.5 items-center justify-center"
                         style={[
-                          { borderRadius: 12 }, 
+                          { borderRadius: RADIUS.md }, 
                           active && { backgroundColor: PROFILE_THEME_COLORS.primary }
                         ]}
                       >
@@ -260,8 +260,9 @@ export function MySessionsScreen() {
                     >
                       <Pressable
                         onPress={() => setHistoryFilterModalVisible(true)}
-                        className="flex-row items-center self-start rounded-full px-4 py-2.5"
+                        className="flex-row items-center self-start px-4 py-2.5"
                         style={{
+                          borderRadius: RADIUS.md,
                           backgroundColor: activeHistoryFiltersCount > 0 ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surfaceContainerLow,
                           borderWidth: BORDER.base,
                           borderColor: activeHistoryFiltersCount > 0 ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,

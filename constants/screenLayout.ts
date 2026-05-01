@@ -122,13 +122,13 @@ export const BUTTON = {
   },
   /** Inline pill button (Vào kèo label on card) */
   pill: {
-    borderRadius: 999, // RADIUS.full
+    borderRadius: RADIUS.md,
     paddingVertical: 8,
     paddingHorizontal: 16,
   },
   /** Compact pill chip (filter, skill selector, deadline option) */
   pillSm: {
-    borderRadius: RADIUS.full,
+    borderRadius: RADIUS.md,
     paddingVertical: SPACING.xs,
     paddingHorizontal: SPACING.sm,
   },

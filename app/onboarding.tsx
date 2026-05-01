@@ -30,6 +30,7 @@ import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
 import { AppButton } from '@/components/design/AppButton'
 import { AppDialog, type AppDialogConfig } from '@/components/design/AppDialog'
 import { SecondaryNavbar } from '@/components/design/SecondaryNavbar'
+import { STRINGS } from '@/constants/strings'
 
 type AnswerLabels = Partial<Record<OnboardingQuestionId, string>>
 type AnswerScores = Partial<Record<OnboardingQuestionId, number>>
@@ -217,12 +218,12 @@ export default function OnboardingScreen() {
     message: resultPreview.description,
     actions: [
       {
-        label: 'LÀM LẠI QUIZ',
+        label: STRINGS.onboarding.redo_quiz,
         onPress: restartQuiz,
         tone: 'secondary'
       },
       {
-        label: 'XÁC NHẬN MỨC NÀY',
+        label: STRINGS.onboarding.confirm_level,
         onPress: confirmOnboardingResult,
         tone: 'primary'
       }
@@ -233,7 +234,7 @@ export default function OnboardingScreen() {
     <View style={{ flex: 1, backgroundColor: ONBOARDING_THEME.background }}>
       <StatusBar style="dark" translucent backgroundColor="#F2F0E8" />
       <SecondaryNavbar
-        title="PHÂN LOẠI TRÌNH ĐỘ"
+        title={STRINGS.onboarding.title}
         showProgress
         progress={progress / 100}
         onBackPress={handleBack}
@@ -250,15 +251,15 @@ export default function OnboardingScreen() {
       >
         <View style={{ flex: 1 }}>
           <View className="mb-8 flex-row items-center justify-between">
-            <View className="rounded-full px-4 py-2" style={{ backgroundColor: ONBOARDING_THEME.accent }}>
+            <View className="px-4 py-2" style={{ backgroundColor: ONBOARDING_THEME.accent, borderRadius: RADIUS.md }}>
               <Text style={{ color: ONBOARDING_THEME.accentDeep, fontSize: 12, letterSpacing: 0.8, fontFamily: SCREEN_FONTS.cta }}>
-                  BƯỚC {stepIndex + 1} / {ONBOARDING_QUESTIONS.length}
+                  {STRINGS.onboarding.step_label} {stepIndex + 1} / {ONBOARDING_QUESTIONS.length}
               </Text>
             </View>
-            <View className="flex-row items-center rounded-full px-3 py-2" style={{ backgroundColor: ONBOARDING_THEME.panel }}>
+            <View className="flex-row items-center px-3 py-2" style={{ backgroundColor: ONBOARDING_THEME.panel, borderRadius: RADIUS.md }}>
               <Swords size={14} color={ONBOARDING_THEME.accentDeep} />
               <Text style={{ marginLeft: 6, color: ONBOARDING_THEME.textMuted, fontSize: 12, fontFamily: SCREEN_FONTS.cta }}>
-                PHÂN LOẠI TRÌNH ĐỘ
+                {STRINGS.onboarding.title}
               </Text>
             </View>
           </View>
@@ -357,7 +358,7 @@ export default function OnboardingScreen() {
         <View className="flex-row items-center" style={{ gap: 12 }}>
           <View style={{ flex: 1 }}>
             <AppButton
-              label="Quay lại"
+              label={STRINGS.common.back}
               variant="secondary"
               onPress={handleBack}
               disabled={submitting || stepIndex === 0}
@@ -366,7 +367,7 @@ export default function OnboardingScreen() {
 
           <View style={{ flex: 2 }}>
             <AppButton
-              label={isLastQuestion ? 'Xem kết quả' : 'Tiếp theo'}
+              label={isLastQuestion ? STRINGS.onboarding.view_result : STRINGS.onboarding.next}
               onPress={isLastQuestion ? openResultPreview : handleNext}
               disabled={!isCurrentAnswerSelected || submitting}
             />
@@ -386,18 +387,18 @@ export default function OnboardingScreen() {
               justifyContent: 'space-between',
             }}
           >
-            <Text style={{ color: PROFILE_THEME_COLORS.error, fontSize: 14, fontFamily: SCREEN_FONTS.cta }}>Có lỗi xảy ra, thử lại nhé</Text>
+            <Text style={{ color: PROFILE_THEME_COLORS.error, fontSize: 14, fontFamily: SCREEN_FONTS.cta }}>{STRINGS.onboarding.submit_error}</Text>
             <TouchableOpacity
               activeOpacity={0.92}
               onPress={openResultPreview}
               style={{
-                borderRadius: RADIUS.full,
+                borderRadius: RADIUS.md,
                 backgroundColor: PROFILE_THEME_COLORS.error,
                 paddingHorizontal: 12,
                 paddingVertical: 8,
               }}
             >
-              <Text style={{ color: ONBOARDING_THEME.white, fontSize: 13, fontFamily: SCREEN_FONTS.cta }}>Thử lại</Text>
+              <Text style={{ color: ONBOARDING_THEME.white, fontSize: 13, fontFamily: SCREEN_FONTS.cta }}>{STRINGS.common.retry}</Text>
             </TouchableOpacity>
           </View>
         ) : null}
@@ -440,7 +441,7 @@ export default function OnboardingScreen() {
                 textTransform: 'uppercase'
               }}
             >
-              KẾT QUẢ TỰ ĐÁNH GIÁ
+              {STRINGS.onboarding.result_title}
             </Text>
             <Text
               style={{
@@ -482,7 +483,7 @@ export default function OnboardingScreen() {
                   textAlign: 'center',
                 }}
               >
-                Elo khởi điểm dự kiến
+                {STRINGS.onboarding.initial_elo}
               </Text>
               <Text
                 style={{
@@ -508,14 +509,14 @@ export default function OnboardingScreen() {
                   fontFamily: SCREEN_FONTS.cta,
                 }}
               >
-                Không thể lưu kết quả lúc này. Vui lòng thử lại sau ít phút.
+                {STRINGS.onboarding.submit_error}
               </Text>
             ) : null}
 
             <View className="mt-8 w-full flex-row items-center" style={{ gap: 12 }}>
               <View style={{ flex: 1 }}>
                 <AppButton
-                  label="Làm lại quiz"
+                  label={STRINGS.onboarding.redo_quiz}
                   variant="secondary"
                   onPress={restartQuiz}
                   disabled={submitting}
@@ -523,7 +524,7 @@ export default function OnboardingScreen() {
               </View>
               <View style={{ flex: 1.2 }}>
                 <AppButton
-                  label="Xác nhận"
+                  label={STRINGS.common.confirm}
                   onPress={confirmOnboardingResult}
                   loading={submitting}
                 />
