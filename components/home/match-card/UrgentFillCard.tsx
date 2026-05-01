@@ -29,8 +29,7 @@ export function UrgentFillCard({ item }: UrgentFillCardProps) {
     .split(',')
     .map((part) => part.trim())
     .filter(Boolean)
-  const addressBase = addressParts.length >= 2 ? addressParts[addressParts.length - 2] : addressParts[0] ?? item.address
-  const addressLabel = [addressBase, distanceLabel].filter(Boolean).join(' \u00b7 ')
+  const addressLabel = [item.address, distanceLabel].filter(Boolean).join(' \u00b7 ')
   const waitingPlayers = Math.max(item.maxPlayers - item.activePlayers, 0)
   const urgentText = waitingPlayers === 1 ? 'c\u00f2n 1 ch\u1ed7 duy nh\u1ea5t' : `c\u00f2n ${waitingPlayers} ch\u1ed7`
   const stripLabel = `${waitingPlayers > 0 ? `C\u00d2N ${waitingPlayers} CH\u1ed6` : '\u0110\u1ee6 NG\u01af\u1edcI'} \u00b7 C\u1ea6N NG\u01af\u1edcI G\u1ea4P`
@@ -99,7 +98,7 @@ export function UrgentFillCard({ item }: UrgentFillCardProps) {
 
       <View style={{ paddingTop: 12, paddingHorizontal: 16, paddingBottom: 8 }}>
         <Text
-          numberOfLines={2}
+          numberOfLines={1}
           ellipsizeMode="tail"
           style={{
             color: PROFILE_THEME_COLORS.onSurface,

@@ -49,6 +49,15 @@ export async function fetchHomeDataApi(userId: string | null): Promise<HomeData>
     .eq('status', 'open')
     .order('created_at', { ascending: false })
     .limit(30)
+  
+  // 1. Get IDs of sessions the user is in
+  const mySessionIdsPromise = userId
+    ? supabase
+        .from('session_players')
+        .select('session_id')
+        .eq('player_id', userId)
+        .limit(20)
+    : Promise.resolve({ data: [] })
 
   const profilePromise = userId
     ? supabase
@@ -114,6 +123,12 @@ export async function fetchHomeDataApi(userId: string | null): Promise<HomeData>
         .eq('status', 'pending')
     : Promise.resolve({ data: [] })
 
+  const courtsPromise = supabase
+    .from('courts')
+    .select('id, name, address, city, thumbnail_url, rating, rating_count, amenities, highlight')
+    .order('rating', { ascending: false })
+    .limit(10)
+
   const overviewPromise = userId ? supabase.rpc('get_my_sessions_overview') : Promise.resolve({ data: [] })
 
   const [
@@ -123,7 +138,9 @@ export async function fetchHomeDataApi(userId: string | null): Promise<HomeData>
     pendingMatchesResult, 
     playerPostMatchActionsResult, 
     overviewResult,
-    pendingJoinRequestsResult
+    pendingJoinRequestsResult,
+    mySessionIdsResult,
+    courtsResult
   ] = await Promise.all([
     openSessionsPromise,
     profilePromise,
@@ -132,19 +149,65 @@ export async function fetchHomeDataApi(userId: string | null): Promise<HomeData>
     playerPostMatchActionsPromise,
     overviewPromise,
     pendingJoinRequestsPromise,
+    mySessionIdsPromise,
+    courtsPromise
   ])
 
+  const mySessionIds = (mySessionIdsResult.data || []).map((r: any) => r.session_id)
+  
+  // 2. Fetch full details for those sessions (to get ALL participants)
+  let mySessionsRawResult: any[] = []
+  if (mySessionIds.length > 0) {
+    const { data: fullMySessions } = await supabase
+      .from('sessions')
+      .select(`
+        id, host_id, is_ranked, elo_min, elo_max, max_players, status, court_booking_status, created_at,
+        host:host_id ( id, name, current_elo, elo, self_assessed_level, skill_label, reliability_score, host_reputation ),
+        slot:slot_id (
+          id, start_time, end_time, price,
+          court:court_id ( id, name, address, city, thumbnail_url, rating, rating_count, amenities, highlight )
+        ),
+        session_players (
+          player_id, status,
+          player:player_id ( id, name, reliability_score, current_elo, self_assessed_level, skill_label )
+        )
+      `)
+      .in('id', mySessionIds)
+      .in('status', ['open', 'closed_recruitment'])
+      .gte('slot.start_time', new Date().toISOString())
+      .order('slot(start_time)', { ascending: true })
+    
+    mySessionsRawResult = fullMySessions || []
+  }
+
   const openSessionsRaw = (openSessionsResult.data ?? []) as unknown as HomeSessionRecordRaw[]
+  const mySessionsRaw = mySessionsRawResult as unknown as HomeSessionRecordRaw[]
+  const courtsRaw = (courtsResult.data ?? []) as any[]
   const pendingJoinRequestIds = new Set((pendingJoinRequestsResult.data ?? []).map((r: any) => r.match_id))
 
-  const openSessions = openSessionsRaw
-    .map(normalizeHomeSessionRecord)
-    .filter(session => {
-      if (!userId) return true
-      const isJoined = session.host_id === userId || session.session_players.some(p => p.player_id === userId)
-      const hasPendingRequest = pendingJoinRequestIds.has(session.id)
-      return !isJoined && !hasPendingRequest
-    })
+  const allFetchedSessions = [
+    ...openSessionsRaw.map(normalizeHomeSessionRecord),
+    ...mySessionsRaw.map(normalizeHomeSessionRecord)
+  ]
+
+  // Remove duplicates by session ID
+  const uniqueSessionsMap = new Map(allFetchedSessions.map(s => [s.id, s]))
+  const allSessions = Array.from(uniqueSessionsMap.values())
+
+  const totalOpenSessions = allSessions.filter(s => s.status === 'open')
+
+  const openSessions = totalOpenSessions.filter(session => {
+    if (!userId) return true
+    const isJoined = session.host_id === userId || session.session_players.some(p => p.player_id === userId)
+    const hasPendingRequest = pendingJoinRequestIds.has(session.id)
+    return !isJoined && !hasPendingRequest
+  })
+
+  const myUpcomingSessions = allSessions.filter(session => {
+    if (!userId) return false
+    return session.host_id === userId || session.session_players.some(p => p.player_id === userId)
+  })
+
   const nextProfile = (profileResult.data ?? null) as HomeProfile | null
   const nextPlayerStats = (playerStatsResult.data ?? null) as PlayerStatsRecord | null
   const favoriteCourtIds = nextProfile?.favorite_court_ids?.filter(Boolean) ?? []
@@ -167,18 +230,11 @@ export async function fetchHomeDataApi(userId: string | null): Promise<HomeData>
     (left, right) => Date.parse(left.slot?.start_time ?? '') - Date.parse(right.slot?.start_time ?? ''),
   )
 
-  const upcomingOverview = overviewRows
-    .filter((item) => item.status === 'open' && isWithinNext24Hours(item.start_time))
-    .sort((left, right) => Date.parse(left.start_time) - Date.parse(right.start_time))[0]
+  const sortedMyUpcoming = [...myUpcomingSessions]
+    .filter(s => isWithinNext24Hours(s.slot?.start_time ?? ''))
+    .sort((left, right) => Date.parse(left.slot?.start_time ?? '') - Date.parse(right.slot?.start_time ?? ''))
 
-  const liveNextSession =
-    sortedOpenSessions.find((session) => session.id === upcomingOverview?.id) ??
-    sortedOpenSessions.find(
-      (session) =>
-        isWithinNext24Hours(session.slot?.start_time ?? '') &&
-        (session.host_id === userId || session.session_players.some((player) => player.player_id === userId)),
-    ) ??
-    null
+  const liveNextSession = sortedMyUpcoming[0] ?? null
 
   const nextPendingMatches = pendingRows
     .map((item) => {
@@ -253,9 +309,10 @@ export async function fetchHomeDataApi(userId: string | null): Promise<HomeData>
     playerStats: nextPlayerStats,
     pendingMatches: nextPendingMatches,
     postMatchActions: nextPostMatchActions,
-    familiarCourts: buildLiveFamiliarCourts(sortedOpenSessions, {
+    familiarCourts: buildLiveFamiliarCourts(totalOpenSessions, {
       favoriteCourtIds,
       favoriteCourtsMeta,
+      courtsRaw,
     }),
     nextMatch: liveNextSession
       ? mapLiveSessionToMatchSession(liveNextSession, {

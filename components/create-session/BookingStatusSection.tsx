@@ -1,10 +1,13 @@
 import React from 'react'
-import { Pressable, Text, TextInput, View } from 'react-native'
+import { Pressable, Text, TextInput, View, Linking, TouchableOpacity } from 'react-native'
 import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
+import { Phone, Navigation, MapPin } from 'lucide-react-native'
+import type { NearByCourt } from '@/lib/useNearbyCourts'
 
 interface BookingStatusSectionProps {
+  selectedCourt: NearByCourt | null
   bookingStatus: 'confirmed' | 'unconfirmed'
   setBookingStatus: (s: 'confirmed' | 'unconfirmed') => void
   wantsBookingNow: boolean | null
@@ -23,6 +26,7 @@ interface BookingStatusSectionProps {
 }
 
 export function BookingStatusSection({
+  selectedCourt,
   bookingStatus,
   setBookingStatus,
   wantsBookingNow,
@@ -39,6 +43,18 @@ export function BookingStatusSection({
   bookingNotes,
   setBookingNotes,
 }: BookingStatusSectionProps) {
+  const handleCall = () => {
+    if (selectedCourt?.phone) {
+      Linking.openURL(`tel:${selectedCourt.phone}`)
+    }
+  }
+
+  const handleOpenMaps = () => {
+    if (selectedCourt?.google_maps_url) {
+      Linking.openURL(selectedCourt.google_maps_url)
+    }
+  }
+
   return (
     <View style={{ borderRadius: RADIUS.xl, borderWidth: BORDER.base, borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, padding: SPACING.lg, marginBottom: 14 }}>
       <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 12, letterSpacing: 1.2, color: PROFILE_THEME_COLORS.primary, marginBottom: 10 }}>
@@ -108,12 +124,60 @@ export function BookingStatusSection({
         </View>
       ) : null}
 
-      {showBookingLinkCta ? (
-        <Pressable onPress={onOpenBookingLink} style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1, marginBottom: 12 })}>
-          <View style={{ borderRadius: RADIUS.md, borderWidth: BORDER.base, borderColor: PROFILE_THEME_COLORS.secondaryFixedDim, backgroundColor: PROFILE_THEME_COLORS.secondaryContainer, paddingVertical: SPACING.sm, alignItems: 'center' }}>
-            <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 13, color: PROFILE_THEME_COLORS.surfaceTint }}>Mở link đặt sân</Text>
+      {bookingStatus === 'unconfirmed' && wantsBookingNow === true && selectedCourt ? (
+        <View style={{ 
+          backgroundColor: PROFILE_THEME_COLORS.surface, 
+          borderRadius: RADIUS.lg, 
+          padding: 16, 
+          marginBottom: 16,
+          borderWidth: 1,
+          borderColor: PROFILE_THEME_COLORS.outlineVariant
+        }}>
+          <Text style={{ fontFamily: SCREEN_FONTS.headlineBlack, fontSize: 15, color: PROFILE_THEME_COLORS.onSurface, marginBottom: 4, textTransform: 'uppercase' }}>
+            {selectedCourt.name}
+          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 12 }}>
+            <MapPin size={12} color={PROFILE_THEME_COLORS.onSurfaceVariant} style={{ marginTop: 2 }} />
+            <Text style={{ flex: 1, marginLeft: 6, fontFamily: SCREEN_FONTS.body, fontSize: 12, color: PROFILE_THEME_COLORS.onSurfaceVariant }}>
+              {selectedCourt.address}
+            </Text>
           </View>
-        </Pressable>
+
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <TouchableOpacity 
+              onPress={handleCall}
+              style={{ 
+                flex: 1.2, 
+                flexDirection: 'row', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                backgroundColor: PROFILE_THEME_COLORS.primary, 
+                paddingVertical: 10, 
+                borderRadius: RADIUS.md 
+              }}
+            >
+              <Phone size={14} color="#FFF" />
+              <Text style={{ marginLeft: 8, color: '#FFF', fontFamily: SCREEN_FONTS.headline, fontSize: 13 }}>ĐẶT SÂN NGAY</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              onPress={handleOpenMaps}
+              style={{ 
+                flex: 1, 
+                flexDirection: 'row', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, 
+                paddingVertical: 10, 
+                borderRadius: RADIUS.md,
+                borderWidth: 1,
+                borderColor: PROFILE_THEME_COLORS.outlineVariant
+              }}
+            >
+              <Navigation size={14} color={PROFILE_THEME_COLORS.primary} />
+              <Text style={{ marginLeft: 8, color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.headline, fontSize: 13 }}>CHỈ ĐƯỜNG</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       ) : null}
 
       {shouldShowBookingDetails ? (

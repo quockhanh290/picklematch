@@ -13,9 +13,19 @@ export function buildLiveFamiliarCourts(
   options?: {
     favoriteCourtIds?: string[] | null
     favoriteCourtsMeta?: FavoriteCourtMeta[]
+    courtsRaw?: any[]
   },
 ): FamiliarCourt[] {
-  const grouped = new Map<string, { id: string; name: string; area: string; openMatches: number; thumbnail_url?: string | null; rating?: number | null; rating_count?: number | null }>()
+  const grouped = new Map<string, { 
+    id: string; 
+    name: string; 
+    area: string; 
+    openMatches: number; 
+    thumbnail_url?: string | null; 
+    rating?: number | null; 
+    rating_count?: number | null;
+    image?: string | null;
+  }>()
 
   sessions.forEach((session) => {
     const court = session.slot?.court
@@ -27,14 +37,17 @@ export function buildLiveFamiliarCourts(
       return
     }
 
+    const resolvedImage = court.thumbnail_url || (court.images && court.images.length > 0 ? court.images[0].image : null)
+
     grouped.set(court.id, {
       id: court.id,
       name: court.name,
-      area: court.city || court.address,
+      area: court.address || court.city,
       openMatches: 1,
       thumbnail_url: court.thumbnail_url,
       rating: court.rating,
       rating_count: court.rating_count,
+      image: resolvedImage,
     })
   })
 
@@ -50,6 +63,24 @@ export function buildLiveFamiliarCourts(
   const favoriteCourtIds = options?.favoriteCourtIds?.filter(Boolean) ?? []
   const favoriteCourtsMeta = options?.favoriteCourtsMeta ?? []
 
+  const courtsRaw = options?.courtsRaw ?? []
+  
+  // Merge grouped courts (active matches) with raw courts from DB
+  courtsRaw.forEach(court => {
+    if (!grouped.has(court.id)) {
+      grouped.set(court.id, {
+        id: court.id,
+        name: court.name,
+        area: court.address || court.city,
+        openMatches: 0,
+        thumbnail_url: court.thumbnail_url,
+        rating: court.rating,
+        rating_count: court.rating_count,
+        image: court.thumbnail_url
+      })
+    }
+  })
+
   if (favoriteCourtIds.length > 0) {
     const favoriteMetaMap = new Map(favoriteCourtsMeta.map((court) => [court.id, court]))
 
@@ -57,7 +88,7 @@ export function buildLiveFamiliarCourts(
       const groupedCourt = grouped.get(courtId)
       const favoriteMeta = favoriteMetaMap.get(courtId)
       const openMatches = groupedCourt?.openMatches ?? 0
-      const fallbackArea = [favoriteMeta?.city, favoriteMeta?.address].filter(Boolean).join(', ')
+      const fallbackArea = [favoriteMeta?.address, favoriteMeta?.city].filter(Boolean).join(', ')
       const resolvedArea = groupedCourt?.area ?? fallbackArea
 
       return {
@@ -66,7 +97,7 @@ export function buildLiveFamiliarCourts(
         area: resolvedArea || 'Chưa rõ khu vực',
         openMatches,
         note: buildCourtNote(openMatches),
-        image: groupedCourt?.thumbnail_url || COURT_FALLBACK_IMAGES[index % COURT_FALLBACK_IMAGES.length],
+        image: groupedCourt?.image || COURT_FALLBACK_IMAGES[index % COURT_FALLBACK_IMAGES.length],
         thumbnail_url: groupedCourt?.thumbnail_url,
         rating: groupedCourt?.rating,
         rating_count: groupedCourt?.rating_count,
@@ -83,7 +114,7 @@ export function buildLiveFamiliarCourts(
       area: court.area,
       openMatches: court.openMatches,
       note: buildCourtNote(court.openMatches),
-      image: court.thumbnail_url || COURT_FALLBACK_IMAGES[index % COURT_FALLBACK_IMAGES.length],
+      image: court.image || COURT_FALLBACK_IMAGES[index % COURT_FALLBACK_IMAGES.length],
       thumbnail_url: court.thumbnail_url,
       rating: court.rating,
       rating_count: court.rating_count,

@@ -36,7 +36,7 @@ begin
   end if;
 
   -- 2. Check if already joined.
-  select id into v_existing_id
+  select player_id into v_existing_id
   from public.session_players
   where session_id = p_session_id
     and player_id = v_uid;

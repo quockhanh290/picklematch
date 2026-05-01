@@ -67,17 +67,38 @@ export function mapLiveSessionToMatchSession(
   const joined =
     (options?.viewerId != null && session.host_id === options.viewerId) ||
     session.session_players.some((player) => player.player_id === options?.viewerId)
-  const players = session.session_players
-    .filter((player) => player.status !== 'rejected' && player.player)
-    .slice(0, 4)
-    .map((sessionPlayer) => ({
-      id: sessionPlayer.player?.id ?? sessionPlayer.player_id,
-      name: sessionPlayer.player?.name ?? 'Người chơi',
-      initials: getInitials(sessionPlayer.player?.name ?? 'Người chơi'),
-      badge: getLivePlayerBadge(sessionPlayer.player ?? undefined),
-    }))
-  const activePlayers = session.session_players.filter((player) => player.status !== 'rejected').length
+  
+  // Only count confirmed players who have valid player profile data
+  const confirmedParticipants = session.session_players.filter(
+    (sp) => sp.status === 'confirmed' && sp.player
+  )
+  
+  // Identify unique player IDs to avoid double counting the host
+  const participantIds = new Set(confirmedParticipants.map(p => p.player_id))
+  const isHostInParticipants = participantIds.has(session.host_id)
+  
+  // Calculate active players ensuring host is always included
+  const activePlayers = isHostInParticipants ? participantIds.size : participantIds.size + 1
   const slotsLeft = Math.max(session.max_players - activePlayers, 0)
+
+  // Build the players display list (avatars), ensuring host is included
+  let displayPlayers = confirmedParticipants.map(sp => ({
+    id: sp.player?.id ?? sp.player_id,
+    name: sp.player?.name ?? 'Người chơi',
+    initials: getInitials(sp.player?.name ?? 'Người chơi'),
+    badge: getLivePlayerBadge(sp.player ?? undefined),
+  }))
+
+  if (!isHostInParticipants && session.host) {
+    displayPlayers.unshift({
+      id: session.host.id,
+      name: session.host.name,
+      initials: getInitials(session.host.name),
+      badge: getLivePlayerBadge(session.host as any),
+    })
+  }
+
+  const players = displayPlayers.slice(0, 4)
   const urgent = options?.urgent ?? slotsLeft <= 2
   const court = session.slot?.court
 
@@ -93,7 +114,7 @@ export function mapLiveSessionToMatchSession(
     startTime: session.slot?.start_time,
     endTime: session.slot?.end_time,
     priceLabel: formatPriceLabel(session.slot?.price ?? 0, session.max_players),
-    openSlotsLabel: urgent ? `Thiếu ${Math.max(slotsLeft, 1)} người` : `${slotsLeft} chỗ trống`,
+    openSlotsLabel: slotsLeft === 0 ? 'Đã đủ người' : urgent ? `Thiếu ${slotsLeft} người` : `${slotsLeft} chỗ trống`,
     slotsLeft,
     statusLabel: getStatusLabel(session.court_booking_status, session.status),
     countdownLabel: isWithinNext24Hours(session.slot?.start_time ?? '') ? formatCountdownLabelFromStartTime(session.slot?.start_time ?? '') : undefined,
@@ -117,6 +138,7 @@ export function mapLiveSessionToMatchSession(
     courtBookingConfirmed: session.court_booking_status === 'confirmed',
     court_thumbnail_url: court?.thumbnail_url,
     court_rating: court?.rating,
+    court: court,
   }
 }
 

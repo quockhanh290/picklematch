@@ -5,6 +5,8 @@ import { MapPin, MessageSquareText } from 'lucide-react-native'
 import { Text, View } from 'react-native'
 import { RADIUS, SPACING, SHADOW, BORDER } from '@/constants/screenLayout'
 import type { EloLevelId } from '@/lib/eloSystem'
+import type { Court } from '@/lib/home/types'
+import { Phone, Clock } from 'lucide-react-native'
 
 type Props = {
   skillLevelId: EloLevelId
@@ -21,6 +23,7 @@ type Props = {
   resultsStatus?: string | null
   userResult?: 'win' | 'loss' | 'draw' | null
   maxPlayers: number
+  court?: Court | null
 }
 
 function withAlpha(hex: string, alpha: number) {
@@ -44,6 +47,7 @@ export function SessionMetaCard({
   resultsStatus,
   userResult,
   maxPlayers,
+  court,
 }: Props) {
   const levelUi = getSkillLevelUi(skillLevelId)
   const LevelIcon = levelUi.icon
@@ -245,6 +249,27 @@ export function SessionMetaCard({
                   {hostNote.trim()}
                 </Text>
               </View>
+            </View>
+          )}
+
+          {(court?.phone || court?.opening_hours) && (
+            <View style={{ flexDirection: 'row', gap: 16, marginTop: 4 }}>
+              {court.phone && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Phone size={12} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.5} />
+                  <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.label, fontSize: 11 }}>
+                    {court.phone}
+                  </Text>
+                </View>
+              )}
+              {court.opening_hours && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Clock size={12} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.5} />
+                  <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.label, fontSize: 11 }}>
+                    {'Giờ mở cửa'}
+                  </Text>
+                </View>
+              )}
             </View>
           )}
         </View>

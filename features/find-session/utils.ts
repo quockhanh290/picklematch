@@ -26,10 +26,11 @@ export function normalizeText(value?: string | null) {
 export function buildSearchIndex(session: Session) {
   const court = session.slot?.court
   const skill = getSkillLevelFromEloRange(session.elo_min, session.elo_max)
-  return [court?.name, court?.address, court?.city, skill.title, session.host?.name]
+  const rawText = [court?.name, court?.address, court?.city, skill.title, session.host?.name]
     .filter(Boolean)
     .join(' ')
-    .toLowerCase()
+  
+  return normalizeText(rawText)
 }
 
 export function computeMatchScore(session: Session, rescueMode: boolean, level3Mode: boolean) {

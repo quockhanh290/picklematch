@@ -27,10 +27,7 @@ export function SuggestedSessionCard({ item, showFullAddress }: SuggestedSession
     .split(',')
     .map((part) => part.trim())
     .filter(Boolean)
-  const addressBase = showFullAddress
-    ? item.address
-    : addressParts.length >= 2 ? addressParts[addressParts.length - 2] : addressParts[0] ?? item.address
-  const addressLabel = [addressBase, distanceLabel].filter(Boolean).join(' \u00b7 ')
+  const addressLabel = [item.address, distanceLabel].filter(Boolean).join(' \u00b7 ')
   const levelMatchesUser = (item as any).levelMatchesUser !== false
   const pagination = `${(item.carouselIndex ?? 0) + 1} / ${item.carouselTotal ?? 1}`
 
@@ -84,7 +81,7 @@ export function SuggestedSessionCard({ item, showFullAddress }: SuggestedSession
 
       <View style={{ paddingTop: 12, paddingHorizontal: 16, paddingBottom: 8 }}>
         <Text
-          numberOfLines={2}
+          numberOfLines={1}
           ellipsizeMode="tail"
           style={{
             color: PROFILE_THEME_COLORS.onSurface,

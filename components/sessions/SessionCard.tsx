@@ -125,7 +125,8 @@ export default function SessionCard({ session, onPress, onJoinPress }: SessionCa
         <View style={styles.courtNameWrap}>
           <Text
             numberOfLines={1}
-            ellipsizeMode="tail"
+            adjustsFontSizeToFit
+            minimumFontScale={0.7}
             style={[
               styles.courtName,
               {

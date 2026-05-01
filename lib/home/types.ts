@@ -12,6 +12,42 @@ export type Host = {
   vibe: string
 }
 
+export interface CourtImage {
+  title: string
+  image: string
+}
+
+export interface CourtOpeningHours {
+  Friday?: string[]
+  Monday?: string[]
+  Saturday?: string[]
+  Sunday?: string[]
+  Thursday?: string[]
+  Tuesday?: string[]
+  Wednesday?: string[]
+  [key: string]: string[] | undefined
+}
+
+export interface CourtReview {
+  Name: string
+  ProfilePicture: string | null
+  Rating: number
+  Description: string
+  Images: string[] | null
+  When: string
+}
+
+export interface CourtAmenityOption {
+  name: string
+  enabled: boolean
+}
+
+export interface CourtAmenityGroup {
+  id: string
+  name: string
+  options: CourtAmenityOption[]
+}
+
 export type Court = {
   id: string
   name: string
@@ -27,11 +63,11 @@ export type Court = {
   booking_url?: string | null
   place_id?: string | null
   thumbnail_url?: string | null
-  images?: any | null
-  opening_hours?: any | null
-  reviews_data?: any | null
+  images?: CourtImage[] | null
+  opening_hours?: CourtOpeningHours | null
+  reviews_data?: CourtReview[] | null
   popular_times?: any | null
-  amenities?: any | null
+  amenities?: CourtAmenityGroup[] | null
   tags?: string[] | null
   highlight?: string | null
   hours_open?: string | null
@@ -174,9 +210,10 @@ export type MatchSession = {
   endTime?: string
   priceLabel: string
   openSlotsLabel: string
-  statusLabel: string
-  countdownLabel?: string
   slotsLeft: number
+  activePlayers: number
+  maxPlayers: number
+  levelId: string
   hostInitials: string
   hostRating: number
   isBooked: boolean
@@ -186,4 +223,5 @@ export type MatchSession = {
   host: Host
   court_thumbnail_url?: string | null
   court_rating?: number | null
+  court?: Court | null
 }

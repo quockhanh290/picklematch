@@ -159,6 +159,7 @@ export function CreateSessionScreen() {
 
         {step === 2 && (
           <CreateSessionStep2
+            selectedCourt={selectedCourt}
             onBack={() => setStep(1)}
             maxPlayers={maxPlayers}
             setMaxPlayers={setMaxPlayers}
@@ -205,7 +206,7 @@ export function CreateSessionScreen() {
             maxPlayers={maxPlayers}
             minSkill={minSkill}
             maxSkill={maxSkill}
-            bookingStatus={bookingStatus}
+            bookingStatus={wantsBookingNow === true ? 'confirmed' : bookingStatus}
             deadlineMinutes={deadlineMinutes}
             requireApproval={requireApproval}
             pricePerPerson={costPerPerson}

@@ -11,8 +11,10 @@ import { PlayerCountSelector } from './PlayerCountSelector'
 import { SessionToggles } from './SessionToggles'
 import { CostInput } from './CostInput'
 import { BookingStatusSection } from './BookingStatusSection'
+import type { NearByCourt } from '@/lib/useNearbyCourts'
 
 type Props = {
+  selectedCourt: NearByCourt | null
   onBack: () => void
   maxPlayers: number
   setMaxPlayers: (n: number) => void
@@ -50,6 +52,7 @@ type Props = {
 }
 
 export function CreateSessionStep2({
+  selectedCourt,
   onBack,
   maxPlayers,
   setMaxPlayers,
@@ -90,7 +93,7 @@ export function CreateSessionStep2({
   const showBookingLinkCta = bookingStatus === 'unconfirmed' && wantsBookingNow === true && canOpenBookingLink
   const shouldShowBookingDetails =
     bookingStatus === 'confirmed' ||
-    (bookingStatus === 'unconfirmed' && wantsBookingNow === true && !canOpenBookingLink)
+    (bookingStatus === 'unconfirmed' && wantsBookingNow === true)
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}>
@@ -216,6 +219,7 @@ export function CreateSessionStep2({
           </View>
 
           <BookingStatusSection
+            selectedCourt={selectedCourt}
             bookingStatus={bookingStatus}
             setBookingStatus={setBookingStatus}
             wantsBookingNow={wantsBookingNow}

@@ -154,12 +154,9 @@ export function HomeScreen() {
         item={item}
         onPress={() =>
           router.push({
-            pathname: '/(tabs)/find-session',
-            params: {
-              courtId: item.id,
-              courtName: item.name,
-            },
-          })
+            pathname: '/court/[id]',
+            params: { id: item.id },
+          } as any)
         }
       />
     ),

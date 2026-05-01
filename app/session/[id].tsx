@@ -267,6 +267,7 @@ export default function SessionDetailScreen() {
           isRanked={session.is_ranked}
           hostNote={session.booking_notes}
           maxPlayers={session.max_players}
+          court={session.slot.court}
         />
 
         {session.is_ranked && (

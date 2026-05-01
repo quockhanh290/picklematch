@@ -9,6 +9,7 @@ export type NearByCourt = {
   name: string
   address: string
   city: string
+  phone: string | null
   lat: number | null
   lng: number | null
   hours_open: string | null   // "HH:MM", e.g. "06:00"
@@ -21,29 +22,26 @@ export type NearByCourt = {
 }
 
 type Result = {
-  /** Geo-sorted court list (geo mode) or keyword-matched list (fallback mode) */
+  /** Geo-sorted court list or keyword-matched list */
   courts: NearByCourt[]
-  /** True while the initial location + court fetch is running */
+  /** True while the initial fetch is running */
   loading: boolean
-  /** True when the user denied location — manual search is active instead */
+  /** True when location is unavailable */
   fallbackMode: boolean
-  /** Controlled search keyword (fallback mode only) */
+  /** Controlled search keyword */
   keyword: string
   setKeyword: (k: string) => void
-  /** True while the debounced keyword search is in flight */
+  /** True while searching */
   searching: boolean
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-/**
- * Normalize a Vietnamese string for accent-insensitive matching.
- * "Tân Bình" → "tan binh",  "Đống Đa" → "dong da"
- */
 function normalizeVN(str: string): string {
+  if (!str) return ''
   return str
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '') // strip combining diacritical marks
+    .replace(/[\u0300-\u036f]/g, '')
     .replace(/[đĐ]/g, m => (m === 'đ' ? 'd' : 'D'))
     .toLowerCase()
 }
@@ -83,10 +81,9 @@ export function useNearbyCourts(): Result {
   const [keyword, setKeyword]           = useState('')
   const [searching, setSearching]       = useState(false)
 
-  // All courts cached for client-side filtering in fallback mode
+  // Master list of all courts for client-side filtering
   const allCourtsRef = useRef<NearByCourt[]>([])
-
-  // ── Initial load: try location, fallback if denied ──────────────────────
+  const userCoordsRef = useRef<{ lat: number; lon: number } | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -94,39 +91,28 @@ export function useNearbyCourts(): Result {
     async function init() {
       setLoading(true)
 
-      let userCoords: { lat: number; lon: number } | null = null
-
+      // 1. Try to get location
       try {
         const { status } = await Location.requestForegroundPermissionsAsync()
-
-        if (status !== 'granted') {
-          // Load all courts for client-side search, then enter fallback mode
-          await loadAllCourtsForFallback(cancelled)
-          if (!cancelled) setLoading(false)
-          return
+        if (status === 'granted') {
+          const loc = await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.Balanced,
+          }).catch(() => null)
+          
+          if (loc) {
+            userCoordsRef.current = { lat: loc.coords.latitude, lon: loc.coords.longitude }
+          }
         }
-
-        const locPromise = Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.Balanced,
-        })
-        const timeoutPromise = new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('location_timeout')), 8000)
-        )
-        const loc = await Promise.race([locPromise, timeoutPromise])
-        userCoords = { lat: loc.coords.latitude, lon: loc.coords.longitude }
       } catch (_) {
-        // Timeout or any location error → fallback
-        await loadAllCourtsForFallback(cancelled)
-        if (!cancelled) setLoading(false)
-        return
+        setFallbackMode(true)
       }
 
-      // Geo mode: load all courts and sort by distance
+      // 2. Load ALL courts to ensure search works for everything
       const [{ data: courtData }, openIds] = await Promise.all([
         supabase
           .from('courts')
-          .select('id, name, address, city, lat, lng, hours_open, hours_close, price_per_hour, booking_url, google_maps_url')
-          .limit(50),
+          .select('id, name, address, city, phone, lat, lng, hours_open, hours_close, price_per_hour, booking_url, google_maps_url')
+          .order('name', { ascending: true }), // Default alpha sort
         fetchOpenCourtIds(),
       ])
 
@@ -135,68 +121,68 @@ export function useNearbyCourts(): Result {
       const enriched: NearByCourt[] = (courtData ?? []).map((c: any) => ({
         ...c,
         hasSlots: openIds.has(c.id),
-        distance:
-          userCoords && c.lat != null && c.lng != null
-            ? haversineKm(userCoords.lat, userCoords.lon, c.lat, c.lng)
-            : undefined,
+        distance: userCoordsRef.current && c.lat != null && c.lng != null
+          ? haversineKm(userCoordsRef.current.lat, userCoordsRef.current.lon, c.lat, c.lng)
+          : undefined,
       }))
 
-      enriched.sort((a, b) => {
+      allCourtsRef.current = enriched
+      
+      // Initial display: If we have location, sort by distance. Otherwise just show all.
+      const initialDisplay = [...enriched].sort((a, b) => {
+        // Primary: has slots
         if (a.hasSlots !== b.hasSlots) return a.hasSlots ? -1 : 1
+        // Secondary: distance
         if (a.distance !== undefined && b.distance !== undefined) return a.distance - b.distance
         return 0
       })
 
-      setCourts(enriched)
+      setCourts(initialDisplay)
       setLoading(false)
-    }
-
-    async function loadAllCourtsForFallback(cancelled: boolean) {
-      const [{ data: courtData }, openIds] = await Promise.all([
-        supabase
-          .from('courts')
-          .select('id, name, address, city, lat, lng, hours_open, hours_close, price_per_hour, booking_url, google_maps_url')
-          .limit(100),
-        fetchOpenCourtIds(),
-      ])
-      if (cancelled) return
-
-      const all: NearByCourt[] = (courtData ?? []).map((c: any) => ({
-        ...c,
-        hasSlots: openIds.has(c.id),
-        distance: undefined,
-      }))
-
-      allCourtsRef.current = all
-      setFallbackMode(true)
-      setCourts([]) // start empty; results appear as user types
     }
 
     init()
     return () => { cancelled = true }
   }, [])
 
-  // ── Fallback: instant client-side filter (accent-insensitive) ────────────
+  // ── Unified Filtering Logic ───────────────────────────────────────────────
 
   useEffect(() => {
-    if (!fallbackMode) return
+    // Don't filter if we are still loading initial data
+    if (loading) return
 
     const q = keyword.trim()
+    
+    // If no keyword, show the default sorted list (distance-based if available)
     if (!q) {
-      setCourts([])
+      const defaultSorted = [...allCourtsRef.current].sort((a, b) => {
+        if (a.hasSlots !== b.hasSlots) return a.hasSlots ? -1 : 1
+        if (a.distance !== undefined && b.distance !== undefined) return a.distance - b.distance
+        return 0
+      })
+      setCourts(defaultSorted)
       setSearching(false)
       return
     }
 
     setSearching(true)
     const normalized = normalizeVN(q)
+    
     const matched = allCourtsRef.current.filter(c =>
       normalizeVN(c.name).includes(normalized) ||
-      normalizeVN(c.address).includes(normalized)
+      normalizeVN(c.address).includes(normalized) ||
+      normalizeVN(c.city).includes(normalized)
     )
-    setCourts(matched)
+
+    // When searching, still respect distance if available, but prioritize matches
+    const searchSorted = matched.sort((a, b) => {
+      if (a.distance !== undefined && b.distance !== undefined) return a.distance - b.distance
+      return 0
+    })
+
+    setCourts(searchSorted)
     setSearching(false)
-  }, [keyword, fallbackMode])
+  }, [keyword, loading])
 
   return { courts, loading, fallbackMode, keyword, setKeyword, searching }
 }

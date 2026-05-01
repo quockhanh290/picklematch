@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useRouter } from 'expo-router'
+import { useLocalSearchParams, useRouter } from 'expo-router'
 import { supabase } from '@/lib/supabase'
 import { type NearByCourt, useNearbyCourts } from '@/lib/useNearbyCourts'
 import { CREATE_SESSION_ELO_LEVELS, ELO_BANDS } from '@/lib/eloSystem'
@@ -51,6 +51,7 @@ function skillLevelFromElo(elo: number, edge: 'min' | 'max'): number {
 export function useCreateSessionController(editSessionId: string | null) {
   const { userId, isLoading } = useAuth()
   const router = useRouter()
+  const params = useLocalSearchParams<{ courtId?: string; courtName?: string }>()
   const isEditMode = Boolean(editSessionId)
   const [step, setStep] = useState<1 | 2 | 3>(1)
 
@@ -90,6 +91,10 @@ export function useCreateSessionController(editSessionId: string | null) {
   
   const totalCost = useMemo(() => parseTotalCost(totalCostStr), [totalCostStr])
   const costPerPerson = totalCost > 0 ? Math.ceil(totalCost / maxPlayers) : 0
+
+  function handleSetWantsBookingNow(value: boolean | null) {
+    setWantsBookingNow(value)
+  }
 
   useEffect(() => {
     if (isEditMode) return
@@ -155,6 +160,7 @@ export function useCreateSessionController(editSessionId: string | null) {
         name: session.slot.court.name,
         address: session.slot.court.address,
         city: session.slot.court.city,
+        phone: (session.slot.court as any).phone ?? null,
         lat: null,
         lng: null,
         hours_open: '06:00',
@@ -212,6 +218,35 @@ export function useCreateSessionController(editSessionId: string | null) {
       mounted = false
     }
   }, [courts, editHydrated, editSessionId, isEditMode, router])
+
+  useEffect(() => {
+    if (isEditMode || editHydrated) return
+    if (params.courtId && params.courtName) {
+      const matched = courts.find(c => c.id === params.courtId)
+      if (matched) {
+        // Upgrade placeholder or set for first time
+        if (!selectedCourt || selectedCourt.id !== matched.id || selectedCourt.address === '') {
+          setSelectedCourt(matched)
+        }
+      } else if (!selectedCourt) {
+        // Initial placeholder
+        setSelectedCourt({
+          id: params.courtId,
+          name: params.courtName,
+          address: '',
+          city: '',
+          phone: null,
+          lat: null,
+          lng: null,
+          hours_open: '06:00',
+          hours_close: '22:00',
+          price_per_hour: null,
+          booking_url: null,
+          google_maps_url: null,
+        })
+      }
+    }
+  }, [params.courtId, params.courtName, isEditMode, editHydrated, courts, selectedCourt])
 
   const validateStart = useCallback((time: Date): string | null => {
     const now = new Date()
@@ -272,11 +307,12 @@ export function useCreateSessionController(editSessionId: string | null) {
 
       const { data: playerRow } = await supabase
         .from('players')
-        .select('onboarding_completed')
+        .select('onboarding_completed, auto_accept')
         .eq('id', user.id)
         .single()
 
       const onboardingCompleted = Boolean(playerRow?.onboarding_completed)
+      const autoAcceptPref = Boolean(playerRow?.auto_accept)
 
       if (!mounted) return
 
@@ -284,11 +320,14 @@ export function useCreateSessionController(editSessionId: string | null) {
       if (!onboardingCompleted) {
         if (!isEditMode) setIsRanked(false)
         setRankedHelperText('Hoàn tất onboarding để dùng kèo tính Elo.')
-        return
+      } else {
+        if (!isEditMode) setIsRanked(true)
+        setRankedHelperText('Bạn có thể bật hoặc tắt Elo cho kèo này trước khi đăng.')
       }
 
-      if (!isEditMode) setIsRanked(true)
-      setRankedHelperText('Bạn có thể bật hoặc tắt Elo cho kèo này trước khi đăng.')
+      if (!isEditMode) {
+        setRequireApproval(!autoAcceptPref)
+      }
     }
 
     void loadRankedEligibility()
@@ -440,7 +479,7 @@ export function useCreateSessionController(editSessionId: string | null) {
         p_fill_deadline: fillDeadline.toISOString(),
         p_total_cost: totalCost || null,
         p_require_approval: requireApproval,
-        p_court_booking_status: bookingStatus,
+        p_court_booking_status: wantsBookingNow === true ? 'confirmed' : bookingStatus,
       }
 
       const fullPayload = {
@@ -524,7 +563,7 @@ export function useCreateSessionController(editSessionId: string | null) {
     bookingStatus,
     setBookingStatus,
     wantsBookingNow,
-    setWantsBookingNow,
+    setWantsBookingNow: handleSetWantsBookingNow,
     bookingReference,
     setBookingReference,
     bookingName,
