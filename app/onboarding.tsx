@@ -1,12 +1,10 @@
 import { router } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
-import { ArrowLeft, CheckCircle2, Sparkles, Swords, Timer } from 'lucide-react-native'
+import { CheckCircle2, Sparkles, Swords, Timer } from 'lucide-react-native'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
-    ActivityIndicator,
     ImageBackground,
     Platform,
-    Pressable,
     ScrollView,
     StyleSheet,
     Text,
@@ -14,10 +12,10 @@ import {
     useWindowDimensions,
     View,
 } from 'react-native'
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { getUserDescriptionForTier } from '@/lib/eloSystem'
-import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/profileTheme'
 import {
     calculateInitialElo,
     getLegacySkillLabelForTier,
@@ -27,6 +25,12 @@ import {
     type OnboardingQuestionId,
 } from '@/lib/onboardingAssessment'
 import { supabase } from '@/lib/supabase'
+import { SCREEN_FONTS } from '@/constants/typography'
+import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
+import { AppButton } from '@/components/design/AppButton'
+import { AppDialog, type AppDialogConfig } from '@/components/design/AppDialog'
+import { SecondaryNavbar } from '@/components/design/SecondaryNavbar'
+import { STRINGS } from '@/constants/strings'
 
 type AnswerLabels = Partial<Record<OnboardingQuestionId, string>>
 type AnswerScores = Partial<Record<OnboardingQuestionId, number>>
@@ -40,19 +44,15 @@ type OnboardingPreview = {
   preference: ReturnType<typeof calculateInitialElo>['preference']
 }
 
-const HERO_IMAGE = require('../assets/images/login-electric-court-hero.png')
-
-const ELECTRIC = {
-  emerald: PROFILE_THEME_COLORS.surfaceTint,
-  emeraldDark: PROFILE_THEME_COLORS.primaryContainer,
-  surfaceTint: PROFILE_THEME_COLORS.secondaryContainer,
+const ONBOARDING_THEME = {
+  accent: PROFILE_THEME_COLORS.surfaceTint,
+  accentDeep: PROFILE_THEME_COLORS.primary,
   panel: PROFILE_THEME_COLORS.surfaceContainerLowest,
   border: PROFILE_THEME_COLORS.outlineVariant,
-  borderStrong: PROFILE_THEME_COLORS.outline,
-  textStrong: PROFILE_THEME_COLORS.onSurface,
-  smoke: PROFILE_THEME_COLORS.background,
-  white: PROFILE_THEME_COLORS.onPrimary,
-  muted: PROFILE_THEME_COLORS.onSurfaceVariant,
+  text: PROFILE_THEME_COLORS.onSurface,
+  textMuted: PROFILE_THEME_COLORS.onSurfaceVariant,
+  background: PROFILE_THEME_COLORS.background,
+  white: '#FFFFFF',
 }
 
 export default function OnboardingScreen() {
@@ -73,10 +73,6 @@ export default function OnboardingScreen() {
   const progress = ((stepIndex + 1) / ONBOARDING_QUESTIONS.length) * 100
   const isLastQuestion = stepIndex === ONBOARDING_QUESTIONS.length - 1
   const isCurrentAnswerSelected = useMemo(() => Boolean(selectedLabel), [selectedLabel])
-
-  const heroTopPadding = Math.max(insets.top, Platform.OS === 'ios' ? 18 : 14) + 8
-  const heroMinHeight = 336 + Math.min(insets.top, 24)
-  const questionCardMinHeight = Math.max(420, width * 0.98)
 
   useEffect(() => {
     return () => {
@@ -217,363 +213,196 @@ export default function OnboardingScreen() {
     }
   }
 
+  const dialogConfig: AppDialogConfig | null = resultPreview ? {
+    title: resultPreview.tierLabel,
+    message: resultPreview.description,
+    actions: [
+      {
+        label: STRINGS.onboarding.redo_quiz,
+        onPress: restartQuiz,
+        tone: 'secondary'
+      },
+      {
+        label: STRINGS.onboarding.confirm_level,
+        onPress: confirmOnboardingResult,
+        tone: 'primary'
+      }
+    ]
+  } : null
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: ELECTRIC.smoke }} edges={['left', 'right']}>
-      <StatusBar style="light" translucent backgroundColor="transparent" />
+    <View style={{ flex: 1, backgroundColor: ONBOARDING_THEME.background }}>
+      <StatusBar style="dark" translucent backgroundColor="#F2F0E8" />
+      <SecondaryNavbar
+        title={STRINGS.onboarding.title}
+        showProgress
+        progress={progress / 100}
+        onBackPress={handleBack}
+      />
       <ScrollView
         bounces={false}
-        contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 20) }}
+        contentContainerStyle={{ 
+          paddingBottom: Math.max(insets.bottom, 20), 
+          paddingTop: 32,
+          paddingHorizontal: SPACING.xl,
+          flexGrow: 1
+        }}
         showsVerticalScrollIndicator={false}
       >
-        <View style={{ minHeight: heroMinHeight, backgroundColor: ELECTRIC.emeraldDark }}>
-          <ImageBackground
-            source={HERO_IMAGE}
-            resizeMode="cover"
-            style={StyleSheet.absoluteFillObject}
-            imageStyle={{ opacity: 0.55 }}
-          />
-          <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(0,105,72,0.76)' }]} />
-          <View
-            style={{
-              position: 'absolute',
-              top: 30,
-              alignSelf: 'center',
-              width: 320,
-              height: 320,
-              borderRadius: 999,
-              borderWidth: 1,
-              borderColor: 'rgba(255,255,255,0.28)',
-            }}
-          />
-          <View
-            style={{
-              position: 'absolute',
-              top: 62,
-              alignSelf: 'center',
-              width: 228,
-              height: 228,
-              borderRadius: 999,
-              borderWidth: 1,
-              borderColor: 'rgba(255,255,255,0.24)',
-            }}
-          />
-
-          <View style={{ paddingTop: heroTopPadding, paddingHorizontal: 20, paddingBottom: 32 }}>
-            <View className="flex-row items-center justify-between">
-              <Pressable
-                onPress={() => (resultPreview ? setResultPreview(null) : stepIndex > 0 ? handleBack() : router.back())}
-                disabled={submitting}
-                className="h-12 w-12 items-center justify-center rounded-full"
-                style={{
-                  backgroundColor: 'rgba(255,255,255,0.08)',
-                  borderWidth: 1,
-                  borderColor: 'rgba(255,255,255,0.14)',
-                  opacity: submitting ? 0.5 : 1,
-                }}
-              >
-                <ArrowLeft size={20} color={ELECTRIC.white} />
-              </Pressable>
-
-              <View
-                className="rounded-full px-4 py-2"
-                style={{ backgroundColor: 'rgba(236,253,245,0.18)', borderWidth: 1, borderColor: 'rgba(236,253,245,0.38)' }}
-              >
-                <Text style={{ color: PROFILE_THEME_COLORS.onPrimaryContainer, fontSize: 11, letterSpacing: 1.2, fontFamily: 'PlusJakartaSans-Bold' }}>
-                  ELECTRIC COURT
-                </Text>
-              </View>
-            </View>
-
-            <View style={{ marginTop: 34 }}>
-              <Text
-                style={{
-                  color: PROFILE_THEME_COLORS.onPrimaryContainer,
-                  fontSize: 28,
-                  lineHeight: 30,
-                  fontFamily: 'PlusJakartaSans-ExtraBoldItalic',
-                }}
-              >
-                BUILD YOUR LEVEL
-              </Text>
-              <Text
-                style={{
-                  marginTop: 12,
-                  color: PROFILE_THEME_COLORS.onPrimary,
-                  fontSize: 12,
-                  letterSpacing: 0.5,
-                  fontFamily: 'PlusJakartaSans-Bold',
-                }}
-              >
-                KINETIC ENERGY • PLAYER FIT
-              </Text>
-              <Text
-                style={{
-                  marginTop: 14,
-                  color: 'rgba(255,255,255,0.78)',
-                  fontSize: 14,
-                  lineHeight: 22,
-                  fontFamily: 'PlusJakartaSans-Regular',
-                }}
-              >
-                7 câu ngắn để hệ thống ước lượng mức khởi điểm và ghép kèo dễ chịu hơn cho bạn.
+        <View style={{ flex: 1 }}>
+          <View className="mb-8 flex-row items-center justify-between">
+            <View className="px-4 py-2" style={{ backgroundColor: ONBOARDING_THEME.accent, borderRadius: RADIUS.md }}>
+              <Text style={{ color: ONBOARDING_THEME.accentDeep, fontSize: 12, letterSpacing: 0.8, fontFamily: SCREEN_FONTS.cta }}>
+                  {STRINGS.onboarding.step_label} {stepIndex + 1} / {ONBOARDING_QUESTIONS.length}
               </Text>
             </View>
-
-            <View className="mt-5 flex-row items-center justify-between">
-              <View className="flex-row items-center">
-                <View
-                  className="mr-2 h-10 w-10 items-center justify-center rounded-full"
-                  style={{ backgroundColor: 'rgba(255,255,255,0.14)' }}
-                >
-                  <Sparkles size={18} color={ELECTRIC.white} />
-                </View>
-                <View>
-                  <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontSize: 14, fontFamily: 'PlusJakartaSans-Bold' }}>
-                    Bước {stepIndex + 1}/{ONBOARDING_QUESTIONS.length}
-                  </Text>
-                  <Text style={{ color: 'rgba(255,255,255,0.66)', fontSize: 12, fontFamily: 'PlusJakartaSans-Regular' }}>
-                    Hiệu chỉnh ban đầu
-                  </Text>
-                </View>
-              </View>
-
-              <View className="flex-row items-center">
-                <Timer size={16} color="rgba(255,255,255,0.72)" />
-                <Text
-                  style={{
-                    marginLeft: 6,
-                    color: 'rgba(255,255,255,0.72)',
-                    fontSize: 12,
-                    fontFamily: 'PlusJakartaSans-Bold',
-                  }}
-                >
-                  ~1 phút
-                </Text>
-              </View>
-            </View>
-
-            <View
-              style={{
-                marginTop: 14,
-                height: 10,
-                borderRadius: 999,
-                backgroundColor: 'rgba(255,255,255,0.22)',
-                overflow: 'hidden',
-              }}
-            >
-              <View
-                style={{
-                  width: `${progress}%`,
-                  height: '100%',
-                  borderRadius: 999,
-                  backgroundColor: PROFILE_THEME_COLORS.primaryFixedDim,
-                }}
-              />
+            <View className="flex-row items-center px-3 py-2" style={{ backgroundColor: ONBOARDING_THEME.panel, borderRadius: RADIUS.md }}>
+              <Swords size={14} color={ONBOARDING_THEME.accentDeep} />
+              <Text style={{ marginLeft: 6, color: ONBOARDING_THEME.textMuted, fontSize: 12, fontFamily: SCREEN_FONTS.cta }}>
+                {STRINGS.onboarding.title}
+              </Text>
             </View>
           </View>
-        </View>
 
-        <View style={{ paddingHorizontal: 20, marginTop: -20 }}>
-          <View
+          <Text
             style={{
-              borderRadius: 32,
-              backgroundColor: ELECTRIC.white,
-              padding: 20,
-              minHeight: questionCardMinHeight,
-              shadowColor: PROFILE_THEME_COLORS.onBackground,
-              shadowOpacity: 0.08,
-              shadowRadius: 28,
-              shadowOffset: { width: 0, height: 16 },
-              elevation: 8,
+              color: ONBOARDING_THEME.text,
+              fontSize: 32,
+              lineHeight: 38,
+              fontFamily: SCREEN_FONTS.headline,
+              textTransform: 'uppercase'
             }}
           >
-            <View className="mb-4 flex-row items-center justify-between">
-              <View className="rounded-full px-4 py-2" style={{ backgroundColor: ELECTRIC.surfaceTint }}>
-                <Text style={{ color: ELECTRIC.emeraldDark, fontSize: 12, letterSpacing: 0.8, fontFamily: 'PlusJakartaSans-Bold' }}>
-                  CÂU HỎI {stepIndex + 1}
-                </Text>
-              </View>
-              <View className="flex-row items-center rounded-full px-3 py-2" style={{ backgroundColor: ELECTRIC.panel }}>
-                <Swords size={14} color={ELECTRIC.emeraldDark} />
-                <Text style={{ marginLeft: 6, color: ELECTRIC.muted, fontSize: 12, fontFamily: 'PlusJakartaSans-Bold' }}>
-                  Match Fit
-                </Text>
-              </View>
-            </View>
+            {currentQuestion.question}
+          </Text>
 
+          {currentQuestion.subtitle ? (
             <Text
               style={{
-                color: ELECTRIC.textStrong,
-                fontSize: 28,
-                lineHeight: 34,
-                fontFamily: 'PlusJakartaSans-Bold',
+                marginTop: 12,
+                color: ONBOARDING_THEME.textMuted,
+                fontSize: 16,
+                lineHeight: 24,
+                fontFamily: SCREEN_FONTS.body,
               }}
             >
-              {currentQuestion.question}
+              {currentQuestion.subtitle}
             </Text>
+          ) : null}
 
-            {currentQuestion.subtitle ? (
-              <Text
-                style={{
-                  marginTop: 10,
-                  color: ELECTRIC.muted,
-                  fontSize: 14,
-                  lineHeight: 22,
-                  fontFamily: 'PlusJakartaSans-Regular',
-                }}
-              >
-                {currentQuestion.subtitle}
-              </Text>
-            ) : null}
+          <View style={{ marginTop: 40, gap: 14 }}>
+            {currentQuestion.options.map((option) => {
+              const isSelected = selectedLabel === option.label
 
-            <View style={{ marginTop: 20, gap: 12 }}>
-              {currentQuestion.options.map((option) => {
-                const isSelected = selectedLabel === option.label
-
-                return (
-                  <TouchableOpacity
-                    key={`${currentQuestion.id}-${option.label}`}
-                    activeOpacity={0.92}
-                    onPress={() => handleAnswerSelect(option.label, option.score)}
-                    disabled={submitting}
-                    style={{
-                      minHeight: 68,
-                      borderRadius: 24,
-                      paddingHorizontal: 16,
-                      paddingVertical: 16,
-                      justifyContent: 'center',
-                      backgroundColor: isSelected ? ELECTRIC.surfaceTint : ELECTRIC.panel,
-                      borderWidth: isSelected ? 1.5 : 1,
-                      borderColor: isSelected ? ELECTRIC.emerald : ELECTRIC.border,
-                    }}
-                  >
-                    <View className="flex-row items-center justify-between">
+              return (
+                <TouchableOpacity
+                  key={`${currentQuestion.id}-${option.label}`}
+                  activeOpacity={0.92}
+                  onPress={() => handleAnswerSelect(option.label, option.score)}
+                  disabled={submitting}
+                  style={{
+                    minHeight: 72,
+                    borderRadius: RADIUS.xl,
+                    paddingHorizontal: 20,
+                    paddingVertical: 18,
+                    justifyContent: 'center',
+                    backgroundColor: isSelected ? ONBOARDING_THEME.accentDeep : ONBOARDING_THEME.panel,
+                    borderWidth: 1,
+                    borderColor: isSelected ? ONBOARDING_THEME.accentDeep : ONBOARDING_THEME.border,
+                  }}
+                >
+                  <View className="flex-row items-center justify-between">
                       <Text
                         style={{
                           flex: 1,
-                          color: isSelected ? ELECTRIC.emeraldDark : ELECTRIC.textStrong,
+                          color: isSelected ? ONBOARDING_THEME.white : ONBOARDING_THEME.text,
                           fontSize: 15,
                           lineHeight: 22,
-                          fontFamily: 'PlusJakartaSans-Bold',
-                          paddingRight: 12,
+                          fontFamily: SCREEN_FONTS.label,
+                          paddingRight: 16,
                         }}
                       >
                         {option.label}
                       </Text>
-                      <View
-                        className="h-8 w-8 items-center justify-center rounded-full"
-                        style={{ backgroundColor: isSelected ? 'rgba(5,150,105,0.14)' : 'rgba(255,255,255,0.92)' }}
-                      >
-                        {isSelected ? (
-                          <CheckCircle2 size={18} color={ELECTRIC.emerald} />
-                        ) : (
-                          <View style={{ width: 10, height: 10, borderRadius: 999, backgroundColor: PROFILE_THEME_COLORS.outlineVariant }} />
-                        )}
-                      </View>
+                    <View
+                      className="h-6 w-6 items-center justify-center rounded-full"
+                      style={{ 
+                        backgroundColor: isSelected ? ONBOARDING_THEME.white : 'transparent',
+                        borderWidth: isSelected ? 0 : 1,
+                        borderColor: isSelected ? ONBOARDING_THEME.white : ONBOARDING_THEME.border
+                      }}
+                    >
+                      {isSelected && (
+                        <CheckCircle2 size={14} color={ONBOARDING_THEME.accentDeep} />
+                      )}
                     </View>
-                  </TouchableOpacity>
-                )
-              })}
-            </View>
+                  </View>
+                </TouchableOpacity>
+              )
+            })}
           </View>
-        </View>
-
-        <View style={{ paddingHorizontal: 20, paddingTop: 16 }}>
-          <View className="flex-row items-center" style={{ gap: 12 }}>
-            <TouchableOpacity
-              activeOpacity={0.9}
-              onPress={handleBack}
-              disabled={submitting || stepIndex === 0}
-              style={{
-                width: 96,
-                height: 56,
-                borderRadius: 28,
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
-                opacity: stepIndex === 0 ? 0.45 : 1,
-              }}
-            >
-              <Text style={{ color: ELECTRIC.emeraldDark, fontSize: 15, fontFamily: 'PlusJakartaSans-Bold' }}>Quay lại</Text>
-            </TouchableOpacity>
-
-            {isLastQuestion ? (
-              <TouchableOpacity
-                activeOpacity={0.92}
-                onPress={openResultPreview}
-                disabled={!isCurrentAnswerSelected || submitting}
-                style={{
-                  flex: 1,
-                  height: 56,
-                  borderRadius: 28,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: ELECTRIC.emerald,
-                  opacity: !isCurrentAnswerSelected || submitting ? 0.55 : 1,
-                  shadowColor: ELECTRIC.emerald,
-                  shadowOpacity: 0.22,
-                  shadowRadius: 14,
-                  shadowOffset: { width: 0, height: 8 },
-                  elevation: 5,
-                }}
-              >
-                <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontSize: 16, fontFamily: 'PlusJakartaSans-Bold' }}>Xem kết quả</Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                activeOpacity={0.92}
-                onPress={handleNext}
-                disabled={!isCurrentAnswerSelected || submitting}
-                style={{
-                  flex: 1,
-                  height: 56,
-                  borderRadius: 28,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: ELECTRIC.emerald,
-                  opacity: !isCurrentAnswerSelected || submitting ? 0.55 : 1,
-                  shadowColor: ELECTRIC.emerald,
-                  shadowOpacity: 0.22,
-                  shadowRadius: 14,
-                  shadowOffset: { width: 0, height: 8 },
-                  elevation: 5,
-                }}
-              >
-                <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontSize: 16, fontFamily: 'PlusJakartaSans-Bold' }}>Tiếp theo</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-
-          {!resultPreview && errorVisible ? (
-            <View
-              style={{
-                marginTop: 14,
-                borderRadius: 22,
-                backgroundColor: PROFILE_THEME_COLORS.errorContainer,
-                paddingHorizontal: 16,
-                paddingVertical: 14,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <Text style={{ color: PROFILE_THEME_COLORS.error, fontSize: 14, fontFamily: 'PlusJakartaSans-Bold' }}>Có lỗi xảy ra, thử lại nhé</Text>
-              <TouchableOpacity
-                activeOpacity={0.92}
-                onPress={openResultPreview}
-                style={{
-                  borderRadius: 999,
-                  backgroundColor: PROFILE_THEME_COLORS.error,
-                  paddingHorizontal: 12,
-                  paddingVertical: 8,
-                }}
-              >
-                <Text style={{ color: ELECTRIC.white, fontSize: 13, fontFamily: 'PlusJakartaSans-Bold' }}>Thử lại</Text>
-              </TouchableOpacity>
-            </View>
-          ) : null}
         </View>
       </ScrollView>
+
+      {/* Fixed Bottom Action Container */}
+      <View
+        style={{
+          paddingHorizontal: SPACING.xl,
+          paddingTop: 16,
+          paddingBottom: Math.max(insets.bottom, 24),
+          backgroundColor: ONBOARDING_THEME.background,
+          borderTopWidth: 1,
+          borderTopColor: ONBOARDING_THEME.border,
+        }}
+      >
+        <View className="flex-row items-center" style={{ gap: 12 }}>
+          <View style={{ flex: 1 }}>
+            <AppButton
+              label={STRINGS.common.back}
+              variant="secondary"
+              onPress={handleBack}
+              disabled={submitting || stepIndex === 0}
+            />
+          </View>
+
+          <View style={{ flex: 2 }}>
+            <AppButton
+              label={isLastQuestion ? STRINGS.onboarding.view_result : STRINGS.onboarding.next}
+              onPress={isLastQuestion ? openResultPreview : handleNext}
+              disabled={!isCurrentAnswerSelected || submitting}
+            />
+          </View>
+        </View>
+
+        {!resultPreview && errorVisible ? (
+          <View
+            style={{
+              marginTop: 14,
+              borderRadius: RADIUS.xl,
+              backgroundColor: PROFILE_THEME_COLORS.errorContainer,
+              paddingHorizontal: 16,
+              paddingVertical: SPACING.md,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <Text style={{ color: PROFILE_THEME_COLORS.error, fontSize: 14, fontFamily: SCREEN_FONTS.cta }}>{STRINGS.onboarding.submit_error}</Text>
+            <TouchableOpacity
+              activeOpacity={0.92}
+              onPress={openResultPreview}
+              style={{
+                borderRadius: RADIUS.md,
+                backgroundColor: PROFILE_THEME_COLORS.error,
+                paddingHorizontal: 12,
+                paddingVertical: 8,
+              }}
+            >
+              <Text style={{ color: ONBOARDING_THEME.white, fontSize: 13, fontFamily: SCREEN_FONTS.cta }}>{STRINGS.common.retry}</Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
+      </View>
 
       {resultPreview ? (
         <View
@@ -588,34 +417,41 @@ export default function OnboardingScreen() {
           <View
             style={{
               width: '100%',
-              borderRadius: 32,
-              backgroundColor: ELECTRIC.white,
+              borderRadius: RADIUS.hero,
+              backgroundColor: ONBOARDING_THEME.white,
               padding: 24,
               alignItems: 'center',
+              shadowColor: '#000',
+              shadowOpacity: 0.15,
+              shadowRadius: 24,
+              shadowOffset: { width: 0, height: 12 },
+              elevation: 8,
             }}
           >
-            <View className="h-16 w-16 items-center justify-center rounded-full" style={{ backgroundColor: ELECTRIC.surfaceTint }}>
-              <CheckCircle2 size={32} color={ELECTRIC.emerald} />
+            <View className="h-16 w-16 items-center justify-center rounded-full" style={{ backgroundColor: ONBOARDING_THEME.accent }}>
+              <CheckCircle2 size={32} color={ONBOARDING_THEME.accentDeep} />
             </View>
             <Text
               style={{
                 marginTop: 16,
-                color: ELECTRIC.emeraldDark,
+                color: ONBOARDING_THEME.accentDeep,
                 fontSize: 12,
                 letterSpacing: 1,
-                fontFamily: 'PlusJakartaSans-Bold',
+                fontFamily: SCREEN_FONTS.headline,
+                textTransform: 'uppercase'
               }}
             >
-              KẾT QUẢ TỰ ĐÁNH GIÁ
+              {STRINGS.onboarding.result_title}
             </Text>
             <Text
               style={{
                 marginTop: 10,
-                color: ELECTRIC.textStrong,
+                color: ONBOARDING_THEME.text,
                 fontSize: 28,
                 lineHeight: 34,
                 textAlign: 'center',
-                fontFamily: 'PlusJakartaSans-Bold',
+                fontFamily: SCREEN_FONTS.headline,
+                textTransform: 'uppercase'
               }}
             >
               {resultPreview.tierLabel}
@@ -623,51 +459,39 @@ export default function OnboardingScreen() {
             <Text
               style={{
                 marginTop: 8,
-                color: PROFILE_THEME_COLORS.onSurfaceVariant,
+                color: ONBOARDING_THEME.textMuted,
                 fontSize: 15,
                 lineHeight: 22,
                 textAlign: 'center',
-                fontFamily: 'PlusJakartaSans-Regular',
+                fontFamily: SCREEN_FONTS.body,
               }}
             >
               {resultPreview.description}
             </Text>
-            <Text
-              style={{
-                marginTop: 14,
-                color: ELECTRIC.muted,
-                fontSize: 14,
-                lineHeight: 22,
-                textAlign: 'center',
-                fontFamily: 'PlusJakartaSans-Regular',
-              }}
-            >
-              Đây là mức khởi điểm để hệ thống ghép kèo dễ chịu hơn cho bạn. Bạn có thể xác nhận mức này hoặc làm lại quiz nếu thấy chưa đúng.
-            </Text>
 
             <View
-              className="mt-4 rounded-2xl px-4 py-3"
-              style={{ backgroundColor: ELECTRIC.panel, borderWidth: 1, borderColor: ELECTRIC.border, width: '100%' }}
+              className="mt-6 rounded-2xl px-4 py-4"
+              style={{ backgroundColor: ONBOARDING_THEME.panel, borderWidth: BORDER.base, borderColor: ONBOARDING_THEME.border, width: '100%' }}
             >
               <Text
                 style={{
-                  color: ELECTRIC.muted,
-                  fontSize: 12,
-                  letterSpacing: 0.6,
-                  fontFamily: 'PlusJakartaSans-Bold',
+                  color: ONBOARDING_THEME.textMuted,
+                  fontSize: 11,
+                  letterSpacing: 1,
+                  fontFamily: SCREEN_FONTS.headline,
                   textTransform: 'uppercase',
                   textAlign: 'center',
                 }}
               >
-                Elo khởi điểm dự kiến
+                {STRINGS.onboarding.initial_elo}
               </Text>
               <Text
                 style={{
-                  marginTop: 6,
-                  color: ELECTRIC.textStrong,
-                  fontSize: 24,
+                  marginTop: 4,
+                  color: ONBOARDING_THEME.text,
+                  fontSize: 32,
                   textAlign: 'center',
-                  fontFamily: 'PlusJakartaSans-Bold',
+                  fontFamily: SCREEN_FONTS.headline,
                 }}
               >
                 {resultPreview.elo}
@@ -682,57 +506,34 @@ export default function OnboardingScreen() {
                   fontSize: 14,
                   lineHeight: 20,
                   textAlign: 'center',
-                  fontFamily: 'PlusJakartaSans-Bold',
+                  fontFamily: SCREEN_FONTS.cta,
                 }}
               >
-                Không thể lưu kết quả lúc này. Vui lòng thử lại sau ít phút.
+                {STRINGS.onboarding.submit_error}
               </Text>
             ) : null}
 
-            <View className="mt-6 w-full flex-row items-center" style={{ gap: 12 }}>
-              <TouchableOpacity
-                activeOpacity={0.92}
-                onPress={restartQuiz}
-                disabled={submitting}
-                style={{
-                  flex: 1,
-                  height: 54,
-                  borderRadius: 999,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: ELECTRIC.panel,
-                  borderWidth: 1,
-                  borderColor: ELECTRIC.borderStrong,
-                  opacity: submitting ? 0.65 : 1,
-                }}
-              >
-                <Text style={{ color: ELECTRIC.textStrong, fontSize: 15, fontFamily: 'PlusJakartaSans-Bold' }}>Làm lại quiz</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                activeOpacity={0.92}
-                onPress={confirmOnboardingResult}
-                disabled={submitting}
-                style={{
-                  flex: 1,
-                  height: 54,
-                  borderRadius: 999,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: ELECTRIC.emerald,
-                  opacity: submitting ? 0.7 : 1,
-                }}
-              >
-                {submitting ? (
-                  <ActivityIndicator color={PROFILE_THEME_COLORS.onPrimary} />
-                ) : (
-                  <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontSize: 15, fontFamily: 'PlusJakartaSans-Bold' }}>Xác nhận mức này</Text>
-                )}
-              </TouchableOpacity>
+            <View className="mt-8 w-full flex-row items-center" style={{ gap: 12 }}>
+              <View style={{ flex: 1 }}>
+                <AppButton
+                  label={STRINGS.onboarding.redo_quiz}
+                  variant="secondary"
+                  onPress={restartQuiz}
+                  disabled={submitting}
+                />
+              </View>
+              <View style={{ flex: 1.2 }}>
+                <AppButton
+                  label={STRINGS.common.confirm}
+                  onPress={confirmOnboardingResult}
+                  loading={submitting}
+                />
+              </View>
             </View>
           </View>
         </View>
       ) : null}
-    </SafeAreaView>
+    </View>
   )
 }
+

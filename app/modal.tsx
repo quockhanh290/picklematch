@@ -3,6 +3,7 @@ import { StyleSheet } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { SPACING } from '@/constants/screenLayout'
 
 export default function ModalScreen() {
   return (
@@ -20,7 +21,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 20,
+    padding: SPACING.xl,
   },
   link: {
     marginTop: 15,

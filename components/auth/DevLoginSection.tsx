@@ -1,9 +1,12 @@
+import { AppDialogConfig } from '@/components/design'
 import { supabase } from '@/lib/supabase'
 import { router } from 'expo-router'
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
 import { Code2, LockKeyhole, Mail } from 'lucide-react-native'
 import { useState } from 'react'
-import { Alert, Pressable, Text, TextInput, View } from 'react-native'
+import { Pressable, Text, TextInput, View } from 'react-native'
+import { SCREEN_FONTS } from '@/constants/typography'
+import { SPACING, RADIUS } from '@/constants/screenLayout'
 
 const DEV = {
   emerald: PROFILE_THEME_COLORS.surfaceTint,
@@ -17,8 +20,10 @@ const DEV = {
 
 export default function DevLoginSection({
   nextRouteForPlayer,
+  presentDialog,
 }: {
   nextRouteForPlayer: (player: any) => string
+  presentDialog?: (config: AppDialogConfig) => void
 }) {
   const [devEmail, setDevEmail] = useState('')
   const [devPassword, setDevPassword] = useState('')
@@ -26,7 +31,11 @@ export default function DevLoginSection({
 
   async function devSignIn() {
     if (!devEmail || !devPassword) {
-      Alert.alert('Lỗi đăng nhập dev', 'Nhập email và mật khẩu để tiếp tục.')
+      presentDialog?.({
+        title: 'Lỗi đăng nhập dev',
+        message: 'Nhập email và mật khẩu để tiếp tục.',
+        actions: [{ label: 'Đã hiểu' }],
+      })
       return
     }
 
@@ -38,7 +47,11 @@ export default function DevLoginSection({
     setDevLoading(false)
 
     if (error) {
-      Alert.alert('Lỗi đăng nhập dev', error.message)
+      presentDialog?.({
+        title: 'Lỗi đăng nhập dev',
+        message: error.message,
+        actions: [{ label: 'Đã hiểu' }],
+      })
       return
     }
 
@@ -47,7 +60,11 @@ export default function DevLoginSection({
     } = await supabase.auth.getUser()
 
     if (!user?.id) {
-      Alert.alert('Lỗi', 'Không lấy được thông tin tài khoản sau khi đăng nhập dev.')
+      presentDialog?.({
+        title: 'Lỗi',
+        message: 'Không lấy được thông tin tài khoản sau khi đăng nhập dev.',
+        actions: [{ label: 'Đã hiểu' }],
+      })
       return
     }
 
@@ -58,9 +75,9 @@ export default function DevLoginSection({
   return (
     <View
       style={{
-        borderRadius: 28,
+        borderRadius: RADIUS.hero,
         backgroundColor: DEV.panel,
-        padding: 18,
+        padding: SPACING.lg,
       }}
     >
       <View className="mb-4 flex-row items-start">
@@ -71,14 +88,14 @@ export default function DevLoginSection({
           <Code2 size={20} color={DEV.emeraldDark} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={{ color: DEV.ink, fontSize: 16, fontFamily: 'PlusJakartaSans-Bold' }}>Chỉ dành cho phát triển</Text>
+          <Text style={{ color: DEV.ink, fontSize: 16, fontFamily: SCREEN_FONTS.cta }}>Chỉ dành cho phát triển</Text>
           <Text
             style={{
               marginTop: 4,
               color: DEV.textMuted,
               fontSize: 13,
               lineHeight: 21,
-              fontFamily: 'PlusJakartaSans-Regular',
+              fontFamily: SCREEN_FONTS.body,
             }}
           >
             Đăng nhập nhanh bằng email và mật khẩu để kiểm tra luồng nội bộ trong môi trường development.
@@ -94,7 +111,7 @@ export default function DevLoginSection({
               color: DEV.textMuted,
               fontSize: 12,
               letterSpacing: 0.8,
-              fontFamily: 'PlusJakartaSans-Bold',
+              fontFamily: SCREEN_FONTS.cta,
             }}
           >
             EMAIL DEV
@@ -123,7 +140,7 @@ export default function DevLoginSection({
                 flex: 1,
                 color: DEV.ink,
                 fontSize: 15,
-                fontFamily: 'PlusJakartaSans-Regular',
+                fontFamily: SCREEN_FONTS.body,
               }}
             />
           </View>
@@ -136,7 +153,7 @@ export default function DevLoginSection({
               color: DEV.textMuted,
               fontSize: 12,
               letterSpacing: 0.8,
-              fontFamily: 'PlusJakartaSans-Bold',
+              fontFamily: SCREEN_FONTS.cta,
             }}
           >
             MẬT KHẨU DEV
@@ -164,7 +181,7 @@ export default function DevLoginSection({
                 flex: 1,
                 color: DEV.ink,
                 fontSize: 15,
-                fontFamily: 'PlusJakartaSans-Regular',
+                fontFamily: SCREEN_FONTS.body,
               }}
             />
           </View>
@@ -176,7 +193,7 @@ export default function DevLoginSection({
           style={{
             marginTop: 6,
             height: 56,
-            borderRadius: 28,
+            borderRadius: RADIUS.hero,
             backgroundColor: DEV.emerald,
             alignItems: 'center',
             justifyContent: 'center',
@@ -188,7 +205,7 @@ export default function DevLoginSection({
             elevation: 5,
           }}
         >
-          <Text style={{ color: DEV.white, fontSize: 15, fontFamily: 'PlusJakartaSans-Bold' }}>
+          <Text style={{ color: DEV.white, fontSize: 15, fontFamily: SCREEN_FONTS.cta }}>
             {devLoading ? 'Đang đăng nhập...' : 'Đăng nhập nhanh'}
           </Text>
         </Pressable>
@@ -196,6 +213,7 @@ export default function DevLoginSection({
     </View>
   )
 }
+
 
 
 

@@ -1,13 +1,18 @@
+import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
+import { SCREEN_FONTS } from '@/constants/typography'
 import { router } from 'expo-router'
 import { Image, Pressable, Text, View } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { SPACING } from '@/constants/screenLayout'
+import { STRINGS } from '@/constants/strings'
 
 function getGreetingLabel() {
   const hour = new Date().getHours()
 
-  if (hour >= 5 && hour <= 11) return 'Chào buổi sáng ☀️'
-  if (hour >= 12 && hour <= 17) return 'Chào buổi chiều 🌤️'
-  if (hour >= 18 && hour <= 21) return 'Chào buổi tối 🌙'
-  return 'Xin chào 👋'
+  if (hour >= 5 && hour <= 11) return `${STRINGS.home.greeting.morning} ☀️`
+  if (hour >= 12 && hour <= 17) return `${STRINGS.home.greeting.afternoon} 🌤️`
+  if (hour >= 18 && hour <= 21) return `${STRINGS.home.greeting.evening} 🌙`
+  return `${STRINGS.home.greeting.default} 👋`
 }
 
 export function HomeGreetingHeader({
@@ -21,22 +26,36 @@ export function HomeGreetingHeader({
 }) {
   const displayName = name.trim() || 'Bạn'
   const initial = displayName.charAt(0).toUpperCase()
+  const insets = useSafeAreaInsets()
 
   return (
-    <View className="flex-row items-start justify-between" style={{ paddingHorizontal: 16, paddingTop: 4 }}>
+    <View
+      style={{
+        paddingTop: insets.top + 20,
+        paddingHorizontal: SPACING.xl,
+        paddingBottom: 16,
+        backgroundColor: PROFILE_THEME_COLORS.background,
+      }}
+    >
+      <View className="flex-row items-center justify-between">
       <View className="min-w-0 flex-1 pr-4">
         <Text
           className="mb-[3px] text-[11px]"
-          style={{ color: '#7A8884', fontFamily: 'PlusJakartaSans-SemiBold', lineHeight: 15 }}
+          style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.label, lineHeight: 15 }}
         >
           {getGreetingLabel()}
         </Text>
 
         <Text
-          className="text-[32px] uppercase"
+          className="text-[40px] uppercase"
           numberOfLines={1}
           ellipsizeMode="tail"
-          style={{ color: '#1A2E2A', fontFamily: 'BarlowCondensed-Bold', lineHeight: 34, letterSpacing: 0 }}
+          style={{ 
+            color: PROFILE_THEME_COLORS.onBackground, 
+            fontFamily: SCREEN_FONTS.headlineBlack, 
+            lineHeight: 54, 
+            letterSpacing: -1 
+          }}
         >
           {displayName.toUpperCase()}
         </Text>
@@ -45,7 +64,7 @@ export function HomeGreetingHeader({
           className="mt-1 text-[12px]"
           numberOfLines={1}
           ellipsizeMode="tail"
-          style={{ color: '#7A8884', fontFamily: 'PlusJakartaSans-Regular', lineHeight: 17 }}
+          style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, lineHeight: 17 }}
         >
           {statusPrompt}
         </Text>
@@ -53,17 +72,22 @@ export function HomeGreetingHeader({
 
       <Pressable
         onPress={() => router.push('/(tabs)/profile' as never)}
-        className="h-[42px] w-[42px] items-center justify-center overflow-hidden rounded-full border-2"
-        style={{ backgroundColor: '#E1F5EE', borderColor: '#C5DDD3' }}
+        className="h-16 w-16 items-center justify-center overflow-hidden rounded-full border-2"
+        style={{ 
+          backgroundColor: PROFILE_THEME_COLORS.primary, 
+          borderColor: PROFILE_THEME_COLORS.outlineVariant
+        }}
       >
         {profilePhotoUrl ? (
           <Image source={{ uri: profilePhotoUrl }} className="h-full w-full" resizeMode="cover" />
         ) : (
-          <Text style={{ color: '#0F6E56', fontFamily: 'BarlowCondensed-Bold', fontSize: 18, lineHeight: 22 }}>
+          <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.headline, fontSize: 24, lineHeight: 28 }}>
             {initial}
           </Text>
         )}
       </Pressable>
+      </View>
     </View>
   )
 }
+

@@ -1,6 +1,4 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Alert } from 'react-native'
-
 import { supabase } from '@/lib/supabase'
 
 export type SessionPlayer = {
@@ -9,7 +7,7 @@ export type SessionPlayer = {
   elo_snapshot?: number | null
   status?: string | null
   match_result?: string | null
-  proposed_result?: string | null
+  proposed_result?: 'win' | 'loss' | 'draw' | null
   result_confirmation_status?: string | null
   result_dispute_note?: string | null
   player: {
@@ -68,6 +66,7 @@ export type SessionDetailRecord = {
     }
   }
   session_players: SessionPlayer[]
+  has_rated?: boolean
 }
 
 export type RequestStatus = 'none' | 'pending' | 'accepted' | 'rejected'
@@ -80,6 +79,7 @@ export type ViewerPlayer = {
 
 export function useSessionDetail(id?: string, userId?: string | null) {
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [refreshing, setRefreshing] = useState(false)
   const [session, setSession] = useState<SessionDetailRecord | null>(null)
   const [viewerPlayer, setViewerPlayer] = useState<ViewerPlayer | null>(null)
@@ -90,10 +90,11 @@ export function useSessionDetail(id?: string, userId?: string | null) {
   const fetchSession = useCallback(async () => {
     if (!id) return
 
+    setError(null)
     const { data, error } = await supabase.rpc('get_session_detail_overview', { p_session_id: id })
 
     if (error) {
-      Alert.alert('Không tải được kèo', error.message)
+      setError(error.message)
       setSession(null)
       return
     }
@@ -107,6 +108,19 @@ export function useSessionDetail(id?: string, userId?: string | null) {
     if (userId) {
       const { data: viewerData } = await supabase.from('players').select('id, elo, current_elo').eq('id', userId).single()
       setViewerPlayer((viewerData as ViewerPlayer | null) ?? null)
+
+      // Check if user has rated this session
+      const { data: ratingsData } = await supabase
+        .from('ratings')
+        .select('id')
+        .eq('session_id', id)
+        .eq('rater_id', userId)
+        .limit(1)
+      
+      if (nextSession) {
+        nextSession.has_rated = (ratingsData?.length ?? 0) > 0
+        setSession({ ...nextSession })
+      }
     } else {
       setViewerPlayer(null)
     }
@@ -147,5 +161,6 @@ export function useSessionDetail(id?: string, userId?: string | null) {
     setIntroNote,
     fetchSession,
     onRefresh,
+    error,
   }
 }

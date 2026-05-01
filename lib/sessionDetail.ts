@@ -81,13 +81,13 @@ export function getReliability(player?: ReliablePlayer | null) {
 
 export function getSkillLevelId(player?: SkillPlayer | null): EloLevelId {
   const levelId = player?.self_assessed_level
-  if (levelId) return getEloBandByLevelId(levelId)?.levelId ?? 'level_3'
+  if (levelId) return getEloBandByLevelId(levelId)?.levelId ?? 'level_1'
 
   const legacy = player?.skill_label
   if (legacy) return getEloBandByLegacySkillLabel(legacy).levelId
 
   const elo = getComparableElo(player)
-  return getEloBandForElo(elo)?.levelId ?? 'level_3'
+  return getEloBandForElo(elo)?.levelId ?? 'level_1'
 }
 
 export function getSkillTag(player?: SkillPlayer | null) {
@@ -102,14 +102,18 @@ export function formatTimeRange(start: string, end: string) {
   const startDate = new Date(start)
   const endDate = new Date(end)
   const weekdays = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7']
-  const dateLabel = `${String(startDate.getDate()).padStart(2, '0')}/${String(startDate.getMonth() + 1).padStart(2, '0')}`
+  const dateLabel = `${String(startDate.getDate()).padStart(2, '0')}/${String(startDate.getMonth() + 1).padStart(2, '0')}/${startDate.getFullYear()}`
   const timeLabel = `${String(startDate.getHours()).padStart(2, '0')}:${String(startDate.getMinutes()).padStart(2, '0')} - ${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`
   return `${weekdays[startDate.getDay()]}, ${dateLabel} • ${timeLabel}`
 }
 
 export function formatPricePerPerson(totalPrice: number, maxPlayers: number) {
   if (!totalPrice || !maxPlayers) return 'Miễn phí'
-  return `${Math.ceil(totalPrice / maxPlayers).toLocaleString('vi-VN')}đ/người`
+  const perPerson = Math.ceil(totalPrice / maxPlayers)
+  if (perPerson >= 1000) {
+    return `${Math.round(perPerson / 1000)}K`
+  }
+  return `${perPerson}đ`
 }
 
 export function buildArrangementPlayers(session: ArrangementSession) {

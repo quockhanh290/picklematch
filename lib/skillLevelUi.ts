@@ -1,6 +1,6 @@
-﻿import type { LucideIcon } from 'lucide-react-native'
+import type { LucideIcon } from 'lucide-react-native'
 import { Activity, Medal, Sparkles, Swords, Trophy } from 'lucide-react-native'
-import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/profileTheme'
 
 import type { SkillAssessmentLevel } from './skillAssessment'
 
@@ -75,12 +75,11 @@ export const SKILL_LEVEL_UI: Record<SkillAssessmentLevel['id'], SkillTierUi> = {
 }
 
 export function getSkillLevelUi(levelId?: SkillAssessmentLevel['id'] | null) {
-  if (!levelId) return SKILL_LEVEL_UI.level_3
-  return SKILL_LEVEL_UI[levelId] ?? SKILL_LEVEL_UI.level_3
+  if (!levelId) return SKILL_LEVEL_UI.level_1
+  return SKILL_LEVEL_UI[levelId] ?? SKILL_LEVEL_UI.level_1
 }
 
 export function getSkillTargetElo(eloMin: number, eloMax: number) {
   return Math.round((eloMin + eloMax) / 2)
 }
-
 

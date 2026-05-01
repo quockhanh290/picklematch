@@ -1,8 +1,10 @@
 import { router } from 'expo-router'
-import { useMemo } from 'react'
-import { Pressable, Text, View } from 'react-native'
+import { useMemo, useState } from 'react'
+import { Pressable, Text, View, ScrollView, useWindowDimensions } from 'react-native'
 
-import { colors } from '@/constants/colors'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/profileTheme'
+import { RADIUS, SHADOW, SPACING, BORDER } from '@/constants/screenLayout'
+import { SCREEN_FONTS } from '@/constants/typography'
 import type { PendingMatch, PostMatchAction } from '@/lib/homeFeed'
 import { formatTimeRange } from '@/utils/formatters'
 
@@ -15,6 +17,7 @@ type InboxItem = {
   endTime?: string
   deadlineAt?: string
   kind: 'confirm' | 'submit' | 'report'
+  resultsStatus?: string | null
 }
 
 const DAY_LABELS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
@@ -36,6 +39,7 @@ function buildInboxItems(pendingMatches: PendingMatch[], postMatchActions: PostM
     endTime: item.endTime,
     deadlineAt: deadlineFromEndTime(item.endTime),
     kind: 'submit',
+    resultsStatus: item.resultsStatus,
   }))
 
   const itemsFromActions: InboxItem[] = postMatchActions.map((item) => ({
@@ -47,6 +51,7 @@ function buildInboxItems(pendingMatches: PendingMatch[], postMatchActions: PostM
     endTime: item.endTime,
     deadlineAt: deadlineFromEndTime(item.endTime),
     kind: item.actionType === 'confirm' ? 'confirm' : 'report',
+    resultsStatus: item.resultsStatus,
   }))
 
   const priority: Record<InboxItem['kind'], number> = {
@@ -67,7 +72,7 @@ function buildInboxItems(pendingMatches: PendingMatch[], postMatchActions: PostM
   })
 }
 
-function itemPresentation(kind: InboxItem['kind']) {
+function itemPresentation(kind: InboxItem['kind'], item?: InboxItem) {
   if (kind === 'confirm') {
     return {
       chip: 'CẦN XÁC NHẬN',
@@ -77,9 +82,10 @@ function itemPresentation(kind: InboxItem['kind']) {
   }
 
   if (kind === 'submit') {
+    const isDisputed = item?.resultsStatus === 'disputed'
     return {
-      chip: 'CẦN NHẬP KẾT QUẢ',
-      cta: 'Nhập ngay',
+      chip: isDisputed ? 'KẾT QUẢ BỊ KHIẾU NẠI' : 'CẦN NHẬP KẾT QUẢ',
+      cta: isDisputed ? 'Sửa ngay' : 'Nhập ngay',
       onPress: (id: string) => router.push({ pathname: '/match-result/[id]' as never, params: { id } }),
     }
   }
@@ -87,7 +93,7 @@ function itemPresentation(kind: InboxItem['kind']) {
   return {
     chip: 'CẦN ĐÁNH GIÁ',
     cta: 'Đánh giá',
-    onPress: (id: string) => router.push({ pathname: '/session/[id]/confirm-result' as never, params: { id } }),
+    onPress: (id: string) => router.push({ pathname: '/rate-session/[id]' as never, params: { id } }),
   }
 }
 
@@ -107,8 +113,8 @@ function getDeadlineInfo(deadlineAt?: string) {
   const deadlineMs = Date.parse(deadlineAt ?? '')
   if (Number.isNaN(deadlineMs)) {
     return {
-      dotColor: colors.warning,
-      textColor: colors.warningDark,
+      dotColor: PROFILE_THEME_SEMANTIC.warningStrong,
+      textColor: PROFILE_THEME_SEMANTIC.warningText,
       label: 'Hạn nhập: đang chờ',
     }
   }
@@ -121,18 +127,94 @@ function getDeadlineInfo(deadlineAt?: string) {
   if (diffMs < 0) {
     const overdue = hours >= 1 ? `${hours} tiếng` : `${absMinutes} phút`
     return {
-      dotColor: '#E53E3E',
-      textColor: '#C53030',
+      dotColor: PROFILE_THEME_SEMANTIC.dangerStrong,
+      textColor: PROFILE_THEME_SEMANTIC.dangerText,
       label: `Quá hạn ${overdue}`,
     }
   }
 
   const remaining = hours >= 1 ? `${hours} tiếng` : `${minutes || absMinutes} phút`
   return {
-    dotColor: colors.warning,
-    textColor: colors.warningDark,
+    dotColor: PROFILE_THEME_SEMANTIC.warningStrong,
+    textColor: PROFILE_THEME_SEMANTIC.warningText,
     label: `Hạn nhập: còn ${remaining}`,
   }
+}
+
+function InboxCard({ item }: { item: InboxItem }) {
+  const presentation = itemPresentation(item.kind, item)
+  const deadline = getDeadlineInfo(item.deadlineAt)
+
+  return (
+    <View
+      className="overflow-hidden"
+      style={{
+        backgroundColor: PROFILE_THEME_COLORS.surface,
+        borderColor: PROFILE_THEME_COLORS.outlineVariant,
+        borderWidth: BORDER.hairline,
+        borderRadius: RADIUS.md,
+        ...SHADOW.xs,
+      }}
+    >
+      <View style={{ borderLeftColor: PROFILE_THEME_SEMANTIC.warningStrong, borderLeftWidth: 3, paddingHorizontal: SPACING.md, paddingVertical: 12 }}>
+        <View className="mb-1.5 flex-row items-center">
+          <View className="rounded-[4px] px-2 py-0.5" style={{ backgroundColor: PROFILE_THEME_SEMANTIC.warningBg }}>
+            <Text className="text-[10px]" style={{ color: PROFILE_THEME_SEMANTIC.warningText, fontFamily: SCREEN_FONTS.label, lineHeight: 14 }}>
+              {presentation.chip}
+            </Text>
+          </View>
+        </View>
+
+        <Text
+          className="mb-0.5 text-[17px] uppercase"
+          numberOfLines={1}
+          ellipsizeMode="tail"
+          style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.headline, lineHeight: 21 }}
+        >
+          {item.courtName}
+        </Text>
+        <Text className="text-[11px]" numberOfLines={1} style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, lineHeight: 15 }}>
+          {formatMatchMeta(item)}
+        </Text>
+      </View>
+
+      <View
+        className="flex-row items-center justify-between"
+        style={{ borderTopColor: PROFILE_THEME_COLORS.surfaceVariant, borderTopWidth: BORDER.hairline, paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm }}
+      >
+        <View className="min-w-0 flex-1 flex-row items-center pr-3" style={{ columnGap: 5 }}>
+          <View className="h-[5px] w-[5px] rounded-full" style={{ backgroundColor: deadline.dotColor }} />
+          <Text className="text-[11px]" numberOfLines={1} style={{ color: deadline.textColor, fontFamily: SCREEN_FONTS.label, lineHeight: 15 }}>
+            {deadline.label}
+          </Text>
+        </View>
+
+        <Pressable onPress={() => presentation.onPress(item.id)} className="rounded-full px-4 py-[7px]" style={{ backgroundColor: PROFILE_THEME_SEMANTIC.warningStrong }}>
+          <Text className="text-[15px] uppercase" style={{ color: PROFILE_THEME_COLORS.surface, fontFamily: SCREEN_FONTS.headline, lineHeight: 18 }}>
+            {presentation.cta}
+          </Text>
+        </Pressable>
+      </View>
+    </View>
+  )
+}
+
+function CarouselDots({ count, activeIndex }: { count: number; activeIndex: number }) {
+  if (count === 0) return null
+
+  return (
+    <View className="flex-row items-center gap-2">
+      {Array.from({ length: count }).map((_, index) => (
+        <View
+          key={index}
+          className={`h-2 rounded-full ${index === activeIndex ? 'w-6' : 'w-2'}`}
+          style={{ 
+            backgroundColor: index === activeIndex ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
+          }}
+        />
+      ))}
+    </View>
+  )
 }
 
 export function PostMatchInboxSection({
@@ -144,70 +226,58 @@ export function PostMatchInboxSection({
   postMatchActions: PostMatchAction[]
   marginTopClassName?: string
 }) {
+  const { width: screenWidth } = useWindowDimensions()
+  const [activeIndex, setActiveIndex] = useState(0)
   const inboxItems = useMemo(() => buildInboxItems(pendingMatches, postMatchActions), [pendingMatches, postMatchActions])
 
   if (inboxItems.length === 0) return null
 
-  const currentTask = inboxItems[0]
-  const presentation = itemPresentation(currentTask.kind)
-  const deadline = getDeadlineInfo(currentTask.deadlineAt)
   const countLabel = inboxItems.length === 1 ? '1 việc đang chờ' : `${inboxItems.length} việc đang chờ`
+  
+  // Match HomeCarouselSection dimensions: screenPadding = 20, carouselGap = 14
+  const screenPadding = 20
+  const carouselGap = 14
+  const cardWidth = screenWidth - screenPadding * 2
 
   return (
     <View className={marginTopClassName}>
-      <View className="mb-2 flex-row items-baseline justify-between" style={{ marginHorizontal: 16 }}>
-        <Text className="text-[15px]" style={{ color: colors.text, fontFamily: 'PlusJakartaSans-Bold', lineHeight: 20 }}>
+      <View className="mb-3 flex-row items-baseline justify-between">
+        <Text className="text-[15px]" style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.cta, lineHeight: 20 }}>
           Việc cần chốt
         </Text>
-        <Text className="text-[11px]" style={{ color: colors.textSecondary, fontFamily: 'PlusJakartaSans-Regular', lineHeight: 15 }}>
+        <Text className="text-[11px]" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, lineHeight: 15 }}>
           {countLabel}
         </Text>
       </View>
 
-      <View
-        className="overflow-hidden rounded-[12px] border"
-        style={{ marginHorizontal: 16, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 0.5 }}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 8 }}
+        snapToInterval={cardWidth + carouselGap}
+        decelerationRate="fast"
+        onScroll={(event) => {
+          const offsetX = event.nativeEvent.contentOffset.x
+          const nextIndex = Math.round(offsetX / (cardWidth + carouselGap))
+          if (nextIndex !== activeIndex) {
+            setActiveIndex(nextIndex)
+          }
+        }}
+        scrollEventThrottle={16}
       >
-        <View style={{ borderLeftColor: colors.warning, borderLeftWidth: 3, paddingHorizontal: 14, paddingVertical: 12 }}>
-          <View className="mb-1.5 flex-row items-center">
-            <View className="rounded-[4px] px-2 py-0.5" style={{ backgroundColor: colors.warningLight }}>
-              <Text className="text-[10px]" style={{ color: colors.warningDark, fontFamily: 'PlusJakartaSans-SemiBold', lineHeight: 14 }}>
-                {presentation.chip}
-              </Text>
+        <View className="flex-row" style={{ columnGap: carouselGap }}>
+          {inboxItems.map((item) => (
+            <View key={item.key} style={{ width: cardWidth }}>
+              <InboxCard item={item} />
             </View>
-          </View>
-
-          <Text
-            className="mb-0.5 text-[17px] uppercase"
-            numberOfLines={1}
-            ellipsizeMode="tail"
-            style={{ color: colors.text, fontFamily: 'BarlowCondensed-Bold', lineHeight: 21 }}
-          >
-            {currentTask.courtName}
-          </Text>
-          <Text className="text-[11px]" numberOfLines={1} style={{ color: colors.textSecondary, fontFamily: 'PlusJakartaSans-Regular', lineHeight: 15 }}>
-            {formatMatchMeta(currentTask)}
-          </Text>
+          ))}
         </View>
+      </ScrollView>
 
-        <View
-          className="flex-row items-center justify-between"
-          style={{ borderTopColor: '#F0EDE5', borderTopWidth: 0.5, paddingHorizontal: 14, paddingVertical: 10 }}
-        >
-          <View className="min-w-0 flex-1 flex-row items-center pr-3" style={{ columnGap: 5 }}>
-            <View className="h-[5px] w-[5px] rounded-full" style={{ backgroundColor: deadline.dotColor }} />
-            <Text className="text-[11px]" numberOfLines={1} style={{ color: deadline.textColor, fontFamily: 'PlusJakartaSans-SemiBold', lineHeight: 15 }}>
-              {deadline.label}
-            </Text>
-          </View>
-
-          <Pressable onPress={() => presentation.onPress(currentTask.id)} className="rounded-full px-4 py-[7px]" style={{ backgroundColor: colors.warning }}>
-            <Text className="text-[12px]" style={{ color: colors.surface, fontFamily: 'PlusJakartaSans-Bold', lineHeight: 16 }}>
-              {presentation.cta}
-            </Text>
-          </Pressable>
-        </View>
+      <View className="mt-4 items-center">
+        <CarouselDots count={inboxItems.length} activeIndex={activeIndex} />
       </View>
     </View>
   )
 }
+

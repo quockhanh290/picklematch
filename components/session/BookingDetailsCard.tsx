@@ -1,7 +1,9 @@
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
 import { FileText, Hash, Phone, ShieldAlert, ShieldCheck, User } from 'lucide-react-native'
 import type { ComponentType } from 'react'
 import { Text, View } from 'react-native'
+import { SCREEN_FONTS } from '@/constants/typography'
+import { RADIUS, SPACING } from '@/constants/screenLayout'
 
 type Props = {
   courtBookingStatus: 'confirmed' | 'unconfirmed'
@@ -29,7 +31,7 @@ function InfoRow({
           style={{
             width: 40,
             height: 40,
-            borderRadius: 999,
+            borderRadius: RADIUS.full,
             backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
             alignItems: 'center',
             justifyContent: 'center',
@@ -41,7 +43,7 @@ function InfoRow({
           <Text
             style={{
               fontSize: 10,
-              fontFamily: 'PlusJakartaSans-ExtraBold',
+              fontFamily: SCREEN_FONTS.headline,
               textTransform: 'uppercase',
               letterSpacing: 1.8,
               color: PROFILE_THEME_COLORS.outline,
@@ -53,7 +55,7 @@ function InfoRow({
             style={{
               marginTop: 3,
               fontSize: 14,
-              fontFamily: 'PlusJakartaSans-SemiBold',
+              fontFamily: SCREEN_FONTS.label,
               color: PROFILE_THEME_COLORS.onSurface,
               lineHeight: 20,
             }}
@@ -92,7 +94,7 @@ export function BookingDetailsCard({
     <View
       style={{
         marginTop: 16,
-        borderRadius: 28,
+        borderRadius: RADIUS.hero,
         backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
         shadowColor: PROFILE_THEME_COLORS.onBackground,
         shadowOpacity: 0.06,
@@ -108,7 +110,7 @@ export function BookingDetailsCard({
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
-          paddingHorizontal: 20,
+          paddingHorizontal: SPACING.xl,
           paddingTop: 18,
           paddingBottom: 14,
           borderBottomWidth: 1,
@@ -119,7 +121,7 @@ export function BookingDetailsCard({
           <Text
             style={{
               fontSize: 10,
-              fontFamily: 'PlusJakartaSans-ExtraBold',
+              fontFamily: SCREEN_FONTS.headline,
               textTransform: 'uppercase',
               letterSpacing: 1.8,
               color: PROFILE_THEME_COLORS.outline,
@@ -131,7 +133,7 @@ export function BookingDetailsCard({
             style={{
               marginTop: 3,
               fontSize: 13,
-              fontFamily: 'PlusJakartaSans-SemiBold',
+              fontFamily: SCREEN_FONTS.label,
               color: PROFILE_THEME_COLORS.onSurfaceVariant,
             }}
           >
@@ -142,7 +144,7 @@ export function BookingDetailsCard({
           style={{
             flexDirection: 'row',
             alignItems: 'center',
-            borderRadius: 999,
+            borderRadius: RADIUS.full,
             paddingHorizontal: 12,
             paddingVertical: 7,
             backgroundColor: isConfirmed
@@ -157,7 +159,7 @@ export function BookingDetailsCard({
             style={{
               marginLeft: 6,
               fontSize: 12,
-              fontFamily: 'PlusJakartaSans-ExtraBold',
+              fontFamily: SCREEN_FONTS.headline,
               color: isConfirmed ? PROFILE_THEME_COLORS.surfaceTint : PROFILE_THEME_COLORS.outline,
             }}
           >
@@ -167,7 +169,7 @@ export function BookingDetailsCard({
       </View>
 
       {/* Info rows */}
-      <View style={{ paddingHorizontal: 20, paddingTop: 18, paddingBottom: 20 }}>
+      <View style={{ paddingHorizontal: SPACING.xl, paddingTop: 18, paddingBottom: 20 }}>
         {rows.map((row, index) => (
           <InfoRow
             key={row.label}
@@ -181,6 +183,7 @@ export function BookingDetailsCard({
     </View>
   )
 }
+
 
 
 

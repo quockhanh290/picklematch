@@ -12,8 +12,9 @@ import {
 } from 'lucide-react-native'
 import { Pressable, Text, View } from 'react-native'
 
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
-import { AppFontSet } from '@/constants/typography'
+import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
+import { SCREEN_FONTS } from '@/constants/typography'
+import { RADIUS, BORDER } from '@/constants/screenLayout'
 
 type Props = {
   courtName: string
@@ -60,18 +61,19 @@ function extractCounts(label: string) {
 }
 
 function compactPriceLabel(label: string, divisor?: number) {
-  if (!label.trim()) return 'FREE'
-  if (label.toLowerCase().includes('miễn phí')) return 'FREE'
+  if (!label.trim()) return 'Miễn phí'
+  const lower = label.toLowerCase()
+  if (lower.includes('miễn phí') || lower.includes('free')) return 'Miễn phí'
   if (/[kK]/.test(label)) return label
   const raw = Number(label.replace(/[^\d]/g, ''))
-  if (!raw) return 'FREE'
+  if (!raw) return 'Miễn phí'
   const normalized = divisor && divisor > 0 ? Math.ceil(raw / divisor) : raw
   return `${Math.round(normalized / 1000)}K`
 }
 
 const BADGE_STYLE = {
   backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
-  borderWidth: 1,
+  borderWidth: BORDER.base,
   borderColor: PROFILE_THEME_COLORS.outlineVariant,
 } as const
 
@@ -124,10 +126,10 @@ export function FeedMatchCard({
     <Pressable
       onPress={onPress}
       disabled={disabled}
-      className={`${containerClassName} overflow-hidden rounded-[34px] px-6 pt-6 pb-4`}
+      className={`${containerClassName} overflow-hidden rounded-[24px] px-6 pt-6 pb-4`}
       style={{
         backgroundColor: 'transparent',
-        borderWidth: 1,
+        borderWidth: BORDER.base,
         borderColor: PROFILE_THEME_COLORS.primary,
         borderLeftWidth: 3,
         borderLeftColor: PROFILE_THEME_COLORS.primary,
@@ -145,7 +147,7 @@ export function FeedMatchCard({
         minimumFontScale={0.68}
         style={{
           color: PROFILE_THEME_COLORS.primary,
-          fontFamily: AppFontSet.headline,
+          fontFamily: SCREEN_FONTS.headline,
           fontSize: titleFontSize,
           lineHeight: titleLineHeight,
           letterSpacing: 0.8,
@@ -158,7 +160,7 @@ export function FeedMatchCard({
       <Text
         style={{
           color: withAlpha(PROFILE_THEME_COLORS.onSurfaceVariant, 0.44),
-          fontFamily: AppFontSet.display,
+          fontFamily: SCREEN_FONTS.headlineItalic,
           fontSize: 44,
           lineHeight: 52,
         }}
@@ -178,7 +180,7 @@ export function FeedMatchCard({
             ellipsizeMode="tail"
             style={{
               color: PROFILE_THEME_COLORS.onSurfaceVariant,
-              fontFamily: AppFontSet.label,
+              fontFamily: SCREEN_FONTS.label,
               fontSize: 12,
               lineHeight: 17,
             }}
@@ -197,7 +199,7 @@ export function FeedMatchCard({
             className="ml-1.5"
             style={{
               color: PROFILE_THEME_COLORS.onSurfaceVariant,
-              fontFamily: AppFontSet.label,
+              fontFamily: SCREEN_FONTS.label,
               fontSize: 12,
               lineHeight: 18,
             }}
@@ -213,7 +215,7 @@ export function FeedMatchCard({
               className="ml-1.5"
               style={{
                 color: PROFILE_THEME_COLORS.onSurfaceVariant,
-                fontFamily: AppFontSet.label,
+                fontFamily: SCREEN_FONTS.label,
                 fontSize: 12,
                 lineHeight: 18,
               }}
@@ -229,7 +231,7 @@ export function FeedMatchCard({
             className="ml-1.5"
             style={{
               color: PROFILE_THEME_COLORS.onSurfaceVariant,
-              fontFamily: AppFontSet.label,
+              fontFamily: SCREEN_FONTS.label,
               fontSize: 12,
               lineHeight: 18,
             }}
@@ -244,7 +246,7 @@ export function FeedMatchCard({
             className="ml-1.5"
             style={{
               color: PROFILE_THEME_COLORS.onSurfaceVariant,
-              fontFamily: AppFontSet.label,
+              fontFamily: SCREEN_FONTS.label,
               fontSize: 12,
               lineHeight: 18,
             }}
@@ -259,7 +261,7 @@ export function FeedMatchCard({
             className="ml-1.5"
             style={{
               color: PROFILE_THEME_COLORS.onSurfaceVariant,
-              fontFamily: AppFontSet.label,
+              fontFamily: SCREEN_FONTS.label,
               fontSize: 12,
               lineHeight: 18,
             }}
@@ -274,12 +276,12 @@ export function FeedMatchCard({
             className="ml-1.5"
             style={{
               color: PROFILE_THEME_COLORS.onSurfaceVariant,
-              fontFamily: AppFontSet.label,
+              fontFamily: SCREEN_FONTS.label,
               fontSize: 12,
               lineHeight: 18,
             }}
           >
-            {compactPriceLabel(priceLabel, priceDivisor)}/ng
+            {compactPriceLabel(priceLabel, priceDivisor)}{priceLabel === 'Miễn phí' ? '' : '/ng'}
           </Text>
         </View>
       </View>
@@ -294,14 +296,14 @@ export function FeedMatchCard({
               className="mr-3 h-11 w-11 items-center justify-center rounded-full"
               style={{
                 backgroundColor: PROFILE_THEME_COLORS.primary,
-                borderWidth: 1,
+                borderWidth: BORDER.base,
                 borderColor: withAlpha(PROFILE_THEME_COLORS.primary, 0.14),
               }}
             >
               <Text
                 style={{
                   color: PROFILE_THEME_COLORS.onPrimary,
-                  fontFamily: AppFontSet.headline,
+                  fontFamily: SCREEN_FONTS.headline,
                   fontSize: 15,
                 }}
               >
@@ -314,7 +316,7 @@ export function FeedMatchCard({
                 numberOfLines={1}
                 style={{
                   color: PROFILE_THEME_COLORS.onSurface,
-                  fontFamily: AppFontSet.label,
+                  fontFamily: SCREEN_FONTS.label,
                   fontSize: 13,
                 }}
               >
@@ -327,7 +329,7 @@ export function FeedMatchCard({
             <Text
               style={{
                 color: PROFILE_THEME_COLORS.onSurface,
-                fontFamily: AppFontSet.headline,
+                fontFamily: SCREEN_FONTS.headline,
                 fontSize: 16,
               }}
             >
@@ -336,7 +338,7 @@ export function FeedMatchCard({
             <Text
               style={{
                 color: PROFILE_THEME_COLORS.onSurfaceVariant,
-                fontFamily: AppFontSet.body,
+                fontFamily: SCREEN_FONTS.body,
                 fontSize: 10,
               }}
             >
@@ -353,7 +355,7 @@ export function FeedMatchCard({
             colors={[PROFILE_THEME_COLORS.primary, PROFILE_THEME_COLORS.tertiary]}
             start={{ x: 0, y: 0.5 }}
             end={{ x: 1, y: 0.5 }}
-            style={{ width: `${progressPercent}%`, height: '100%', borderRadius: 999 }}
+            style={{ width: `${progressPercent}%`, height: '100%', borderRadius: RADIUS.full }}
           />
         </View>
 
@@ -365,7 +367,7 @@ export function FeedMatchCard({
                 backgroundColor: isFull
                   ? PROFILE_THEME_COLORS.errorContainer
                   : PROFILE_THEME_COLORS.surfaceContainerHighest,
-                borderWidth: 1,
+                borderWidth: BORDER.base,
                 borderColor: isFull ? PROFILE_THEME_COLORS.error : PROFILE_THEME_COLORS.outlineVariant,
               }}
             >
@@ -378,7 +380,7 @@ export function FeedMatchCard({
                 className="ml-1.5"
                 style={{
                   color: isFull ? PROFILE_THEME_COLORS.onErrorContainer : PROFILE_THEME_COLORS.onSurfaceVariant,
-                  fontFamily: AppFontSet.label,
+                  fontFamily: SCREEN_FONTS.label,
                   fontSize: 12,
                 }}
               >
@@ -394,8 +396,8 @@ export function FeedMatchCard({
             <Text
               style={{
                 color: PROFILE_THEME_COLORS.onPrimary,
-                fontFamily: AppFontSet.headline,
-                fontSize: 11,
+                fontFamily: SCREEN_FONTS.headline,
+                fontSize: 14,
                 textTransform: 'uppercase',
                 letterSpacing: 1.3,
               }}
@@ -408,5 +410,6 @@ export function FeedMatchCard({
     </Pressable>
   )
 }
+
 
 

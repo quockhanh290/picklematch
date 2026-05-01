@@ -1,7 +1,8 @@
 import { Check, ChevronRight, MessageSquareText, ShieldAlert, X } from 'lucide-react-native'
 import { Text, TouchableOpacity, View } from 'react-native'
 
-import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/profileTheme'
+import { SCREEN_FONTS } from '@/constants/typography'
 
 type RequestItem = {
   id: string
@@ -47,7 +48,15 @@ export function HostRequestReview({
       <Text className="mb-1 text-[11px] font-extrabold uppercase tracking-[1.2px]" style={{ color: PROFILE_THEME_COLORS.outline }}>
         Duyệt yêu cầu
       </Text>
-      <Text className="mb-4 text-2xl font-black" style={{ color: PROFILE_THEME_COLORS.onSurface }}>
+      <Text
+        style={{
+          marginBottom: 16,
+          fontSize: 24,
+          fontFamily: SCREEN_FONTS.headline,
+          color: PROFILE_THEME_COLORS.onSurface,
+          textTransform: 'uppercase',
+        }}
+      >
         Yêu cầu tham gia
       </Text>
 
@@ -69,7 +78,7 @@ export function HostRequestReview({
         return (
           <View
             key={request.id}
-            className="mb-4 rounded-[28px] border p-4"
+            className="mb-4 rounded-[24px] border p-4"
             style={{
               borderColor: PROFILE_THEME_COLORS.outlineVariant,
               backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
@@ -86,7 +95,15 @@ export function HostRequestReview({
                   <Text className="text-[11px] font-extrabold uppercase tracking-[1px]" style={{ color: PROFILE_THEME_COLORS.outline }}>
                     Người chơi
                   </Text>
-                  <Text className="mt-2 text-lg font-black" style={{ color: PROFILE_THEME_COLORS.onSurface }}>
+                  <Text
+                    style={{
+                      marginTop: 8,
+                      fontSize: 18,
+                      fontFamily: SCREEN_FONTS.headline,
+                      color: PROFILE_THEME_COLORS.onSurface,
+                      textTransform: 'uppercase',
+                    }}
+                  >
                     {request.player.name}
                   </Text>
                   <Text className="mt-1 text-sm" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant }}>
@@ -185,3 +202,4 @@ export function HostRequestReview({
     </View>
   )
 }
+

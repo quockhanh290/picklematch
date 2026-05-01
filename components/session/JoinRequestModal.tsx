@@ -1,10 +1,13 @@
 import { KeyboardAvoidingView, Modal, Platform, ScrollView, Text, TextInput, View } from 'react-native'
+import { SCREEN_FONTS } from '@/constants/typography'
 import { AlertCircle, Clock3, Send, Users } from 'lucide-react-native'
+import { STRINGS } from '@/constants/strings'
 
-import { AppButton } from '@/components/design'
-import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
+import { AppButton } from '@/components/design/AppButton'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/profileTheme'
 import type { MatchStatus } from '@/lib/matchmaking'
 import { useAppTheme } from '@/lib/theme-context'
+import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
 
 type Props = {
   visible: boolean
@@ -36,12 +39,12 @@ export function JoinRequestModal({
   const isLowerSkill = mode === 'LOWER_SKILL'
   const isWaitlist = mode === 'WAITLIST'
 
-  const title = isWaitlist ? 'Đăng ký dự bị' : 'Xin vào kèo'
-  const eyebrow = isWaitlist ? 'Dự bị' : 'Yêu cầu tham gia'
+  const title = isWaitlist ? STRINGS.join_modal.waitlist.title : STRINGS.join_modal.request.title
+  const eyebrow = isWaitlist ? STRINGS.join_modal.waitlist.eyebrow : STRINGS.join_modal.request.eyebrow
   const description = isWaitlist
-    ? 'Kèo đang đủ người. Bạn có thể để lại lời nhắn để chủ kèo gọi bạn vào nếu có người rời kèo.'
-    : 'Giới thiệu ngắn để chủ kèo hiểu thêm về bạn trước khi quyết định nhé.'
-  const submitLabel = isWaitlist ? 'Gửi đăng ký dự bị' : 'Gửi yêu cầu'
+    ? STRINGS.join_modal.waitlist.description
+    : STRINGS.join_modal.request.description
+  const submitLabel = isWaitlist ? STRINGS.join_modal.waitlist.submit : STRINGS.join_modal.request.submit
 
   const HeaderIcon = isWaitlist ? Users : isLowerSkill ? AlertCircle : Send
 
@@ -56,11 +59,11 @@ export function JoinRequestModal({
           <View
             style={{
               maxHeight: '90%',
-              borderRadius: 32,
-              borderWidth: 1,
+              borderRadius: RADIUS.hero,
+              borderWidth: BORDER.base,
               borderColor: PROFILE_THEME_COLORS.outlineVariant,
               backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
-              paddingHorizontal: 20,
+              paddingHorizontal: SPACING.xl,
               paddingTop: 18,
               paddingBottom: 16,
               shadowColor: PROFILE_THEME_COLORS.onBackground,
@@ -81,8 +84,8 @@ export function JoinRequestModal({
                   <Text
                     style={{
                       fontSize: 10,
-                      fontFamily: 'PlusJakartaSans-ExtraBold',
-                      letterSpacing: 1.8,
+                      fontFamily: SCREEN_FONTS.headline,
+                      letterSpacing: 1.5,
                       textTransform: 'uppercase',
                       color: PROFILE_THEME_COLORS.outline,
                     }}
@@ -91,12 +94,11 @@ export function JoinRequestModal({
                   </Text>
                   <Text
                     style={{
-                      marginTop: 6,
-                      fontSize: 30,
-                      lineHeight: 36,
-                      letterSpacing: 0.4,
+                      marginTop: 4,
+                      fontSize: 28,
+                      lineHeight: 32,
                       color: PROFILE_THEME_COLORS.primary,
-                      fontFamily: 'PlusJakartaSans-ExtraBold',
+                      fontFamily: SCREEN_FONTS.headline,
                       textTransform: 'uppercase',
                     }}
                   >
@@ -108,7 +110,7 @@ export function JoinRequestModal({
                   style={{
                     width: 38,
                     height: 38,
-                    borderRadius: 999,
+                    borderRadius: RADIUS.full,
                     backgroundColor: withAlpha(PROFILE_THEME_COLORS.primary, 0.12),
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -126,7 +128,7 @@ export function JoinRequestModal({
                   fontSize: 14,
                   lineHeight: 22,
                   color: PROFILE_THEME_COLORS.onSurfaceVariant,
-                  fontFamily: 'PlusJakartaSans-Regular',
+                  fontFamily: SCREEN_FONTS.body,
                 }}
               >
                 {description}
@@ -136,11 +138,11 @@ export function JoinRequestModal({
                 <View
                   style={{
                     marginTop: 14,
-                    borderRadius: 20,
-                    borderWidth: 1,
+                    borderRadius: RADIUS.lg,
+                    borderWidth: BORDER.base,
                     borderColor: PROFILE_THEME_COLORS.secondaryFixedDim,
                     backgroundColor: PROFILE_THEME_SEMANTIC.warningBg,
-                    paddingHorizontal: 14,
+                    paddingHorizontal: SPACING.md,
                     paddingVertical: 12,
                   }}
                 >
@@ -149,14 +151,13 @@ export function JoinRequestModal({
                     <Text
                       style={{
                         marginLeft: 7,
-                        fontSize: 12,
-                        fontFamily: 'PlusJakartaSans-ExtraBold',
+                        fontSize: 13,
+                        fontFamily: SCREEN_FONTS.headline,
                         textTransform: 'uppercase',
-                        letterSpacing: 1,
                         color: PROFILE_THEME_COLORS.onPrimaryFixedVariant,
                       }}
                     >
-                      Cảnh báo biến động Elo
+                      {STRINGS.join_modal.skill_warning.title}
                     </Text>
                   </View>
                   <Text
@@ -165,10 +166,10 @@ export function JoinRequestModal({
                       fontSize: 13,
                       lineHeight: 20,
                       color: PROFILE_THEME_COLORS.onPrimaryFixedVariant,
-                      fontFamily: 'PlusJakartaSans-Regular',
+                      fontFamily: SCREEN_FONTS.body,
                     }}
                   >
-                    Trình độ hiện tại của bạn đang thấp hơn mặt bằng kèo này. Nếu được chủ kèo chấp nhận, Elo có thể biến động mạnh hơn sau trận.
+                    {STRINGS.join_modal.skill_warning.description}
                   </Text>
                 </View>
               ) : null}
@@ -176,14 +177,14 @@ export function JoinRequestModal({
               <View style={{ marginTop: 18 }}>
                 <Text
                   style={{
-                    fontSize: 10,
-                    fontFamily: 'PlusJakartaSans-ExtraBold',
+                    fontSize: 12,
+                    fontFamily: SCREEN_FONTS.headline,
                     textTransform: 'uppercase',
-                    letterSpacing: 1.8,
+                    letterSpacing: 1.2,
                     color: PROFILE_THEME_COLORS.outline,
                   }}
                 >
-                  Lời nhắn giới thiệu
+                  {STRINGS.join_modal.intro.title}
                 </Text>
                 <Text
                   style={{
@@ -191,10 +192,10 @@ export function JoinRequestModal({
                     fontSize: 13,
                     lineHeight: 20,
                     color: PROFILE_THEME_COLORS.onSurfaceVariant,
-                    fontFamily: 'PlusJakartaSans-Regular',
+                    fontFamily: SCREEN_FONTS.body,
                   }}
                 >
-                  Bạn có thể giới thiệu ngắn về lối chơi, thái độ trên sân, hoặc thời gian có mặt.
+                  {STRINGS.join_modal.intro.description}
                 </Text>
 
                 <TextInput
@@ -203,24 +204,24 @@ export function JoinRequestModal({
                   onChangeText={setIntroNote}
                   placeholder={
                     isWaitlist
-                      ? 'Ví dụ: Nếu có slot trống bạn báo mình nhé.'
-                      : 'Ví dụ: Mình đánh đều, giữ bóng tốt và rất đúng giờ.'
+                      ? STRINGS.join_modal.intro.placeholder_waitlist
+                      : STRINGS.join_modal.intro.placeholder_request
                   }
                   placeholderTextColor={withAlpha(PROFILE_THEME_COLORS.onSurfaceVariant, 0.6)}
                   textAlignVertical="top"
                   style={{
                     marginTop: 10,
                     minHeight: 128,
-                    borderRadius: 20,
-                    borderWidth: 1,
+                    borderRadius: RADIUS.lg,
+                    borderWidth: BORDER.base,
                     borderColor: PROFILE_THEME_COLORS.outlineVariant,
                     backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
-                    paddingHorizontal: 14,
+                    paddingHorizontal: SPACING.md,
                     paddingVertical: 12,
                     color: PROFILE_THEME_COLORS.onSurface,
                     fontSize: 14,
                     lineHeight: 22,
-                    fontFamily: 'PlusJakartaSans-Regular',
+                    fontFamily: SCREEN_FONTS.body,
                   }}
                 />
               </View>
@@ -228,11 +229,11 @@ export function JoinRequestModal({
               <View
                 style={{
                   marginTop: 14,
-                  borderRadius: 20,
+                  borderRadius: RADIUS.lg,
                   backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
-                  borderWidth: 1,
+                  borderWidth: BORDER.base,
                   borderColor: PROFILE_THEME_COLORS.outlineVariant,
-                  paddingHorizontal: 14,
+                  paddingHorizontal: SPACING.md,
                   paddingVertical: 12,
                 }}
               >
@@ -241,14 +242,14 @@ export function JoinRequestModal({
                   <Text
                     style={{
                       marginLeft: 7,
-                      fontSize: 11,
-                      fontFamily: 'PlusJakartaSans-ExtraBold',
+                      fontSize: 12,
+                      fontFamily: SCREEN_FONTS.headline,
                       textTransform: 'uppercase',
-                      letterSpacing: 1.3,
+                      letterSpacing: 1.1,
                       color: PROFILE_THEME_COLORS.primary,
                     }}
                   >
-                    Riêng tư
+                    {STRINGS.join_modal.privacy.title}
                   </Text>
                 </View>
                 <Text
@@ -257,16 +258,16 @@ export function JoinRequestModal({
                     fontSize: 13,
                     lineHeight: 20,
                     color: PROFILE_THEME_COLORS.onSurfaceVariant,
-                    fontFamily: 'PlusJakartaSans-Regular',
+                    fontFamily: SCREEN_FONTS.body,
                   }}
                 >
-                  Chủ kèo chỉ thấy lời nhắn này khi xem yêu cầu. Bạn có thể chỉnh lại ở lần gửi sau nếu trạng thái thay đổi.
+                  {STRINGS.join_modal.privacy.description}
                 </Text>
               </View>
 
               <View style={{ marginTop: 16, flexDirection: 'row', gap: 10 }}>
                 <View style={{ flex: 1 }}>
-                  <AppButton label="Quay lại" onPress={onClose} variant="secondary" />
+                  <AppButton label={STRINGS.common.back} onPress={onClose} variant="secondary" />
                 </View>
                 <View style={{ flex: 1 }}>
                   <AppButton label={submitLabel} onPress={onSubmit} loading={loading} variant="primary" />
@@ -280,3 +281,4 @@ export function JoinRequestModal({
     </Modal>
   )
 }
+

@@ -1,14 +1,19 @@
-import { Text, View } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
+import { SCREEN_FONTS } from '@/constants/typography'
 import { AlertCircle, Clock3 } from 'lucide-react-native'
+import { STRINGS } from '@/constants/strings'
 
-import { AppButton } from '@/components/design'
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { AppButton } from '@/components/design/AppButton'
+import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
 import type { MatchStatus } from '@/lib/matchmaking'
+import { RADIUS, SPACING } from '@/constants/screenLayout'
 
 type Props = {
   matchStatus: MatchStatus
   requestStatus: 'none' | 'pending' | 'accepted' | 'rejected'
+  hostRequiresApproval?: boolean
   hostResponseTemplate?: string | null
+  onCancel?: () => void
   loading?: boolean
   onPress: () => void
 }
@@ -16,78 +21,91 @@ type Props = {
 export function SmartJoinButton({
   matchStatus,
   requestStatus,
+  hostRequiresApproval,
   hostResponseTemplate,
+  onCancel,
   loading,
   onPress,
 }: Props) {
   if (requestStatus === 'pending') {
     return (
-      <View
-        style={{
-          borderRadius: 24,
-          backgroundColor: PROFILE_THEME_COLORS.primaryFixed,
-          paddingHorizontal: 20,
-          paddingVertical: 16,
-        }}
-      >
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Clock3 size={16} color={PROFILE_THEME_COLORS.onPrimaryFixedVariant} />
+      <View style={{ gap: 12 }}>
+        <View
+          style={{
+            borderRadius: RADIUS.xl,
+            backgroundColor: PROFILE_THEME_COLORS.primaryFixed,
+            paddingHorizontal: SPACING.xl,
+            paddingVertical: 16,
+          }}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Clock3 size={16} color={PROFILE_THEME_COLORS.onPrimaryFixedVariant} />
+            <Text
+              style={{
+                marginLeft: 8,
+                fontSize: 14,
+                fontFamily: SCREEN_FONTS.headline,
+                color: PROFILE_THEME_COLORS.onPrimaryFixedVariant,
+                textTransform: 'uppercase',
+                letterSpacing: 0.5,
+              }}
+            >
+              {STRINGS.session_join.button.waiting_host}
+            </Text>
+          </View>
           <Text
             style={{
-              marginLeft: 8,
+              marginTop: 8,
               fontSize: 14,
-              fontFamily: 'PlusJakartaSans-SemiBold',
+              fontFamily: SCREEN_FONTS.body,
+              lineHeight: 22,
               color: PROFILE_THEME_COLORS.onPrimaryFixedVariant,
             }}
           >
-            Đang chờ host phản hồi
+            {STRINGS.session_join.button.waiting_host_sub}
           </Text>
+          {hostResponseTemplate ? (
+            <View
+              style={{
+                marginTop: 12,
+                borderRadius: RADIUS.lg,
+                backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 10,
+                  fontFamily: SCREEN_FONTS.headline,
+                  textTransform: 'uppercase',
+                  letterSpacing: 1.5,
+                  color: PROFILE_THEME_COLORS.onPrimaryFixedVariant,
+                }}
+              >
+                {STRINGS.session_join.button.recent_message}
+              </Text>
+              <Text
+                style={{
+                  marginTop: 8,
+                  fontSize: 14,
+                  fontFamily: SCREEN_FONTS.body,
+                  lineHeight: 22,
+                  color: PROFILE_THEME_COLORS.onPrimaryFixedVariant,
+                }}
+              >
+                {hostResponseTemplate}
+              </Text>
+            </View>
+          ) : null}
         </View>
-        <Text
-          style={{
-            marginTop: 8,
-            fontSize: 14,
-            fontFamily: 'PlusJakartaSans-Regular',
-            lineHeight: 22,
-            color: PROFILE_THEME_COLORS.onPrimaryFixedVariant,
-          }}
-        >
-          Yêu cầu tham gia của bạn đã được gửi. Host sẽ xem và phản hồi sớm.
-        </Text>
-        {hostResponseTemplate ? (
-          <View
-            style={{
-              marginTop: 12,
-              borderRadius: 16,
-              backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
-              paddingHorizontal: 16,
-              paddingVertical: 12,
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 11,
-                fontFamily: 'PlusJakartaSans-ExtraBold',
-                textTransform: 'uppercase',
-                letterSpacing: 1,
-                color: PROFILE_THEME_COLORS.onPrimaryFixedVariant,
-              }}
-            >
-              Tin nhắn gần nhất
-            </Text>
-            <Text
-              style={{
-                marginTop: 8,
-                fontSize: 14,
-                fontFamily: 'PlusJakartaSans-Regular',
-                lineHeight: 22,
-                color: PROFILE_THEME_COLORS.onPrimaryFixedVariant,
-              }}
-            >
-              {hostResponseTemplate}
-            </Text>
-          </View>
-        ) : null}
+
+        <AppButton 
+          label={STRINGS.session_join.button.cancel_request} 
+          onPress={onCancel || (() => {})} 
+          variant="danger"
+          loading={loading}
+        />
       </View>
     )
   }
@@ -96,9 +114,9 @@ export function SmartJoinButton({
     return (
       <View
         style={{
-          borderRadius: 24,
+          borderRadius: RADIUS.xl,
           backgroundColor: PROFILE_THEME_COLORS.errorContainer,
-          paddingHorizontal: 20,
+          paddingHorizontal: SPACING.xl,
           paddingVertical: 16,
         }}
       >
@@ -108,18 +126,20 @@ export function SmartJoinButton({
             style={{
               marginLeft: 8,
               fontSize: 14,
-              fontFamily: 'PlusJakartaSans-SemiBold',
+              fontFamily: SCREEN_FONTS.headline,
               color: PROFILE_THEME_COLORS.error,
+              textTransform: 'uppercase',
+              letterSpacing: 0.5,
             }}
           >
-            Yêu cầu trước đó đã bị từ chối
+            {STRINGS.session_join.button.rejected}
           </Text>
         </View>
         {hostResponseTemplate ? (
           <View
             style={{
               marginTop: 12,
-              borderRadius: 16,
+              borderRadius: RADIUS.lg,
               backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
               paddingHorizontal: 16,
               paddingVertical: 12,
@@ -127,20 +147,20 @@ export function SmartJoinButton({
           >
             <Text
               style={{
-                fontSize: 11,
-                fontFamily: 'PlusJakartaSans-ExtraBold',
+                fontSize: 10,
+                fontFamily: SCREEN_FONTS.headline,
                 textTransform: 'uppercase',
-                letterSpacing: 1,
+                letterSpacing: 1.5,
                 color: PROFILE_THEME_COLORS.error,
               }}
             >
-              Phản hồi từ host
+              {STRINGS.session_join.button.host_feedback}
             </Text>
             <Text
               style={{
                 marginTop: 8,
                 fontSize: 14,
-                fontFamily: 'PlusJakartaSans-Regular',
+                fontFamily: SCREEN_FONTS.body,
                 lineHeight: 22,
                 color: PROFILE_THEME_COLORS.error,
               }}
@@ -153,21 +173,23 @@ export function SmartJoinButton({
     )
   }
 
-  const palette =
-    matchStatus === 'MATCHED'
+  const isDirectJoin = matchStatus === 'MATCHED' && !hostRequiresApproval
+
+  const palette = isDirectJoin
+    ? {
+        variant: 'primary' as const,
+        label: STRINGS.session_join.button.join_now,
+      }
+    : matchStatus === 'WAITLIST'
       ? {
-          variant: 'primary' as const,
-          label: 'Tham gia ngay',
+          variant: 'secondary' as const,
+          label: STRINGS.session_join.button.register_waitlist,
         }
-      : matchStatus === 'LOWER_SKILL'
-        ? {
-            variant: 'primary' as const,
-            label: 'Xin vào kèo',
-          }
-        : {
-            variant: 'secondary' as const,
-            label: 'Đăng ký dự bị',
-          }
+      : {
+          variant: 'primary' as const,
+          label: STRINGS.session_join.button.request_join,
+        }
 
   return <AppButton label={palette.label} onPress={onPress} loading={loading} variant={palette.variant} />
 }
+

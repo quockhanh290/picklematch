@@ -1,15 +1,18 @@
-import { AppInput, EmptyState, ScreenHeader, StatusBadge } from '@/components/design'
+import { AppDialog, type AppDialogConfig, AppInput, EmptyState, SecondaryNavbar, NavbarUserAvatar, StatusBadge } from '@/components/design'
 import { PROFILE_SKILL_HERO_TONE, ProfileSkillHero } from '@/components/profile/ProfileSections'
-import { PROFILE_THEME_COLORS as EDIT_PROFILE_COLORS } from '@/components/profile/profileTheme'
-import { getEloBandByLegacySkillLabel } from '@/lib/eloSystem'
-import { getSkillLevelById, type SkillAssessmentLevel } from '@/lib/skillAssessment'
+import { PROFILE_THEME_COLORS as EDIT_PROFILE_COLORS } from '@/constants/profileTheme'
+import { getEloBandByLegacySkillLabel, getEloBandForElo, getEloBandByLevelId } from '@/lib/eloSystem'
+import { getSkillLevelById, getSkillLevelFromPlayer, type SkillAssessmentLevel } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
 import { router } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { MapPin, Menu } from 'lucide-react-native'
 import { useEffect, useRef, useState } from 'react'
-import { ActivityIndicator, Alert, FlatList, ImageBackground, Keyboard, ScrollView, Switch, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native'
+import { ActivityIndicator, FlatList, ImageBackground, Keyboard, ScrollView, Switch, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { SCREEN_FONTS } from '@/constants/typography'
+import { RADIUS, BORDER, SHADOW } from '@/constants/screenLayout'
+import { STRINGS } from '@/constants/strings'
 
 const CITIES = ['Hồ Chí Minh', 'Hà Nội', 'Đà Nẵng', 'Cần Thơ', 'Hải Phòng']
 const HERO_IMAGE = require('../assets/images/login-electric-court-hero.png')
@@ -20,11 +23,9 @@ type EditProfileInitialState = {
   autoAccept: boolean
   favoriteCourts: Court[]
   favoriteCourtIds: string[]
+  bio: string
 }
 
-function inferLevelIdFromLegacySkill(skillLabel?: string | null): SkillAssessmentLevel['id'] {
-  return getEloBandByLegacySkillLabel(skillLabel).levelId
-}
 
 export default function EditProfile() {
   const { width } = useWindowDimensions()
@@ -35,15 +36,20 @@ export default function EditProfile() {
 
   const [name, setName] = useState('')
   const [city, setCity] = useState('')
-  const [selectedLevelId, setSelectedLevelId] = useState<SkillAssessmentLevel['id']>('level_3')
+  const [selectedLevelId, setSelectedLevelId] = useState<SkillAssessmentLevel['id']>('level_1')
   const [autoAccept, setAutoAccept] = useState(false)
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null)
+  const [placementMatchesPlayed, setPlacementMatchesPlayed] = useState(0)
+  const [bio, setBio] = useState('')
 
   const [keyword, setKeyword] = useState('')
   const [courts, setCourts] = useState<Court[]>([])
   const [searching, setSearching] = useState(false)
   const [favCourts, setFavCourts] = useState<Court[]>([])
   const [favCourtIds, setFavCourtIds] = useState<string[]>([])
+  const [playerData, setPlayerData] = useState<any>(null)
 
+  const [dialogConfig, setDialogConfig] = useState<AppDialogConfig | null>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const scrollViewRef = useRef<ScrollView>(null)
   const initialStateRef = useRef<EditProfileInitialState | null>(null)
@@ -101,19 +107,32 @@ export default function EditProfile() {
 
     const { data } = await supabase
       .from('players')
-      .select('name, city, skill_label, self_assessed_level, auto_accept, favorite_court_ids, elo, current_elo')
+      .select('name, city, skill_label, self_assessed_level, auto_accept, favorite_court_ids, elo, current_elo, photo_url, placement_matches_played, bio')
       .eq('id', user.id)
       .single()
 
+    setPlayerData(data)
     if (data) {
       setName(data.name ?? '')
       setCity(data.city ?? '')
-      setElo(data.current_elo ?? data.elo ?? 0)
+      setPhotoUrl(data.photo_url ?? null)
+      const rawElo = data.current_elo ?? data.elo ?? 0
+      setPlacementMatchesPlayed(data.placement_matches_played ?? 0)
+      setBio(data.bio ?? '')
 
-      const levelId =
-        (data.self_assessed_level as SkillAssessmentLevel['id'] | null) ?? inferLevelIdFromLegacySkill(data.skill_label)
-
+      // Fix skill level discrepancy: use same logic as profile screen
+      const skill = getSkillLevelFromPlayer(data)
+      
+      const levelId = skill?.id ?? 'level_1'
       setSelectedLevelId(levelId)
+      
+      // If elo is 0, use the seed elo from the resolved skill level
+      let displayElo = rawElo
+      if (rawElo === 0 && skill) {
+        displayElo = skill.id === 'level_1' ? 800 : (getEloBandByLevelId(skill.id)?.seedElo ?? 800)
+      }
+      setElo(displayElo)
+      
       setAutoAccept(Boolean(data.auto_accept))
 
       const ids: string[] = data.favorite_court_ids ?? []
@@ -129,6 +148,7 @@ export default function EditProfile() {
           autoAccept: Boolean(data.auto_accept),
           favoriteCourts: loadedCourts,
           favoriteCourtIds: ids,
+          bio: data.bio ?? '',
         }
       } else {
         initialStateRef.current = {
@@ -137,7 +157,20 @@ export default function EditProfile() {
           autoAccept: Boolean(data.auto_accept),
           favoriteCourts: [],
           favoriteCourtIds: ids,
+          bio: data.bio ?? '',
         }
+      }
+    } else {
+      // Fallback for new users without a record yet
+      setElo(800)
+      setSelectedLevelId('level_1')
+      initialStateRef.current = {
+        name: '',
+        city: '',
+        autoAccept: false,
+        favoriteCourts: [],
+        favoriteCourtIds: [],
+        bio: '',
       }
     }
 
@@ -148,7 +181,11 @@ export default function EditProfile() {
     if (favCourtIds.includes(court.id)) return
 
     if (favCourtIds.length >= 5) {
-      Alert.alert('Tối đa 5 sân', 'Xóa bớt sân để thêm sân mới.')
+      setDialogConfig({
+        title: STRINGS.profile.errors.max_courts,
+        message: 'Xóa bớt sân để thêm sân mới.',
+        actions: [{ label: STRINGS.common.back }],
+      })
       return
     }
 
@@ -170,14 +207,14 @@ export default function EditProfile() {
   }
 
   function handleRedoAssessment() {
-    Alert.alert(
-      'Làm lại bài đánh giá?',
-      'Mức hiện tại sẽ được giữ nguyên cho tới khi bạn hoàn thành bài đánh giá mới. Sau đó hệ thống sẽ cập nhật mức khởi điểm phù hợp hơn.',
-      [
-        { text: 'Để sau', style: 'cancel' },
-        { text: 'Bắt đầu', onPress: () => router.push('/onboarding' as any) },
+    setDialogConfig({
+      title: STRINGS.profile.actions.redo_assessment,
+      message: 'Mức hiện tại sẽ được giữ nguyên cho tới khi bạn hoàn thành bài đánh giá mới. Sau đó hệ thống sẽ cập nhật mức khởi điểm phù hợp hơn.',
+      actions: [
+        { label: STRINGS.common.back, tone: 'secondary' },
+        { label: 'Bắt đầu', onPress: () => router.push('/onboarding' as any) },
       ],
-    )
+    })
   }
 
   function sameIds(a: string[], b: string[]) {
@@ -189,6 +226,7 @@ export default function EditProfile() {
     ? initialStateRef.current.name !== name ||
       initialStateRef.current.city !== city ||
       initialStateRef.current.autoAccept !== autoAccept ||
+      initialStateRef.current.bio !== bio ||
       !sameIds(initialStateRef.current.favoriteCourtIds, favCourtIds)
     : false
 
@@ -199,6 +237,7 @@ export default function EditProfile() {
     setName(initial.name)
     setCity(initial.city)
     setAutoAccept(initial.autoAccept)
+    setBio(initial.bio)
     setFavCourtIds([...initial.favoriteCourtIds])
     setFavCourts([...initial.favoriteCourts])
     setKeyword('')
@@ -207,7 +246,11 @@ export default function EditProfile() {
 
   async function save() {
     if (!name.trim()) {
-      Alert.alert('Lỗi', 'Tên không được để trống')
+      setDialogConfig({
+        title: 'Lỗi',
+        message: 'Tên không được để trống',
+        actions: [{ label: 'Đã hiểu' }],
+      })
       return
     }
 
@@ -218,26 +261,45 @@ export default function EditProfile() {
     const updates = {
       name: name.trim(),
       city,
+      bio: bio.trim(),
       favorite_court_ids: favCourtIds,
       auto_accept: autoAccept,
     }
 
-    const { error } = await supabase.from('players').update(updates).eq('id', myId)
+    const { error } = await supabase.from('players').upsert({
+      id: myId,
+      ...updates,
+      // Ensure we don't overwrite skill fields if we're creating for the first time
+      ...(playerData ? {} : {
+        current_elo: 800,
+        elo: 800,
+        self_assessed_level: 'level_1',
+        skill_label: 'beginner'
+      })
+    })
 
     setSaving(false)
 
     if (error) {
-      Alert.alert('Lỗi', error.message)
+      setDialogConfig({
+        title: 'Lỗi',
+        message: error.message,
+        actions: [{ label: 'Đã hiểu' }],
+      })
       return
     }
 
-    Alert.alert('Đã lưu', 'Hồ sơ của bạn đã được cập nhật.', [{ text: 'OK', onPress: () => router.back() }])
+    setDialogConfig({
+      title: STRINGS.profile.status.saved,
+      message: 'Hồ sơ của bạn đã được cập nhật.',
+      actions: [{ label: 'OK', onPress: () => router.back() }],
+    })
   }
 
   const currentLevel = getSkillLevelById(selectedLevelId)
-  const heroTitleSize = width < 360 ? 36 : width < 420 ? 44 : 52
-  const heroTitleLineHeight = width < 360 ? 50 : width < 420 ? 60 : 70
-  const heroCardSize = Math.min(width - 48, 360)
+  const heroTitleSize = width < 360 ? 32 : 40
+  const heroTitleLineHeight = width < 360 ? 44 : 54
+  const avatarSize = 64
 
   if (loading) {
     return (
@@ -248,130 +310,117 @@ export default function EditProfile() {
   }
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: EDIT_PROFILE_COLORS.background }} edges={['top']}>
+    <View className="flex-1" style={{ backgroundColor: EDIT_PROFILE_COLORS.background }}>
       <StatusBar style="dark" translucent backgroundColor={EDIT_PROFILE_COLORS.background} />
 
-      <ScrollView ref={scrollViewRef} contentContainerStyle={{ paddingBottom: 325 }} keyboardShouldPersistTaps="always" keyboardDismissMode="on-drag">
-        <ScreenHeader
-          variant="brand"
-          title="KINETIC"
-          leftSlot={
-            <TouchableOpacity
-              activeOpacity={0.8}
-              className="h-10 w-10 items-center justify-center"
-              onPress={() => router.back()}
-            >
-              <Menu size={18} color={EDIT_PROFILE_COLORS.onPrimaryFixedVariant} />
-            </TouchableOpacity>
-          }
-          rightSlot={
-            <View
-              className="h-10 w-10 items-center justify-center rounded-full border-2"
-              style={{ borderColor: EDIT_PROFILE_COLORS.primaryFixed, backgroundColor: EDIT_PROFILE_COLORS.primary }}
-            >
-              <Text className="text-sm" style={{ color: EDIT_PROFILE_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-Bold' }}>
-                {(name || 'U').charAt(0).toUpperCase()}
+      <SecondaryNavbar
+        title={STRINGS.profile.title}
+        onBackPress={() => router.back()}
+      />
+      <ScrollView ref={scrollViewRef} contentContainerStyle={{ paddingBottom: 325, paddingTop: 12 }} keyboardShouldPersistTaps="always" keyboardDismissMode="on-drag">
+
+        <View className="px-6 pb-6 pt-4">
+          <View className="flex-row items-center justify-between">
+            <View className="min-w-0 flex-1 pr-4">
+              <Text
+                className="mb-[3px] text-[11px]"
+                style={{ color: EDIT_PROFILE_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.label, lineHeight: 15 }}
+              >
+                CÀI ĐẶT
+              </Text>
+              <Text
+                numberOfLines={2}
+                style={{
+                  color: EDIT_PROFILE_COLORS.onBackground,
+                  fontFamily: SCREEN_FONTS.headlineBlack,
+                  fontSize: heroTitleSize,
+                  lineHeight: heroTitleLineHeight,
+                  letterSpacing: -1,
+                  textTransform: 'uppercase',
+                }}
+              >
+                {STRINGS.profile.edit_title}
               </Text>
             </View>
-          }
-          style={{ backgroundColor: EDIT_PROFILE_COLORS.surfaceContainerLow }}
-        />
 
-        <View className="px-6 pb-8 pt-4">
-          <View style={{ paddingTop: 4, paddingBottom: 6 }}>
-            <Text
-              style={{
-                color: EDIT_PROFILE_COLORS.primary,
-                fontFamily: 'PlusJakartaSans-ExtraBold',
-                fontSize: heroTitleSize,
-                lineHeight: heroTitleLineHeight,
-                letterSpacing: -2,
-              }}
-            >
-              CHỈNH SỬA
-            </Text>
-            <Text
-              style={{
-                color: EDIT_PROFILE_COLORS.onPrimaryContainer,
-                fontFamily: 'PlusJakartaSans-ExtraBold',
-                fontSize: heroTitleSize,
-                lineHeight: heroTitleLineHeight,
-                letterSpacing: -2,
-                marginTop: -6,
-              }}
-            >
-              HỒ SƠ.
-            </Text>
-          </View>
-          <Text className="mb-8 mt-4 text-base leading-6" style={{ color: EDIT_PROFILE_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Medium' }}>
-            Cập nhật thông tin cá nhân và trình độ để kết nối với cộng đồng Pickleball Việt Nam.
-          </Text>
-
-          <View
-            style={{
-              width: heroCardSize,
-              height: heroCardSize,
-              alignSelf: 'center',
-              borderRadius: 32,
-              overflow: 'hidden',
-              backgroundColor: EDIT_PROFILE_COLORS.primaryContainer,
-            }}
-          >
-            <ImageBackground source={HERO_IMAGE} resizeMode="cover" style={{ flex: 1 }} imageStyle={{ opacity: 0.62 }}>
-              <View style={{ flex: 1, backgroundColor: 'rgba(6,78,59,0.52)', justifyContent: 'center', alignItems: 'center' }}>
-                <View
+            <View style={{ alignItems: 'center' }}>
+              <View
+                style={{
+                  width: avatarSize,
+                  height: avatarSize,
+                  borderRadius: RADIUS.full,
+                  borderWidth: 2,
+                  borderColor: EDIT_PROFILE_COLORS.outlineVariant,
+                  backgroundColor: EDIT_PROFILE_COLORS.secondaryFixed,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'hidden',
+                }}
+              >
+                {photoUrl ? (
+                  <ImageBackground source={{ uri: photoUrl }} className="h-full w-full" resizeMode="cover" />
+                ) : (
+                  <Text style={{ color: EDIT_PROFILE_COLORS.primary, fontSize: 24, fontFamily: SCREEN_FONTS.cta }}>
+                    {(name || 'U').charAt(0).toUpperCase()}
+                  </Text>
+                )}
+              </View>
+              <TouchableOpacity
+                activeOpacity={0.8}
+                style={{
+                  marginTop: -12,
+                  backgroundColor: EDIT_PROFILE_COLORS.primary,
+                  paddingHorizontal: 12,
+                  paddingVertical: 4,
+                  borderRadius: RADIUS.full,
+                  ...SHADOW.xs,
+                }}
+              >
+                <Text
                   style={{
-                    width: 148,
-                    height: 148,
-                    borderRadius: 999,
-                    overflow: 'hidden',
-                    borderWidth: 4,
-                    borderColor: EDIT_PROFILE_COLORS.primaryFixed,
-                    marginBottom: 16,
+                    color: EDIT_PROFILE_COLORS.onPrimary,
+                    fontSize: 9,
+                    fontFamily: SCREEN_FONTS.label,
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.5,
                   }}
                 >
-                  <View style={{ flex: 1, backgroundColor: EDIT_PROFILE_COLORS.secondaryFixed, alignItems: 'center', justifyContent: 'center' }}>
-                    <Text style={{ color: EDIT_PROFILE_COLORS.primary, fontSize: 44, fontFamily: 'PlusJakartaSans-Bold' }}>
-                      {(name || 'U').charAt(0).toUpperCase()}
-                    </Text>
-                  </View>
-                </View>
-                <TouchableOpacity
-                  activeOpacity={0.9}
-                  className="rounded-full px-6 py-2"
-                  style={{ backgroundColor: EDIT_PROFILE_COLORS.primaryFixed }}
-                >
-                  <Text
-                    className="text-[11px] uppercase tracking-[2px]"
-                    style={{ color: EDIT_PROFILE_COLORS.onPrimaryFixed, fontFamily: 'PlusJakartaSans-SemiBold' }}
-                  >
-                    Thay ảnh
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </ImageBackground>
+                  {STRINGS.common.edit}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
-        <View className="px-6 gap-10">
+        <View className="px-6 gap-8">
           {/* Basic Info Section */}
           <View>
             <View className="mb-6 flex-row items-center gap-4">
-              <Text className="text-[11px] uppercase tracking-[4px]" style={{ color: EDIT_PROFILE_COLORS.outline, fontFamily: 'PlusJakartaSans-Bold' }}>
-                01 / THÔNG TIN
+              <Text className="text-[11px] uppercase tracking-[4px]" style={{ color: EDIT_PROFILE_COLORS.outline, fontFamily: SCREEN_FONTS.cta }}>
+                01 / {STRINGS.profile.sections.info}
               </Text>
               <View className="h-px flex-1" style={{ backgroundColor: EDIT_PROFILE_COLORS.outlineVariant }} />
             </View>
             
             <View className="gap-4">
-              <AppInput label="Tên hiển thị" value={name} onChangeText={setName} placeholder="Nhập tên của bạn" maxLength={30} />
+              <AppInput label={STRINGS.profile.fields.name} value={name} onChangeText={setName} placeholder="Nhập tên của bạn" maxLength={30} />
+              
+              <AppInput
+                label={STRINGS.profile.fields.bio} 
+                value={bio} 
+                onChangeText={setBio} 
+                placeholder={STRINGS.profile.placeholders.bio} 
+                multiline
+                numberOfLines={3}
+                maxLength={200}
+              />
 
               <View>
                 <Text
                   className="text-xs font-bold uppercase tracking-wider px-1 mb-2"
-                  style={{ color: EDIT_PROFILE_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Bold' }}
+                  style={{ color: EDIT_PROFILE_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.cta }}
                 >
-                  Thành phố
+                  {STRINGS.profile.fields.city}
                 </Text>
                 <View className="flex-row flex-wrap gap-2">
                   {CITIES.map((item) => {
@@ -390,7 +439,7 @@ export default function EditProfile() {
                           className="text-sm font-bold"
                           style={{
                             color: isActive ? EDIT_PROFILE_COLORS.onPrimary : EDIT_PROFILE_COLORS.onSurface,
-                            fontFamily: 'PlusJakartaSans-Bold',
+                            fontFamily: SCREEN_FONTS.cta,
                           }}
                         >
                           {item}
@@ -406,59 +455,72 @@ export default function EditProfile() {
           {/* Skill Level Section */}
           <View>
             <View className="mb-6 flex-row items-center gap-4">
-              <Text className="text-[11px] uppercase tracking-[4px]" style={{ color: EDIT_PROFILE_COLORS.outline, fontFamily: 'PlusJakartaSans-Bold' }}>
-                02 / KỸ NĂNG
+              <Text className="text-[11px] uppercase tracking-[4px]" style={{ color: EDIT_PROFILE_COLORS.outline, fontFamily: SCREEN_FONTS.cta }}>
+                02 / {STRINGS.profile.sections.skill}
               </Text>
               <View className="h-px flex-1" style={{ backgroundColor: EDIT_PROFILE_COLORS.outlineVariant }} />
             </View>
 
             <ProfileSkillHero
-              elo={elo || 1200}
+              elo={elo}
               title={currentLevel?.title ?? 'Đang hiệu chỉnh'}
               subtitle={currentLevel?.subtitle ?? 'Mức khởi điểm hiện tại. Hệ thống sẽ tiếp tục tinh chỉnh sau vài trận.'}
               subtitleItalic
-              description=""
+              description={currentLevel?.description ?? ''}
               contentRightInset={12}
               levelId={selectedLevelId}
               colors={PROFILE_SKILL_HERO_TONE}
             />
 
-            <TouchableOpacity 
-              activeOpacity={0.85} 
-              className="rounded-full px-4 py-4 mb-4 flex-row items-center justify-center"
-              style={{ backgroundColor: EDIT_PROFILE_COLORS.error }}
-              onPress={handleRedoAssessment}
-            >
-              <Text
-                className="text-center text-base font-extrabold"
-                style={{ color: EDIT_PROFILE_COLORS.onError, fontFamily: 'PlusJakartaSans-Bold' }}
-              >
-                Làm lại bài đánh giá
-              </Text>
-            </TouchableOpacity>
-            <Text
-              className="text-center text-sm leading-6 mb-4"
-              style={{ color: EDIT_PROFILE_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Regular' }}
-            >
-              Dùng lại 7 câu hỏi onboarding để hệ thống ước lượng mức khởi điểm mới cho bạn.
-            </Text>
+            {placementMatchesPlayed < 5 ? (
+              <>
+                <TouchableOpacity 
+                  activeOpacity={0.85} 
+                  className="rounded-full px-4 py-4 mb-4 flex-row items-center justify-center"
+                  style={{ backgroundColor: EDIT_PROFILE_COLORS.error }}
+                  onPress={handleRedoAssessment}
+                >
+                  <Text
+                    className="text-center text-base font-extrabold"
+                    style={{ color: EDIT_PROFILE_COLORS.onError, fontFamily: SCREEN_FONTS.cta }}
+                  >
+                    {STRINGS.profile.actions.redo_assessment}
+                  </Text>
+                </TouchableOpacity>
+                <Text
+                  className="text-center text-sm leading-6 mb-4"
+                  style={{ color: EDIT_PROFILE_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body }}
+                >
+                  Dùng lại 7 câu hỏi onboarding để hệ thống ước lượng mức khởi điểm mới cho bạn.
+                </Text>
+              </>
+            ) : (
+              <View className="rounded-2xl p-4 border border-dashed" style={{ borderColor: EDIT_PROFILE_COLORS.outlineVariant }}>
+                <Text
+                  className="text-center text-sm leading-6"
+                  style={{ color: EDIT_PROFILE_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body }}
+                >
+                  Bạn đã hoàn thành giai đoạn phân hạng. Trình độ của bạn giờ đây sẽ được cập nhật tự động dựa trên kết quả thi đấu thực tế.
+                </Text>
+              </View>
+            )}
           </View>
 
           {/* Quick Match Section */}
           <View>
             <View className="mb-6 flex-row items-center gap-4">
-              <Text className="text-[11px] uppercase tracking-[4px]" style={{ color: EDIT_PROFILE_COLORS.outline, fontFamily: 'PlusJakartaSans-Bold' }}>
-                03 / KẾT NỐI
+              <Text className="text-[11px] uppercase tracking-[4px]" style={{ color: EDIT_PROFILE_COLORS.outline, fontFamily: SCREEN_FONTS.cta }}>
+                03 / {STRINGS.profile.sections.connection}
               </Text>
               <View className="h-px flex-1" style={{ backgroundColor: EDIT_PROFILE_COLORS.outlineVariant }} />
             </View>
             
             <View className="flex-row items-center gap-3 rounded-2xl p-4" style={{ backgroundColor: EDIT_PROFILE_COLORS.secondaryContainer }}>
               <View className="flex-1">
-                <Text className="text-sm font-extrabold" style={{ color: EDIT_PROFILE_COLORS.onSecondaryContainer, fontFamily: 'PlusJakartaSans-Bold' }}>
-                  Tự động ghép kèo nhanh
+                <Text className="text-sm font-extrabold" style={{ color: EDIT_PROFILE_COLORS.onSecondaryContainer, fontFamily: SCREEN_FONTS.cta }}>
+                  {STRINGS.profile.fields.auto_accept}
                 </Text>
-                <Text className="mt-2 text-sm leading-6" style={{ color: EDIT_PROFILE_COLORS.secondary, fontFamily: 'PlusJakartaSans-Regular' }}>
+                <Text className="mt-2 text-sm leading-6" style={{ color: EDIT_PROFILE_COLORS.secondary, fontFamily: SCREEN_FONTS.body }}>
                   Khi bật, người chơi được hệ thống đánh giá là phù hợp sẽ vào kèo ngay.
                 </Text>
               </View>
@@ -474,8 +536,8 @@ export default function EditProfile() {
           {/* Favorite Courts Section */}
           <View>
             <View className="mb-6 flex-row items-center gap-4">
-              <Text className="text-[11px] uppercase tracking-[4px]" style={{ color: EDIT_PROFILE_COLORS.outline, fontFamily: 'PlusJakartaSans-Bold' }}>
-                04 / SÂN ĐẤU
+              <Text className="text-[11px] uppercase tracking-[4px]" style={{ color: EDIT_PROFILE_COLORS.outline, fontFamily: SCREEN_FONTS.cta }}>
+                04 / {STRINGS.profile.sections.courts}
               </Text>
               <View className="h-px flex-1" style={{ backgroundColor: EDIT_PROFILE_COLORS.outlineVariant }} />
             </View>
@@ -486,22 +548,22 @@ export default function EditProfile() {
                   {favCourts.map((court) => (
                     <View
                       key={court.id}
-                      className="flex-row items-center gap-4 p-4 rounded-[28px] border"
+                      className="flex-row items-center gap-4 p-4 rounded-[24px] border"
                       style={{ backgroundColor: EDIT_PROFILE_COLORS.surfaceContainerLowest, borderColor: EDIT_PROFILE_COLORS.outlineVariant }}
                     >
                       <View className="w-12 h-12 rounded-full items-center justify-center" style={{ backgroundColor: EDIT_PROFILE_COLORS.secondaryContainer }}>
                         <MapPin size={20} color={EDIT_PROFILE_COLORS.surfaceTint} />
                       </View>
                       <View className="flex-1">
-                        <Text className="text-base font-bold" style={{ color: EDIT_PROFILE_COLORS.onSurface, fontFamily: 'PlusJakartaSans-Bold' }}>{court.name}</Text>
-                        <Text className="text-sm mt-1" style={{ color: EDIT_PROFILE_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Regular' }}>{court.address} · {court.city}</Text>
+                        <Text className="text-base font-bold" style={{ color: EDIT_PROFILE_COLORS.onSurface, fontFamily: SCREEN_FONTS.cta }}>{court.name}</Text>
+                        <Text className="text-sm mt-1" style={{ color: EDIT_PROFILE_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body }}>{court.address} · {court.city}</Text>
                       </View>
                       <TouchableOpacity
                         activeOpacity={0.7}
                         className="w-10 h-10 items-center justify-center"
                         onPress={() => removeFavCourt(court.id)}
                       >
-                        <Text className="text-xl font-black" style={{ color: EDIT_PROFILE_COLORS.outline, fontFamily: 'PlusJakartaSans-Bold' }}>×</Text>
+                        <Text className="text-xl font-black" style={{ color: EDIT_PROFILE_COLORS.outline, fontFamily: SCREEN_FONTS.cta }}>×</Text>
                       </TouchableOpacity>
                     </View>
                   ))}
@@ -521,7 +583,7 @@ export default function EditProfile() {
                   {searching ? <ActivityIndicator color={EDIT_PROFILE_COLORS.primary} style={{ marginTop: 12 }} /> : null}
 
                   {!searching && keyword.length > 0 && courts.length === 0 ? (
-                    <Text className="mt-3 text-sm" style={{ color: EDIT_PROFILE_COLORS.outline, fontFamily: 'PlusJakartaSans-Regular' }}>Không tìm thấy sân nào</Text>
+                    <Text className="mt-3 text-sm" style={{ color: EDIT_PROFILE_COLORS.outline, fontFamily: SCREEN_FONTS.body }}>Không tìm thấy sân nào</Text>
                   ) : null}
 
                   <FlatList
@@ -536,7 +598,7 @@ export default function EditProfile() {
                       return (
                         <TouchableOpacity
                           activeOpacity={0.85}
-                          className="mb-3 flex-row items-center gap-4 p-4 rounded-[28px] border"
+                          className="mb-3 flex-row items-center gap-4 p-4 rounded-[24px] border"
                           style={{
                             borderColor: EDIT_PROFILE_COLORS.outlineVariant,
                             backgroundColor: alreadyAdded ? EDIT_PROFILE_COLORS.surfaceContainerHigh : EDIT_PROFILE_COLORS.surfaceContainerLowest,
@@ -549,8 +611,8 @@ export default function EditProfile() {
                             <MapPin size={20} color={EDIT_PROFILE_COLORS.surfaceTint} />
                           </View>
                           <View className="flex-1">
-                            <Text className="text-sm font-bold" style={{ color: EDIT_PROFILE_COLORS.onSurface, fontFamily: 'PlusJakartaSans-Bold' }}>{item.name}</Text>
-                            <Text className="text-xs mt-1" style={{ color: EDIT_PROFILE_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Regular' }}>{item.address} · {item.city}</Text>
+                            <Text className="text-sm font-bold" style={{ color: EDIT_PROFILE_COLORS.onSurface, fontFamily: SCREEN_FONTS.cta }}>{item.name}</Text>
+                            <Text className="text-xs mt-1" style={{ color: EDIT_PROFILE_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body }}>{item.address} · {item.city}</Text>
                           </View>
                           <StatusBadge label={alreadyAdded ? 'Đã thêm' : 'Thêm'} tone={alreadyAdded ? 'neutral' : 'success'} />
                         </TouchableOpacity>
@@ -560,7 +622,7 @@ export default function EditProfile() {
                 </>
               ) : (
                 <View className="mt-4 rounded-2xl px-4 py-3" style={{ backgroundColor: EDIT_PROFILE_COLORS.errorContainer }}>
-                  <Text className="text-sm leading-6" style={{ color: EDIT_PROFILE_COLORS.onErrorContainer, fontFamily: 'PlusJakartaSans-Regular' }}>
+                  <Text className="text-sm leading-6" style={{ color: EDIT_PROFILE_COLORS.onErrorContainer, fontFamily: SCREEN_FONTS.body }}>
                     Bạn đã chọn đủ 5 sân. Xóa bớt một sân nếu muốn thêm sân mới.
                   </Text>
                 </View>
@@ -569,8 +631,8 @@ export default function EditProfile() {
               {favCourts.length === 0 && favCourtIds.length === 0 ? (
                 <EmptyState
                   icon={<MapPin size={28} color={EDIT_PROFILE_COLORS.outline} />}
-                  title="Chưa có sân ưa thích"
-                  description="Thêm vài sân bạn hay chơi để app gợi ý kèo sát nhu cầu hơn."
+                  title={STRINGS.profile.empty.no_courts}
+                  description={STRINGS.profile.empty.no_courts_sub}
                 />
               ) : null}
             </View>
@@ -591,16 +653,16 @@ export default function EditProfile() {
             className="flex-1 rounded-full overflow-hidden flex-row items-center justify-center py-4"
             style={{
               backgroundColor: EDIT_PROFILE_COLORS.surfaceContainerLow,
-              borderWidth: 1,
+              borderWidth: BORDER.base,
               borderColor: EDIT_PROFILE_COLORS.outlineVariant,
               opacity: saving || !hasUnsavedChanges ? 0.55 : 1,
             }}
           >
             <Text
               className="text-[13px] tracking-[0.5px] uppercase"
-              style={{ color: EDIT_PROFILE_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Bold' }}
+              style={{ color: EDIT_PROFILE_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.cta }}
             >
-              Hủy thay đổi
+              {STRINGS.profile.actions.cancel}
             </Text>
           </TouchableOpacity>
 
@@ -616,7 +678,7 @@ export default function EditProfile() {
                 <ActivityIndicator color={EDIT_PROFILE_COLORS.onPrimary} />
                 <Text
                   className="ml-2 text-[13px] tracking-[0.5px] uppercase"
-                  style={{ color: EDIT_PROFILE_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-Bold' }}
+                  style={{ color: EDIT_PROFILE_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta }}
                 >
                   Đang xử lý...
                 </Text>
@@ -624,16 +686,22 @@ export default function EditProfile() {
             ) : (
               <Text
                 className="text-[13px] tracking-[0.5px] uppercase"
-                style={{ color: EDIT_PROFILE_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-Bold' }}
+                style={{ color: EDIT_PROFILE_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta }}
               >
-                Lưu thay đổi
+                {STRINGS.profile.actions.save}
               </Text>
             )}
           </TouchableOpacity>
         </View>
       </View>
-    </SafeAreaView>
+      <AppDialog
+        visible={Boolean(dialogConfig)}
+        config={dialogConfig}
+        onClose={() => setDialogConfig(null)}
+      />
+    </View>
   )
 }
+
 
 

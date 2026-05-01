@@ -1,7 +1,7 @@
 import { router } from 'expo-router'
 import { AlertTriangle, CheckCheck, Clock3 } from 'lucide-react-native'
 import { Pressable, Text, View } from 'react-native'
-import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/profileTheme'
 
 import type { PostMatchAction } from '@/lib/homeFeed'
 
@@ -10,7 +10,7 @@ export function PostMatchActionsSection({ items }: { items: PostMatchAction[] })
 
   return (
     <View
-      className="mt-6 rounded-[32px] border p-5"
+      className="mt-6 rounded-[24px] border p-5"
       style={{ borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest }}
     >
       <Text className="text-[11px] font-black uppercase tracking-[0.16em]" style={{ color: PROFILE_THEME_COLORS.outline }}>Sau trận</Text>
@@ -81,6 +81,7 @@ export function PostMatchActionsSection({ items }: { items: PostMatchAction[] })
     </View>
   )
 }
+
 
 
 

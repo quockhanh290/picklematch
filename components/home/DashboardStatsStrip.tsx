@@ -2,7 +2,8 @@ import type { LucideIcon } from 'lucide-react-native'
 import { ShieldCheck, TrendingUp, Zap } from 'lucide-react-native'
 import { Text, View } from 'react-native'
 
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
+import { SCREEN_FONTS } from '@/constants/typography'
 import { getShadowStyle } from '@/lib/designSystem'
 import { useAppTheme } from '@/lib/theme-context'
 
@@ -34,7 +35,7 @@ export function DashboardStatsStrip({ items }: { items: DashboardStatItem[] }) {
 
   return (
     <View
-      className="mt-6 flex-row rounded-[32px] border px-4 py-6"
+      className="mt-6 flex-row rounded-[24px] border px-4 py-6"
       style={{
         backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
         borderColor: PROFILE_THEME_COLORS.outlineVariant,
@@ -61,11 +62,11 @@ export function DashboardStatsStrip({ items }: { items: DashboardStatItem[] }) {
             <View className="flex-1 px-3">
               <View className="flex-row items-center justify-center">
                 <Icon size={15} color={iconColor} strokeWidth={iconStroke} />
-                <Text className="ml-2 text-[11px] uppercase tracking-[1px]" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Bold' }}>
+                <Text className="ml-2 text-[11px] uppercase tracking-[1px]" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.cta }}>
                   {item.label}
                 </Text>
               </View>
-              <Text className="mt-4 text-center text-[28px]" style={{ color: valueColor, fontFamily: 'PlusJakartaSans-ExtraBold', lineHeight: 36 }}>
+              <Text className="mt-4 text-center text-[28px]" style={{ color: valueColor, fontFamily: SCREEN_FONTS.headline, lineHeight: 36 }}>
                 {item.value}
               </Text>
             </View>
@@ -78,3 +79,4 @@ export function DashboardStatsStrip({ items }: { items: DashboardStatItem[] }) {
     </View>
   )
 }
+

@@ -1,14 +1,15 @@
-﻿import { colors } from '@/constants/colors'
-import { typography } from '@/constants/typography'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/profileTheme'
+import { SCREEN_FONTS, typography } from '@/constants/typography'
+import { STRINGS } from '@/constants/strings'
 import {
   formatDistance,
   formatRelativeDate,
   formatTimeRange,
   formatVND,
-  getAvatarColor,
   getCourtNameSize,
 } from '@/utils/formatters'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
 
 interface SessionCardProps {
   session: {
@@ -40,6 +41,13 @@ type ChipVariant = 'urgent' | 'warn' | 'neutral'
 
 const CARD_HEIGHT = 271
 
+const AVATAR_PALETTE = [
+  { bg: '#E1F5EE', text: '#0F6E56' },
+  { bg: '#FAECE7', text: '#993C1D' },
+  { bg: '#FAEEDA', text: '#854F0B' },
+  { bg: '#EAF2FF', text: '#2256A7' },
+]
+
 type ChipState = {
   variant: ChipVariant
   label: string
@@ -47,15 +55,15 @@ type ChipState = {
 
 function getStatusChip(status: SessionCardProps['session']['status'], enrolledCount: number, capacity: number): ChipState | null {
   if (status === 'starting_soon') {
-    return { variant: 'warn', label: 'Sắp bắt đầu' }
+    return { variant: 'warn', label: STRINGS.session.status.starting_soon }
   }
 
   if (status === 'full') {
-    return { variant: 'neutral', label: 'Đã đầy' }
+    return { variant: 'neutral', label: STRINGS.session.status.full }
   }
 
   if (status === 'past') {
-    return { variant: 'neutral', label: 'Đã kết thúc' }
+    return { variant: 'neutral', label: STRINGS.session.status.past }
   }
 
   const remaining = capacity - enrolledCount
@@ -69,10 +77,10 @@ function getStatusChip(status: SessionCardProps['session']['status'], enrolledCo
 function Chip({ variant, label }: { variant: ChipVariant; label: string }) {
   const chipStyle =
     variant === 'urgent'
-      ? { backgroundColor: colors.accentLight, textColor: colors.accentDark }
+      ? { backgroundColor: PROFILE_THEME_SEMANTIC.warningBg, textColor: PROFILE_THEME_SEMANTIC.warningText }
       : variant === 'warn'
-        ? { backgroundColor: colors.warningLight, textColor: colors.warningDark }
-        : { backgroundColor: colors.surfaceAlt, textColor: colors.textSecondary }
+        ? { backgroundColor: PROFILE_THEME_SEMANTIC.warningBg, textColor: PROFILE_THEME_SEMANTIC.warningText }
+        : { backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, textColor: PROFILE_THEME_COLORS.onSurfaceVariant }
 
   return (
     <View style={[styles.statusChip, { backgroundColor: chipStyle.backgroundColor }]}>
@@ -90,15 +98,15 @@ function getDayBadgeBackground(startTime: Date) {
   const tomorrowLabel = formatRelativeDate(tomorrow)
   const dateLabel = formatRelativeDate(startTime)
 
-  if (dateLabel === todayLabel) return colors.primary
-  if (dateLabel === tomorrowLabel) return colors.textSecondary
-  return colors.textMuted
+  if (dateLabel === todayLabel) return PROFILE_THEME_COLORS.primary
+  if (dateLabel === tomorrowLabel) return PROFILE_THEME_COLORS.onSurfaceVariant
+  return PROFILE_THEME_COLORS.outline
 }
 
 export default function SessionCard({ session, onPress, onJoinPress }: SessionCardProps) {
   const disabled = session.status === 'full' || session.status === 'past'
   const chip = getStatusChip(session.status, session.enrolledCount, session.capacity)
-  const avatar = getAvatarColor(session.host.id)
+  const avatarTone = AVATAR_PALETTE[Math.abs(session.host.id.split('').reduce((a, b) => a + b.charCodeAt(0), 0)) % AVATAR_PALETTE.length]
   const distance = formatDistance(session.distanceKm)
   const addressLine = distance ? `${session.courtAddress} · ${distance}` : session.courtAddress
 
@@ -106,7 +114,7 @@ export default function SessionCard({ session, onPress, onJoinPress }: SessionCa
   const compactCourtNameSize = courtNameSize === 26 ? 24 : courtNameSize
   const courtNameLineHeight = compactCourtNameSize === 24 ? 26 : compactCourtNameSize === 22 ? 24 : 20
 
-  const ctaLabel = session.status === 'past' ? 'Đã kết thúc' : session.status === 'full' ? 'Đã đầy' : 'Vào kèo'
+  const ctaLabel = session.status === 'past' ? STRINGS.session.status.past : session.status === 'full' ? STRINGS.session.status.full : STRINGS.session.actions.join
   const levelChipLabel = session.levelDescription?.trim() || `Level ${session.level}`
   const dateLabel = formatRelativeDate(session.startTime)
   const dayBadgeBackground = getDayBadgeBackground(session.startTime)
@@ -123,7 +131,7 @@ export default function SessionCard({ session, onPress, onJoinPress }: SessionCa
               {
                 fontSize: compactCourtNameSize,
                 lineHeight: courtNameLineHeight,
-                color: disabled ? colors.textMuted : colors.text,
+                color: disabled ? PROFILE_THEME_COLORS.outline : PROFILE_THEME_COLORS.onSurface,
               },
             ]}
           >
@@ -132,7 +140,7 @@ export default function SessionCard({ session, onPress, onJoinPress }: SessionCa
         </View>
 
         <View style={styles.subHeaderRow}>
-          <Text numberOfLines={1} style={[typography.bodyMd, styles.addressText, { color: disabled ? colors.textMuted : colors.textSecondary }]}>
+          <Text numberOfLines={1} style={[typography.bodyMd, styles.addressText, { color: disabled ? PROFILE_THEME_COLORS.outline : PROFILE_THEME_COLORS.onSurfaceVariant }]}>
             {addressLine}
           </Text>
           {chip ? <Chip variant={chip.variant} label={chip.label} /> : <View style={styles.statusChipPlaceholder} />}
@@ -143,25 +151,25 @@ export default function SessionCard({ session, onPress, onJoinPress }: SessionCa
             <View style={[styles.dayBadge, { backgroundColor: dayBadgeBackground }]}>
               <Text style={styles.dayBadgeText}>{dateLabel.toLocaleUpperCase('vi-VN')}</Text>
             </View>
-            <Text style={[styles.timeText, { color: disabled ? colors.textMuted : colors.text }]}>
+            <Text style={[styles.timeText, { color: disabled ? PROFILE_THEME_COLORS.outline : PROFILE_THEME_COLORS.onSurface }]}>
               {formatTimeRange(session.startTime, session.endTime)}
             </Text>
           </View>
 
           <View style={styles.bookingWrap}>
-            <View style={[styles.statusDot, { backgroundColor: session.courtBookingConfirmed ? colors.success : colors.warning }]} />
-            <Text style={[typography.bodySm, { color: session.courtBookingConfirmed ? colors.successText : colors.warningDark }]}>
-              {session.courtBookingConfirmed ? 'Đã đặt sân' : 'Chờ đặt sân'}
+            <View style={[styles.statusDot, { backgroundColor: session.courtBookingConfirmed ? PROFILE_THEME_SEMANTIC.successText : PROFILE_THEME_SEMANTIC.warningText }]} />
+            <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 10, color: session.courtBookingConfirmed ? PROFILE_THEME_SEMANTIC.successText : PROFILE_THEME_SEMANTIC.warningText, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+              {session.courtBookingConfirmed ? STRINGS.session.booking.confirmed : STRINGS.session.booking.waiting}
             </Text>
           </View>
         </View>
 
         <View style={styles.levelRow}>
-          <Text style={[styles.levelLabel, { color: colors.textSecondary }]}>Trình độ</Text>
+          <Text style={[styles.levelLabel, { color: PROFILE_THEME_COLORS.onSurfaceVariant }]}>Trình độ</Text>
           <View style={styles.levelChip}>
-            <Text style={[styles.levelChipText, { color: colors.primary }]}>{levelChipLabel}</Text>
+            <Text style={[styles.levelChipText, { color: PROFILE_THEME_COLORS.primary }]}>{levelChipLabel}</Text>
           </View>
-          <Text style={[styles.levelMatchHint, { color: colors.textSecondary }]}>
+          <Text style={[styles.levelMatchHint, { color: PROFILE_THEME_COLORS.onSurfaceVariant }]}>
             {session.levelMatchesUser ? 'khớp với bạn' : 'chưa khớp'}
           </Text>
         </View>
@@ -169,20 +177,37 @@ export default function SessionCard({ session, onPress, onJoinPress }: SessionCa
 
       <View style={styles.footerSection}>
         <View style={styles.hostRow}>
-          <View style={[styles.avatar, { backgroundColor: avatar.bg }]}>
-            <Text style={[styles.avatarInitial, { color: avatar.fg }]}>{session.host.initial}</Text>
+          <View style={[styles.avatar, { backgroundColor: avatarTone.bg }]}>
+            <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 18, color: avatarTone.text }}>{session.host.initial}</Text>
           </View>
           <View style={styles.hostMeta}>
-            <Text numberOfLines={1} style={[styles.hostName, { color: disabled ? colors.textMuted : colors.text }]}>
+            <Text numberOfLines={1} style={[styles.hostName, { color: disabled ? PROFILE_THEME_COLORS.outline : PROFILE_THEME_COLORS.onSurface }]}>
               {session.host.name}
             </Text>
-            <Text style={[typography.bodyXs, { color: disabled ? colors.textMuted : colors.textSecondary }]}>{`Chủ kèo · ${session.enrolledCount}/${session.capacity} đã vào`}</Text>
+            <Text style={[typography.bodyXs, { color: disabled ? PROFILE_THEME_COLORS.outline : PROFILE_THEME_COLORS.onSurfaceVariant }]}>{`Chủ kèo · ${session.enrolledCount}/${session.capacity} đã vào`}</Text>
           </View>
         </View>
 
         <View style={styles.priceWrap}>
-          <Text style={[styles.priceValue, { color: disabled ? colors.textMuted : colors.text }]}>{formatVND(session.pricePerPerson)}</Text>
-          <Text style={[typography.bodyXs, styles.priceUnit, { color: disabled ? colors.textMuted : colors.textSecondary }]}>/người</Text>
+          <Text
+            style={[
+              styles.priceValue,
+              {
+                color: disabled ? PROFILE_THEME_COLORS.outline : PROFILE_THEME_COLORS.onSurface,
+                fontSize: 26,
+                lineHeight: 30,
+                includeFontPadding: false,
+                textAlignVertical: 'center',
+              },
+            ]}
+          >
+            {formatVND(session.pricePerPerson)}
+          </Text>
+          {session.pricePerPerson > 0 && (
+            <Text style={[typography.bodyXs, styles.priceUnit, { color: disabled ? PROFILE_THEME_COLORS.outline : PROFILE_THEME_COLORS.onSurfaceVariant }]}>
+              /người
+            </Text>
+          )}
         </View>
       </View>
 
@@ -197,7 +222,7 @@ export default function SessionCard({ session, onPress, onJoinPress }: SessionCa
           }}
           style={[styles.ctaButton, disabled ? styles.ctaButtonDisabled : styles.ctaButtonActive]}
         >
-          <Text style={[styles.ctaText, { color: '#FFFFFF' }]}>{ctaLabel.toLocaleUpperCase('vi-VN')}</Text>
+          <Text style={[styles.ctaText, { color: PROFILE_THEME_COLORS.onPrimary }]}>{ctaLabel.toLocaleUpperCase('vi-VN')}</Text>
         </Pressable>
       </View>
     </Pressable>
@@ -208,10 +233,10 @@ const styles = StyleSheet.create({
   card: {
     height: CARD_HEIGHT,
     marginBottom: 12,
-    borderRadius: 14,
-    borderWidth: 0.5,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
+    borderRadius: RADIUS.md,
+    borderWidth: BORDER.hairline,
+    borderColor: PROFILE_THEME_COLORS.outlineVariant,
+    backgroundColor: PROFILE_THEME_COLORS.surface,
     overflow: 'hidden',
   },
   topSection: {
@@ -225,7 +250,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   courtName: {
-    fontFamily: 'BarlowCondensed-Bold',
+    fontFamily: SCREEN_FONTS.headline,
     letterSpacing: 0.3,
     textTransform: 'uppercase',
   },
@@ -243,14 +268,14 @@ const styles = StyleSheet.create({
     height: 1,
   },
   statusChip: {
-    borderRadius: 999,
+    borderRadius: RADIUS.sm,
     paddingVertical: 4,
-    paddingHorizontal: 10,
+    paddingHorizontal: SPACING.sm,
     flexShrink: 0,
   },
   timeBlock: {
-    backgroundColor: colors.surfaceAlt,
-    borderRadius: 8,
+    backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
+    borderRadius: RADIUS.sm,
     paddingVertical: 8,
     paddingHorizontal: 12,
     marginBottom: 8,
@@ -268,13 +293,13 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   dayBadgeText: {
-    fontFamily: 'PlusJakartaSans-Bold',
-    fontSize: 10,
-    lineHeight: 12,
-    color: '#FFFFFF',
+    fontFamily: SCREEN_FONTS.headline,
+    fontSize: 12,
+    lineHeight: 16,
+    color: PROFILE_THEME_COLORS.onPrimary,
   },
   timeText: {
-    fontFamily: 'BarlowCondensed-Bold',
+    fontFamily: SCREEN_FONTS.headline,
     fontSize: 19,
     lineHeight: 22,
     letterSpacing: 0.3,
@@ -298,23 +323,23 @@ const styles = StyleSheet.create({
     columnGap: 10,
   },
   levelLabel: {
-    fontFamily: 'PlusJakartaSans-Regular',
+    fontFamily: SCREEN_FONTS.body,
     fontSize: 12,
     lineHeight: 16,
   },
   levelChip: {
-    backgroundColor: colors.primaryLight,
-    borderRadius: 6,
-    paddingHorizontal: 10,
+    backgroundColor: PROFILE_THEME_COLORS.secondaryContainer,
+    borderRadius: RADIUS.xs,
+    paddingHorizontal: SPACING.sm,
     paddingVertical: 2,
   },
   levelChipText: {
-    fontFamily: 'PlusJakartaSans-SemiBold',
+    fontFamily: SCREEN_FONTS.label,
     fontSize: 12,
     lineHeight: 16,
   },
   levelMatchHint: {
-    fontFamily: 'PlusJakartaSans-Regular',
+    fontFamily: SCREEN_FONTS.body,
     fontSize: 11,
     lineHeight: 14,
     marginLeft: 'auto',
@@ -322,8 +347,8 @@ const styles = StyleSheet.create({
   footerSection: {
     height: 52,
     borderTopWidth: 0.5,
-    borderTopColor: colors.border,
-    paddingVertical: 10,
+    borderTopColor: PROFILE_THEME_COLORS.outlineVariant,
+    paddingVertical: SPACING.sm,
     paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
@@ -338,19 +363,21 @@ const styles = StyleSheet.create({
   avatar: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: RADIUS.lg,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarInitial: {
-    fontFamily: 'BarlowCondensed-Bold',
+    fontFamily: SCREEN_FONTS.headline,
     fontSize: 16,
     lineHeight: 16,
   },
   hostName: {
-    fontFamily: 'PlusJakartaSans-SemiBold',
-    fontSize: 13,
+    fontFamily: SCREEN_FONTS.headline,
+    fontSize: 15,
     lineHeight: 18,
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
   },
   hostMeta: {
     marginLeft: 8,
@@ -360,7 +387,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   priceValue: {
-    fontFamily: 'BarlowCondensed-Bold',
+    fontFamily: SCREEN_FONTS.headline,
     fontSize: 26,
     lineHeight: 26,
     letterSpacing: 0.3,
@@ -370,7 +397,7 @@ const styles = StyleSheet.create({
   },
   ctaSection: {
     height: 68,
-    paddingHorizontal: 14,
+    paddingHorizontal: SPACING.md,
     paddingTop: 8,
     paddingBottom: 12,
     justifyContent: 'center',
@@ -378,30 +405,27 @@ const styles = StyleSheet.create({
   ctaButton: {
     width: '100%',
     height: 48,
-    borderWidth: 1,
-    borderColor: colors.primaryDark,
-    borderRadius: 10,
+    borderRadius: RADIUS.md,
     paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: colors.primaryDark,
-    shadowOpacity: 0.18,
+    shadowColor: PROFILE_THEME_COLORS.primary,
+    shadowOpacity: 0.06,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
     elevation: 2,
   },
   ctaButtonActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primaryDark,
+    backgroundColor: PROFILE_THEME_COLORS.primary,
   },
   ctaButtonDisabled: {
-    backgroundColor: '#6B7280',
-    borderColor: '#6B7280',
+    backgroundColor: PROFILE_THEME_COLORS.outline,
   },
   ctaText: {
-    fontFamily: 'PlusJakartaSans-Bold',
-    fontSize: 14,
+    fontFamily: SCREEN_FONTS.headline,
+    fontSize: 15,
     lineHeight: 20,
     letterSpacing: 0.2,
+    textTransform: 'uppercase',
   },
 })

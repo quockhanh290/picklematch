@@ -1,7 +1,8 @@
 import { ChevronRight, Users } from 'lucide-react-native'
 import { Image, Pressable, Text, View } from 'react-native'
 
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
+import { SCREEN_FONTS } from '@/constants/typography'
 
 type Props = {
   count: number
@@ -37,11 +38,11 @@ export function PendingRequestsWidget({ count, avatars, onPress }: Props) {
   return (
     <Pressable
       onPress={onPress}
-      className="mt-6 overflow-hidden rounded-[32px] p-5 active:scale-[0.98]"
+      className="mt-6 overflow-hidden rounded-[24px] p-5 active:scale-[0.98]"
       style={{
         backgroundColor: PROFILE_THEME_COLORS.primaryContainer,
         shadowColor: PROFILE_THEME_COLORS.onBackground,
-        shadowOpacity: 0.2,
+        shadowOpacity: 0.08,
         shadowRadius: 18,
         shadowOffset: { width: 0, height: 10 },
         elevation: 7,
@@ -69,7 +70,15 @@ export function PendingRequestsWidget({ count, avatars, onPress }: Props) {
             </View>
           </View>
 
-          <Text className="mt-3 text-[19px] font-black" style={{ color: PROFILE_THEME_COLORS.onPrimary }}>
+          <Text
+            style={{
+              marginTop: 12,
+              fontSize: 19,
+              fontFamily: SCREEN_FONTS.headline,
+              color: PROFILE_THEME_COLORS.onPrimary,
+              textTransform: 'uppercase',
+            }}
+          >
             {count} người đang chờ duyệt
           </Text>
           <Text className="mt-1 text-[12px] font-medium" style={{ color: PROFILE_THEME_COLORS.secondaryContainer }}>
@@ -124,3 +133,4 @@ export function PendingRequestsWidget({ count, avatars, onPress }: Props) {
     </Pressable>
   )
 }
+

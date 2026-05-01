@@ -95,7 +95,7 @@ export function getEloBandByLegacySkillLabel(skillLabel?: string | null) {
       return ELO_BANDS[4]
     case 'intermediate':
     default:
-      return ELO_BANDS[2]
+      return ELO_BANDS[0]
   }
 }
 
@@ -108,36 +108,36 @@ export function getEloBandForElo(elo?: number | null) {
 
 export function getEloBandForSessionRange(eloMin: number, eloMax: number) {
   const midpoint = Math.round((eloMin + eloMax) / 2)
-  return getEloBandForElo(midpoint) ?? ELO_BANDS[2]
+  return getEloBandForElo(midpoint) ?? ELO_BANDS[0]
 }
 
 export function getLevelIdForElo(elo: number): EloLevelId {
-  return (getEloBandForElo(elo) ?? ELO_BANDS[2]).levelId
+  return (getEloBandForElo(elo) ?? ELO_BANDS[0]).levelId
 }
 
 export function getTierForElo(elo: number): EloTier {
-  return (getEloBandForElo(elo) ?? ELO_BANDS[2]).tier
+  return (getEloBandForElo(elo) ?? ELO_BANDS[0]).tier
 }
 
 export function getLegacySkillLabelForTier(tier: string): LegacySkillLabel {
-  return (getEloBandByTier(tier) ?? ELO_BANDS[2]).legacySkillLabel
+  return (getEloBandByTier(tier) ?? ELO_BANDS[0]).legacySkillLabel
 }
 
 export function getSimpleTierLabel(tier: string) {
   if (tier === 'elite') return 'Nâng cao'
-  return (getEloBandByTier(tier) ?? ELO_BANDS[2]).simpleLabel
+  return (getEloBandByTier(tier) ?? ELO_BANDS[0]).simpleLabel
 }
 
 export function getShortLabelForLevelId(levelId?: string | null) {
-  return (getEloBandByLevelId(levelId) ?? ELO_BANDS[2]).shortLabel
+  return (getEloBandByLevelId(levelId) ?? ELO_BANDS[0]).shortLabel
 }
 
 export function getUserDescriptionForLevelId(levelId?: string | null) {
-  return (getEloBandByLevelId(levelId) ?? ELO_BANDS[2]).userDescription
+  return (getEloBandByLevelId(levelId) ?? ELO_BANDS[0]).userDescription
 }
 
 export function getUserDescriptionForTier(tier?: string | null) {
-  return (getEloBandByTier(tier) ?? ELO_BANDS[2]).userDescription
+  return (getEloBandByTier(tier) ?? ELO_BANDS[0]).userDescription
 }
 
 export function getEloRangeForLevel(levelId: EloLevelId) {

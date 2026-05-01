@@ -12,6 +12,7 @@ export type Notification = {
   created_at: string
 }
 
+
 export function useNotifications(userId: string | null | undefined) {
   const [notifications, setNotifications] = useState<Notification[]>([])
 
@@ -68,7 +69,6 @@ export function useNotifications(userId: string | null | undefined) {
       .eq('player_id', userId)
       .order('created_at', { ascending: false })
       .limit(50)
-    console.log('[useNotifications] fetch result:', { count: data?.length, error: error?.message })
     if (data) setNotifications(data as Notification[])
   }
 

@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Alert } from 'react-native'
-
+import { AppDialogConfig } from '@/components/design'
 import type { SessionDetailRecord } from '@/hooks/useSessionDetail'
 import { type ArrangementPlayer, autoBalance, buildArrangementPlayers } from '@/lib/sessionDetail'
 import { supabase } from '@/lib/supabase'
@@ -9,6 +8,7 @@ export function useSessionArrangement(
   session: SessionDetailRecord | null,
   isHost: boolean,
   refreshSession: () => Promise<void>,
+  presentDialog?: (config: AppDialogConfig) => void,
 ) {
   const [savingArrangement, setSavingArrangement] = useState(false)
   const [isArranging, setIsArranging] = useState(false)
@@ -44,6 +44,16 @@ export function useSessionArrangement(
   const onSaveArrangement = useCallback(async () => {
     if (!session || !isHost) return
 
+    const expectedPerTeam = session.max_players / 2
+    if (teamA.length > expectedPerTeam || teamB.length > expectedPerTeam) {
+      presentDialog?.({
+        title: 'Đội hình không hợp lệ',
+        message: `Mỗi đội chỉ được phép có tối đa ${expectedPerTeam} người cho kèo ${session.max_players === 4 ? 'đánh đôi' : 'đánh đơn'}.`,
+        actions: [{ label: 'Đã hiểu' }],
+      })
+      return
+    }
+
     setSavingArrangement(true)
 
     const { error } = await supabase.rpc('save_session_teams', {
@@ -57,16 +67,24 @@ export function useSessionArrangement(
     setSavingArrangement(false)
 
     if (error) {
-      Alert.alert('Không lưu được đội', error.message)
+      presentDialog?.({
+        title: 'Không lưu được đội',
+        message: error.message,
+        actions: [{ label: 'Đã hiểu' }],
+      })
       return
     }
 
     const nextSavedTeams = Object.fromEntries(arrangedPlayers.map((player) => [player.id, player.team])) as Record<string, 1 | 2>
     setSavedTeams(nextSavedTeams)
     setIsArranging(false)
-    Alert.alert('Đã lưu thay đổi', 'Đội hình đã được cập nhật.')
+    presentDialog?.({
+      title: 'Đã lưu thay đổi',
+      message: 'Đội hình đã được cập nhật.',
+      actions: [{ label: 'Đã hiểu' }],
+    })
     await refreshSession()
-  }, [arrangedPlayers, isHost, refreshSession, session])
+  }, [arrangedPlayers, isHost, refreshSession, session, teamA, teamB])
 
   const teamA = useMemo(
     () => arrangedPlayers.filter((player) => player.team === 1),

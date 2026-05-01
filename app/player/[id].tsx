@@ -1,16 +1,18 @@
-import { AppButton, EmptyState, ScreenHeader } from '@/components/design'
+import { AppButton, AppLoading, EmptyState, SecondaryNavbar, NavbarShareButton } from '@/components/design'
 import type { FeedbackTrait } from '@/components/profile/CommunityFeedbackSection'
 import CommunityFeedbackPanel from '@/components/profile/CommunityFeedbackSection'
 import { ProfileHistoryList, ProfileSkillHero, ProfileWinStreak } from '@/components/profile/ProfileSections'
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
-import { FEEDBACK_META, calculateReliabilityScore } from '@/lib/profileData'
+import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
+import { FEEDBACK_META, calculateReliabilityScore } from '@/features/profile/utils'
 import { getSkillLevelFromElo, getSkillLevelFromPlayer } from '@/lib/skillAssessment'
 import { supabase } from '@/lib/supabase'
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
-import { CalendarDays, CircleAlert, MapPin, Swords } from 'lucide-react-native'
+import * as Linking from 'expo-linking'
+import { CalendarDays, CircleAlert, MapPin, Share, Swords } from 'lucide-react-native'
 import { useCallback, useMemo, useState } from 'react'
-import { ActivityIndicator, ScrollView, Text, View, useWindowDimensions } from 'react-native'
+import { ActivityIndicator, ScrollView, Text, View, useWindowDimensions, Share as RNShare } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { SCREEN_FONTS } from '@/constants/typography'
 
 type Player = {
   id: string
@@ -50,7 +52,7 @@ function ProfileSectionDivider({ index, title }: { index: string; title: string 
     <View className="mb-6 flex-row items-center gap-4">
       <Text
         className="text-[11px] uppercase tracking-[4px]"
-        style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-Bold' }}
+        style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: SCREEN_FONTS.cta }}
       >
         {index} / {title}
       </Text>
@@ -231,11 +233,7 @@ export default function PlayerProfile() {
   }, [ratingTags])
 
   if (loading) {
-    return (
-      <SafeAreaView className="flex-1 items-center justify-center" style={{ backgroundColor: PROFILE_THEME_COLORS.background }} edges={['top']}>
-        <ActivityIndicator size="large" color={PROFILE_THEME_COLORS.primary} />
-      </SafeAreaView>
-    )
+    return <AppLoading fullScreen />
   }
 
   if (!player) {
@@ -275,25 +273,23 @@ export default function PlayerProfile() {
     return `${weekday} ${day} · ${hh}:${mm}`
   }
 
+  async function handleShare() {
+    try {
+      const url = Linking.createURL(`/player/${id}`)
+      await RNShare.share({ message: `Xem hồ sơ người chơi Pickleball này nhé! ${url}` })
+    } catch (error) {
+      console.warn('[PlayerProfile] Failed to share profile:', error)
+    }
+  }
+
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: PROFILE_THEME_COLORS.background }} edges={['top']}>
-      <ScrollView stickyHeaderIndices={[0]} contentContainerStyle={{ paddingBottom: 72 }}>
-        <ScreenHeader
-          variant="brand"
-          title="KINETIC"
-          subtitle="Hồ sơ công khai"
-          rightSlot={
-            <View
-              className="h-10 w-10 items-center justify-center rounded-full border-2"
-              style={{ borderColor: PROFILE_THEME_COLORS.primaryFixed, backgroundColor: PROFILE_THEME_COLORS.primary }}
-            >
-              <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-Bold' }}>
-                {player.name?.charAt(0).toUpperCase() ?? 'U'}
-              </Text>
-            </View>
-          }
-          style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow }}
-        />
+    <View className="flex-1" style={{ backgroundColor: PROFILE_THEME_COLORS.background }}>
+      <SecondaryNavbar
+        title="CHI TIẾT NGƯỜI CHƠI"
+        onBackPress={() => router.back()}
+        rightSlot={<NavbarShareButton onPress={handleShare} />}
+      />
+      <ScrollView contentContainerStyle={{ paddingBottom: 72 }}>
 
         <View className="px-6 pt-6">
           <View>
@@ -318,7 +314,7 @@ export default function PlayerProfile() {
                     left: 0,
                     right: 0,
                     color: PROFILE_THEME_COLORS.primary,
-                    fontFamily: 'PlusJakartaSans-ExtraBold',
+                    fontFamily: SCREEN_FONTS.headline,
                     fontSize: editorialNameSize,
                     lineHeight: editorialNameLineHeight,
                     letterSpacing: -2,
@@ -333,7 +329,7 @@ export default function PlayerProfile() {
                   <Text
                     style={{
                       color: PROFILE_THEME_COLORS.primary,
-                      fontFamily: 'PlusJakartaSans-ExtraBold',
+                      fontFamily: SCREEN_FONTS.headline,
                       fontSize: editorialNameSize,
                       lineHeight: editorialNameLineHeight,
                       letterSpacing: -2,
@@ -345,7 +341,7 @@ export default function PlayerProfile() {
                     style={{
                       color: PROFILE_THEME_COLORS.outlineVariant,
                       opacity: 0.55,
-                      fontFamily: 'PlusJakartaSans-ExtraBoldItalic',
+                      fontFamily: SCREEN_FONTS.headlineItalic,
                       fontSize: editorialNameSize,
                       lineHeight: editorialNameLineHeight,
                       letterSpacing: -2,
@@ -359,7 +355,7 @@ export default function PlayerProfile() {
                 <Text
                   style={{
                     color: PROFILE_THEME_COLORS.primary,
-                    fontFamily: 'PlusJakartaSans-ExtraBold',
+                    fontFamily: SCREEN_FONTS.headline,
                     fontSize: editorialNameSize,
                     lineHeight: editorialNameLineHeight,
                     letterSpacing: -2,
@@ -376,17 +372,17 @@ export default function PlayerProfile() {
                 style={{
                   color: PROFILE_THEME_COLORS.onPrimaryFixed,
                   backgroundColor: PROFILE_THEME_COLORS.primaryFixed,
-                  fontFamily: 'PlusJakartaSans-Bold',
+                  fontFamily: SCREEN_FONTS.cta,
                 }}
               >
                 {player.is_provisional ? `${placementPlayed}/5 placement` : 'Verified Player'}
               </Text>
               {player.city ? (
-                <Text className="text-sm" style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: 'PlusJakartaSans-Bold' }}>
+                <Text className="text-sm" style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.cta }}>
                   {player.city}
                 </Text>
               ) : null}
-              <Text className="text-sm" style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: 'PlusJakartaSans-Bold' }}>
+              <Text className="text-sm" style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.cta }}>
                 Thành viên từ {joinedYear ?? 'N/A'}
               </Text>
             </View>
@@ -397,7 +393,7 @@ export default function PlayerProfile() {
                 style={{
                   color: PROFILE_THEME_COLORS.onPrimaryContainer,
                   backgroundColor: PROFILE_THEME_COLORS.primaryContainer,
-                  fontFamily: 'PlusJakartaSans-Bold',
+                  fontFamily: SCREEN_FONTS.cta,
                 }}
               >
                 Độ tin cậy · {reliability === null ? '--' : `${reliability}%`}
@@ -406,7 +402,7 @@ export default function PlayerProfile() {
 
             <Text
               className="mt-4 text-base leading-7"
-              style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Regular' }}
+              style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body }}
             >
               Hồ sơ công khai hiển thị phong cách thi đấu, độ ổn định và nhịp tham gia kèo của người chơi này.
             </Text>
@@ -444,12 +440,12 @@ export default function PlayerProfile() {
             <View className="flex-row justify-between gap-4">
               <View className="flex-1 rounded-[24px] p-4" style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow }}>
                 <Swords size={22} color={PROFILE_THEME_COLORS.primary} />
-                <Text className="mt-4 text-[28px]" style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: 'PlusJakartaSans-Bold' }}>
+                <Text className="mt-4 text-[28px]" style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.cta }}>
                   {player.sessions_joined ?? 0}
                 </Text>
                 <Text
                   className="mt-1 text-[12px] uppercase tracking-[2px]"
-                  style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-Bold' }}
+                  style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: SCREEN_FONTS.cta }}
                 >
                   Trận đấu
                 </Text>
@@ -457,12 +453,12 @@ export default function PlayerProfile() {
 
               <View className="flex-1 rounded-[24px] p-4" style={{ backgroundColor: PROFILE_THEME_COLORS.secondaryContainer }}>
                 <CalendarDays size={22} color={PROFILE_THEME_COLORS.surfaceTint} />
-                <Text className="mt-4 text-[28px]" style={{ color: PROFILE_THEME_COLORS.surfaceTint, fontFamily: 'PlusJakartaSans-Bold' }}>
+                <Text className="mt-4 text-[28px]" style={{ color: PROFILE_THEME_COLORS.surfaceTint, fontFamily: SCREEN_FONTS.cta }}>
                   {hostedSessionsCount}
                 </Text>
                 <Text
                   className="mt-1 text-[12px] uppercase tracking-[2px]"
-                  style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Bold' }}
+                  style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.cta }}
                 >
                   Đã host
                 </Text>
@@ -495,12 +491,12 @@ export default function PlayerProfile() {
                     className="rounded-[20px] p-4"
                     style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest }}
                   >
-                    <Text style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: 'PlusJakartaSans-Bold', fontSize: 16 }}>
+                    <Text style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.cta, fontSize: 16 }}>
                       {court.name}
                     </Text>
                     <View className="mt-2 flex-row items-center">
                       <MapPin size={12} color={PROFILE_THEME_COLORS.outline} />
-                      <Text className="ml-1" style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-Regular', fontSize: 12 }}>
+                      <Text className="ml-1" style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: SCREEN_FONTS.body, fontSize: 12 }}>
                         {court.city}
                       </Text>
                     </View>
@@ -542,7 +538,7 @@ export default function PlayerProfile() {
                 style={{ backgroundColor: PROFILE_THEME_COLORS.secondaryFixed }}
                 className="rounded-full px-5 py-3 items-center"
               >
-                <Text style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: 'PlusJakartaSans-Bold' }}>
+                <Text style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.cta }}>
                   Bạn đang xem hồ sơ công khai của chính mình
                 </Text>
               </View>
@@ -557,7 +553,7 @@ export default function PlayerProfile() {
           ) : null}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   )
 }
 

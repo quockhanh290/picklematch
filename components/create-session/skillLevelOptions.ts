@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react-native'
 import { Activity, Diamond, Sparkles, Swords, Trophy } from 'lucide-react-native'
-import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/profileTheme'
 
 export type CreateSessionSkillOption = {
   id: number
@@ -72,4 +72,5 @@ export const CREATE_SESSION_SKILL_INACTIVE_CLASSNAME =
 export function getCreateSessionSkillOption(level: number) {
   return CREATE_SESSION_SKILL_OPTIONS.find((option) => option.id === level) ?? CREATE_SESSION_SKILL_OPTIONS[2]
 }
+
 

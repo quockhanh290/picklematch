@@ -1,4 +1,5 @@
-import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC, getHistoryResultPalette } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC, getHistoryResultPalette } from '@/constants/profileTheme'
+import { SCREEN_FONTS } from '@/constants/typography'
 import type { SkillAssessmentLevel } from '@/lib/skillAssessment'
 import { getSkillLevelUi } from '@/lib/skillLevelUi'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -14,6 +15,7 @@ import {
   Users
 } from 'lucide-react-native'
 import { Text, TouchableOpacity, View } from 'react-native'
+import { RADIUS } from '@/constants/screenLayout'
 
 type ActionItem = {
   label: string
@@ -81,7 +83,7 @@ export function ProfileIdentityCard({
 
   return (
     <View
-      className="rounded-[32px] p-6 shadow-sm mb-4"
+      className="rounded-[24px] p-6 shadow-sm mb-4"
       style={{
         backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
         shadowColor: PROFILE_THEME_COLORS.onBackground,
@@ -91,15 +93,15 @@ export function ProfileIdentityCard({
     >
       <View className="flex-col items-center">
         <View className="h-28 w-28 items-center justify-center rounded-full border-[4px]" style={{ borderColor: PROFILE_THEME_COLORS.surfaceTint, backgroundColor: PROFILE_THEME_SEMANTIC.successBg }}>
-          <Text className="text-4xl" style={{ color: PROFILE_THEME_COLORS.surfaceTint, fontFamily: 'PlusJakartaSans-Bold' }}>{name?.[0]?.toUpperCase() ?? '?'}</Text>
+          <Text className="text-4xl" style={{ color: PROFILE_THEME_COLORS.surfaceTint, fontFamily: SCREEN_FONTS.cta }}>{name?.[0]?.toUpperCase() ?? '?'}</Text>
         </View>
 
         <View className="mt-4 items-center">
-          <Text className="text-[28px] mb-1 text-center" style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: 'PlusJakartaSans-Bold' }}>{name}</Text>
+          <Text className="text-[28px] mb-1 text-center" style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.cta }}>{name}</Text>
           
           <View className="flex-row items-center rounded-full px-4 py-1.5 mt-2" style={{ backgroundColor: isProvisional ? PROFILE_THEME_COLORS.errorContainer : PROFILE_THEME_COLORS.primaryFixed }}>
             {isProvisional ? <ShieldQuestion size={14} color={PROFILE_THEME_COLORS.error} /> : <ShieldCheck size={14} color={PROFILE_THEME_COLORS.onPrimaryFixed} />}
-            <Text className="ml-1.5 text-[10px] uppercase tracking-widest" style={{ color: isProvisional ? PROFILE_THEME_COLORS.error : PROFILE_THEME_COLORS.onPrimaryFixed, fontFamily: 'PlusJakartaSans-Bold' }}>
+            <Text className="ml-1.5 text-[10px] uppercase tracking-widest" style={{ color: isProvisional ? PROFILE_THEME_COLORS.error : PROFILE_THEME_COLORS.onPrimaryFixed, fontFamily: SCREEN_FONTS.cta }}>
               {isProvisional ? `${placementPlayed}/5` : 'VERIFIED'}
             </Text>
           </View>
@@ -108,9 +110,9 @@ export function ProfileIdentityCard({
 
       <View className="flex-row items-center justify-center mt-4">
         <MapPin size={14} color={PROFILE_THEME_COLORS.outline} />
-        <Text className="ml-1.5 text-sm" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Regular' }}>{city || 'Unknown'}</Text>
+        <Text className="ml-1.5 text-sm" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body }}>{city || 'Unknown'}</Text>
         <Text className="mx-2" style={{ color: PROFILE_THEME_COLORS.outline }}>•</Text>
-        <Text className="text-sm" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: 'PlusJakartaSans-Regular' }}>Thành viên từ {formatJoinedDate(joinedAt)}</Text>
+        <Text className="text-sm" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body }}>Thành viên từ {formatJoinedDate(joinedAt)}</Text>
       </View>
 
       {actions.length > 0 ? (
@@ -124,7 +126,7 @@ export function ProfileIdentityCard({
                 className="flex-1 rounded-full overflow-hidden flex-row items-center justify-center py-4" style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceTint }}
               >
                 {action.icon === 'logout' ? <LogOut size={16} color={PROFILE_THEME_COLORS.onPrimary} /> : <PencilLine size={16} color={PROFILE_THEME_COLORS.onPrimary} />}
-                <Text className="ml-2 text-[13px] tracking-[0.5px] uppercase" style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: 'PlusJakartaSans-Bold' }}>
+                <Text className="ml-2 text-[13px] tracking-[0.5px] uppercase" style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta }}>
                   {action.label}
                 </Text>
               </TouchableOpacity>
@@ -166,7 +168,7 @@ export function ProfileSkillHero({
   }
 
   return (
-    <View className={`relative overflow-hidden shadow-sm mb-4 ${miniTitleOnly ? 'rounded-[24px] p-4' : 'rounded-[32px] p-6'}`}>
+    <View className={`relative overflow-hidden shadow-sm mb-4 ${miniTitleOnly ? 'rounded-[24px] p-4' : 'rounded-[24px] p-5'}`}>
       <LinearGradient
         colors={[heroColors.gradientStart, heroColors.gradientEnd]}
         start={{ x: 0, y: 0 }}
@@ -180,7 +182,7 @@ export function ProfileSkillHero({
           top: miniTitleOnly ? -26 : -40,
           width: miniTitleOnly ? 132 : 220,
           height: miniTitleOnly ? 132 : 220,
-          borderRadius: 999,
+          borderRadius: RADIUS.full,
           backgroundColor: heroColors.bubble,
         }}
       />
@@ -192,17 +194,22 @@ export function ProfileSkillHero({
       />
 
       {!miniTitleOnly ? (
-        <View className="flex-row items-center justify-between">
-          <View className="rounded-[12px] px-4 py-2 shadow-sm" style={{ backgroundColor: heroColors.eloChipBg }}>
-            <Text className="text-[20px]" style={{ color: heroColors.eloChipText, fontFamily: 'PlusJakartaSans-ExtraBoldItalic' }}>{elo} ELO</Text>
-          </View>
+        <View 
+          className="absolute right-5 top-5 rounded-full px-2.5 py-1 border shadow-sm" 
+          style={{ 
+            backgroundColor: PROFILE_THEME_COLORS.primary,
+            borderColor: '#FFFFFF',
+            zIndex: 10,
+          }}
+        >
+          <Text style={{ color: '#FFFFFF', fontFamily: SCREEN_FONTS.bold, fontSize: 11 }}>{elo} ELO</Text>
         </View>
       ) : null}
 
-      <View className={miniTitleOnly ? 'mt-1' : 'mt-8'} style={{ paddingRight: miniTitleOnly ? 10 : contentRightInset }}>
+      <View className={miniTitleOnly ? 'mt-1' : 'mt-4'} style={{ paddingRight: miniTitleOnly ? 10 : contentRightInset }}>
         <Text
           className={miniTitleOnly ? 'text-[26px] leading-tight uppercase tracking-wide' : 'text-[34px] leading-tight uppercase tracking-wider'}
-          style={{ color: heroColors.title, fontFamily: 'PlusJakartaSans-Bold' }}
+          style={{ color: heroColors.title, fontFamily: SCREEN_FONTS.cta }}
         >
           {title}
         </Text>
@@ -212,14 +219,14 @@ export function ProfileSkillHero({
               className="mt-2 text-[11px] uppercase tracking-[1.6px]"
               style={{
                 color: heroColors.description,
-                fontFamily: subtitleItalic ? 'PlusJakartaSans-Regular' : 'PlusJakartaSans-Bold',
+                fontFamily: subtitleItalic ? SCREEN_FONTS.body : SCREEN_FONTS.cta,
                 fontStyle: 'normal',
               }}
             >
               {subtitle}
             </Text>
             {description ? (
-              <Text className="mt-3 text-[14px] leading-6" style={{ color: heroColors.description, fontFamily: 'PlusJakartaSans-Regular' }}>
+              <Text className="mt-3 text-[14px] leading-6" style={{ color: heroColors.description, fontFamily: SCREEN_FONTS.body }}>
                 {description}
               </Text>
             ) : null}
@@ -238,7 +245,7 @@ export function ProfileWinStreak({ current, active = true }: { current: number; 
     <View className="mb-4 overflow-hidden rounded-[20px] px-5 py-4 flex-row items-center justify-center shadow-sm" style={{ backgroundColor: PROFILE_THEME_COLORS.primaryFixed }}>
       <Flame size={24} color={PROFILE_THEME_COLORS.onPrimaryFixed} />
       <View className="ml-3">
-        <Text className="text-[16px] uppercase tracking-wider" style={{ color: PROFILE_THEME_COLORS.onPrimaryFixed, fontFamily: 'PlusJakartaSans-Bold' }}>
+        <Text className="text-[16px] uppercase tracking-wider" style={{ color: PROFILE_THEME_COLORS.onPrimaryFixed, fontFamily: SCREEN_FONTS.cta }}>
           Current Win Streak: {current} games!
         </Text>
       </View>
@@ -261,20 +268,20 @@ export function ProfileStatsGrid({
   return (
     <View className="flex-row justify-between mb-4 gap-2">
       <View className="flex-1 rounded-[20px] p-4 items-center justify-center" style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHigh }}>
-        <Text className="text-[20px]" style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: 'PlusJakartaSans-Bold' }}>{played}</Text>
-        <Text className="mt-1 text-[9px] uppercase tracking-wider text-center" style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-Bold' }}>Matches</Text>
+        <Text className="text-[20px]" style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.cta }}>{played}</Text>
+        <Text className="mt-1 text-[9px] uppercase tracking-wider text-center" style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: SCREEN_FONTS.cta }}>Matches</Text>
       </View>
       <View className="flex-1 rounded-[20px] p-4 items-center justify-center" style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHigh }}>
-        <Text className="text-[20px]" style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: 'PlusJakartaSans-Bold' }}>{hosted}</Text>
-        <Text className="mt-1 text-[9px] uppercase tracking-wider text-center" style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-Bold' }}>Hosts</Text>
+        <Text className="text-[20px]" style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.cta }}>{hosted}</Text>
+        <Text className="mt-1 text-[9px] uppercase tracking-wider text-center" style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: SCREEN_FONTS.cta }}>Hosts</Text>
       </View>
       <View className="flex-1 rounded-[20px] p-4 items-center justify-center" style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHigh }}>
-        <Text className="text-[20px]" style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: 'PlusJakartaSans-Bold' }}>{winRate}</Text>
-        <Text className="mt-1 text-[9px] uppercase tracking-wider text-center" style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-Bold' }}>Win Rate</Text>
+        <Text className="text-[20px]" style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.cta }}>{winRate}</Text>
+        <Text className="mt-1 text-[9px] uppercase tracking-wider text-center" style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: SCREEN_FONTS.cta }}>Win Rate</Text>
       </View>
       <View className="flex-1 rounded-[20px] p-4 items-center justify-center" style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHigh }}>
-        <Text className="text-[20px]" style={{ color: PROFILE_THEME_COLORS.surfaceTint, fontFamily: 'PlusJakartaSans-Bold' }}>{reliability}%</Text>
-        <Text className="mt-1 text-[9px] uppercase tracking-wider text-center" style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-Bold' }}>Reliability</Text>
+        <Text className="text-[20px]" style={{ color: PROFILE_THEME_COLORS.surfaceTint, fontFamily: SCREEN_FONTS.cta }}>{reliability}%</Text>
+        <Text className="mt-1 text-[9px] uppercase tracking-wider text-center" style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: SCREEN_FONTS.cta }}>Reliability</Text>
       </View>
     </View>
   )
@@ -302,7 +309,7 @@ export function ProfileHistoryList({
     <View className={flushBottom ? '' : 'mb-6'}>
       {!hideHeader ? (
         <View className="mb-4">
-          <Text className="mt-1 text-[24px]" style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: 'PlusJakartaSans-Bold' }}>{title}</Text>
+          <Text className="mt-1 text-[24px]" style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.cta }}>{title}</Text>
         </View>
       ) : null}
 
@@ -326,26 +333,26 @@ export function ProfileHistoryList({
               style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest, shadowColor: PROFILE_THEME_COLORS.onBackground, shadowOpacity: 0.04, shadowRadius: 20 }}
             >
               <View className="mr-4 h-12 w-12 items-center justify-center rounded-full" style={{ backgroundColor: resultPalette.badgeBackground }}>
-                <Text className="text-xl" style={{ color: resultPalette.badgeText, fontFamily: 'PlusJakartaSans-Bold' }}>{resultText}</Text>
+                <Text className="text-xl" style={{ color: resultPalette.badgeText, fontFamily: SCREEN_FONTS.cta }}>{resultText}</Text>
               </View>
 
               <View className="flex-1">
-                <Text className="text-[16px]" style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: 'PlusJakartaSans-Bold' }}>{item.slot.court.name}</Text>
+                <Text className="text-[16px]" style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.cta }}>{item.slot.court.name}</Text>
                 <View className="mt-1 flex-row items-center">
                   <MapPin size={12} color={PROFILE_THEME_COLORS.outline} />
-                  <Text className="ml-1 text-[12px]" style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: 'PlusJakartaSans-Regular' }}>{formatTime(item.slot.start_time)}</Text>
+                  <Text className="ml-1 text-[12px]" style={{ color: PROFILE_THEME_COLORS.outline, fontFamily: SCREEN_FONTS.body }}>{formatTime(item.slot.start_time)}</Text>
                   
                   {item.is_host && (
                     <View className="ml-2 flex-row items-center rounded-full px-2 py-0.5" style={{ backgroundColor: PROFILE_THEME_COLORS.primaryFixed }}>
                       <Users size={10} color={PROFILE_THEME_COLORS.onPrimaryFixed} />
-                      <Text className="ml-1 text-[10px]" style={{ color: PROFILE_THEME_COLORS.onPrimaryFixed, fontFamily: 'PlusJakartaSans-Bold' }}>Chủ kèo</Text>
+                      <Text className="ml-1 text-[10px]" style={{ color: PROFILE_THEME_COLORS.onPrimaryFixed, fontFamily: SCREEN_FONTS.cta }}>Chủ kèo</Text>
                     </View>
                   )}
                 </View>
               </View>
 
               <View className="mr-3">
-                 <Text className="text-[16px]" style={{ color: resultPalette.eloText, fontFamily: 'PlusJakartaSans-Bold' }}>{eloAdj}</Text>
+                 <Text className="text-[16px]" style={{ color: resultPalette.eloText, fontFamily: SCREEN_FONTS.cta }}>{eloAdj}</Text>
               </View>
               <ChevronRight size={20} color={PROFILE_THEME_COLORS.outlineVariant} />
             </TouchableOpacity>
@@ -355,5 +362,6 @@ export function ProfileHistoryList({
     </View>
   )
 }
+
 
 

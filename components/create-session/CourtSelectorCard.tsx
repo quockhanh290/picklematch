@@ -1,7 +1,7 @@
 import { MapPin, Search } from 'lucide-react-native'
 import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from 'react-native'
 
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
 import type { NearByCourt } from '@/lib/useNearbyCourts'
 
 type Props = {
@@ -41,7 +41,7 @@ function CourtRow({ court, onPress }: { court: NearByCourt; onPress: (court: Nea
   return (
     <TouchableOpacity
       activeOpacity={0.92}
-      className="rounded-[18px] border p-3.5"
+      className="rounded-[20px] border p-3.5"
       style={{ borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest }}
       onPress={() => onPress(court)}
     >
@@ -54,7 +54,7 @@ function CourtRow({ court, onPress }: { court: NearByCourt; onPress: (court: Nea
         </View>
         <View className="flex-1">
           <View className="flex-row items-start justify-between gap-3">
-            <Text className="flex-1 text-[15px] font-black" style={{ color: PROFILE_THEME_COLORS.onSurface }} numberOfLines={1}>
+            <Text className="flex-1 text-[16px] font-black" style={{ color: PROFILE_THEME_COLORS.onSurface }} numberOfLines={1}>
               {court.name}
             </Text>
             {distanceLabel ? <Text className="text-[11px] font-bold" style={{ color: PROFILE_THEME_COLORS.outline }}>{distanceLabel}</Text> : null}
@@ -124,7 +124,7 @@ export function CourtSelectorCard({
             <MapPin size={18} color={PROFILE_THEME_COLORS.surfaceTint} />
           </View>
           <View className="flex-1">
-            <Text className="text-[15px] font-black" style={{ color: PROFILE_THEME_COLORS.onSurface }} numberOfLines={1}>
+            <Text className="text-[16px] font-black" style={{ color: PROFILE_THEME_COLORS.onSurface }} numberOfLines={1}>
               {selectedCourt.name}
             </Text>
             <Text className="mt-0.5 text-[12px] leading-[18px]" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant }} numberOfLines={2}>
@@ -156,7 +156,7 @@ export function CourtSelectorCard({
           <View className="mt-3 gap-3">
             {loadingCourts ? (
               <View
-                className="items-center justify-center rounded-[18px] border px-4 py-8"
+                className="items-center justify-center rounded-[20px] border px-4 py-8"
                 style={{ borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow }}
               >
                 <ActivityIndicator color={PROFILE_THEME_COLORS.primary} />
@@ -166,7 +166,7 @@ export function CourtSelectorCard({
               </View>
             ) : searching ? (
               <View
-                className="items-center justify-center rounded-[18px] border px-4 py-8"
+                className="items-center justify-center rounded-[20px] border px-4 py-8"
                 style={{ borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow }}
               >
                 <ActivityIndicator color={PROFILE_THEME_COLORS.primary} />
@@ -183,7 +183,7 @@ export function CourtSelectorCard({
               ))
             ) : fallbackMode ? null : (
               <View
-                className="items-center justify-center rounded-[18px] border border-dashed px-4 py-8"
+                className="items-center justify-center rounded-[20px] border border-dashed px-4 py-8"
                 style={{ borderColor: PROFILE_THEME_COLORS.outlineVariant, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow }}
               >
                 <Text className="text-center text-[13px] leading-[20px]" style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant }}>
@@ -197,5 +197,6 @@ export function CourtSelectorCard({
     </View>
   )
 }
+
 
 

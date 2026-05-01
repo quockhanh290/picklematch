@@ -1,8 +1,8 @@
 import { NotificationsProvider } from '@/lib/NotificationsContext'
 import { AppThemeProvider } from '@/lib/theme-context'
 import { useAuth } from '@/lib/useAuth'
-import { BarlowCondensed_700Bold, BarlowCondensed_700Bold_Italic } from '@expo-google-fonts/barlow-condensed'
-import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter'
+import { supabase } from '@/lib/supabase'
+import { BarlowCondensed_700Bold, BarlowCondensed_700Bold_Italic, BarlowCondensed_900Black } from '@expo-google-fonts/barlow-condensed'
 import { PlusJakartaSans_400Regular } from '@expo-google-fonts/plus-jakarta-sans/400Regular'
 import { PlusJakartaSans_500Medium } from '@expo-google-fonts/plus-jakarta-sans/500Medium'
 import { PlusJakartaSans_600SemiBold } from '@expo-google-fonts/plus-jakarta-sans/600SemiBold'
@@ -12,29 +12,26 @@ import { PlusJakartaSans_800ExtraBold_Italic } from '@expo-google-fonts/plus-jak
 import { useFonts } from 'expo-font'
 import { Stack, useRouter, useSegments } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import '../global.css'
+import { SCREEN_FONTS } from '@/constants/typography'
+
+import { AuthGate } from '@/features/auth/AuthGate'
 
 void SplashScreen.preventAutoHideAsync()
 
 export default function RootLayout() {
-  const { userId, isLoading } = useAuth()
-  const segments = useSegments()
-  const router = useRouter()
+  const { userId } = useAuth()
   const [fontsLoaded] = useFonts({
-    'BarlowCondensed-Bold': BarlowCondensed_700Bold,
-    'BarlowCondensed-BoldItalic': BarlowCondensed_700Bold_Italic,
-    'Inter-Regular': Inter_400Regular,
-    'Inter-Medium': Inter_500Medium,
-    'Inter-SemiBold': Inter_600SemiBold,
-    'Inter-Bold': Inter_700Bold,
-    'PlusJakartaSans-Regular': PlusJakartaSans_400Regular,
-    'PlusJakartaSans-Medium': PlusJakartaSans_500Medium,
-    'PlusJakartaSans-SemiBold': PlusJakartaSans_600SemiBold,
-    'PlusJakartaSans-Bold': PlusJakartaSans_700Bold,
-    'PlusJakartaSans-ExtraBold': PlusJakartaSans_800ExtraBold,
-    'PlusJakartaSans-ExtraBoldItalic': PlusJakartaSans_800ExtraBold_Italic,
+    [SCREEN_FONTS.headline]: BarlowCondensed_700Bold,
+    [SCREEN_FONTS.headlineItalic]: BarlowCondensed_700Bold_Italic,
+    [SCREEN_FONTS.headlineBlack]: BarlowCondensed_900Black,
+    [SCREEN_FONTS.body]: PlusJakartaSans_400Regular,
+    [SCREEN_FONTS.medium]: PlusJakartaSans_500Medium,
+    [SCREEN_FONTS.label]: PlusJakartaSans_600SemiBold,
+    [SCREEN_FONTS.bold]: PlusJakartaSans_800ExtraBold,
+    [SCREEN_FONTS.boldItalic]: PlusJakartaSans_800ExtraBold_Italic,
   })
 
   useEffect(() => {
@@ -42,22 +39,6 @@ export default function RootLayout() {
       SplashScreen.hideAsync()
     }
   }, [fontsLoaded])
-
-  useEffect(() => {
-    if (isLoading || !fontsLoaded) return
-
-    const firstSegment = segments[0] ?? ''
-    const isPublicRoute = firstSegment === 'login'
-
-    if (!userId && !isPublicRoute) {
-      router.replace('/login')
-      return
-    }
-
-    if (userId && isPublicRoute) {
-      router.replace('/(tabs)')
-    }
-  }, [fontsLoaded, isLoading, router, segments, userId])
 
   if (!fontsLoaded) {
     return null
@@ -67,24 +48,26 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <AppThemeProvider>
         <NotificationsProvider userId={userId}>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="login" options={{ headerShown: false }} />
-            <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-            <Stack.Screen name="profile-setup" options={{ presentation: 'modal' }} />
-            <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-            <Stack.Screen name="create-session" options={{ headerShown: false }} />
-            <Stack.Screen name="edit-profile" options={{ headerShown: false }} />
-            <Stack.Screen name="profile-preview" options={{ headerShown: false }} />
-            <Stack.Screen name="host-review/[id]" options={{ headerShown: false }} />
-            <Stack.Screen name="match-result/[id]" options={{ headerShown: false }} />
-            <Stack.Screen name="player/[id]" options={{ headerShown: false }} />
-            <Stack.Screen name="rate-session/[id]" options={{ headerShown: false }} />
-            <Stack.Screen name="session/[id]" options={{ headerShown: false }} />
-            <Stack.Screen name="session/[id]/confirm-result" options={{ headerShown: false }} />
-            <Stack.Screen name="session/[id]/review" options={{ headerShown: false }} />
-            <Stack.Screen name="(dev)/session-card-preview" options={{ headerShown: false }} />
-          </Stack>
+          <AuthGate fontsLoaded={fontsLoaded}>
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="login" options={{ headerShown: false }} />
+              <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+              <Stack.Screen name="profile-setup" options={{ presentation: 'modal' }} />
+              <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+              <Stack.Screen name="create-session" options={{ headerShown: false }} />
+              <Stack.Screen name="edit-profile" options={{ headerShown: false }} />
+              <Stack.Screen name="profile-preview" options={{ headerShown: false }} />
+              <Stack.Screen name="host-review/[id]" options={{ headerShown: false }} />
+              <Stack.Screen name="match-result/[id]" options={{ headerShown: false }} />
+              <Stack.Screen name="player/[id]" options={{ headerShown: false }} />
+              <Stack.Screen name="rate-session/[id]" options={{ headerShown: false }} />
+              <Stack.Screen name="session/[id]" options={{ headerShown: false }} />
+              <Stack.Screen name="session/[id]/confirm-result" options={{ headerShown: false }} />
+              <Stack.Screen name="session/[id]/review" options={{ headerShown: false }} />
+              <Stack.Screen name="(dev)/session-card-preview" options={{ headerShown: false }} />
+            </Stack>
+          </AuthGate>
         </NotificationsProvider>
       </AppThemeProvider>
     </GestureHandlerRootView>

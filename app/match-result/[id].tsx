@@ -1,19 +1,23 @@
 import { router, useLocalSearchParams } from 'expo-router'
-import { ArrowLeft, Minus, Plus, Save } from 'lucide-react-native'
+import { ArrowLeft, Minus, Plus, Save, Clock, MapPin, Trophy, CheckCheck, Info, ShieldAlert, Share2 } from 'lucide-react-native'
 import { useEffect, useMemo, useState } from 'react'
 import {
   ActivityIndicator,
-  Pressable,
   ScrollView,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
+  Share,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context'
 
-import { AppDialog, type AppDialogConfig } from '@/components/design'
-import { PROFILE_THEME_COLORS } from '@/components/profile/profileTheme'
+import { AppDialog, type AppDialogConfig, NavbarDoneButton, SecondaryNavbar } from '@/components/design'
+import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/profileTheme'
 import { supabase } from '@/lib/supabase'
+import { SCREEN_FONTS } from '@/constants/typography'
+import { RADIUS, SPACING, BORDER, SHADOW } from '@/constants/screenLayout'
+import { formatPricePerPerson, formatTimeRange as _formatTimeRange } from '@/lib/sessionDetail'
 
 function withAlpha(hex: string, alpha: number) {
   const clean = hex.replace('#', '')
@@ -23,31 +27,35 @@ function withAlpha(hex: string, alpha: number) {
 }
 
 const RESULT_THEME = {
-  pageBg: PROFILE_THEME_COLORS.surfaceContainerLow,
-  pageBlob: withAlpha(PROFILE_THEME_COLORS.primaryContainer, 0.08),
-  headerChipBg: PROFILE_THEME_COLORS.surfaceContainerHigh,
-  headerIcon: PROFILE_THEME_COLORS.onSecondaryContainer,
+  pageBg: PROFILE_THEME_COLORS.background,
+  accent: PROFILE_THEME_COLORS.primary,
+  accentSoft: withAlpha(PROFILE_THEME_COLORS.primary, 0.1),
+  cardBg: PROFILE_THEME_COLORS.surfaceContainerLowest,
+  cardBorder: PROFILE_THEME_COLORS.outlineVariant,
   title: PROFILE_THEME_COLORS.primary,
-  subtitle: PROFILE_THEME_COLORS.onSecondaryContainer,
+  subtitle: PROFILE_THEME_COLORS.onSurfaceVariant,
   muted: PROFILE_THEME_COLORS.outline,
-  line: PROFILE_THEME_COLORS.outlineVariant,
-  vsBg: PROFILE_THEME_COLORS.surfaceContainer,
-  vsText: PROFILE_THEME_COLORS.onSurfaceVariant,
-  sectionBg: PROFILE_THEME_COLORS.surfaceContainer,
-  sectionBorder: PROFILE_THEME_COLORS.outlineVariant,
-  sectionCardBg: PROFILE_THEME_COLORS.surfaceContainerLowest,
-  inputPlaceholder: PROFILE_THEME_COLORS.outline,
+  
+  teamABg: PROFILE_THEME_COLORS.primary,
+  teamAText: PROFILE_THEME_COLORS.onPrimary,
+  teamBBg: PROFILE_THEME_COLORS.surfaceContainerHighest,
+  teamBText: PROFILE_THEME_COLORS.primary,
+  
+  inputBg: PROFILE_THEME_COLORS.surfaceVariant,
   inputText: PROFILE_THEME_COLORS.onSurface,
-  primaryCta: PROFILE_THEME_COLORS.primaryContainer,
-  primaryCtaPressed: PROFILE_THEME_COLORS.surfaceTint,
+  inputPlaceholder: PROFILE_THEME_COLORS.onSurfaceVariant,
+  
+  primaryCta: PROFILE_THEME_COLORS.primary,
   primaryCtaText: PROFILE_THEME_COLORS.onPrimary,
-  shadow: PROFILE_THEME_COLORS.primary,
+  secondaryCta: PROFILE_THEME_COLORS.surfaceContainerHigh,
+  secondaryCtaText: PROFILE_THEME_COLORS.onSurfaceVariant,
 } as const
 
 type SessionPlayerRecord = {
   player_id: string
   status?: string | null
   team_no?: 1 | 2 | null
+  result_dispute_note?: string | null
   player?: {
     name?: string | null
   } | null
@@ -55,14 +63,21 @@ type SessionPlayerRecord = {
 
 type MatchSessionRecord = {
   id: string
+  status: string
+  results_status: string
+  max_players: number
+  booking_notes?: string | null
   host?: {
     id?: string
   } | null
   slot?: {
     start_time?: string | null
     end_time?: string | null
+    price?: number | null
     court?: {
       name?: string | null
+      address?: string | null
+      city?: string | null
     } | null
   } | null
   session_players: SessionPlayerRecord[]
@@ -90,17 +105,22 @@ function durationMinutes(start?: string | null, end?: string | null) {
   return Math.max(0, Math.round((endDate.getTime() - startDate.getTime()) / 60000))
 }
 
-function formatMatchDateTime(start?: string | null, end?: string | null) {
-  if (!start || !end) return 'Chưa rõ lịch thi đấu'
+function formatMatchDateTime(start?: string | null) {
+  if (!start) return 'Chưa rõ lịch'
+  const startDate = new Date(start)
+  if (Number.isNaN(startDate.getTime())) return 'Chưa rõ lịch'
+
+  const weekday = ['Chủ Nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'][startDate.getDay()]
+  const pad = (value: number) => value.toString().padStart(2, '0')
+  return `${weekday}, ngày ${pad(startDate.getDate())}/${pad(startDate.getMonth() + 1)}/${startDate.getFullYear()}`
+}
+
+function formatTimeRange(start?: string | null, end?: string | null) {
+  if (!start || !end) return '--:-- - --:--'
   const startDate = new Date(start)
   const endDate = new Date(end)
-  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) return 'Chưa rõ lịch thi đấu'
-
-  const weekday = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][startDate.getDay()]
   const pad = (value: number) => value.toString().padStart(2, '0')
-  const dateLabel = `${weekday}, ${pad(startDate.getDate())}/${pad(startDate.getMonth() + 1)}`
-  const timeLabel = `${pad(startDate.getHours())}:${pad(startDate.getMinutes())} - ${pad(endDate.getHours())}:${pad(endDate.getMinutes())}`
-  return `${dateLabel} • ${timeLabel}`
+  return `${pad(startDate.getHours())}:${pad(startDate.getMinutes())} - ${pad(endDate.getHours())}:${pad(endDate.getMinutes())}`
 }
 
 function buildTeams(session: MatchSessionRecord | null): TeamSummary[] {
@@ -137,135 +157,334 @@ function buildTeams(session: MatchSessionRecord | null): TeamSummary[] {
   ]
 }
 
-function PlayerTag({ name, dark }: { name: string; dark: boolean }) {
+function SessionResultMetaCard({
+  session,
+  scoreA,
+  scoreB,
+  setScoreA,
+  setScoreB,
+  isSubmitted,
+  teams,
+}: {
+  session: MatchSessionRecord
+  scoreA: number
+  scoreB: number
+  setScoreA: (dispatch: (s: number) => number) => void
+  setScoreB: (dispatch: (s: number) => number) => void
+  isSubmitted: boolean
+  teams: TeamSummary[]
+}) {
+  const courtName = session.slot?.court?.name || 'Sân chưa xác định'
+  const courtAddress = session.slot?.court?.address || ''
+  const courtCity = session.slot?.court?.city || ''
+  const startTime = session.slot?.start_time
+  const endTime = session.slot?.end_time
+  const price = session.slot?.price || 0
+  const maxPlayers = session.max_players || 4
+  const hostNote = session.booking_notes
+  
+  const timeLabel = _formatTimeRange(startTime || '', endTime || '')
+  const [datePart, clockPart] = timeLabel.split('•').map((s) => s.trim())
+  const priceLabel = formatPricePerPerson(price, maxPlayers)
+
+  const compactAddress = [courtAddress, courtCity]
+    .filter(Boolean)
+    .join(', ')
+    .split(',')
+    .slice(0, 3)
+    .join(',')
+
   return (
     <View
       style={{
-        borderRadius: 999,
-        paddingHorizontal: 10,
-        paddingVertical: 5,
-        backgroundColor: dark ? withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.14) : PROFILE_THEME_COLORS.surfaceContainerLowest,
-        borderWidth: 1,
-        borderColor: dark ? withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.22) : PROFILE_THEME_COLORS.outlineVariant,
-        marginLeft: 6,
+        borderRadius: RADIUS.lg,
+        overflow: 'hidden',
+        backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+        borderWidth: BORDER.hairline,
+        borderColor: PROFILE_THEME_COLORS.outlineVariant,
+        ...SHADOW.sm,
       }}
     >
-      <Text
-        numberOfLines={1}
+      {/* Brand Header */}
+      <View
         style={{
-          fontFamily: 'PlusJakartaSans-Bold',
-          fontSize: 11,
-          color: dark ? PROFILE_THEME_COLORS.secondaryContainer : PROFILE_THEME_COLORS.onSecondaryContainer,
+          backgroundColor: PROFILE_THEME_COLORS.primary,
+          paddingHorizontal: 16,
+          paddingVertical: SPACING.xs,
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
         }}
       >
-        {name}
-      </Text>
-    </View>
-  )
-}
+        <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 6 }}>
+          <View style={{ width: 5, height: 5, borderRadius: RADIUS.full, backgroundColor: PROFILE_THEME_COLORS.onPrimary }} />
+          <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta, fontSize: 11, letterSpacing: 0.5 }}>
+            KẾT QUẢ TRẬN ĐẤU
+          </Text>
+        </View>
+        <Text style={{ color: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.8), fontFamily: SCREEN_FONTS.label, fontSize: 11 }}>
+          {maxPlayers === 2 ? 'Đánh đơn' : 'Đánh đôi'}
+        </Text>
+      </View>
 
-function ScoreCard({
-  team,
-  score,
-  dark,
-  onDecrease,
-  onIncrease,
-}: {
-  team: TeamSummary
-  score: number
-  dark: boolean
-  onDecrease: () => void
-  onIncrease: () => void
-}) {
-  const bg = dark ? PROFILE_THEME_COLORS.primaryContainer : PROFILE_THEME_COLORS.surfaceContainerLow
-  const text = dark ? PROFILE_THEME_COLORS.onPrimary : PROFILE_THEME_COLORS.primary
-  const label = dark ? PROFILE_THEME_COLORS.secondaryContainer : PROFILE_THEME_COLORS.onSecondaryContainer
-  const btnMinusBg = dark ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surfaceContainerLowest
-  const btnPlusBg = dark ? PROFILE_THEME_COLORS.secondaryContainer : PROFILE_THEME_COLORS.primaryContainer
-  const btnMinusText = dark ? PROFILE_THEME_COLORS.surfaceContainerLowest : PROFILE_THEME_COLORS.primary
-  const btnPlusText = dark ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.onPrimary
-
-  return (
-    <View
-      style={{
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: dark ? PROFILE_THEME_COLORS.surfaceTint : PROFILE_THEME_COLORS.outlineVariant,
-        backgroundColor: bg,
-        paddingHorizontal: 16,
-        paddingTop: 16,
-        paddingBottom: 18,
-      }}
-    >
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+      {/* Court Info */}
+      <View style={{ paddingTop: 12, paddingHorizontal: 16, paddingBottom: 12 }}>
         <Text
+          numberOfLines={2}
           style={{
-            fontFamily: 'PlusJakartaSans-ExtraBold',
-            fontSize: 13,
-            color: label,
+            color: PROFILE_THEME_COLORS.onSurface,
+            fontFamily: SCREEN_FONTS.headline,
+            fontSize: 31,
+            lineHeight: 36,
+            marginBottom: 4,
             textTransform: 'uppercase',
           }}
         >
-          {team.name}
+          {courtName}
         </Text>
-        <View style={{ flexDirection: 'row', marginLeft: 8, flex: 1, justifyContent: 'flex-end' }}>
-          {team.players.slice(0, 2).map((player) => (
-            <PlayerTag key={player.id} name={player.name} dark={dark} />
-          ))}
+        <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 6 }}>
+          <MapPin size={13} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.5} />
+          <Text numberOfLines={1} style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, fontSize: 13, flexShrink: 1 }}>
+            {compactAddress}
+          </Text>
         </View>
       </View>
 
-      <Text
-        style={{
-          marginTop: 12,
-          textAlign: 'center',
-          fontFamily: 'PlusJakartaSans-ExtraBold',
-          fontSize: 92,
-          lineHeight: 98,
-          color: text,
-        }}
-      >
-        {padScore(score)}
-      </Text>
+      {/* Main Scoreboard */}
+      <View style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceAlt, paddingHorizontal: 16, paddingVertical: 20 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+          {/* Team A */}
+          <View style={{ alignItems: 'center', flex: 1 }}>
+            <Text numberOfLines={1} style={{ 
+              color: scoreA > scoreB ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.onSurfaceVariant, 
+              fontFamily: SCREEN_FONTS.headline, 
+              fontSize: 16, 
+              textTransform: 'uppercase', 
+              letterSpacing: 1, 
+              marginBottom: 8,
+              textAlign: 'center'
+            }}>
+              {scoreA > scoreB ? 'THẮNG' : scoreA < scoreB ? 'THUA' : 'HÒA'}
+            </Text>
+            
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              {!isSubmitted && (
+                <TouchableOpacity 
+                  activeOpacity={0.85}
+                  onPress={() => setScoreA(s => Math.max(0, s - 1))}
+                  style={{
+                    width: 30,
+                    height: 30,
+                    borderRadius: 15,
+                    backgroundColor: PROFILE_THEME_COLORS.primary,
+                    borderWidth: 1,
+                    borderColor: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.22),
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    ...SHADOW.sm,
+                  }}
+                >
+                  <Minus size={14} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.8} />
+                </TouchableOpacity>
+              )}
+              
+              <View style={{ 
+                backgroundColor: PROFILE_THEME_COLORS.surface, 
+                borderRadius: RADIUS.md, 
+                paddingHorizontal: 12, 
+                paddingVertical: 6,
+                minWidth: 80,
+                alignItems: 'center',
+                borderWidth: 1,
+                borderColor: scoreA > scoreB ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
+                ...SHADOW.sm,
+              }}>
+                <Text style={{ 
+                  color: scoreA > scoreB ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.onSurface, 
+                  fontFamily: SCREEN_FONTS.headline, 
+                  fontSize: 64, 
+                  lineHeight: 68 
+                }}>
+                  {scoreA.toString().padStart(2, '0')}
+                </Text>
+              </View>
 
-      <View style={{ marginTop: 10, flexDirection: 'row', gap: 10 }}>
-        <Pressable onPress={onDecrease} style={{ flex: 1 }}>
-          <View
-            style={{
-              borderRadius: 999,
-              height: 52,
-              backgroundColor: btnMinusBg,
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexDirection: 'row',
-              gap: 6,
-            }}
-          >
-            <Minus size={20} color={btnMinusText} strokeWidth={2.8} />
+              {!isSubmitted && (
+                <TouchableOpacity 
+                  activeOpacity={0.85}
+                  onPress={() => setScoreA(s => Math.min(99, s + 1))}
+                  style={{
+                    width: 30,
+                    height: 30,
+                    borderRadius: 15,
+                    backgroundColor: PROFILE_THEME_COLORS.primary,
+                    borderWidth: 1,
+                    borderColor: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.22),
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    ...SHADOW.sm,
+                  }}
+                >
+                  <Plus size={14} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.8} />
+                </TouchableOpacity>
+              )}
+            </View>
+
+            <View style={{ marginTop: 10, alignItems: 'center' }}>
+              <Text numberOfLines={1} style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.headline, fontSize: 14, textTransform: 'uppercase', letterSpacing: 0.5, textAlign: 'center' }}>
+                {teams[0].name}
+              </Text>
+              <Text numberOfLines={1} style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, fontSize: 11, textAlign: 'center', marginTop: 2 }}>
+                {teams[0].players.map(p => p.name).join(' · ')}
+              </Text>
+            </View>
           </View>
-        </Pressable>
-        <Pressable onPress={onIncrease} style={{ flex: 1 }}>
-          <View
-            style={{
-              borderRadius: 999,
-              height: 52,
-              backgroundColor: btnPlusBg,
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexDirection: 'row',
-              gap: 6,
-            }}
-          >
-            <Plus size={20} color={btnPlusText} strokeWidth={2.8} />
+
+          <View style={{ width: 1, height: 100, backgroundColor: PROFILE_THEME_COLORS.outlineVariant, opacity: 0.5, alignSelf: 'center', marginTop: 10, marginHorizontal: 24 }} />
+
+          {/* Team B */}
+          <View style={{ alignItems: 'center', flex: 1 }}>
+            <Text numberOfLines={1} style={{ 
+              color: scoreB > scoreA ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.onSurfaceVariant, 
+              fontFamily: SCREEN_FONTS.headline, 
+              fontSize: 16, 
+              textTransform: 'uppercase', 
+              letterSpacing: 1, 
+              marginBottom: 8,
+              textAlign: 'center'
+            }}>
+              {scoreB > scoreA ? 'THẮNG' : scoreB < scoreA ? 'THUA' : 'HÒA'}
+            </Text>
+
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              {!isSubmitted && (
+                <TouchableOpacity 
+                  activeOpacity={0.85}
+                  onPress={() => setScoreB(s => Math.max(0, s - 1))}
+                  style={{
+                    width: 30,
+                    height: 30,
+                    borderRadius: 15,
+                    backgroundColor: PROFILE_THEME_COLORS.primary,
+                    borderWidth: 1,
+                    borderColor: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.22),
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    ...SHADOW.sm,
+                  }}
+                >
+                  <Minus size={14} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.8} />
+                </TouchableOpacity>
+              )}
+
+              <View style={{ 
+                backgroundColor: PROFILE_THEME_COLORS.surface, 
+                borderRadius: RADIUS.md, 
+                paddingHorizontal: 12, 
+                paddingVertical: 6,
+                minWidth: 80,
+                alignItems: 'center',
+                borderWidth: 1,
+                borderColor: scoreB > scoreA ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
+                ...SHADOW.sm,
+              }}>
+                <Text style={{ 
+                  color: scoreB > scoreA ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.onSurface, 
+                  fontFamily: SCREEN_FONTS.headline, 
+                  fontSize: 64, 
+                  lineHeight: 68 
+                }}>
+                  {scoreB.toString().padStart(2, '0')}
+                </Text>
+              </View>
+
+              {!isSubmitted && (
+                <TouchableOpacity 
+                  activeOpacity={0.85}
+                  onPress={() => setScoreB(s => Math.min(99, s + 1))}
+                  style={{
+                    width: 30,
+                    height: 30,
+                    borderRadius: 15,
+                    backgroundColor: PROFILE_THEME_COLORS.primary,
+                    borderWidth: 1,
+                    borderColor: withAlpha(PROFILE_THEME_COLORS.onPrimary, 0.22),
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    ...SHADOW.sm,
+                  }}
+                >
+                  <Plus size={14} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.8} />
+                </TouchableOpacity>
+              )}
+            </View>
+
+            <View style={{ marginTop: 10, alignItems: 'center' }}>
+              <Text numberOfLines={1} style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.headline, fontSize: 14, textTransform: 'uppercase', letterSpacing: 0.5, textAlign: 'center' }}>
+                {teams[1].name}
+              </Text>
+              <Text numberOfLines={1} style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, fontSize: 11, textAlign: 'center', marginTop: 2 }}>
+                {teams[1].players.map(p => p.name).join(' · ')}
+              </Text>
+            </View>
           </View>
-        </Pressable>
+        </View>
+
+        <View style={{ height: 1, backgroundColor: PROFILE_THEME_COLORS.outlineVariant, opacity: 0.5, marginVertical: 16 }} />
+
+        {/* Time & Price Info */}
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+          <View>
+            <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.label, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>
+              THỜI GIAN
+            </Text>
+            <Text style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.headline, fontSize: 26, lineHeight: 28 }}>
+              {clockPart}
+            </Text>
+            <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, fontSize: 13, marginTop: 2 }}>
+              {datePart}
+            </Text>
+          </View>
+
+          <View style={{ alignItems: 'flex-end' }}>
+            <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.label, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>
+              CHI PHÍ
+            </Text>
+            <Text style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.headline, fontSize: 26, lineHeight: 28 }}>
+              {priceLabel}
+            </Text>
+            {priceLabel !== 'Miễn phí' && (
+              <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, fontSize: 13, marginTop: 2 }}>
+                /người
+              </Text>
+            )}
+          </View>
+        </View>
+
+        {/* Note */}
+        {hostNote && hostNote.trim().length > 0 && (
+          <>
+            <View style={{ height: 1, backgroundColor: PROFILE_THEME_COLORS.outlineVariant, opacity: 0.5, marginVertical: 16 }} />
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+              <View style={{ flex: 1 }}>
+                <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.label, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8 }}>
+                  LỜI NHẮN
+                </Text>
+                <Text style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.body, fontSize: 13, marginTop: 2 }}>
+                  {hostNote.trim()}
+                </Text>
+              </View>
+            </View>
+          </>
+        )}
       </View>
     </View>
   )
 }
 
 export default function MatchResultEntryScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>()
+  const params = useLocalSearchParams<{ id: string }>()
+  const id = Array.isArray(params.id) ? params.id[0] : params.id
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [session, setSession] = useState<MatchSessionRecord | null>(null)
@@ -273,7 +492,6 @@ export default function MatchResultEntryScreen() {
 
   const [scoreA, setScoreA] = useState(11)
   const [scoreB, setScoreB] = useState(9)
-  const [matchDuration, setMatchDuration] = useState('45')
   const [refereeNote, setRefereeNote] = useState('')
   const [dialogConfig, setDialogConfig] = useState<AppDialogConfig | null>(null)
 
@@ -300,67 +518,83 @@ export default function MatchResultEntryScreen() {
         return
       }
 
+      await supabase.rpc('process_overdue_session_closures')
+
       if (mounted) setCurrentUserId(user.id)
 
       const { data, error } = await supabase.rpc('get_session_detail_overview', { p_session_id: id })
       if (error) {
         openDialog({
-          title: 'Không tải được trận đấu',
+          title: 'Lỗi tải dữ liệu',
           message: error.message,
           actions: [{ label: 'Đã hiểu' }],
         })
-        if (mounted) {
-          setSession(null)
-          setLoading(false)
-        }
+        if (mounted) setLoading(false)
         return
       }
 
       const nextSession = (data?.session ?? null) as MatchSessionRecord | null
-      if (nextSession?.host?.id && nextSession.host.id !== user.id) {
+      const hostId = typeof nextSession?.host === 'string' ? nextSession.host : nextSession?.host?.id
+      
+      if (hostId && hostId !== user.id) {
+        if (mounted) setLoading(false)
         openDialog({
-          title: 'Chỉ host mới được nhập kết quả',
-          message: 'Bạn có thể xem trận này, nhưng chỉ host mới có thể gửi kết quả cuối cùng.',
-          actions: [{ label: 'Quay lại', onPress: () => router.back() }],
+          title: 'Quyền truy cập',
+          message: 'Chỉ chủ kèo mới có quyền nhập kết quả trận đấu này.',
+          actions: [{ label: 'Quay lại', onPress: () => router.back() }]
         })
-        if (mounted) {
-          setSession(null)
-          setLoading(false)
-        }
         return
+      }
+
+      // Check if session needs to be marked as pending_completion
+      const endTime = nextSession?.slot?.end_time ? new Date(nextSession.slot.end_time) : null
+      const isOverdue = endTime && endTime <= new Date()
+
+      if (isOverdue && nextSession?.status !== 'done' && nextSession?.status !== 'pending_completion') {
+        // Attempt to transition to pending_completion so RPC works
+        await supabase
+          .from('sessions')
+          .update({ status: 'pending_completion', pending_completion_marked_at: new Date().toISOString() })
+          .eq('id', id)
       }
 
       if (mounted) {
         setSession(nextSession)
-        const mins = durationMinutes(nextSession?.slot?.start_time, nextSession?.slot?.end_time)
-        if (mins > 0) setMatchDuration(String(mins))
+        
         setLoading(false)
+        
+        if (!isOverdue && nextSession?.status !== 'done' && nextSession?.status !== 'pending_completion') {
+           openDialog({
+             title: 'Trận chưa kết thúc',
+             message: 'Kết quả chỉ nên được nhập sau khi trận đấu đã hoàn thành.',
+             actions: [{ label: 'Đã hiểu' }]
+           })
+        }
       }
     }
 
     void loadSession()
-    return () => {
-      mounted = false
-    }
+    return () => { mounted = false }
   }, [id])
 
   const teams = useMemo(() => buildTeams(session), [session])
 
+  const disputeNotes = useMemo(() => {
+    return (session?.session_players ?? [])
+      .filter((p) => p.result_dispute_note && p.result_dispute_note.trim().length > 0)
+      .map((p) => ({ name: p.player?.name || 'Người chơi', note: p.result_dispute_note }))
+  }, [session])
+
   async function onSaveResult() {
     if (!session || !id) return
-    if (!currentUserId || session.host?.id !== currentUserId) {
-      openDialog({
-        title: 'Chỉ host mới được nhập kết quả',
-        message: 'Kết quả trận chỉ có thể được gửi bởi host của kèo này.',
-        actions: [{ label: 'Đã hiểu' }],
-      })
-      return
-    }
+    const hostId = typeof session.host === 'string' ? session.host : session.host?.id
+    if (!currentUserId || hostId !== currentUserId || isSubmitted) return
 
-    if (!teams[0].players.length || !teams[1].players.length) {
+    const expectedPerTeam = session.max_players / 2
+    if (teams[0].players.length !== expectedPerTeam || teams[1].players.length !== expectedPerTeam) {
       openDialog({
-        title: 'Thiếu đội hình',
-        message: 'Trận này chưa có đủ người chơi ở cả hai đội để gửi kết quả.',
+        title: 'Thiếu người chơi',
+        message: `Kèo này là ${session.max_players === 4 ? 'đánh đôi' : 'đánh đơn'}. Mỗi đội phải có đúng ${expectedPerTeam} người chơi mới có thể nhập kết quả.`,
         actions: [{ label: 'Đã hiểu' }],
       })
       return
@@ -368,8 +602,8 @@ export default function MatchResultEntryScreen() {
 
     if (scoreA === scoreB) {
       openDialog({
-        title: 'Điểm số chưa hợp lệ',
-        message: 'Vui lòng nhập kết quả có đội thắng rõ ràng trước khi lưu.',
+        title: 'Kết quả hòa',
+        message: 'Hiện tại hệ thống chưa hỗ trợ kết quả hòa cho tính điểm elo. Vui lòng chọn đội thắng.',
         actions: [{ label: 'Đã hiểu' }],
       })
       return
@@ -393,197 +627,252 @@ export default function MatchResultEntryScreen() {
 
     if (error) {
       openDialog({
-        title: 'Chưa thể gửi kết quả',
+        title: 'Lỗi gửi kết quả',
         message: error.message,
         actions: [{ label: 'Đã hiểu' }],
       })
       return
     }
-
     openDialog({
-      title: 'Đã lưu kết quả',
-      message: `${teams[0].name} ${scoreA} - ${scoreB} ${teams[1].name}`,
-      actions: [{ label: 'Quay về chi tiết kèo', onPress: () => router.back() }],
+      title: 'Thành công',
+      message: 'Kết quả đã được gửi và đang chờ người chơi xác nhận.',
+      actions: [{ label: 'Quay lại', onPress: () => router.back() }],
     })
   }
 
+  async function onShare() {
+    if (!id) return
+    try {
+      await Share.share({ message: `Xem kết quả trận đấu tại PickleMatch: /session/${id}` })
+    } catch {}
+  }
+
+  const insets = useSafeAreaInsets()
+
   if (loading) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: RESULT_THEME.pageBg, alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator color={PROFILE_THEME_COLORS.primary} />
-        <Text style={{ marginTop: 10, fontFamily: 'PlusJakartaSans-Bold', color: RESULT_THEME.subtitle }}>Đang tải trận đấu...</Text>
-      </SafeAreaView>
+      <View style={{ flex: 1, backgroundColor: RESULT_THEME.pageBg, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator color={RESULT_THEME.accent} />
+      </View>
     )
   }
 
-  if (!session) {
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: RESULT_THEME.pageBg, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 }}>
-        <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 22, color: RESULT_THEME.title }}>Không tìm thấy trận đấu</Text>
-        <Pressable onPress={() => router.back()} style={{ marginTop: 14 }}>
-          <Text style={{ fontFamily: 'PlusJakartaSans-Bold', color: PROFILE_THEME_COLORS.primary }}>Quay lại</Text>
-        </Pressable>
-      </SafeAreaView>
-    )
-  }
+  if (!session) return null
+
+  const isSubmitted = session.results_status === 'pending_confirmation' || session.results_status === 'finalized'
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: RESULT_THEME.pageBg }}>
-      <View style={{ position: 'absolute', width: 220, height: 220, borderRadius: 999, backgroundColor: RESULT_THEME.pageBlob, top: 80, right: -80 }} />
-      <View style={{ position: 'absolute', width: 180, height: 180, borderRadius: 999, backgroundColor: RESULT_THEME.pageBlob, bottom: 20, left: -70 }} />
-
-      <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: 28 }}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={{ paddingTop: 8, paddingBottom: 10, alignItems: 'center', justifyContent: 'center' }}>
-          <Pressable
-            onPress={() => router.back()}
-            style={{
-              position: 'absolute',
-              left: 0,
-              width: 38,
-              height: 38,
-              borderRadius: 999,
-              backgroundColor: RESULT_THEME.headerChipBg,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <ArrowLeft size={18} color={RESULT_THEME.headerIcon} />
-          </Pressable>
-          <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 28, color: RESULT_THEME.title }}>Kết quả trận đấu</Text>
-        </View>
-
-        <View style={{ marginTop: 8, alignItems: 'center' }}>
-          <Text style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 11, letterSpacing: 1.2, color: RESULT_THEME.muted, textTransform: 'uppercase' }}>
-            Thông tin trận đấu
-          </Text>
-          <Text
-            numberOfLines={2}
-            style={{ marginTop: 4, textAlign: 'center', fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 30, lineHeight: 36, color: RESULT_THEME.title }}
-          >
-            {session.slot?.court?.name ?? 'Sân thi đấu'}
-          </Text>
-          <Text style={{ marginTop: 4, fontFamily: 'PlusJakartaSans-Bold', fontSize: 13, color: RESULT_THEME.subtitle }}>
-            {formatMatchDateTime(session.slot?.start_time, session.slot?.end_time)}
-          </Text>
-        </View>
-
-        <View style={{ marginTop: 20 }}>
-          <ScoreCard
-            team={teams[0]}
-            score={scoreA}
-            dark
-            onDecrease={() => setScoreA((value) => clampScore(value - 1))}
-            onIncrease={() => setScoreA((value) => clampScore(value + 1))}
-          />
-        </View>
-
-        <View style={{ marginVertical: 16, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-          <View style={{ flex: 1, height: 1, backgroundColor: RESULT_THEME.line }} />
-          <View style={{ width: 42, height: 42, borderRadius: 999, backgroundColor: RESULT_THEME.vsBg, borderWidth: 1, borderColor: RESULT_THEME.line, alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBoldItalic', fontSize: 15, color: RESULT_THEME.vsText }}>VS</Text>
+    <View style={{ flex: 1, backgroundColor: RESULT_THEME.pageBg }}>
+      <SecondaryNavbar
+        title="KẾT QUẢ TRẬN ĐẤU"
+        onBackPress={() => router.back()}
+      />
+      <View style={{ flex: 1 }}>
+        {isSubmitted && session.results_status === 'finalized' && (
+          <View style={{ 
+            backgroundColor: withAlpha(PROFILE_THEME_COLORS.primary, 0.08), 
+            paddingHorizontal: 20, 
+            paddingVertical: 12, 
+            flexDirection: 'row', 
+            alignItems: 'center', 
+            gap: 10,
+            borderBottomWidth: 1,
+            borderBottomColor: withAlpha(PROFILE_THEME_COLORS.primary, 0.1)
+          }}>
+            <Trophy size={18} color={PROFILE_THEME_COLORS.primary} strokeWidth={2.5} />
+            <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 13, color: PROFILE_THEME_COLORS.primary, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+              Kết quả đã được chốt và không thể thay đổi
+            </Text>
           </View>
-          <View style={{ flex: 1, height: 1, backgroundColor: RESULT_THEME.line }} />
-        </View>
+        )}
+        <ScrollView 
+          contentContainerStyle={{ paddingHorizontal: SPACING.xl, paddingBottom: insets.bottom + 40, paddingTop: 16 }}
+          showsVerticalScrollIndicator={false}
+        >
 
-        <ScoreCard
-          team={teams[1]}
-          score={scoreB}
-          dark={false}
-          onDecrease={() => setScoreB((value) => clampScore(value - 1))}
-          onIncrease={() => setScoreB((value) => clampScore(value + 1))}
-        />
+          {session.results_status === 'disputed' && disputeNotes.length > 0 && (
+            <View
+              style={{
+                marginTop: 16,
+                padding: 16,
+                backgroundColor: PROFILE_THEME_SEMANTIC.dangerBg,
+                borderRadius: RADIUS.lg,
+                borderWidth: 1,
+                borderColor: PROFILE_THEME_SEMANTIC.dangerBorderSoft,
+                gap: 12,
+              }}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <ShieldAlert size={18} color={PROFILE_THEME_SEMANTIC.dangerStrong} strokeWidth={2.5} />
+                <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 14, color: PROFILE_THEME_SEMANTIC.dangerText, textTransform: 'uppercase' }}>
+                  Nội dung khiếu nại từ người chơi
+                </Text>
+              </View>
+              <View style={{ gap: 8 }}>
+                {disputeNotes.map((dn, idx) => (
+                  <View key={idx} style={{ paddingLeft: 8, borderLeftWidth: 2, borderLeftColor: PROFILE_THEME_SEMANTIC.dangerStrong }}>
+                    <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 12, color: PROFILE_THEME_SEMANTIC.dangerText }}>
+                      {dn.name}:
+                    </Text>
+                    <Text style={{ fontFamily: SCREEN_FONTS.body, fontSize: 13, color: PROFILE_THEME_SEMANTIC.dangerText, marginTop: 2 }}>
+                      {dn.note}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
 
-        <View
-          style={{
-            marginTop: 18,
-            borderRadius: 24,
-            borderWidth: 1,
-            borderColor: RESULT_THEME.sectionBorder,
-            backgroundColor: RESULT_THEME.sectionBg,
-            padding: 16,
+          <View style={{ marginTop: 24 }}>
+
+            <SessionResultMetaCard
+              session={session}
+              scoreA={scoreA}
+              scoreB={scoreB}
+              setScoreA={setScoreA}
+              setScoreB={setScoreB}
+              isSubmitted={isSubmitted}
+              teams={teams}
+            />
+          </View>
+
+          {/* Form Fields */}
+          <View style={{ marginTop: 32, gap: 20 }}>
+            <View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                <Info size={16} color={RESULT_THEME.title} />
+                <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 18, color: RESULT_THEME.title, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                  Ghi chú thêm
+                </Text>
+              </View>
+              <TextInput 
+                value={refereeNote}
+                onChangeText={v => !isSubmitted && setRefereeNote(v)}
+                multiline
+                numberOfLines={3}
+                editable={!isSubmitted}
+                textAlignVertical="top"
+                style={{ 
+                  minHeight: 100, 
+                  borderRadius: RADIUS.lg, 
+                  backgroundColor: RESULT_THEME.inputBg, 
+                  padding: 16, 
+                  fontFamily: SCREEN_FONTS.body, 
+                  fontSize: 13, 
+                  color: RESULT_THEME.inputText 
+                }}
+                placeholder="Ví dụ: Trận đấu rất kịch tính, mọi người chơi đều rất fair-play..."
+                placeholderTextColor={RESULT_THEME.inputPlaceholder}
+              />
+            </View>
+          </View>
+        </ScrollView>
+      </View>
+
+      {/* Fixed Bottom Action */}
+      <View style={{ 
+        flexDirection: 'row',
+        gap: 10,
+        paddingHorizontal: 16, 
+        paddingTop: 12, 
+        paddingBottom: Math.max(insets.bottom, 28), 
+        backgroundColor: PROFILE_THEME_COLORS.background,
+        borderTopWidth: 0.5,
+        borderTopColor: PROFILE_THEME_COLORS.outlineVariant,
+      }}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={{ 
+            flex: 1, 
+            height: 50,
+            borderRadius: RADIUS.full, 
+            borderWidth: BORDER.medium, 
+            borderColor: PROFILE_THEME_COLORS.outlineVariant, 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            backgroundColor: PROFILE_THEME_COLORS.surface 
           }}
         >
-          <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 14, color: RESULT_THEME.subtitle, textTransform: 'uppercase' }}>
-            Chi tiết trận đấu
+          <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 15, color: PROFILE_THEME_COLORS.onSurface, textTransform: 'uppercase' }}>
+            Hủy
           </Text>
+        </TouchableOpacity>
 
-          <View style={{ marginTop: 12, borderRadius: 16, borderWidth: 1, borderColor: RESULT_THEME.sectionBorder, backgroundColor: RESULT_THEME.sectionCardBg, padding: 12 }}>
-            <Text style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 10, color: RESULT_THEME.vsText, textTransform: 'uppercase' }}>
-              Thời lượng (phút)
-            </Text>
-            <TextInput
-              value={matchDuration}
-              onChangeText={(value) => setMatchDuration(value.replace(/\D/g, ''))}
-              keyboardType="number-pad"
-              placeholder="45"
-              placeholderTextColor={RESULT_THEME.inputPlaceholder}
+        {isSubmitted ? (
+          <>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => router.back()}
               style={{
-                marginTop: 6,
-                fontFamily: 'PlusJakartaSans-ExtraBold',
-                fontSize: 30,
-                color: RESULT_THEME.inputText,
-                padding: 0,
+                flex: 1,
+                height: 50,
+                borderRadius: RADIUS.full,
+                backgroundColor: PROFILE_THEME_COLORS.surface,
+                borderWidth: BORDER.medium,
+                borderColor: PROFILE_THEME_COLORS.outlineVariant,
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
-            />
-          </View>
-
-          <View style={{ marginTop: 10, borderRadius: 16, borderWidth: 1, borderColor: RESULT_THEME.sectionBorder, backgroundColor: RESULT_THEME.sectionCardBg, padding: 12 }}>
-            <Text style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 10, color: RESULT_THEME.vsText, textTransform: 'uppercase' }}>
-              Ghi chú trọng tài
-            </Text>
-            <TextInput
-              value={refereeNote}
-              onChangeText={setRefereeNote}
-              placeholder="Trận đấu kịch tính, không có chấn thương."
-              placeholderTextColor={RESULT_THEME.inputPlaceholder}
-              multiline
-              textAlignVertical="top"
+            >
+              <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 15, color: PROFILE_THEME_COLORS.onSurface, textTransform: 'uppercase' }}>
+                Xong
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={onShare}
               style={{
-                marginTop: 6,
-                minHeight: 74,
-                fontFamily: 'PlusJakartaSans-SemiBold',
-                fontSize: 14,
-                lineHeight: 20,
-                color: RESULT_THEME.subtitle,
-                padding: 0,
+                flex: 2,
+                height: 50,
+                borderRadius: RADIUS.full,
+                backgroundColor: PROFILE_THEME_COLORS.primary,
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexDirection: 'row',
+                gap: 8,
               }}
-            />
-          </View>
-        </View>
-
-        <Pressable onPress={() => void onSaveResult()} disabled={submitting} style={{ marginTop: 18 }}>
-          <View
+            >
+              <Share2 size={18} color={PROFILE_THEME_COLORS.onPrimary} strokeWidth={2.5} />
+              <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 15, color: PROFILE_THEME_COLORS.onPrimary, textTransform: 'uppercase' }}>
+                Chia sẻ
+              </Text>
+            </TouchableOpacity>
+          </>
+        ) : (
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => void onSaveResult()}
+            disabled={submitting}
             style={{
-              borderRadius: 999,
-              height: 56,
-              backgroundColor: submitting ? RESULT_THEME.primaryCtaPressed : RESULT_THEME.primaryCta,
+              flex: 2,
+              height: 50,
+              borderRadius: RADIUS.full,
+              backgroundColor: PROFILE_THEME_COLORS.primary,
               alignItems: 'center',
               justifyContent: 'center',
               flexDirection: 'row',
               gap: 8,
-              shadowColor: RESULT_THEME.shadow,
-              shadowOpacity: 0.22,
-              shadowOffset: { width: 0, height: 8 },
-              shadowRadius: 16,
-              elevation: 5,
+              opacity: submitting ? 0.8 : 1,
             }}
           >
-            <Save size={18} color={RESULT_THEME.primaryCtaText} />
-            <Text style={{ fontFamily: 'PlusJakartaSans-ExtraBold', fontSize: 18, color: RESULT_THEME.primaryCtaText }}>
-              {submitting ? 'Đang lưu...' : 'Lưu kết quả'}
-            </Text>
-          </View>
-        </Pressable>
-      </ScrollView>
+            {submitting ? (
+              <ActivityIndicator color={PROFILE_THEME_COLORS.onPrimary} />
+            ) : (
+              <>
+                <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 15, color: PROFILE_THEME_COLORS.onPrimary, textTransform: 'uppercase' }}>
+                  Lưu kết quả →
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
+        )}
+      </View>
 
-      <AppDialog
-        visible={Boolean(dialogConfig)}
-        config={dialogConfig}
+      <AppDialog 
+        visible={!!dialogConfig}
+        config={dialogConfig!}
         onClose={() => setDialogConfig(null)}
       />
-    </SafeAreaView>
+    </View>
   )
 }

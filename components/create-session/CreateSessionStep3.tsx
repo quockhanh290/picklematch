@@ -1,10 +1,13 @@
 import { ScreenHeader } from '@/components/design'
 import { MatchSessionCard } from '@/components/home/MatchSessionCard'
+import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
+import { SCREEN_FONTS } from '@/constants/typography'
 import { type MatchSession, getStatusLabel } from '@/lib/homeFeed'
 import type { NearByCourt } from '@/lib/useNearbyCourts'
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
 
 import { getCreateSessionSkillOption } from './skillLevelOptions'
+import { RADIUS, BORDER } from '@/constants/screenLayout'
 
 type Props = {
   selectedCourt: NearByCourt
@@ -22,6 +25,7 @@ type Props = {
   onCreate: () => void
   submitting?: boolean
   submitLabel?: string
+  hideHeader?: boolean
 }
 
 const WEEKDAY_LABELS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
@@ -53,6 +57,7 @@ export function CreateSessionStep3({
   selectedCourt, selectedDate, startTime, endTime,
   maxPlayers, minSkill, maxSkill, bookingStatus, deadlineMinutes,
   requireApproval, pricePerPerson, onBack, onCreate, submitting = false, submitLabel = 'Tạo kèo',
+  hideHeader = false,
 }: Props) {
   const minSkillOption = getCreateSessionSkillOption(minSkill)
   const maxSkillOption = getCreateSessionSkillOption(maxSkill)
@@ -121,27 +126,31 @@ export function CreateSessionStep3({
         contentContainerStyle={{ paddingBottom: 16 }}
         style={{ flex: 1 }}
       >
-        <ScreenHeader
-          variant="brand"
-          title="KINETIC"
-          onBackPress={onBack}
-          style={{ marginHorizontal: -20, marginTop: -12 }}
-          rightSlot={<View style={{ width: 32, height: 32 }} />}
-        />
+        {!hideHeader && (
+          <>
+            <ScreenHeader
+              variant="brand"
+              title="KINETIC"
+              onBackPress={onBack}
+              style={{ marginHorizontal: -20, marginTop: -12 }}
+              rightSlot={<View style={{ width: 32, height: 32 }} />}
+            />
 
-        {/* Progress bar */}
-        <View style={{ height: 3, backgroundColor: '#E5E3DC', borderRadius: 999, marginTop: 12, marginBottom: 16, overflow: 'hidden' }}>
-          <View style={{ height: '100%', width: '100%', backgroundColor: '#0F6E56', borderRadius: 999 }} />
-        </View>
+            {/* Progress bar */}
+            <View style={{ height: 3, backgroundColor: PROFILE_THEME_COLORS.outlineVariant, borderRadius: RADIUS.full, marginTop: 12, marginBottom: 24, overflow: 'hidden' }}>
+              <View style={{ height: '100%', width: '100%', backgroundColor: PROFILE_THEME_COLORS.primary, borderRadius: RADIUS.full }} />
+            </View>
+          </>
+        )}
 
         {/* Step title */}
         <View style={{ marginBottom: 20 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8, marginBottom: 6 }}>
-            <Text style={{ fontFamily: 'BarlowCondensed-BoldItalic', fontSize: 52, color: '#0F6E56', lineHeight: 44, opacity: 0.2, letterSpacing: -1 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 4, marginBottom: 6 }}>
+            <Text style={{ fontFamily: SCREEN_FONTS.headlineItalic, fontSize: 52, color: PROFILE_THEME_COLORS.primary, lineHeight: 54, opacity: 0.2, letterSpacing: -1, paddingRight: 6, paddingTop: 6 }}>
               03
             </Text>
             <Text
-              style={{ fontFamily: 'BarlowCondensed-BoldItalic', fontSize: 28, color: '#0F6E56', lineHeight: 30, letterSpacing: -0.3, flex: 1, paddingBottom: 2 }}
+              style={{ fontFamily: SCREEN_FONTS.headlineItalic, fontSize: 28, color: PROFILE_THEME_COLORS.primary, lineHeight: 30, letterSpacing: -0.3, flex: 1, paddingBottom: 2 }}
               numberOfLines={1}
               adjustsFontSizeToFit
               minimumFontScale={0.8}
@@ -149,21 +158,21 @@ export function CreateSessionStep3({
               Xác nhận Tạo kèo
             </Text>
           </View>
-          <View style={{ width: 32, height: 3, backgroundColor: '#5DCAA5', borderRadius: 2 }} />
+          <View style={{ width: 32, height: 3, backgroundColor: PROFILE_THEME_COLORS.tertiary, borderRadius: 2 }} />
         </View>
 
         {/* Preview card */}
         <View style={{ marginBottom: 16 }}>
-          <Text style={{ fontSize: 10, color: '#7A8884', fontWeight: '600', letterSpacing: 0.8, marginBottom: 8 }}>
-            XEM TRƯỚC — kèo sẽ hiện như thế này trong feed
+          <Text style={{ fontSize: 10, color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.cta, letterSpacing: 0.8, marginBottom: 8 }}>
+            XEM TRƯỚC
           </Text>
           <View pointerEvents="none">
-            <MatchSessionCard item={previewMatch} variant="standard" actionLabel={'Vào kèo'} />
+            <MatchSessionCard item={previewMatch} variant="standard" actionLabel={'Vào kèo'} showFullAddress={true} />
           </View>
         </View>
 
         {/* Detail list */}
-        <View style={{ backgroundColor: 'white', borderRadius: 14, borderWidth: 0.5, borderColor: '#E5E3DC', overflow: 'hidden', marginBottom: 16 }}>
+        <View style={{ backgroundColor: PROFILE_THEME_COLORS.surface, borderRadius: RADIUS.md, borderWidth: BORDER.hairline, borderColor: PROFILE_THEME_COLORS.outlineVariant, overflow: 'hidden', marginBottom: 16 }}>
           {details.map((item, i) => (
             <View
               key={i}
@@ -171,17 +180,17 @@ export function CreateSessionStep3({
                 flexDirection: 'row', alignItems: 'center', gap: 12,
                 paddingVertical: 11, paddingHorizontal: 16,
                 borderTopWidth: i === 0 ? 0 : 0.5,
-                borderTopColor: '#F0EDE5',
+                borderTopColor: PROFILE_THEME_COLORS.surfaceDim,
               }}
             >
-              <View style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: '#F5F1E8', alignItems: 'center', justifyContent: 'center' }}>
+              <View style={{ width: 32, height: 32, borderRadius: RADIUS.sm, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, alignItems: 'center', justifyContent: 'center' }}>
                 <Text style={{ fontSize: 14 }}>{item.icon}</Text>
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 10, color: '#7A8884', fontWeight: '600', letterSpacing: 0.3, marginBottom: 1 }}>
+                <Text style={{ fontSize: 10, color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.cta, letterSpacing: 0.3, marginBottom: 1 }}>
                   {item.label}
                 </Text>
-                <Text style={{ fontSize: 13, color: '#1A2E2A', fontWeight: '600' }}>
+                <Text style={{ fontSize: 13, color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.label }}>
                   {item.value}
                 </Text>
               </View>
@@ -190,33 +199,34 @@ export function CreateSessionStep3({
         </View>
 
         {/* Info note */}
-        <View style={{ backgroundColor: '#E1F5EE', borderRadius: 10, padding: 12, flexDirection: 'row', gap: 10, marginBottom: 16 }}>
+        <View style={{ backgroundColor: PROFILE_THEME_COLORS.secondaryContainer, borderRadius: RADIUS.sm, padding: 12, flexDirection: 'row', gap: 10, marginBottom: 16 }}>
           <Text style={{ fontSize: 14 }}>ℹ️</Text>
-          <Text style={{ fontSize: 12, color: '#0F6E56', lineHeight: 18, flex: 1 }}>
+          <Text style={{ fontSize: 12, color: PROFILE_THEME_COLORS.primary, lineHeight: 18, flex: 1, fontFamily: SCREEN_FONTS.body }}>
             Kiểm tra lại thông tin, chi phí và trạng thái booking để bài đăng ra feed đúng ngay từ lần đầu.
           </Text>
         </View>
       </ScrollView>
 
       {/* Bottom bar */}
-      <View style={{ flexDirection: 'row', gap: 10, marginHorizontal: -20, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 28, backgroundColor: '#F2F0E8', borderTopWidth: 0.5, borderTopColor: '#E5E3DC' }}>
+      <View style={{ flexDirection: 'row', gap: 10, marginHorizontal: -20, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 28, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, borderTopWidth: 0.5, borderTopColor: PROFILE_THEME_COLORS.outlineVariant }}>
         <TouchableOpacity
           onPress={onBack}
           disabled={submitting}
-          style={{ flex: 1, borderRadius: 999, borderWidth: 1.5, borderColor: '#E5E3DC', paddingVertical: 13, alignItems: 'center', backgroundColor: 'white', opacity: submitting ? 0.5 : 1 }}
+          style={{ flex: 1, borderRadius: RADIUS.md, borderWidth: BORDER.medium, borderColor: PROFILE_THEME_COLORS.outlineVariant, paddingVertical: 13, alignItems: 'center', backgroundColor: PROFILE_THEME_COLORS.surface, opacity: submitting ? 0.5 : 1 }}
         >
-          <Text style={{ fontSize: 14, fontWeight: '700', color: '#1A2E2A', fontFamily: 'PlusJakartaSans-Bold' }}>Quay lại</Text>
+          <Text style={{ fontSize: 15, color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.cta, textTransform: 'uppercase' }}>Quay lại</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={onCreate}
           disabled={submitting}
-          style={{ flex: 2, borderRadius: 999, backgroundColor: '#0F6E56', paddingVertical: 13, alignItems: 'center', opacity: submitting ? 0.7 : 1 }}
+          style={{ flex: 2, borderRadius: RADIUS.md, backgroundColor: PROFILE_THEME_COLORS.primary, paddingVertical: 13, alignItems: 'center', opacity: submitting ? 0.7 : 1 }}
         >
-          <Text style={{ fontSize: 14, fontWeight: '700', color: 'white', fontFamily: 'PlusJakartaSans-Bold' }}>
-            {submitting ? 'Đang tạo...' : 'Tạo kèo 🏓'}
+          <Text style={{ fontSize: 15, color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.cta, textTransform: 'uppercase' }}>
+            {submitting ? 'Đang tạo...' : 'Tạo kèo ngay'}
           </Text>
         </TouchableOpacity>
       </View>
     </View>
   )
 }
+

@@ -1,7 +1,9 @@
+import { SCREEN_FONTS } from '@/constants/typography'
 import { Modal, Pressable, Text, View } from 'react-native'
 
 import { AppButton } from '@/components/design/AppButton'
 import { useAppTheme } from '@/lib/theme-context'
+import { RADIUS, SPACING } from '@/constants/screenLayout'
 
 export type AppDialogAction = {
   label: string
@@ -34,95 +36,57 @@ export function AppDialog({ visible, config, onClose }: Props) {
 
   return (
     <Modal transparent animationType="fade" visible={visible} onRequestClose={onClose}>
-      <View style={{ flex: 1, backgroundColor: theme.overlay, justifyContent: 'center', paddingHorizontal: 20 }}>
+      <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'center', paddingHorizontal: 28 }}>
         <Pressable style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 }} onPress={onClose} />
 
         <View
           style={{
-            borderRadius: 28,
-            borderWidth: 1,
-            borderColor: theme.border,
+            borderRadius: RADIUS.hero,
             backgroundColor: theme.surface,
-            paddingHorizontal: 18,
-            paddingTop: 16,
-            paddingBottom: 14,
-            shadowColor: theme.shadow,
-            shadowOpacity: 0.08,
-            shadowRadius: 18,
-            shadowOffset: { width: 0, height: 8 },
-            elevation: 4,
+            paddingHorizontal: 24,
+            paddingTop: 28,
+            paddingBottom: 24,
+            shadowColor: '#000',
+            shadowOpacity: 0.15,
+            shadowRadius: 24,
+            shadowOffset: { width: 0, height: 12 },
+            elevation: 8,
           }}
         >
           <Text
             style={{
-              fontSize: 21,
-              lineHeight: 27,
-              color: theme.primary,
-              fontFamily: 'PlusJakartaSans-ExtraBold',
+              fontSize: 24,
+              lineHeight: 28,
+              color: theme.text,
+              fontFamily: SCREEN_FONTS.headline,
               textTransform: 'uppercase',
-              letterSpacing: 0.5,
             }}
           >
             {config.title}
           </Text>
 
-          <View style={{ marginTop: 12, height: 1, backgroundColor: theme.border }} />
-
           <Text
             style={{
-              marginTop: 12,
-              fontSize: 14,
+              marginTop: 16,
+              fontSize: 15,
               lineHeight: 22,
               color: theme.textMuted,
-              fontFamily: 'PlusJakartaSans-Regular',
+              fontFamily: SCREEN_FONTS.body,
             }}
           >
             {config.message}
           </Text>
 
-          <View style={{ marginTop: 16, gap: 10 }}>
-            {actions.map((action) => {
-              if (action.tone === 'danger') {
-                return (
-                  <View key={action.label}>
-                    <Pressable
-                      onPress={() => void handleActionPress(action)}
-                      style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
-                    >
-                      <View
-                        style={{
-                          height: 56,
-                          borderRadius: 14,
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          backgroundColor: theme.danger,
-                        }}
-                      >
-                        <Text
-                          style={{
-                            fontSize: 16,
-                            fontFamily: 'PlusJakartaSans-Bold',
-                            color: theme.primaryContrast,
-                          }}
-                        >
-                          {action.label}
-                        </Text>
-                      </View>
-                    </Pressable>
-                  </View>
-                )
-              }
-
-              return (
-                <View key={action.label}>
-                  <AppButton
-                    label={action.label}
-                    onPress={() => void handleActionPress(action)}
-                    variant={action.tone === 'secondary' ? 'secondary' : 'primary'}
-                  />
-                </View>
-              )
-            })}
+          <View style={{ marginTop: 28, gap: 12 }}>
+            {actions.map((action, index) => (
+              <View key={`${action.label}-${index}`}>
+                <AppButton
+                  label={action.label}
+                  onPress={() => void handleActionPress(action)}
+                  variant={action.tone === 'danger' ? 'danger' : action.tone === 'secondary' ? 'secondary' : 'primary'}
+                />
+              </View>
+            ))}
           </View>
         </View>
       </View>
