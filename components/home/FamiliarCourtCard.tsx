@@ -1,4 +1,4 @@
-import { Home, MapPin, Zap } from 'lucide-react-native'
+import { Home, MapPin, Zap, Star } from 'lucide-react-native'
 import { ImageBackground, Pressable, Text, View } from 'react-native'
 
 import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
@@ -81,16 +81,32 @@ export function FamiliarCourtCard({ item, onPress }: { item: FamiliarCourt; onPr
               ...SHADOW.lg,
             }}
           >
-            <Text
-              className="text-[22px]"
-              style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.headline, lineHeight: 30 }}
-            >
-              {item.name}
-            </Text>
+            <View className="flex-row items-center justify-between">
+              <Text
+                className="flex-1 text-[22px]"
+                numberOfLines={1}
+                style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.headline, lineHeight: 30 }}
+              >
+                {item.name}
+              </Text>
+              {item.rating != null && (
+                <View className="ml-2 flex-row items-center">
+                  <Star size={14} color="#F59E0B" fill="#F59E0B" />
+                  <Text
+                    className="ml-1 text-sm font-bold"
+                    style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.headline }}
+                  >
+                    {item.rating.toFixed(1)}
+                  </Text>
+                </View>
+              )}
+            </View>
+
             <View className="mt-2 flex-row items-center">
               <MapPin size={14} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={iconStroke} />
               <Text
-                className="ml-2 text-sm"
+                className="ml-2 flex-1 text-sm"
+                numberOfLines={1}
                 style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.label }}
               >
                 {item.area}

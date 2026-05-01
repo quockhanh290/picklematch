@@ -38,7 +38,7 @@ export async function fetchHomeDataApi(userId: string | null): Promise<HomeData>
       host:host_id ( id, name, current_elo, elo, self_assessed_level, skill_label, reliability_score, host_reputation ),
       slot:slot_id (
         id, start_time, end_time, price,
-        court:court_id ( id, name, address, city )
+        court:court_id ( id, name, address, city, thumbnail_url, rating, rating_count, amenities, highlight )
       ),
       session_players (
         player_id, status,
@@ -74,7 +74,7 @@ export async function fetchHomeDataApi(userId: string | null): Promise<HomeData>
           id, status, results_status,
           slot:slot_id (
             start_time, end_time,
-            court:court_id ( name )
+            court:court_id ( name, thumbnail_url )
           )
         `,
         )
@@ -95,7 +95,7 @@ export async function fetchHomeDataApi(userId: string | null): Promise<HomeData>
             id, status, results_status, host_id,
             slot:slot_id (
               start_time, end_time,
-              court:court_id ( name )
+              court:court_id ( name, thumbnail_url )
             )
           )
         `,
@@ -157,7 +157,7 @@ export async function fetchHomeDataApi(userId: string | null): Promise<HomeData>
   if (favoriteCourtIds.length > 0) {
     const { data: favoriteCourtsData } = await supabase
       .from('courts')
-      .select('id, name, address, city')
+      .select('id, name, address, city, thumbnail_url, rating, rating_count, amenities, highlight')
       .in('id', favoriteCourtIds)
 
     favoriteCourtsMeta = (favoriteCourtsData ?? []) as Array<{ id: string; name?: string | null; address?: string | null; city?: string | null }>

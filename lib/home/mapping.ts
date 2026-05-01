@@ -115,6 +115,8 @@ export function mapLiveSessionToMatchSession(
     isHot: urgent,
     isHighlyRated: getLiveHostRating(session, options?.hostAverageRating) >= 4.8,
     courtBookingConfirmed: session.court_booking_status === 'confirmed',
+    court_thumbnail_url: court?.thumbnail_url,
+    court_rating: court?.rating,
   }
 }
 

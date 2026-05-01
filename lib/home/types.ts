@@ -12,6 +12,32 @@ export type Host = {
   vibe: string
 }
 
+export type Court = {
+  id: string
+  name: string
+  address: string
+  city: string
+  district?: string | null
+  lat?: number | null
+  lng?: number | null
+  rating?: number | null
+  rating_count?: number | null
+  phone?: string | null
+  google_maps_url?: string | null
+  booking_url?: string | null
+  place_id?: string | null
+  thumbnail_url?: string | null
+  images?: any | null
+  opening_hours?: any | null
+  reviews_data?: any | null
+  popular_times?: any | null
+  amenities?: any | null
+  tags?: string[] | null
+  highlight?: string | null
+  hours_open?: string | null
+  hours_close?: string | null
+}
+
 export type HomeSessionRecord = {
   id: string
   host_id: string
@@ -37,12 +63,7 @@ export type HomeSessionRecord = {
     start_time: string
     end_time: string
     price: number
-    court: {
-      id: string
-      name: string
-      address: string
-      city: string
-    } | null
+    court: Court | null
   } | null
   session_players: {
     player_id: string
@@ -56,6 +77,18 @@ export type HomeSessionRecord = {
       skill_label?: string | null
     } | null
   }[]
+}
+
+export type FamiliarCourt = {
+  id: string
+  name: string
+  area: string
+  openMatches: number
+  note: string
+  image: string
+  thumbnail_url?: string | null
+  rating?: number | null
+  rating_count?: number | null
 }
 
 export type HomeSessionRelation<T> = T | T[] | null
@@ -151,4 +184,6 @@ export type MatchSession = {
   isHighlyRated: boolean
   players: Player[]
   host: Host
+  court_thumbnail_url?: string | null
+  court_rating?: number | null
 }

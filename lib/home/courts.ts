@@ -15,7 +15,7 @@ export function buildLiveFamiliarCourts(
     favoriteCourtsMeta?: FavoriteCourtMeta[]
   },
 ): FamiliarCourt[] {
-  const grouped = new Map<string, { id: string; name: string; area: string; openMatches: number }>()
+  const grouped = new Map<string, { id: string; name: string; area: string; openMatches: number; thumbnail_url?: string | null; rating?: number | null; rating_count?: number | null }>()
 
   sessions.forEach((session) => {
     const court = session.slot?.court
@@ -32,6 +32,9 @@ export function buildLiveFamiliarCourts(
       name: court.name,
       area: court.city || court.address,
       openMatches: 1,
+      thumbnail_url: court.thumbnail_url,
+      rating: court.rating,
+      rating_count: court.rating_count,
     })
   })
 
@@ -63,7 +66,10 @@ export function buildLiveFamiliarCourts(
         area: resolvedArea || 'Chưa rõ khu vực',
         openMatches,
         note: buildCourtNote(openMatches),
-        image: COURT_FALLBACK_IMAGES[index % COURT_FALLBACK_IMAGES.length],
+        image: groupedCourt?.thumbnail_url || COURT_FALLBACK_IMAGES[index % COURT_FALLBACK_IMAGES.length],
+        thumbnail_url: groupedCourt?.thumbnail_url,
+        rating: groupedCourt?.rating,
+        rating_count: groupedCourt?.rating_count,
       }
     })
   }
@@ -77,6 +83,9 @@ export function buildLiveFamiliarCourts(
       area: court.area,
       openMatches: court.openMatches,
       note: buildCourtNote(court.openMatches),
-      image: COURT_FALLBACK_IMAGES[index % COURT_FALLBACK_IMAGES.length],
+      image: court.thumbnail_url || COURT_FALLBACK_IMAGES[index % COURT_FALLBACK_IMAGES.length],
+      thumbnail_url: court.thumbnail_url,
+      rating: court.rating,
+      rating_count: court.rating_count,
     }))
 }
