@@ -82,7 +82,7 @@ export default function EditProfile() {
         .from('courts')
         .select('id, name, address, city')
         .ilike('name', `%${keyword.trim()}%`)
-        .limit(8)
+        .limit(20)
 
       setCourts(data ?? [])
       setSearching(false)

@@ -1,9 +1,10 @@
 import React from 'react'
 import { Pressable, Text, TextInput, View, Linking, TouchableOpacity } from 'react-native'
+import { useRouter } from 'expo-router'
 import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { RADIUS, SPACING, BORDER } from '@/constants/screenLayout'
-import { Phone, Navigation, MapPin } from 'lucide-react-native'
+import { Phone, Navigation, MapPin, Info } from 'lucide-react-native'
 import type { NearByCourt } from '@/lib/useNearbyCourts'
 
 interface BookingStatusSectionProps {
@@ -43,6 +44,7 @@ export function BookingStatusSection({
   bookingNotes,
   setBookingNotes,
 }: BookingStatusSectionProps) {
+  const router = useRouter()
   const handleCall = () => {
     if (selectedCourt?.phone) {
       Linking.openURL(`tel:${selectedCourt.phone}`)
@@ -143,38 +145,57 @@ export function BookingStatusSection({
             </Text>
           </View>
 
-          <View style={{ flexDirection: 'row', gap: 8 }}>
+          <View style={{ gap: 8 }}>
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              <TouchableOpacity 
+                onPress={handleCall}
+                style={{ 
+                  flex: 1.2, 
+                  flexDirection: 'row', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  backgroundColor: PROFILE_THEME_COLORS.primary, 
+                  paddingVertical: 10, 
+                  borderRadius: RADIUS.md 
+                }}
+              >
+                <Phone size={14} color="#FFF" />
+                <Text style={{ marginLeft: 8, color: '#FFF', fontFamily: SCREEN_FONTS.headline, fontSize: 13 }}>ĐẶT SÂN NGAY</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                onPress={handleOpenMaps}
+                style={{ 
+                  flex: 1, 
+                  flexDirection: 'row', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, 
+                  paddingVertical: 10, 
+                  borderRadius: RADIUS.md,
+                  borderWidth: 1,
+                  borderColor: PROFILE_THEME_COLORS.outlineVariant
+                }}
+              >
+                <Navigation size={14} color={PROFILE_THEME_COLORS.primary} />
+                <Text style={{ marginLeft: 8, color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.headline, fontSize: 13 }}>CHỈ ĐƯỜNG</Text>
+              </TouchableOpacity>
+            </View>
+            
             <TouchableOpacity 
-              onPress={handleCall}
+              onPress={() => router.push(`/court/${selectedCourt.id}`)}
               style={{ 
-                flex: 1.2, 
                 flexDirection: 'row', 
                 alignItems: 'center', 
                 justifyContent: 'center', 
-                backgroundColor: PROFILE_THEME_COLORS.primary, 
-                paddingVertical: 10, 
-                borderRadius: RADIUS.md 
-              }}
-            >
-              <Phone size={14} color="#FFF" />
-              <Text style={{ marginLeft: 8, color: '#FFF', fontFamily: SCREEN_FONTS.headline, fontSize: 13 }}>ĐẶT SÂN NGAY</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              onPress={handleOpenMaps}
-              style={{ 
-                flex: 1, 
-                flexDirection: 'row', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, 
+                backgroundColor: PROFILE_THEME_COLORS.secondaryContainer, 
                 paddingVertical: 10, 
                 borderRadius: RADIUS.md,
                 borderWidth: 1,
                 borderColor: PROFILE_THEME_COLORS.outlineVariant
               }}
             >
-              <Navigation size={14} color={PROFILE_THEME_COLORS.primary} />
-              <Text style={{ marginLeft: 8, color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.headline, fontSize: 13 }}>CHỈ ĐƯỜNG</Text>
+              <Info size={14} color={PROFILE_THEME_COLORS.surfaceTint} />
+              <Text style={{ marginLeft: 8, color: PROFILE_THEME_COLORS.surfaceTint, fontFamily: SCREEN_FONTS.headline, fontSize: 13 }}>XEM CHI TIẾT SÂN</Text>
             </TouchableOpacity>
           </View>
         </View>

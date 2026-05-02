@@ -1,6 +1,7 @@
 import React from 'react'
 import { Text, TouchableOpacity, View } from 'react-native'
-import { MapPin } from 'lucide-react-native'
+import { MapPin, Info } from 'lucide-react-native'
+import { useRouter } from 'expo-router'
 import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { RADIUS, BORDER, SHADOW } from '@/constants/screenLayout'
@@ -32,6 +33,7 @@ export function SelectedCourtCard({
   setIsChoosingCourt,
   onChangeCourt,
 }: SelectedCourtCardProps) {
+  const router = useRouter()
   const selectedCourtAddress = `${selectedCourt.address}${selectedCourt.city ? ` · ${selectedCourt.city}` : ''}`
   const selectedCourtOpen = !!selectedCourt.hasSlots
   const selectedCourtPriceLabel = formatCourtPricePerHour(selectedCourt.price_per_hour)
@@ -60,39 +62,56 @@ export function SelectedCourtCard({
           </Text>
         </View>
 
-        {!isCourtScheduleLocked && (
-          <TouchableOpacity
-            onPress={() => {
-              if (showCourtPicker) {
-                setIsChoosingCourt(false)
-                return
-              }
-              onChangeCourt()
-              setIsChoosingCourt(true)
-            }}
-          >
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+          <TouchableOpacity onPress={() => router.push(`/court/${selectedCourt.id}`)}>
             <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.headline, fontSize: 13, textTransform: 'uppercase' }}>
-              {showCourtPicker ? 'Đóng' : 'Đổi sân'}
+              {'Chi tiết'}
             </Text>
           </TouchableOpacity>
-        )}
+
+          {!isCourtScheduleLocked && (
+            <TouchableOpacity
+              onPress={() => {
+                if (showCourtPicker) {
+                  setIsChoosingCourt(false)
+                  return
+                }
+                onChangeCourt()
+                setIsChoosingCourt(true)
+              }}
+            >
+              <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.headline, fontSize: 13, textTransform: 'uppercase' }}>
+                {showCourtPicker ? 'Đóng' : 'Đổi sân'}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
       <View style={{ padding: 16 }}>
-        <Text
-          numberOfLines={2}
-          style={{
-            color: PROFILE_THEME_COLORS.onSurface,
-            fontFamily: SCREEN_FONTS.headline,
-            fontSize: 31,
-            lineHeight: 36,
-            letterSpacing: 0,
-            marginBottom: 4,
-            textTransform: 'uppercase',
-          }}
+        <TouchableOpacity 
+          onPress={() => router.push(`/court/${selectedCourt.id}`)}
+          style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}
         >
-          {selectedCourt.name}
-        </Text>
+          <Text
+            numberOfLines={2}
+            style={{
+              color: PROFILE_THEME_COLORS.onSurface,
+              fontFamily: SCREEN_FONTS.headline,
+              fontSize: 31,
+              lineHeight: 36,
+              letterSpacing: 0,
+              marginBottom: 4,
+              textTransform: 'uppercase',
+              flex: 1,
+            }}
+          >
+            {selectedCourt.name}
+          </Text>
+          <View style={{ marginTop: 6 }}>
+            <Info size={24} color={PROFILE_THEME_COLORS.primary} strokeWidth={2.5} />
+          </View>
+        </TouchableOpacity>
 
         <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 6, marginBottom: 12 }}>
           <MapPin size={13} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.5} />
@@ -101,6 +120,7 @@ export function SelectedCourtCard({
           </Text>
         </View>
       </View>
+
 
       <View style={{ backgroundColor: PROFILE_THEME_COLORS.surfaceAlt, padding: 16 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }}>

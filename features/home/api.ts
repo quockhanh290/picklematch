@@ -91,7 +91,7 @@ export async function fetchHomeDataApi(userId: string | null): Promise<HomeData>
         .in('results_status', ['not_submitted', 'disputed'])
         .in('status', ['pending_completion', 'done'])
         .order('created_at', { ascending: false })
-        .limit(8)
+        .limit(20)
     : Promise.resolve({ data: [] })
 
   const playerPostMatchActionsPromise = userId
@@ -127,7 +127,7 @@ export async function fetchHomeDataApi(userId: string | null): Promise<HomeData>
     .from('courts')
     .select('id, name, address, city, thumbnail_url, rating, rating_count, amenities, highlight')
     .order('rating', { ascending: false })
-    .limit(10)
+    .limit(50)
 
   const overviewPromise = userId ? supabase.rpc('get_my_sessions_overview') : Promise.resolve({ data: [] })
 

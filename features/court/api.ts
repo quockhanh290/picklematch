@@ -130,7 +130,7 @@ export async function fetchCourtDetailApi(courtId: string): Promise<CourtDetail 
     })
   }
   
-  amenities = Array.from(new Set(amenities)).slice(0, 8)
+  amenities = Array.from(new Set(amenities)).slice(0, 12)
 
   return {
     id: data.id,

@@ -5,6 +5,8 @@ import { SCREEN_FONTS } from '@/constants/typography'
 import { type MatchSession, getStatusLabel } from '@/lib/homeFeed'
 import type { NearByCourt } from '@/lib/useNearbyCourts'
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
+import { Info } from 'lucide-react-native'
+import { useRouter } from 'expo-router'
 
 import { getCreateSessionSkillOption } from './skillLevelOptions'
 import { RADIUS, BORDER } from '@/constants/screenLayout'
@@ -59,6 +61,7 @@ export function CreateSessionStep3({
   requireApproval, pricePerPerson, onBack, onCreate, submitting = false, submitLabel = 'Tạo kèo',
   hideHeader = false,
 }: Props) {
+  const router = useRouter()
   const minSkillOption = getCreateSessionSkillOption(minSkill)
   const maxSkillOption = getCreateSessionSkillOption(maxSkill)
 
@@ -171,6 +174,13 @@ export function CreateSessionStep3({
           <View pointerEvents="none">
             <MatchSessionCard item={previewMatch} variant="standard" actionLabel={'Vào kèo'} showFullAddress={true} />
           </View>
+          <TouchableOpacity 
+            onPress={() => router.push(`/court/${selectedCourt.id}`)}
+            style={{ alignSelf: 'flex-end', marginTop: 8, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, paddingHorizontal: 12, paddingVertical: 6, borderRadius: RADIUS.full, borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant }}
+          >
+            <Text style={{ fontSize: 11, color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.headline, textTransform: 'uppercase' }}>Chi tiết sân</Text>
+            <Info size={14} color={PROFILE_THEME_COLORS.primary} strokeWidth={2.5} />
+          </TouchableOpacity>
         </View>
 
         {/* Detail list */}

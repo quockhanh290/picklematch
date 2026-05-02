@@ -107,7 +107,7 @@ export function buildLiveFamiliarCourts(
 
   return Array.from(grouped.values())
     .sort((left, right) => right.openMatches - left.openMatches)
-    .slice(0, 5)
+    .slice(0, 15)
     .map((court, index) => ({
       id: court.id,
       name: court.name,
