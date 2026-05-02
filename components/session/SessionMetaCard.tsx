@@ -1,12 +1,12 @@
 import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/profileTheme'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { getSkillLevelUi } from '@/lib/skillLevelUi'
-import { MapPin, MessageSquareText } from 'lucide-react-native'
-import { Text, View } from 'react-native'
+import { Text, View, TouchableOpacity } from 'react-native'
+import { Info, MapPin, MessageSquareText, Phone, Clock } from 'lucide-react-native'
+import { useRouter } from 'expo-router'
 import { RADIUS, SPACING, SHADOW, BORDER } from '@/constants/screenLayout'
 import type { EloLevelId } from '@/lib/eloSystem'
 import type { Court } from '@/lib/home/types'
-import { Phone, Clock } from 'lucide-react-native'
 
 type Props = {
   skillLevelId: EloLevelId
@@ -46,9 +46,11 @@ export function SessionMetaCard({
   sessionStatus,
   resultsStatus,
   userResult,
+  isInvalidPlayerCount,
   maxPlayers,
   court,
-}: Props) {
+}: Props & { isInvalidPlayerCount?: boolean }) {
+  const router = useRouter()
   const levelUi = getSkillLevelUi(skillLevelId)
   const LevelIcon = levelUi.icon
   const [datePart, clockPart] = timeLabel.split('•').map((s) => s.trim())
@@ -71,7 +73,10 @@ export function SessionMetaCard({
   let bookingStatusLabel = isConfirmed ? 'Đã đặt sân' : 'Chưa đặt sân'
   let statusColor = isConfirmed ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_SEMANTIC.warningStrong
 
-  if (sessionStatus === 'cancelled') {
+  if (isInvalidPlayerCount && sessionStatus !== 'cancelled') {
+    bookingStatusLabel = 'Hủy - Thiếu người'
+    statusColor = PROFILE_THEME_COLORS.error
+  } else if (sessionStatus === 'cancelled') {
     bookingStatusLabel = 'Đã hủy'
     statusColor = PROFILE_THEME_COLORS.error
   } else if (isFinished || isPendingResult || isDuringMatch || isFinalized) {
@@ -155,20 +160,29 @@ export function SessionMetaCard({
         </View>
 
         <View style={{ paddingTop: 12, paddingHorizontal: 16, paddingBottom: 12 }}>
-          <Text
-            numberOfLines={2}
-            style={{
-              color: PROFILE_THEME_COLORS.onSurface,
-              fontFamily: SCREEN_FONTS.headline,
-              fontSize: 31,
-              lineHeight: 36,
-              letterSpacing: 0,
-              marginBottom: 4,
-              textTransform: 'uppercase',
-            }}
+          <TouchableOpacity 
+            onPress={() => court?.id && router.push(`/court/${court.id}`)}
+            style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}
           >
-            {courtName}
-          </Text>
+            <Text
+              numberOfLines={2}
+              style={{
+                color: PROFILE_THEME_COLORS.onSurface,
+                fontFamily: SCREEN_FONTS.headline,
+                fontSize: 31,
+                lineHeight: 36,
+                letterSpacing: 0,
+                marginBottom: 4,
+                textTransform: 'uppercase',
+                flex: 1,
+              }}
+            >
+              {courtName}
+            </Text>
+            <View style={{ marginTop: 6 }}>
+              <Info size={24} color={PROFILE_THEME_COLORS.primary} strokeWidth={2.5} />
+            </View>
+          </TouchableOpacity>
 
           <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 6 }}>
             <MapPin size={13} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.5} />
@@ -205,11 +219,11 @@ export function SessionMetaCard({
             <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.label, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>
               {'CHI PHÍ'}
             </Text>
-            <Text style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.headline, fontSize: 28, lineHeight: 28 }}>
+            <Text style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.headline, fontSize: 33, lineHeight: 33 }}>
               {priceLabel}
             </Text>
-            <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, fontSize: 11, marginTop: 2 }}>
-              {priceLabel === 'Miễn phí' ? '' : '/người'}
+            <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, fontSize: 11, marginTop: 4 }}>
+              {priceLabel === 'Miễn phí' ? ' ' : '/người'}
             </Text>
           </View>
         </View>

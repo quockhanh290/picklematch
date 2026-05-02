@@ -101,12 +101,23 @@ export function MySessionCard({
   const isFinalized = item.results_status === 'finalized'
   const userResult = item.user_result
 
+  const confirmedPlayerCount = item.player_count
+  const maxPlayers = item.max_players
+  const isEven = confirmedPlayerCount % 2 === 0
+  const isValidCount = maxPlayers === 2 ? confirmedPlayerCount === 2 : confirmedPlayerCount === 2 || confirmedPlayerCount === 4
+  const isEnded = item.status === 'done' || item.status === 'pending_completion' || item.status === 'pending_results' || item.status === 'cancelled'
+  const isInvalidPlayerCount = isEnded && !isValidCount
+
   let statusLabel = isBooked ? 'Đã đặt sân' : 'Chưa đặt sân'
   let statusColor: string = isBooked ? PROFILE_THEME_SEMANTIC.successText : PROFILE_THEME_SEMANTIC.warningText
   let dotColor: string = isBooked ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_SEMANTIC.warningStrong
 
   if (isHistory) {
-    if (item.status === 'cancelled') {
+    if (isInvalidPlayerCount && item.status !== 'cancelled') {
+      statusLabel = 'Hủy - Thiếu người'
+      statusColor = PROFILE_THEME_SEMANTIC.dangerStrong
+      dotColor = PROFILE_THEME_SEMANTIC.dangerStrong
+    } else if (item.status === 'cancelled') {
       statusLabel = 'Đã hủy'
       statusColor = PROFILE_THEME_SEMANTIC.dangerStrong
       dotColor = PROFILE_THEME_SEMANTIC.dangerStrong
@@ -250,7 +261,7 @@ export function MySessionCard({
         const needsResult = item.results_status === 'not_submitted'
         const needsConfirmation = item.results_status === 'pending_confirmation' || item.results_status === 'disputed'
         const needsRating = !item.has_rated && (item.status === 'done' || item.results_status === 'finalized')
-        const isCancelled = item.status === 'cancelled'
+        const isCancelled = item.status === 'cancelled' || isInvalidPlayerCount
         const isHost = item.role === 'host'
         
         let label = 'Kèo đã kết thúc'
@@ -258,7 +269,9 @@ export function MySessionCard({
         let action = () => {}
         let icon = null
 
-        if (isCancelled) {
+        if (isInvalidPlayerCount && item.status !== 'cancelled') {
+          label = 'Kèo bị hủy do thiếu người'
+        } else if (isCancelled) {
           label = 'Kèo đã bị hủy'
         } else if (!item.is_ranked) {
           label = 'Kèo đã kết thúc'

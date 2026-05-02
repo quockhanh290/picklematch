@@ -55,11 +55,17 @@ export function CourtRow({ court, onPress }: CourtRowProps) {
             </Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 }}>
               {/* Rating */}
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-                <Star size={10} color="#FBC02D" fill="#FBC02D" />
-                <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 11, color: PROFILE_THEME_COLORS.onSurface }}>{court.rating.toFixed(1)}</Text>
-                <Text style={{ fontFamily: SCREEN_FONTS.body, fontSize: 11, color: PROFILE_THEME_COLORS.outline }}>({court.rating_count})</Text>
-              </View>
+              {court.rating != null && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                  <Star size={10} color="#FBC02D" fill="#FBC02D" />
+                  <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 11, color: PROFILE_THEME_COLORS.onSurface }}>
+                    {court.rating.toFixed(1)}
+                  </Text>
+                  <Text style={{ fontFamily: SCREEN_FONTS.body, fontSize: 11, color: PROFILE_THEME_COLORS.outline }}>
+                    ({court.rating_count ?? 0})
+                  </Text>
+                </View>
+              )}
 
               <View style={{ width: 1, height: 10, backgroundColor: PROFILE_THEME_COLORS.outlineVariant }} />
 
@@ -76,20 +82,7 @@ export function CourtRow({ court, onPress }: CourtRowProps) {
                 </Text>
               </View>
 
-              {isBusinessOpen && !hasSlots && (
-                <View style={{
-                  borderRadius: RADIUS.full,
-                  borderWidth: BORDER.base,
-                  borderColor: PROFILE_THEME_COLORS.outlineVariant,
-                  backgroundColor: PROFILE_THEME_COLORS.surfaceContainerHigh,
-                  paddingHorizontal: SPACING.sm,
-                  paddingVertical: 4,
-                }}>
-                  <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8, color: PROFILE_THEME_COLORS.outline }}>
-                    {'Hết chỗ'}
-                  </Text>
-                </View>
-              )}
+
             </View>
           </View>
         </View>

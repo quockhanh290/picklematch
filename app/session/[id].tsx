@@ -167,11 +167,22 @@ export default function SessionDetailScreen() {
     viewerSessionPlayer?.result_confirmation_status === 'disputed' ||
     !!viewerSessionPlayer?.proposed_result
 
+  const confirmedPlayerCount = useMemo(
+    () => (session ? session.session_players.filter((p: any) => p.status === 'confirmed').length : 0),
+    [session],
+  )
+  const maxPlayers = session?.max_players ?? 0
+  const isEven = confirmedPlayerCount % 2 === 0
+  const isValidCount = confirmedPlayerCount >= 2 && isEven && confirmedPlayerCount <= maxPlayers
+  const isEnded = isAfterEnd || session?.status === 'done' || session?.status === 'pending_completion'
+  const isInvalidPlayerCount = isEnded && !isValidCount
+
   const canRespondToResult =
     !isHost &&
     hasJoined &&
     viewerSessionPlayer?.status === 'confirmed' &&
     !hasActedOnResult &&
+    !isInvalidPlayerCount &&
     (
       session.results_status === 'pending_confirmation' ||
       session.results_status === 'disputed' ||
@@ -266,6 +277,7 @@ export default function SessionDetailScreen() {
           priceLabel={formatPricePerPerson(session.slot.price, session.max_players)}
           isRanked={session.is_ranked}
           hostNote={session.booking_notes}
+          isInvalidPlayerCount={isInvalidPlayerCount}
           maxPlayers={session.max_players}
           court={session.slot.court}
         />

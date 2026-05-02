@@ -24,6 +24,27 @@ interface SessionActionButtonsProps {
   leaveSession: () => void
 }
 
+const PartialPlayerWarning = ({ count, max }: { count: number; max: number }) => (
+  <View 
+    style={{ 
+      marginBottom: 12, 
+      padding: 12, 
+      borderRadius: RADIUS.md, 
+      backgroundColor: '#FFF9E6', 
+      borderWidth: 1, 
+      borderColor: '#FFE082',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10
+    }}
+  >
+    <ShieldAlert size={20} color="#F57C00" />
+    <Text style={{ flex: 1, fontSize: 13, fontFamily: SCREEN_FONTS.body, color: '#5D4037' }}>
+      Trận đấu chỉ có {count}/{max} người. Nếu trận đấu vẫn diễn ra, bạn có thể tiếp tục báo kết quả.
+    </Text>
+  </View>
+)
+
 export const SessionActionButtons: React.FC<SessionActionButtonsProps> = ({
   id,
   session,
@@ -45,8 +66,23 @@ export const SessionActionButtons: React.FC<SessionActionButtonsProps> = ({
   const isFinalized = resultsStatus === 'finalized'
   const isPendingConfirm = resultsStatus === 'pending_confirmation' || resultsStatus === 'disputed'
   const hasRated = session?.has_rated
+  
+  const confirmedPlayerCount = (session?.session_players ?? []).filter((p: any) => p.status === 'confirmed').length
+  const maxPlayers = Number(session?.max_players || 0)
+  
+  // Logic: 
+  // - Must have at least 2 players.
+  // - Must have an even number of players.
+  // - Must not exceed max_players.
+  const isEven = confirmedPlayerCount % 2 === 0
+  const isValidCount = confirmedPlayerCount >= 2 && isEven && confirmedPlayerCount <= maxPlayers
+    
+  const isEnded = isAfterEnd || status === 'done' || status === 'pending_completion' || status === 'pending_results'
+  const isInvalidPlayerCount = isEnded && !isValidCount
+  const isPartialPlayerCount = isEnded && isValidCount && confirmedPlayerCount < maxPlayers
 
-  if (isCancelled) {
+  // Top-level block: If cancelled or invalid player count, show banner and STOP.
+  if (isCancelled || (isInvalidPlayerCount && !isFinalized && !isPendingConfirm)) {
     return (
       <View
         style={{
@@ -69,7 +105,7 @@ export const SessionActionButtons: React.FC<SessionActionButtonsProps> = ({
             textTransform: 'uppercase',
           }}
         >
-          Kèo đã bị hủy
+          {isInvalidPlayerCount ? 'Kèo bị hủy do không đủ người' : 'Kèo đã bị hủy'}
         </Text>
       </View>
     )
@@ -193,36 +229,39 @@ export const SessionActionButtons: React.FC<SessionActionButtonsProps> = ({
       )
     }
 
-    if (isAwaitingResult) {
+    if (isAwaitingResult && !isInvalidPlayerCount) {
       return (
-        <TouchableOpacity
-          onPress={() => router.push({ pathname: '/match-result/[id]' as any, params: { id } })}
-          activeOpacity={0.84}
-          style={{
-            width: '100%',
-            paddingHorizontal: SPACING.md,
-            minHeight: 52,
-            paddingVertical: 11,
-            borderRadius: RADIUS.md,
-            backgroundColor: PROFILE_THEME_COLORS.primary,
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexDirection: 'row',
-            gap: 8,
-          }}
-        >
-          <Trophy size={18} strokeWidth={2.5} color={PROFILE_THEME_COLORS.onPrimary} />
-          <Text
+        <>
+          {isPartialPlayerCount && <PartialPlayerWarning count={confirmedPlayerCount} max={maxPlayers} />}
+          <TouchableOpacity
+            onPress={() => router.push({ pathname: '/match-result/[id]' as any, params: { id } })}
+            activeOpacity={0.84}
             style={{
-              fontSize: 15,
-              fontFamily: SCREEN_FONTS.headline,
-              color: PROFILE_THEME_COLORS.onPrimary,
-              textTransform: 'uppercase',
+              width: '100%',
+              paddingHorizontal: SPACING.md,
+              minHeight: 52,
+              paddingVertical: 11,
+              borderRadius: RADIUS.md,
+              backgroundColor: PROFILE_THEME_COLORS.primary,
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexDirection: 'row',
+              gap: 8,
             }}
           >
-            Nhập kết quả trận
-          </Text>
-        </TouchableOpacity>
+            <Trophy size={18} strokeWidth={2.5} color={PROFILE_THEME_COLORS.onPrimary} />
+            <Text
+              style={{
+                fontSize: 15,
+                fontFamily: SCREEN_FONTS.headline,
+                color: PROFILE_THEME_COLORS.onPrimary,
+                textTransform: 'uppercase',
+              }}
+            >
+              Nhập kết quả trận
+            </Text>
+          </TouchableOpacity>
+        </>
       )
     }
 
@@ -470,7 +509,7 @@ export const SessionActionButtons: React.FC<SessionActionButtonsProps> = ({
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <ActivityIndicator size="small" color={PROFILE_THEME_COLORS.outline} />
             <Text style={{ fontSize: 15, fontFamily: SCREEN_FONTS.headline, color: PROFILE_THEME_COLORS.outline, textTransform: 'uppercase' }}>
-              Chờ báo kết quả
+              {isInvalidPlayerCount ? 'Kèo bị hủy do thiếu người' : 'Chờ báo kết quả'}
             </Text>
           </View>
         </View>

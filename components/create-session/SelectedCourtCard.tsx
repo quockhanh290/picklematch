@@ -65,11 +65,6 @@ export function SelectedCourtCard({
         </View>
 
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-          <TouchableOpacity onPress={() => router.push(`/court/${selectedCourt.id}`)}>
-            <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.headline, fontSize: 13, textTransform: 'uppercase' }}>
-              {'Chi tiết'}
-            </Text>
-          </TouchableOpacity>
 
           {!isCourtScheduleLocked && (
             <TouchableOpacity
@@ -115,13 +110,19 @@ export function SelectedCourtCard({
           </View>
         </TouchableOpacity>
 
-        <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 8, marginBottom: 8 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-            <Star size={12} color="#FBC02D" fill="#FBC02D" />
-            <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 13, color: PROFILE_THEME_COLORS.onSurface }}>{selectedCourt.rating.toFixed(1)}</Text>
-            <Text style={{ fontFamily: SCREEN_FONTS.body, fontSize: 13, color: PROFILE_THEME_COLORS.outline }}>({selectedCourt.rating_count} đánh giá)</Text>
+        {selectedCourt.rating != null && (
+          <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 8, marginBottom: 8 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+              <Star size={12} color="#FBC02D" fill="#FBC02D" />
+              <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 13, color: PROFILE_THEME_COLORS.onSurface }}>
+                {selectedCourt.rating.toFixed(1)}
+              </Text>
+              <Text style={{ fontFamily: SCREEN_FONTS.body, fontSize: 13, color: PROFILE_THEME_COLORS.outline }}>
+                ({selectedCourt.rating_count ?? 0} đánh giá)
+              </Text>
+            </View>
           </View>
-        </View>
+        )}
 
         <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 6, marginBottom: 12 }}>
           <MapPin size={13} color={PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.5} />
@@ -158,21 +159,7 @@ export function SelectedCourtCard({
               </Text>
             </View>
 
-            {isBusinessOpen && !hasSlots && (
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <View style={{ width: 6, height: 6, borderRadius: RADIUS.full, backgroundColor: PROFILE_THEME_COLORS.outline }} />
-                <Text style={{
-                  marginLeft: 6,
-                  color: PROFILE_THEME_COLORS.outline,
-                  fontFamily: SCREEN_FONTS.headline,
-                  fontSize: 12,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
-                }}>
-                  {'Hết chỗ'}
-                </Text>
-              </View>
-            )}
+
           </View>
         </View>
       </View>

@@ -38,7 +38,7 @@ export async function fetchHomeDataApi(userId: string | null): Promise<HomeData>
       host:host_id ( id, name, current_elo, elo, self_assessed_level, skill_label, reliability_score, host_reputation ),
       slot:slot_id (
         id, start_time, end_time, price,
-        court:court_id ( id, name, address, city, thumbnail_url, rating, rating_count, amenities, highlight )
+        court:court_id ( id, name, address, city, thumbnail_url, images, rating, rating_count, amenities, highlight )
       ),
       session_players (
         player_id, status,
@@ -80,11 +80,12 @@ export async function fetchHomeDataApi(userId: string | null): Promise<HomeData>
         .from('sessions')
         .select(
           `
-          id, status, results_status,
+          id, status, results_status, max_players,
           slot:slot_id (
             start_time, end_time,
             court:court_id ( name, thumbnail_url )
-          )
+          ),
+          session_players ( status )
         `,
         )
         .eq('host_id', userId)
@@ -123,9 +124,18 @@ export async function fetchHomeDataApi(userId: string | null): Promise<HomeData>
         .eq('status', 'pending')
     : Promise.resolve({ data: [] })
 
+  const userRatingsPromise = userId
+    ? supabase
+        .from('ratings')
+        .select('session_id')
+        .eq('rater_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(20)
+    : Promise.resolve({ data: [] })
+
   const courtsPromise = supabase
     .from('courts')
-    .select('id, name, address, city, thumbnail_url, rating, rating_count, amenities, highlight')
+    .select('id, name, address, city, thumbnail_url, images, rating, rating_count, amenities, highlight')
     .order('rating', { ascending: false })
     .limit(50)
 
@@ -140,7 +150,8 @@ export async function fetchHomeDataApi(userId: string | null): Promise<HomeData>
     overviewResult,
     pendingJoinRequestsResult,
     mySessionIdsResult,
-    courtsResult
+    courtsResult,
+    userRatingsResult,
   ] = await Promise.all([
     openSessionsPromise,
     profilePromise,
@@ -150,7 +161,8 @@ export async function fetchHomeDataApi(userId: string | null): Promise<HomeData>
     overviewPromise,
     pendingJoinRequestsPromise,
     mySessionIdsPromise,
-    courtsPromise
+    courtsPromise,
+    userRatingsPromise,
   ])
 
   const mySessionIds = (mySessionIdsResult.data || []).map((r: any) => r.session_id)
@@ -165,7 +177,7 @@ export async function fetchHomeDataApi(userId: string | null): Promise<HomeData>
         host:host_id ( id, name, current_elo, elo, self_assessed_level, skill_label, reliability_score, host_reputation ),
         slot:slot_id (
           id, start_time, end_time, price,
-          court:court_id ( id, name, address, city, thumbnail_url, rating, rating_count, amenities, highlight )
+          court:court_id ( id, name, address, city, thumbnail_url, images, rating, rating_count, amenities, highlight )
         ),
         session_players (
           player_id, status,
@@ -220,7 +232,7 @@ export async function fetchHomeDataApi(userId: string | null): Promise<HomeData>
   if (favoriteCourtIds.length > 0) {
     const { data: favoriteCourtsData } = await supabase
       .from('courts')
-      .select('id, name, address, city, thumbnail_url, rating, rating_count, amenities, highlight')
+      .select('id, name, address, city, thumbnail_url, images, rating, rating_count, amenities, highlight')
       .in('id', favoriteCourtIds)
 
     favoriteCourtsMeta = (favoriteCourtsData ?? []) as Array<{ id: string; name?: string | null; address?: string | null; city?: string | null }>
@@ -242,6 +254,10 @@ export async function fetchHomeDataApi(userId: string | null): Promise<HomeData>
       const court = normalizeRelation(slot?.court ?? null)
       const startTime = slot?.start_time ?? ''
       const endTime = slot?.end_time ?? ''
+      
+      const confirmedCount = (item.session_players ?? []).filter((p: any) => p.status === 'confirmed').length
+      const isEven = confirmedCount % 2 === 0
+      const isValid = confirmedCount >= 2 && isEven && confirmedCount <= (item.max_players ?? 4)
 
       return {
         id: item.id,
@@ -250,13 +266,16 @@ export async function fetchHomeDataApi(userId: string | null): Promise<HomeData>
         startTime,
         endTime,
         resultsStatus: item.results_status,
+        isValidCount: isValid,
       }
     })
     .filter((item) => {
       const endMs = Date.parse(item.endTime)
-      return !Number.isNaN(endMs) && endMs < Date.now()
+      return !Number.isNaN(endMs) && endMs < Date.now() && item.isValidCount
     })
     .sort((left, right) => Date.parse(right.endTime) - Date.parse(left.endTime))
+
+  const ratedSessionIds = new Set((userRatingsResult.data ?? []).map((r: any) => r.session_id))
 
   const nextPostMatchActions = postMatchRows
     .reduce<PostMatchAction[]>((acc, row) => {
@@ -270,8 +289,21 @@ export async function fetchHomeDataApi(userId: string | null): Promise<HomeData>
       if (!session || session.host_id === userId) return acc
       if (!slot || Number.isNaN(endMs) || endMs > Date.now()) return acc
 
+      // If results are pending confirmation, show "confirm" task first
       if (session.results_status === 'pending_confirmation' || session.results_status === 'disputed') {
         if (row.result_confirmation_status === 'confirmed' || row.result_confirmation_status === 'disputed') {
+          // If already confirmed result, but not yet rated, show "report" (rating) task
+          if (!ratedSessionIds.has(session.id)) {
+            acc.push({
+              id: session.id,
+              courtName: court?.name ?? 'Kèo Pickleball',
+              timeLabel: formatPendingResultTimeLabel(endTime),
+              startTime,
+              endTime,
+              actionType: 'report' as const,
+              resultsStatus: session.results_status,
+            })
+          }
           return acc
         }
 
@@ -287,7 +319,9 @@ export async function fetchHomeDataApi(userId: string | null): Promise<HomeData>
         return acc
       }
 
-      if (session.results_status === 'not_submitted' && (session.status === 'pending_completion' || session.status === 'done')) {
+      // If results are already finalized, or results not submitted yet but session ended,
+      // allow rating (report) if not already rated
+      if (!ratedSessionIds.has(session.id)) {
         acc.push({
           id: session.id,
           courtName: court?.name ?? 'Kèo Pickleball',
@@ -295,9 +329,8 @@ export async function fetchHomeDataApi(userId: string | null): Promise<HomeData>
           startTime,
           endTime,
           actionType: 'report' as const,
-          resultsStatus: 'not_submitted' as const,
+          resultsStatus: session.results_status || 'not_submitted',
         })
-        return acc
       }
 
       return acc

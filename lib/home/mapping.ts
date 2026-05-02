@@ -102,6 +102,18 @@ export function mapLiveSessionToMatchSession(
   const urgent = options?.urgent ?? slotsLeft <= 2
   const court = session.slot?.court
 
+  const isEnded = session.status === 'done' || session.status === 'pending_completion' || session.status === 'pending_results' || session.status === 'cancelled'
+  const isEven = activePlayers % 2 === 0
+  const isValidCount = activePlayers >= 2 && isEven && activePlayers <= session.max_players
+  const isInvalidPlayerCount = isEnded && !isValidCount
+
+  let statusLabel = getStatusLabel(session.court_booking_status, session.status)
+  if (isInvalidPlayerCount && session.status !== 'cancelled') {
+    statusLabel = 'Hủy - Thiếu người'
+  } else if (session.status === 'cancelled') {
+    statusLabel = 'Đã hủy'
+  }
+
   return {
     id: session.id,
     title: urgent ? 'Cần chốt đội hình' : `Kèo ${getSkillLevelUi(levelId).shortLabel.toLowerCase()}`,
@@ -116,7 +128,7 @@ export function mapLiveSessionToMatchSession(
     priceLabel: formatPriceLabel(session.slot?.price ?? 0, session.max_players),
     openSlotsLabel: slotsLeft === 0 ? 'Đã đủ người' : urgent ? `Thiếu ${slotsLeft} người` : `${slotsLeft} chỗ trống`,
     slotsLeft,
-    statusLabel: getStatusLabel(session.court_booking_status, session.status),
+    statusLabel,
     countdownLabel: isWithinNext24Hours(session.slot?.start_time ?? '') ? formatCountdownLabelFromStartTime(session.slot?.start_time ?? '') : undefined,
     isRanked: session.is_ranked ?? true,
     activePlayers,

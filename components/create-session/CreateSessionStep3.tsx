@@ -174,13 +174,7 @@ export function CreateSessionStep3({
           <View pointerEvents="none">
             <MatchSessionCard item={previewMatch} variant="standard" actionLabel={'Vào kèo'} showFullAddress={true} />
           </View>
-          <TouchableOpacity 
-            onPress={() => router.push(`/court/${selectedCourt.id}`)}
-            style={{ alignSelf: 'flex-end', marginTop: 8, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow, paddingHorizontal: 12, paddingVertical: 6, borderRadius: RADIUS.full, borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant }}
-          >
-            <Text style={{ fontSize: 11, color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.headline, textTransform: 'uppercase' }}>Chi tiết sân</Text>
-            <Info size={14} color={PROFILE_THEME_COLORS.primary} strokeWidth={2.5} />
-          </TouchableOpacity>
+
         </View>
 
         {/* Detail list */}

@@ -8,6 +8,27 @@ type FavoriteCourtMeta = {
   city?: string | null
 }
 
+function resolveCourtImage(thumbnailUrl: string | null | undefined, imagesJson: any[] | null | undefined): string | null {
+  const images = imagesJson || []
+  
+  // If thumbnail exists and is not streetview, use it
+  if (thumbnailUrl && !thumbnailUrl.includes('streetviewpixels')) {
+    return thumbnailUrl
+  }
+
+  // Find first real photo in gallery
+  const realPhoto = images.find((img: any) => img.image && !img.image.includes('streetviewpixels'))
+  if (realPhoto) return realPhoto.image
+
+  // Fallback to thumbnail if it's all we have (even if streetview)
+  if (thumbnailUrl) return thumbnailUrl
+
+  // Last resort: any image from gallery
+  if (images.length > 0) return images[0].image
+
+  return null
+}
+
 export function buildLiveFamiliarCourts(
   sessions: HomeSessionRecord[],
   options?: {
@@ -37,7 +58,7 @@ export function buildLiveFamiliarCourts(
       return
     }
 
-    const resolvedImage = court.thumbnail_url || (court.images && court.images.length > 0 ? court.images[0].image : null)
+    const image = resolveCourtImage(court.thumbnail_url, court.images)
 
     grouped.set(court.id, {
       id: court.id,
@@ -47,7 +68,7 @@ export function buildLiveFamiliarCourts(
       thumbnail_url: court.thumbnail_url,
       rating: court.rating,
       rating_count: court.rating_count,
-      image: resolvedImage,
+      image: image,
     })
   })
 
@@ -68,6 +89,8 @@ export function buildLiveFamiliarCourts(
   // Merge grouped courts (active matches) with raw courts from DB
   courtsRaw.forEach(court => {
     if (!grouped.has(court.id)) {
+      const image = resolveCourtImage(court.thumbnail_url, court.images)
+      
       grouped.set(court.id, {
         id: court.id,
         name: court.name,
@@ -76,7 +99,7 @@ export function buildLiveFamiliarCourts(
         thumbnail_url: court.thumbnail_url,
         rating: court.rating,
         rating_count: court.rating_count,
-        image: court.thumbnail_url
+        image: image
       })
     }
   })
