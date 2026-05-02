@@ -178,7 +178,7 @@ export function HeroMatchSessionCard({ item }: HeroMatchSessionCardProps) {
 
       <View
         style={{
-          backgroundColor: 'rgba(0,0,0,0.22)',
+          backgroundColor: PROFILE_THEME_COLORS.heroFooterOverlay,
           paddingHorizontal: SPACING.xl,
           paddingVertical: 12,
           flexDirection: 'row',
@@ -201,7 +201,7 @@ export function HeroMatchSessionCard({ item }: HeroMatchSessionCardProps) {
                   justifyContent: 'center',
                   backgroundColor: avatar.bg,
                   borderWidth: BORDER.thick,
-                  borderColor: 'rgba(255,255,255,0.3)',
+                  borderColor: PROFILE_THEME_COLORS.heroAvatarBorder,
                   marginRight: index === visiblePlayers.length + emptySlots - 1 ? 0 : -8,
                   zIndex: 4 - index,
                 }}
@@ -222,14 +222,14 @@ export function HeroMatchSessionCard({ item }: HeroMatchSessionCardProps) {
                 borderRadius: RADIUS.full,
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: 'rgba(255,255,255,0.12)',
+                backgroundColor: PROFILE_THEME_COLORS.heroSlotBg,
                 borderWidth: BORDER.thick,
-                borderColor: 'rgba(255,255,255,0.3)',
+                borderColor: PROFILE_THEME_COLORS.heroAvatarBorder,
                 marginRight: index === emptySlots - 1 ? 0 : -8,
                 zIndex: 4 - visiblePlayers.length - index,
               }}
             >
-              <Text style={{ color: 'rgba(255,255,255,0.4)', fontFamily: SCREEN_FONTS.cta, fontSize: 13, lineHeight: 16 }}>
+              <Text style={{ color: PROFILE_THEME_COLORS.heroSlotText, fontFamily: SCREEN_FONTS.cta, fontSize: 13, lineHeight: 16 }}>
                 ?
               </Text>
             </View>
@@ -238,7 +238,7 @@ export function HeroMatchSessionCard({ item }: HeroMatchSessionCardProps) {
 
         <Text
           numberOfLines={1}
-          style={{ color: '#A8D9C8', fontFamily: SCREEN_FONTS.body, fontSize: 11, lineHeight: 15, marginHorizontal: 12, flexShrink: 1 }}
+          style={{ color: PROFILE_THEME_COLORS.heroBodyMuted, fontFamily: SCREEN_FONTS.body, fontSize: 11, lineHeight: 15, marginHorizontal: 12, flexShrink: 1 }}
         >
           {playersLabel}
         </Text>

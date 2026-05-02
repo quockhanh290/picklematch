@@ -42,10 +42,10 @@ type ChipVariant = 'urgent' | 'warn' | 'neutral'
 const CARD_HEIGHT = 271
 
 const AVATAR_PALETTE = [
-  { bg: '#E1F5EE', text: '#0F6E56' },
-  { bg: '#FAECE7', text: '#993C1D' },
-  { bg: '#FAEEDA', text: '#854F0B' },
-  { bg: '#EAF2FF', text: '#2256A7' },
+  { bg: PROFILE_THEME_COLORS.secondaryContainer, text: PROFILE_THEME_COLORS.primary },
+  { bg: PROFILE_THEME_SEMANTIC.dangerBg, text: PROFILE_THEME_SEMANTIC.dangerText },
+  { bg: PROFILE_THEME_SEMANTIC.warningBg, text: PROFILE_THEME_SEMANTIC.warningText },
+  { bg: PROFILE_THEME_COLORS.tertiaryFixed, text: PROFILE_THEME_COLORS.onTertiaryFixed },
 ]
 
 type ChipState = {
@@ -194,7 +194,9 @@ export default function SessionCard({ session, onPress, onJoinPress }: SessionCa
             style={[
               styles.priceValue,
               {
-                color: disabled ? PROFILE_THEME_COLORS.outline : PROFILE_THEME_COLORS.onSurface,
+                color: disabled 
+                  ? PROFILE_THEME_COLORS.outline 
+                  : (session.pricePerPerson <= 0 ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.onSurface),
                 fontSize: 26,
                 lineHeight: 30,
                 includeFontPadding: false,
@@ -233,7 +235,7 @@ export default function SessionCard({ session, onPress, onJoinPress }: SessionCa
 const styles = StyleSheet.create({
   card: {
     height: CARD_HEIGHT,
-    marginBottom: 12,
+    marginBottom: SPACING.md,
     borderRadius: RADIUS.md,
     borderWidth: BORDER.hairline,
     borderColor: PROFILE_THEME_COLORS.outlineVariant,
@@ -242,8 +244,8 @@ const styles = StyleSheet.create({
   },
   topSection: {
     height: 151,
-    paddingHorizontal: 16,
-    paddingTop: 14,
+    paddingHorizontal: SPACING.xl,
+    paddingTop: SPACING.md,
   },
   courtNameWrap: {
     height: 28,
@@ -258,11 +260,11 @@ const styles = StyleSheet.create({
   subHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: SPACING.sm,
   },
   addressText: {
     flex: 1,
-    marginRight: 10,
+    marginRight: SPACING.sm,
   },
   statusChipPlaceholder: {
     width: 1,
@@ -277,19 +279,19 @@ const styles = StyleSheet.create({
   timeBlock: {
     backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLow,
     borderRadius: RADIUS.sm,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    marginBottom: 8,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: RADIUS.md,
+    marginBottom: SPACING.sm,
     flexDirection: 'row',
     alignItems: 'center',
   },
   timeLabelRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    columnGap: 8,
+    columnGap: SPACING.sm,
   },
   dayBadge: {
-    borderRadius: 4,
+    borderRadius: RADIUS.xs,
     paddingHorizontal: 7,
     paddingVertical: 2,
   },
@@ -321,7 +323,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 0,
     paddingBottom: 2,
-    columnGap: 10,
+    columnGap: SPACING.sm,
   },
   levelLabel: {
     fontFamily: SCREEN_FONTS.body,
@@ -350,7 +352,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 0.5,
     borderTopColor: PROFILE_THEME_COLORS.outlineVariant,
     paddingVertical: SPACING.sm,
-    paddingHorizontal: 16,
+    paddingHorizontal: SPACING.xl,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -359,7 +361,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-    marginRight: 10,
+    marginRight: SPACING.sm,
   },
   avatar: {
     width: 32,
@@ -381,7 +383,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   hostMeta: {
-    marginLeft: 8,
+    marginLeft: SPACING.sm,
     flex: 1,
   },
   priceWrap: {
@@ -399,15 +401,15 @@ const styles = StyleSheet.create({
   ctaSection: {
     height: 68,
     paddingHorizontal: SPACING.md,
-    paddingTop: 8,
-    paddingBottom: 12,
+    paddingTop: SPACING.sm,
+    paddingBottom: RADIUS.md,
     justifyContent: 'center',
   },
   ctaButton: {
     width: '100%',
     height: 48,
     borderRadius: RADIUS.md,
-    paddingVertical: 12,
+    paddingVertical: RADIUS.md,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: PROFILE_THEME_COLORS.primary,

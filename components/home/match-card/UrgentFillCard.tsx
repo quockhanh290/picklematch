@@ -165,7 +165,7 @@ export function UrgentFillCard({ item }: UrgentFillCardProps) {
             <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.label, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>
               {'CHI PHÍ'}
             </Text>
-            <Text style={{ color: PROFILE_THEME_COLORS.onSurface, fontFamily: AppFontSet.headline, fontSize: 25, lineHeight: 25 }}>
+            <Text style={{ color: item.priceLabel === 'Miễn phí' ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.onSurface, fontFamily: AppFontSet.headline, fontSize: 25, lineHeight: 25 }}>
               {item.priceLabel}
             </Text>
             <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, fontSize: 11, lineHeight: 15, marginTop: 2 }}>

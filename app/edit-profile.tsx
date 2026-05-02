@@ -37,7 +37,7 @@ export default function EditProfile() {
   const [name, setName] = useState('')
   const [city, setCity] = useState('')
   const [selectedLevelId, setSelectedLevelId] = useState<SkillAssessmentLevel['id']>('level_1')
-  const [autoAccept, setAutoAccept] = useState(false)
+  const [autoAccept, setAutoAccept] = useState(true)
   const [photoUrl, setPhotoUrl] = useState<string | null>(null)
   const [placementMatchesPlayed, setPlacementMatchesPlayed] = useState(0)
   const [bio, setBio] = useState('')
@@ -58,15 +58,7 @@ export default function EditProfile() {
     void init()
   }, [])
 
-  useEffect(() => {
-    const keyboardWillShow = Keyboard.addListener('keyboardDidShow', () => {
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true })
-      }, 500)
-    })
-
-    return () => keyboardWillShow.remove()
-  }, [])
+  // Removed forced scrollToEnd on keyboard show as it prevents users from seeing top inputs while typing
 
   useEffect(() => {
     if (!keyword.trim()) {
@@ -105,11 +97,22 @@ export default function EditProfile() {
 
     setMyId(user.id)
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('players')
-      .select('name, city, skill_label, self_assessed_level, auto_accept, favorite_court_ids, elo, current_elo, photo_url, placement_matches_played, bio')
+      .select('*')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
+
+    if (error) {
+      console.warn('[EditProfile] Failed to fetch player:', error.message)
+      setDialogConfig({
+        title: 'Lỗi tải dữ liệu',
+        message: 'Không thể tải thông tin hồ sơ. Vui lòng thử lại sau.',
+        actions: [{ label: 'Đóng', onPress: () => router.back() }],
+      })
+      setLoading(false)
+      return
+    }
 
     setPlayerData(data)
     if (data) {
@@ -167,7 +170,7 @@ export default function EditProfile() {
       initialStateRef.current = {
         name: '',
         city: '',
-        autoAccept: false,
+        autoAccept: true,
         favoriteCourts: [],
         favoriteCourtIds: [],
         bio: '',
@@ -201,9 +204,7 @@ export default function EditProfile() {
   }
 
   function handleCourtSearchFocus() {
-    setTimeout(() => {
-      scrollViewRef.current?.scrollToEnd({ animated: true })
-    }, 500)
+    // Native behavior is sufficient, removed forced scroll
   }
 
   function handleRedoAssessment() {
@@ -317,7 +318,7 @@ export default function EditProfile() {
         title={STRINGS.profile.title}
         onBackPress={() => router.back()}
       />
-      <ScrollView ref={scrollViewRef} contentContainerStyle={{ paddingBottom: 325, paddingTop: 12 }} keyboardShouldPersistTaps="always" keyboardDismissMode="on-drag">
+      <ScrollView ref={scrollViewRef} contentContainerStyle={{ paddingBottom: 120, paddingTop: 12 }} keyboardShouldPersistTaps="always" keyboardDismissMode="on-drag">
 
         <View className="px-6 pb-6 pt-4">
           <View className="flex-row items-center justify-between">

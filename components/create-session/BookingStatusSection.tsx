@@ -159,8 +159,8 @@ export function BookingStatusSection({
                   borderRadius: RADIUS.md 
                 }}
               >
-                <Phone size={14} color="#FFF" />
-                <Text style={{ marginLeft: 8, color: '#FFF', fontFamily: SCREEN_FONTS.headline, fontSize: 13 }}>ĐẶT SÂN NGAY</Text>
+                <Phone size={14} color={PROFILE_THEME_COLORS.surface} />
+                <Text style={{ marginLeft: 8, color: PROFILE_THEME_COLORS.surface, fontFamily: SCREEN_FONTS.headline, fontSize: 13 }}>ĐẶT SÂN NGAY</Text>
               </TouchableOpacity>
               <TouchableOpacity 
                 onPress={handleOpenMaps}

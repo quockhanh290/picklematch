@@ -195,7 +195,7 @@ export function MySessionsScreen() {
                 colors={[PROFILE_THEME_COLORS.primary]}
                 title="Cập nhật lịch thi đấu..."
                 titleColor={PROFILE_THEME_COLORS.onSurfaceVariant}
-                progressViewOffset={20}
+                progressViewOffset={SPACING.xl}
               />
             }
             alwaysBounceVertical={true}

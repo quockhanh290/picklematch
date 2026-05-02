@@ -12,6 +12,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import { LinearGradient } from 'expo-linear-gradient'
 import * as Haptics from 'expo-haptics'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { FamiliarCourtCard } from '@/components/home/FamiliarCourtCard'
 import { HomeCarouselSection } from '@/components/home/HomeCarouselSection'
@@ -118,6 +119,7 @@ const HomeStreakCard = memo(function HomeStreakCard({ current }: { current: numb
 })
 
 export function HomeScreen() {
+  const insets = useSafeAreaInsets()
   const theme = useAppTheme()
   const { userId, isLoading: isAuthLoading } = useAuth()
   const [personalizedIndex, setPersonalizedIndex] = useState(0)
@@ -180,7 +182,7 @@ export function HomeScreen() {
             colors={[PROFILE_THEME_COLORS.primary]}
             title="Săn kèo mới..."
             titleColor={PROFILE_THEME_COLORS.onSurfaceVariant}
-            progressViewOffset={20}
+            progressViewOffset={SPACING.xl}
           />
         }
         alwaysBounceVertical={true}

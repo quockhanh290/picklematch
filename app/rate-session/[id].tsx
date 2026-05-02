@@ -187,14 +187,14 @@ function SkillChip({
       activeOpacity={0.8}
       style={{
         flex: 1,
-        borderRadius: 24,
-        padding: 16,
+        borderRadius: RADIUS.hero,
+        padding: SPACING.lg,
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.surfaceContainerLowest,
         borderWidth: 1.5,
         borderColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.outlineVariant,
-        shadowColor: active ? PROFILE_THEME_COLORS.primary : '#000',
+        shadowColor: active ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.onBackground,
         shadowOpacity: active ? 0.2 : 0.05,
         shadowRadius: 12,
         shadowOffset: { width: 0, height: 6 },
@@ -207,19 +207,19 @@ function SkillChip({
           width: 44,
           height: 44,
           borderRadius: 22,
-          backgroundColor: active ? withAlpha('#FFFFFF', 0.2) : PROFILE_THEME_COLORS.surfaceContainerHigh,
+          backgroundColor: active ? withAlpha(PROFILE_THEME_COLORS.surface, 0.2) : PROFILE_THEME_COLORS.surfaceContainerHigh,
           alignItems: 'center',
           justifyContent: 'center',
-          marginBottom: 12,
+          marginBottom: SPACING.md,
         }}
       >
-        <Icon size={20} color={active ? '#FFFFFF' : PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.5} />
+        <Icon size={20} color={active ? PROFILE_THEME_COLORS.surface : PROFILE_THEME_COLORS.onSurfaceVariant} strokeWidth={2.5} />
       </View>
       <Text
         style={{
           fontSize: 15,
           fontFamily: SCREEN_FONTS.headline,
-          color: active ? '#FFFFFF' : PROFILE_THEME_COLORS.onSurface,
+          color: active ? PROFILE_THEME_COLORS.surface : PROFILE_THEME_COLORS.onSurface,
           textAlign: 'center',
           textTransform: 'uppercase',
         }}
@@ -230,7 +230,7 @@ function SkillChip({
         style={{
           fontSize: 10,
           fontFamily: SCREEN_FONTS.body,
-          color: active ? withAlpha('#FFFFFF', 0.8) : PROFILE_THEME_COLORS.outline,
+          color: active ? withAlpha(PROFILE_THEME_COLORS.surface, 0.8) : PROFILE_THEME_COLORS.outline,
           textAlign: 'center',
           marginTop: 2,
         }}
@@ -271,19 +271,19 @@ function TagChip({
         backgroundColor: active ? color : PROFILE_THEME_COLORS.surfaceContainerLowest,
         borderWidth: 1.5,
         borderColor: active ? color : PROFILE_THEME_COLORS.outlineVariant,
-        shadowColor: active ? color : '#000',
+        shadowColor: active ? color : PROFILE_THEME_COLORS.onBackground,
         shadowOpacity: active ? 0.15 : 0.03,
         shadowRadius: 8,
         shadowOffset: { width: 0, height: 4 },
         elevation: active ? 4 : 1,
       }}
     >
-      <Icon size={16} color={active ? '#FFFFFF' : color} strokeWidth={2.5} />
+      <Icon size={16} color={active ? PROFILE_THEME_COLORS.surface : color} strokeWidth={2.5} />
       <Text 
         style={{ 
           fontSize: 14, 
           fontFamily: SCREEN_FONTS.headline, 
-          color: active ? '#FFFFFF' : PROFILE_THEME_COLORS.onSurface,
+          color: active ? PROFILE_THEME_COLORS.surface : PROFILE_THEME_COLORS.onSurface,
           textTransform: 'uppercase'
         }}
       >
@@ -578,8 +578,8 @@ export default function RateSessionScreen() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 borderWidth: 4,
-                borderColor: '#FFFFFF',
-                shadowColor: '#000',
+                borderColor: PROFILE_THEME_COLORS.surface,
+                shadowColor: PROFILE_THEME_COLORS.onBackground,
                 shadowOpacity: 0.1,
                 shadowRadius: 15,
                 shadowOffset: { width: 0, height: 8 },
@@ -599,12 +599,12 @@ export default function RateSessionScreen() {
                   backgroundColor: PROFILE_THEME_COLORS.primary,
                   paddingHorizontal: 10,
                   paddingVertical: 4,
-                  borderRadius: 12,
+                  borderRadius: RADIUS.md,
                   borderWidth: 2,
-                  borderColor: '#FFFFFF'
+                  borderColor: PROFILE_THEME_COLORS.surface
                 }}
               >
-                <Text style={{ fontSize: 10, fontFamily: SCREEN_FONTS.headline, color: '#FFFFFF' }}>HOST</Text>
+                <Text style={{ fontSize: 10, fontFamily: SCREEN_FONTS.headline, color: PROFILE_THEME_COLORS.surface }}>HOST</Text>
               </View>
             )}
           </View>
@@ -714,7 +714,7 @@ export default function RateSessionScreen() {
                 justifyContent: 'center'
               }}
             >
-              <UserX size={24} color={currentEntry.no_show ? '#FFFFFF' : PROFILE_THEME_COLORS.outline} />
+              <UserX size={24} color={currentEntry.no_show ? PROFILE_THEME_COLORS.surface : PROFILE_THEME_COLORS.outline} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: 18, fontFamily: SCREEN_FONTS.headline, color: currentEntry.no_show ? PROFILE_THEME_COLORS.error : PROFILE_THEME_COLORS.onSurface, textTransform: 'uppercase' }}>
@@ -736,7 +736,7 @@ export default function RateSessionScreen() {
                 justifyContent: 'center'
               }}
             >
-              {currentEntry.no_show && <Check size={14} color="#FFFFFF" strokeWidth={3} />}
+              {currentEntry.no_show && <Check size={14} color={PROFILE_THEME_COLORS.surface} strokeWidth={3} />}
             </View>
           </TouchableOpacity>
           
@@ -768,7 +768,7 @@ export default function RateSessionScreen() {
           paddingHorizontal: 24,
           paddingTop: 16,
           paddingBottom: insets.bottom + 20,
-          backgroundColor: withAlpha('#FFFFFF', 0.95),
+          backgroundColor: withAlpha(PROFILE_THEME_COLORS.surface, 0.95),
           borderTopWidth: 1,
           borderTopColor: PROFILE_THEME_COLORS.outlineVariant,
         }}

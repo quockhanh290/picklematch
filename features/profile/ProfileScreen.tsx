@@ -274,7 +274,7 @@ export function ProfileScreen() {
         }
         alwaysBounceVertical={true}
       >
-        <View style={{ paddingTop: insets.top + 20, paddingHorizontal: SPACING.xl }}>
+        <View style={{ paddingTop: insets.top + SPACING.xl, paddingHorizontal: SPACING.xl }}>
           <View className="pt-4 pb-6">
             <View className="flex-row items-center justify-between">
               <Text

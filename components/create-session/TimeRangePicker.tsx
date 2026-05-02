@@ -83,9 +83,9 @@ export function TimeRangePicker({
       {/* Duration chip */}
       {durationHours ? (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 }}>
-          <Text style={{ fontFamily: SCREEN_FONTS.body, fontSize: 11, color: '#7A8884' }}>Thời lượng:</Text>
-          <View style={{ backgroundColor: '#E1F5EE', paddingHorizontal: 12, paddingVertical: 3, borderRadius: RADIUS.full }}>
-            <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 11, color: '#0F6E56' }}>{durationHours} tiếng</Text>
+          <Text style={{ fontFamily: SCREEN_FONTS.body, fontSize: 11, color: PROFILE_THEME_COLORS.outline }}>Thời lượng:</Text>
+          <View style={{ backgroundColor: PROFILE_THEME_COLORS.secondaryContainer, paddingHorizontal: 12, paddingVertical: 3, borderRadius: RADIUS.full }}>
+            <Text style={{ fontFamily: SCREEN_FONTS.label, fontSize: 11, color: PROFILE_THEME_COLORS.primary }}>{durationHours} tiếng</Text>
           </View>
         </View>
       ) : null}

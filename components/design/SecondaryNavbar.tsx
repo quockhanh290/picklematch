@@ -1,3 +1,5 @@
+import { PROFILE_THEME_COLORS } from '@/constants/profileTheme'
+import { RADIUS, SPACING } from '@/constants/screenLayout'
 import { SCREEN_FONTS } from '@/constants/typography'
 import { router } from 'expo-router'
 import { ChevronLeft, Upload } from 'lucide-react-native'
@@ -15,9 +17,11 @@ type SecondaryNavbarProps = {
   style?: any
 }
 
+const NAVBAR_HEIGHT = 58
+
 /**
  * Standard Navbar for 2nd level+ screens (Detail, Flow, Edit, etc.)
- * Background: #F2F0E8, Height: 58px, Brand centered.
+ * Background: surfaceAlt, Height: 58px, Brand centered.
  */
 export function SecondaryNavbar({
   title,
@@ -31,16 +35,16 @@ export function SecondaryNavbar({
   const handleBack = onBackPress || (() => router.back())
 
   return (
-    <View style={[{ backgroundColor: '#F2F0E8', zIndex: 100, paddingTop: insets.top }, style]}>
+    <View style={[{ backgroundColor: PROFILE_THEME_COLORS.surfaceAlt, zIndex: 100, paddingTop: insets.top }, style]}>
       <View
         className="flex-row items-center justify-between"
         style={{
-          height: 58,
-          paddingTop: 12,
-          paddingHorizontal: 16,
-          paddingBottom: 10,
+          height: NAVBAR_HEIGHT,
+          paddingTop: SPACING.sm,
+          paddingHorizontal: SPACING.xl,
+          paddingBottom: SPACING.sm,
           borderBottomWidth: 0.5,
-          borderBottomColor: '#E5E3DC',
+          borderBottomColor: PROFILE_THEME_COLORS.outlineVariant,
         }}
       >
         {/* Left Slot: Back Button */}
@@ -50,22 +54,22 @@ export function SecondaryNavbar({
             handleBack()
           }}
           className="h-9 w-9 items-center justify-center rounded-full border"
-          style={{ backgroundColor: '#FFFFFF', borderColor: '#E5E3DC' }}
+          style={{ backgroundColor: PROFILE_THEME_COLORS.surface, borderColor: PROFILE_THEME_COLORS.outlineVariant }}
         >
-          <ChevronLeft size={16} color="#1A2E2A" strokeWidth={3} />
+          <ChevronLeft size={16} color={PROFILE_THEME_COLORS.onBackground} strokeWidth={3} />
         </Pressable>
 
         {/* Center Slot: Brand Name or Title */}
         <View 
           className="absolute left-0 right-0 items-center justify-center" 
           pointerEvents="none"
-          style={{ height: 58, zIndex: -1 }}
+          style={{ height: NAVBAR_HEIGHT, zIndex: -1 }}
         >
           <Text
             style={{
               fontFamily: SCREEN_FONTS.headlineBlack,
               fontSize: 24,
-              color: '#0F6E56',
+              color: PROFILE_THEME_COLORS.primary,
               letterSpacing: 0.5,
               textTransform: 'uppercase',
             }}
@@ -82,11 +86,11 @@ export function SecondaryNavbar({
 
       {/* Progress Bar (Optional) */}
       {showProgress && progress !== undefined && (
-        <View style={{ height: 3, backgroundColor: '#E5E3DC', width: '100%' }}>
+        <View style={{ height: 3, backgroundColor: PROFILE_THEME_COLORS.outlineVariant, width: '100%' }}>
           <View
             style={{
               height: '100%',
-              backgroundColor: '#0F6E56',
+              backgroundColor: PROFILE_THEME_COLORS.primary,
               width: `${Math.max(0, Math.min(1, progress)) * 100}%`,
             }}
           />
@@ -107,9 +111,9 @@ export const NavbarShareButton = ({ onPress }: { onPress: () => void }) => (
       onPress()
     }}
     className="h-9 w-9 items-center justify-center rounded-full border"
-    style={{ backgroundColor: '#FFFFFF', borderColor: '#E5E3DC' }}
+    style={{ backgroundColor: PROFILE_THEME_COLORS.surface, borderColor: PROFILE_THEME_COLORS.outlineVariant }}
   >
-    <Upload size={16} color="#1A2E2A" strokeWidth={2.5} />
+    <Upload size={16} color={PROFILE_THEME_COLORS.onBackground} strokeWidth={2.5} />
   </Pressable>
 )
 
@@ -119,7 +123,7 @@ export const NavbarUserAvatar = ({ url, name }: { url?: string | null; name?: st
   return (
     <View
       className="h-9 w-9 overflow-hidden rounded-full"
-      style={{ backgroundColor: '#0F6E56' }}
+      style={{ backgroundColor: PROFILE_THEME_COLORS.primary }}
     >
       {url ? (
         <Image source={{ uri: url }} className="h-full w-full" resizeMode="cover" />
@@ -127,7 +131,7 @@ export const NavbarUserAvatar = ({ url, name }: { url?: string | null; name?: st
         <View className="h-full w-full items-center justify-center">
           <Text 
             style={{ 
-              color: '#FFFFFF', 
+              color: PROFILE_THEME_COLORS.surface, 
               fontFamily: SCREEN_FONTS.headline, 
               fontSize: 14,
               lineHeight: 18
@@ -149,11 +153,11 @@ export const NavbarDoneButton = ({ onPress, disabled = false }: { onPress: () =>
     }}
     disabled={disabled}
     className="rounded-full px-3.5 py-1.5"
-    style={{ backgroundColor: '#E1F5EE', opacity: disabled ? 0.6 : 1 }}
+    style={{ backgroundColor: PROFILE_THEME_COLORS.secondaryContainer, opacity: disabled ? 0.6 : 1 }}
   >
     <Text
       style={{
-        color: '#0F6E56',
+        color: PROFILE_THEME_COLORS.primary,
         fontFamily: SCREEN_FONTS.label,
         fontSize: 11,
         textTransform: 'uppercase',
@@ -168,7 +172,7 @@ export const NavbarStepCounter = ({ current, total }: { current: number; total: 
   <View className="h-9 items-center justify-center">
     <Text
       style={{
-        color: '#B4B2A9',
+        color: PROFILE_THEME_COLORS.outline,
         fontFamily: SCREEN_FONTS.label,
         fontSize: 11,
       }}

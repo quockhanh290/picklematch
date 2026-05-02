@@ -52,7 +52,7 @@ const ONBOARDING_THEME = {
   text: PROFILE_THEME_COLORS.onSurface,
   textMuted: PROFILE_THEME_COLORS.onSurfaceVariant,
   background: PROFILE_THEME_COLORS.background,
-  white: '#FFFFFF',
+  white: PROFILE_THEME_COLORS.surface,
 }
 
 function withAlpha(hex: string, alpha: number): string {

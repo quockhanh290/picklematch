@@ -198,7 +198,7 @@ export function SessionListCard({
           <Text
             className="ml-1.5"
             style={{
-              color: PROFILE_THEME_COLORS.onSurfaceVariant,
+              color: item.priceLabel === 'Miễn phí' ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.onSurfaceVariant,
               fontFamily: SCREEN_FONTS.label,
               fontSize: 12,
               lineHeight: 18,

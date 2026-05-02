@@ -52,6 +52,18 @@ export function buildLiveFamiliarCourts(
     const court = session.slot?.court
     if (!court) return
 
+    // Ensure session is actually open and has slots left
+    const confirmedCount = (session.session_players ?? []).filter(sp => sp.status === 'confirmed').length
+    // Host is always included, so active players = confirmed players (excluding host if they are already in confirmed) + 1 if host not in confirmed
+    const participantIds = new Set(session.session_players.filter(sp => sp.status === 'confirmed').map(p => p.player_id))
+    const activePlayers = participantIds.has(session.host_id) ? participantIds.size : participantIds.size + 1
+    const slotsLeft = Math.max(session.max_players - activePlayers, 0)
+
+    const startTime = session.slot?.start_time
+    const isStarted = startTime ? Date.parse(startTime) < Date.now() : false
+
+    if (session.status !== 'open' || slotsLeft <= 0 || isStarted) return
+
     const current = grouped.get(court.id)
     if (current) {
       current.openMatches += 1

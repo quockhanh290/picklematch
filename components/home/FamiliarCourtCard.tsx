@@ -30,26 +30,28 @@ export function FamiliarCourtCard({ item, onPress }: { item: FamiliarCourt; onPr
       >
         <View className="flex-1 justify-between bg-black/15" style={{ padding: SPACING.xl, borderRadius: RADIUS.lg }}>
           <View className="flex-row items-start justify-end">
-            <View
-              className="flex-row items-center"
-              style={{
-                borderRadius: RADIUS.full,
-                borderWidth: BORDER.base,
-                paddingHorizontal: SPACING.lg,
-                paddingVertical: SPACING.sm,
-                borderColor: PROFILE_THEME_COLORS.primaryFixed,
-                backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
-                ...SHADOW.sm,
-              }}
-            >
-              <Zap size={16} color={PROFILE_THEME_COLORS.primary} strokeWidth={3} />
-              <Text
-                className="ml-2 text-sm uppercase"
-                style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.headline, letterSpacing: 0.5 }}
+            {item.openMatches > 0 && (
+              <View
+                className="flex-row items-center"
+                style={{
+                  borderRadius: RADIUS.full,
+                  borderWidth: BORDER.base,
+                  paddingHorizontal: SPACING.lg,
+                  paddingVertical: SPACING.sm,
+                  borderColor: PROFILE_THEME_COLORS.primaryFixed,
+                  backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest,
+                  ...SHADOW.sm,
+                }}
               >
-                {item.openMatches} kèo đang mở
-              </Text>
-            </View>
+                <Zap size={16} color={PROFILE_THEME_COLORS.primary} strokeWidth={3} />
+                <Text
+                  className="ml-2 text-sm uppercase"
+                  style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.headline, letterSpacing: 0.5 }}
+                >
+                  {item.openMatches} kèo đang mở
+                </Text>
+              </View>
+            )}
           </View>
 
           <View

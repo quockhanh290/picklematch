@@ -31,7 +31,7 @@ export function HomeGreetingHeader({
   return (
     <View
       style={{
-        paddingTop: insets.top + 20,
+        paddingTop: insets.top + SPACING.xl,
         paddingHorizontal: SPACING.xl,
         paddingBottom: 16,
         backgroundColor: PROFILE_THEME_COLORS.background,

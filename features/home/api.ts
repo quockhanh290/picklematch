@@ -206,9 +206,10 @@ export async function fetchHomeDataApi(userId: string | null): Promise<HomeData>
   const uniqueSessionsMap = new Map(allFetchedSessions.map(s => [s.id, s]))
   const allSessions = Array.from(uniqueSessionsMap.values())
 
-  const totalOpenSessions = allSessions.filter(s => s.status === 'open')
+  // Only sessions with 'open' status should be counted for "kèo đang mở" chip
+  const openSessionsOnly = allSessions.filter(s => s.status === 'open')
 
-  const openSessions = totalOpenSessions.filter(session => {
+  const openSessions = openSessionsOnly.filter(session => {
     if (!userId) return true
     const isJoined = session.host_id === userId || session.session_players.some(p => p.player_id === userId)
     const hasPendingRequest = pendingJoinRequestIds.has(session.id)
@@ -342,7 +343,7 @@ export async function fetchHomeDataApi(userId: string | null): Promise<HomeData>
     playerStats: nextPlayerStats,
     pendingMatches: nextPendingMatches,
     postMatchActions: nextPostMatchActions,
-    familiarCourts: buildLiveFamiliarCourts(totalOpenSessions, {
+    familiarCourts: buildLiveFamiliarCourts(allSessions, {
       favoriteCourtIds,
       favoriteCourtsMeta,
       courtsRaw,

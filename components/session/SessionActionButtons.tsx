@@ -27,19 +27,19 @@ interface SessionActionButtonsProps {
 const PartialPlayerWarning = ({ count, max }: { count: number; max: number }) => (
   <View 
     style={{ 
-      marginBottom: 12, 
-      padding: 12, 
+      marginBottom: SPACING.md, 
+      padding: SPACING.md, 
       borderRadius: RADIUS.md, 
-      backgroundColor: '#FFF9E6', 
+      backgroundColor: PROFILE_THEME_SEMANTIC.warningBg, 
       borderWidth: 1, 
-      borderColor: '#FFE082',
+      borderColor: PROFILE_THEME_SEMANTIC.warningStrong,
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 10
+      gap: SPACING.sm
     }}
   >
-    <ShieldAlert size={20} color="#F57C00" />
-    <Text style={{ flex: 1, fontSize: 13, fontFamily: SCREEN_FONTS.body, color: '#5D4037' }}>
+    <ShieldAlert size={20} color={PROFILE_THEME_SEMANTIC.warningStrong} />
+    <Text style={{ flex: 1, fontSize: 13, fontFamily: SCREEN_FONTS.body, color: PROFILE_THEME_SEMANTIC.warningText }}>
       Trận đấu chỉ có {count}/{max} người. Nếu trận đấu vẫn diễn ra, bạn có thể tiếp tục báo kết quả.
     </Text>
   </View>
@@ -421,11 +421,11 @@ export const SessionActionButtons: React.FC<SessionActionButtonsProps> = ({
     }
 
     if (isFinalized) {
-      const label = hasRated ? 'XEM KẾT QUẢ TRẬN ĐẤU' : 'ĐÁNH GIÁ TRẬN ĐẤU'
+      const label = hasRated ? 'XEM KẾT QUẢ TRẬN' : 'ĐÁNH GIÁ TRẬN ĐẤU'
       const action = !hasRated 
         ? () => router.push({ pathname: '/rate-session/[id]' as any, params: { id } })
         : () => router.push({ pathname: '/session/[id]/confirm-result' as any, params: { id } })
-      const Icon = hasRated ? CheckCheck : Star
+      const Icon = hasRated ? Trophy : Star
 
       return (
         <TouchableOpacity
@@ -455,9 +455,9 @@ export const SessionActionButtons: React.FC<SessionActionButtonsProps> = ({
     const hasConfirmed = viewerSessionPlayer?.result_confirmation_status === 'confirmed' || viewerSessionPlayer?.result_confirmation_status === 'disputed'
 
     if (isPendingConfirm || (hasConfirmed && !isFinalized)) {
-      const label = hasConfirmed ? 'XEM KẾT QUẢ' : 'XÁC NHẬN KẾT QUẢ'
+      const label = hasConfirmed ? 'XEM KẾT QUẢ TRẬN' : 'XÁC NHẬN KẾT QUẢ'
       const action = () => router.push({ pathname: '/session/[id]/confirm-result' as any, params: { id } })
-      const Icon = hasConfirmed ? CheckCircle2 : PencilLine
+      const Icon = hasConfirmed ? Trophy : PencilLine
 
       return (
         <TouchableOpacity

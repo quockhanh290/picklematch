@@ -450,7 +450,7 @@ function SessionResultMetaCard({
             <Text style={{ color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.label, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>
               CHI PHÍ
             </Text>
-            <Text style={{ color: PROFILE_THEME_COLORS.primary, fontFamily: SCREEN_FONTS.headline, fontSize: 26, lineHeight: 28 }}>
+            <Text style={{ color: price <= 0 ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.onSurface, fontFamily: SCREEN_FONTS.headline, fontSize: 26, lineHeight: 28 }}>
               {priceLabel}
             </Text>
             {priceLabel !== 'Miễn phí' && (
@@ -794,31 +794,12 @@ export default function MatchResultEntryScreen() {
           }}
         >
           <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 15, color: PROFILE_THEME_COLORS.onSurface, textTransform: 'uppercase' }}>
-            Hủy
+            Quay lại
           </Text>
         </TouchableOpacity>
 
         {isSubmitted ? (
-          <>
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => router.back()}
-              style={{
-                flex: 1,
-                height: 50,
-                borderRadius: RADIUS.full,
-                backgroundColor: PROFILE_THEME_COLORS.surface,
-                borderWidth: BORDER.medium,
-                borderColor: PROFILE_THEME_COLORS.outlineVariant,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Text style={{ fontFamily: SCREEN_FONTS.cta, fontSize: 15, color: PROFILE_THEME_COLORS.onSurface, textTransform: 'uppercase' }}>
-                Xong
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+          <TouchableOpacity
               activeOpacity={0.8}
               onPress={onShare}
               style={{
@@ -837,7 +818,6 @@ export default function MatchResultEntryScreen() {
                 Chia sẻ
               </Text>
             </TouchableOpacity>
-          </>
         ) : (
           <TouchableOpacity
             activeOpacity={0.8}

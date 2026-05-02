@@ -50,8 +50,8 @@ type SkillHeroColors = {
 export const PROFILE_SKILL_HERO_TONE: Required<SkillHeroColors> = {
   gradientStart: PROFILE_THEME_COLORS.primary,
   gradientEnd: PROFILE_THEME_COLORS.surfaceTint,
-  bubble: 'rgba(255,255,255,0.14)',
-  watermark: 'rgba(255,255,255,0.14)',
+  bubble: PROFILE_THEME_COLORS.heroChipBg,
+  watermark: PROFILE_THEME_COLORS.heroChipBg,
   eloChipBg: PROFILE_THEME_COLORS.primaryFixed,
   eloChipText: PROFILE_THEME_COLORS.onPrimaryFixed,
   title: PROFILE_THEME_COLORS.onPrimary,
@@ -198,11 +198,11 @@ export function ProfileSkillHero({
           className="absolute right-5 top-5 rounded-full px-2.5 py-1 border shadow-sm" 
           style={{ 
             backgroundColor: PROFILE_THEME_COLORS.primary,
-            borderColor: '#FFFFFF',
+            borderColor: PROFILE_THEME_COLORS.surface,
             zIndex: 10,
           }}
         >
-          <Text style={{ color: '#FFFFFF', fontFamily: SCREEN_FONTS.bold, fontSize: 11 }}>{elo} ELO</Text>
+          <Text style={{ color: PROFILE_THEME_COLORS.onPrimary, fontFamily: SCREEN_FONTS.bold, fontSize: 11 }}>{elo} ELO</Text>
         </View>
       ) : null}
 

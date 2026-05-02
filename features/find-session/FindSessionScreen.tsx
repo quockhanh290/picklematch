@@ -290,7 +290,7 @@ export function FindSessionScreen() {
               colors={[PROFILE_THEME_COLORS.primary]}
               title="Săn kèo mới..."
               titleColor={PROFILE_THEME_COLORS.onSurfaceVariant}
-              progressViewOffset={20}
+              progressViewOffset={SPACING.xl}
             />
           }
           alwaysBounceVertical={true}

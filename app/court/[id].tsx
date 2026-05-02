@@ -31,7 +31,7 @@ import {
 } from 'lucide-react-native'
 import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/profileTheme'
 import { SCREEN_FONTS } from '@/constants/typography'
-import { RADIUS } from '@/constants/screenLayout'
+import { RADIUS, SPACING, BORDER, SHADOW } from '../../constants/screenLayout'
 import { fetchCourtDetailApi, CourtDetail, CourtReview } from '@/features/court/api'
 import { isCurrentlyOpen } from '@/lib/utils/court'
 import { AppLoading } from '@/components/design'
@@ -156,11 +156,15 @@ export default function CourtDetailScreen() {
   })
 
   const backButtonBackgroundStyle = useAnimatedStyle(() => {
-    const bgOpacity = interpolate(scrollY.value, [100, 200], [0, 1], Extrapolate.CLAMP)
     return {
-      backgroundColor: `rgba(255, 255, 255, ${bgOpacity})`,
-      borderWidth: bgOpacity > 0.5 ? 1 : 0,
-      borderColor: PROFILE_THEME_COLORS.outlineVariant
+      backgroundColor: PROFILE_THEME_COLORS.surface,
+      borderWidth: 1,
+      borderColor: PROFILE_THEME_COLORS.outlineVariant,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3
     }
   })
 
@@ -218,19 +222,19 @@ export default function CourtDetailScreen() {
         
         {/* Floating Header */}
         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 100, height: insets.top + 60 }}>
-          <Animated.View style={[{ position: 'absolute', inset: 0, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: PROFILE_THEME_COLORS.outlineVariant }, headerAnimatedStyle]} />
-          <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: insets.top }}>
+          <Animated.View style={[{ position: 'absolute', inset: 0, backgroundColor: PROFILE_THEME_COLORS.surface, borderBottomWidth: 1, borderBottomColor: PROFILE_THEME_COLORS.outlineVariant }, headerAnimatedStyle]} />
+          <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: SPACING.lg, paddingTop: insets.top }}>
             <TouchableOpacity onPress={() => router.back()}>
-              <Animated.View style={[{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.8)' }, backButtonBackgroundStyle]}>
-                <ChevronLeft size={24} color={PROFILE_THEME_COLORS.onSurface} />
+              <Animated.View style={[{ width: 40, height: 40, borderRadius: RADIUS.full, alignItems: 'center', justifyContent: 'center' }, backButtonBackgroundStyle]}>
+                <ChevronLeft size={24} color={PROFILE_THEME_COLORS.primary} />
               </Animated.View>
             </TouchableOpacity>
             <Animated.View style={[{ flex: 1, marginHorizontal: 12 }, headerAnimatedStyle]}>
               <Text numberOfLines={1} style={{ fontFamily: SCREEN_FONTS.headlineBlack, fontSize: 16, textTransform: 'uppercase' }}>{court.name}</Text>
             </Animated.View>
             <View style={{ flexDirection: 'row', gap: 8 }}>
-              <TouchableOpacity onPress={handleShare} style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.8)', borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant }}>
-                <Share2 size={20} color={PROFILE_THEME_COLORS.onSurface} />
+              <TouchableOpacity onPress={handleShare} style={[{ width: 40, height: 40, borderRadius: RADIUS.full, alignItems: 'center', justifyContent: 'center', backgroundColor: PROFILE_THEME_COLORS.surface, borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 3 }]}>
+                <Share2 size={20} color={PROFILE_THEME_COLORS.primary} />
               </TouchableOpacity>
             </View>
           </View>
@@ -258,8 +262,8 @@ export default function CourtDetailScreen() {
               )}
               keyExtractor={(_, idx) => idx.toString()}
             />
-            <View style={{ position: 'absolute', bottom: 16, right: 16, backgroundColor: 'rgba(0,0,0,0.6)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 }}>
-              <Text style={{ color: '#FFF', fontFamily: SCREEN_FONTS.label, fontSize: 12 }}>{court.images.length} ẢNH</Text>
+            <View style={{ position: 'absolute', bottom: SPACING.lg, right: SPACING.lg, backgroundColor: 'rgba(0,0,0,0.6)', paddingHorizontal: SPACING.md, paddingVertical: SPACING.xs, borderRadius: RADIUS.xl }}>
+              <Text style={{ color: PROFILE_THEME_COLORS.surface, fontFamily: SCREEN_FONTS.label, fontSize: 12 }}>{court.images.length} ẢNH</Text>
             </View>
           </View>
 
@@ -268,8 +272,8 @@ export default function CourtDetailScreen() {
             <View style={{ marginBottom: 24 }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
                 <Text style={{ flex: 1, color: PROFILE_THEME_COLORS.onBackground, fontFamily: SCREEN_FONTS.headlineBlack, fontSize: 28, textTransform: 'uppercase', lineHeight: 32 }}>{court.name}</Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF9C4', paddingHorizontal: 8, paddingVertical: 4, borderRadius: RADIUS.md, borderWidth: 1, borderColor: '#FBC02D' }}>
-                <Star size={14} color="#FBC02D" fill="#FBC02D" />
+              <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: PROFILE_THEME_SEMANTIC.warningBg, paddingHorizontal: SPACING.sm, paddingVertical: 4, borderRadius: RADIUS.md, borderWidth: 1, borderColor: PROFILE_THEME_SEMANTIC.warningStrong }}>
+                <Star size={14} color={PROFILE_THEME_SEMANTIC.warningStrong} fill={PROFILE_THEME_SEMANTIC.warningStrong} />
                 <Text style={{ marginLeft: 4, fontFamily: SCREEN_FONTS.headline, fontSize: 14 }}>{court.rating.toFixed(1)}</Text>
                 <Text style={{ marginLeft: 4, fontFamily: SCREEN_FONTS.body, fontSize: 12, color: PROFILE_THEME_COLORS.onSurfaceVariant }}>({court.rating_count})</Text>
               </View>
@@ -375,9 +379,9 @@ export default function CourtDetailScreen() {
         </Animated.ScrollView>
 
         {/* REVIEWS LIST - CUSTOM ANIMATED VIEW TO ALLOW MODAL OVERLAY */}
-        <Animated.View style={[{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#FFF', zIndex: 500 }, reviewsAnimatedStyle]}>
+        <Animated.View style={[{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: PROFILE_THEME_COLORS.surface, zIndex: 500 }, reviewsAnimatedStyle]}>
           <View style={{ flex: 1 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 24, paddingTop: Math.max(insets.top, 16), paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: PROFILE_THEME_COLORS.outlineVariant }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: SPACING.xl, paddingTop: Math.max(insets.top, SPACING.lg), paddingBottom: SPACING.lg, borderBottomWidth: 1, borderBottomColor: PROFILE_THEME_COLORS.outlineVariant }}>
               <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 18 }}>Tất cả đánh giá ({court.reviews.length})</Text>
               <TouchableOpacity onPress={() => setReviewsVisible(false)} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 22, backgroundColor: PROFILE_THEME_COLORS.surfaceVariant }}>
                 <X color={PROFILE_THEME_COLORS.onSurface} size={24} />
@@ -394,7 +398,7 @@ export default function CourtDetailScreen() {
         </Animated.View>
 
         {/* 7. UPDATED CTA: CREATE SESSION */}
-        <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: 24, paddingTop: 16, paddingBottom: Math.max(insets.bottom, 16), backgroundColor: '#FFF', borderTopWidth: 1, borderTopColor: PROFILE_THEME_COLORS.outlineVariant, zIndex: 10 }}>
+        <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: SPACING.xl, paddingTop: SPACING.lg, paddingBottom: Math.max(insets.bottom, SPACING.lg), backgroundColor: PROFILE_THEME_COLORS.surface, borderTopWidth: 1, borderTopColor: PROFILE_THEME_COLORS.outlineVariant, zIndex: 10 }}>
           <TouchableOpacity 
             onPress={() => router.push({
               pathname: '/create-session',
@@ -405,18 +409,18 @@ export default function CourtDetailScreen() {
             } as any)} 
             style={{ backgroundColor: PROFILE_THEME_COLORS.primary, height: 58, borderRadius: RADIUS.lg, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', shadowColor: PROFILE_THEME_COLORS.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 }}
           >
-            <PlusCircle size={22} color="#FFF" strokeWidth={3} />
-            <Text style={{ color: '#FFF', fontFamily: SCREEN_FONTS.headlineBlack, fontSize: 16, textTransform: 'uppercase', letterSpacing: 0.8, marginLeft: 10 }}>Tạo kèo tại sân này</Text>
+            <PlusCircle size={22} color={PROFILE_THEME_COLORS.surface} strokeWidth={3} />
+            <Text style={{ color: PROFILE_THEME_COLORS.surface, fontFamily: SCREEN_FONTS.headlineBlack, fontSize: 16, textTransform: 'uppercase', letterSpacing: 0.8, marginLeft: 10 }}>Tạo kèo tại sân này</Text>
           </TouchableOpacity>
         </View>
 
         {/* IMAGE VIEWER MODAL - Placed at the end to ensure it's on top of EVERYTHING */}
         <Modal visible={viewerVisible} transparent animationType="fade" onRequestClose={closeViewer} statusBarTranslucent>
           <Animated.View style={[{ flex: 1, backgroundColor: '#000' }, animatedBackgroundStyle]}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 24, paddingTop: Math.max(insets.top, 16), paddingBottom: 16, zIndex: 100 }}>
-              <Text style={{ color: '#FFF', fontFamily: SCREEN_FONTS.headline, fontSize: 16 }}>{selectedImageIndex + 1} / {viewerImages.length}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: SPACING.xl, paddingTop: Math.max(insets.top, SPACING.lg), paddingBottom: SPACING.lg, zIndex: 100 }}>
+              <Text style={{ color: PROFILE_THEME_COLORS.surface, fontFamily: SCREEN_FONTS.headline, fontSize: 16 }}>{selectedImageIndex + 1} / {viewerImages.length}</Text>
               <TouchableOpacity onPress={closeViewer} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.2)' }}>
-                <X color="#FFF" size={26} />
+                <X color={PROFILE_THEME_COLORS.surface} size={26} />
               </TouchableOpacity>
             </View>
             <GestureDetector gesture={panGesture}>
