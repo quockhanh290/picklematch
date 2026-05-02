@@ -26,10 +26,10 @@ export function ExpandingCreateButton({ isFAB = false }: ExpandingCreateButtonPr
   
   // Dimensions based on context
   const size = isFAB ? 60 : 44
-  const expandedWidth = isFAB ? 180 : 160 // Reduced width as requested
+  const expandedWidth = isFAB ? 180 : 120 // Reduced width to prevent header wrap
   const iconSize = isFAB ? 28 : 20
   const fontSize = isFAB ? 16 : 13
-  const paddingRight = isFAB ? 20 : 16
+  const paddingRight = isFAB ? 20 : 12
 
   const width = useSharedValue(size)
   const opacity = useSharedValue(0)

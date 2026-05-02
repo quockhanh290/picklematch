@@ -30,6 +30,8 @@ export function MainHeader({ title, subtitle, rightElement, style }: MainHeaderP
       <View className="flex-row items-center justify-between">
         <View className="flex-1 pr-4">
           <Text
+            numberOfLines={1}
+            adjustsFontSizeToFit
             style={{
               color: PROFILE_THEME_COLORS.onBackground,
               fontFamily: SCREEN_FONTS.headlineBlack,
