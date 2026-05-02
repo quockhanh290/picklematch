@@ -79,8 +79,8 @@ declare
   v_loser_team_count integer := 0;
   v_floor constant integer := 800;
   v_ceiling constant integer := 2000;
-  v_required_players constant integer := 4;
-  v_players_per_team constant integer := 2;
+  v_players_per_team integer;
+  v_required_players integer;
 begin
   v_uid := auth.uid();
   v_role := current_setting('request.jwt.claim.role', true);
@@ -136,12 +136,16 @@ begin
   from public.session_players sp
   where sp.session_id = p_session_id;
 
-  if v_confirmed_count <> v_required_players or v_team_ready_count <> v_required_players then
+  -- Support ONLY 4 players for ranked matches
+  if v_confirmed_count <> 4 or v_team_ready_count <> 4 then
     update public.sessions
     set elo_skip_reason = 'skipped_insufficient_players'
     where id = p_session_id;
     return 'skipped_insufficient_players';
   end if;
+
+  v_required_players := 4;
+  v_players_per_team := 2;
 
   if v_draw_count > 0 then
     -- v1: draw skipped. v2 candidate: process with S = 0.5
@@ -251,7 +255,15 @@ begin
     set
       current_elo = fv.new_elo,
       elo = fv.new_elo,
-      elo_matches_played = coalesce(p.elo_matches_played, 0) + 1
+      elo_matches_played = coalesce(p.elo_matches_played, 0) + 1,
+      placement_matches_played = case 
+        when coalesce(p.is_provisional, false) and coalesce(p.placement_matches_played, 0) < 5 then coalesce(p.placement_matches_played, 0) + 1
+        else p.placement_matches_played
+      end,
+      is_provisional = case
+        when coalesce(p.is_provisional, false) and (coalesce(p.placement_matches_played, 0) + 1) < 5 then true
+        else false
+      end
     from final_values fv
     where p.id = fv.player_id
     returning

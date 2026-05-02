@@ -160,6 +160,8 @@ export const STRINGS = {
     view_result: 'Xem kết quả',
     confirm_level: 'XÁC NHẬN MỨC NÀY',
     submit_error: 'Không thể lưu kết quả lúc này. Vui lòng thử lại sau ít phút.',
+    placement_title: 'QUY TẮC ĐÁNH GIÁ',
+    placement_note: 'Bạn sẽ trải qua 5 trận đấu thử thách (Placement) để hệ thống xác định trình độ chính xác. Chỉ các trận đôi (4 người) mới được tính điểm vào thứ hạng Elo.',
   },
   auth: {
     login_title: 'Đăng nhập',

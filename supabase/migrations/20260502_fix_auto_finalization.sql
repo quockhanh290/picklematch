@@ -356,6 +356,16 @@ begin
     elo_processed = false
   where id = p_session_id;
 
+  -- 5. Process Elo immediately
+  begin
+    perform public.process_match_elo(p_session_id);
+  exception when others then
+    -- Don't block finalization if Elo fails, but mark it
+    update public.sessions 
+    set elo_skip_reason = 'error: ' || SQLERRM
+    where id = p_session_id;
+  end;
+
   return 'finalized';
 end;
 $$;

@@ -245,13 +245,19 @@ export default function CourtDetailScreen() {
         >
           {/* 1. PHOTO GALLERY */}
           <View>
-            <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} style={{ width: SCREEN_WIDTH, height: 280 }}>
-              {court.images.map((img, idx) => (
-                <TouchableOpacity key={idx} activeOpacity={0.9} onPress={() => openImageViewer(idx, court.images)} style={{ width: SCREEN_WIDTH, height: 280 }}>
-                  <Image source={{ uri: img }} style={{ width: '100%', height: '100%' }} contentFit="cover" />
+            <FlatList
+              data={court.images}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              style={{ width: SCREEN_WIDTH, height: 280 }}
+              renderItem={({ item, index }) => (
+                <TouchableOpacity activeOpacity={0.9} onPress={() => openImageViewer(index, court.images)} style={{ width: SCREEN_WIDTH, height: 280 }}>
+                  <Image source={{ uri: item }} style={{ width: '100%', height: '100%' }} contentFit="cover" />
                 </TouchableOpacity>
-              ))}
-            </ScrollView>
+              )}
+              keyExtractor={(_, idx) => idx.toString()}
+            />
             <View style={{ position: 'absolute', bottom: 16, right: 16, backgroundColor: 'rgba(0,0,0,0.6)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 }}>
               <Text style={{ color: '#FFF', fontFamily: SCREEN_FONTS.label, fontSize: 12 }}>{court.images.length} ẢNH</Text>
             </View>

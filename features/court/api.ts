@@ -35,22 +35,27 @@ export type CourtDetail = {
 }
 
 export async function fetchCourtDetailApi(courtId: string): Promise<CourtDetail | null> {
-  // 1. Fetch court details
-  const { data, error } = await supabase
+  // 1. Prepare queries
+  const courtPromise = supabase
     .from('courts')
-    .select('*')
+    .select('id, name, address, thumbnail_url, images, rating, rating_count, google_maps_url, phone, reviews_data, hours_open, hours_close')
     .eq('id', courtId)
     .single()
 
-  if (error || !data) return null
-
-  // 2. Fetch active sessions count for this court
-  const { count: activeSessionsCount } = await supabase
+  const sessionsCountPromise = supabase
     .from('sessions')
     .select('id, slot:slot_id!inner(court_id, start_time)', { count: 'exact', head: true })
     .eq('slot.court_id', courtId)
     .eq('status', 'open')
     .gte('slot.start_time', new Date().toISOString())
+
+  // 2. Fetch in parallel
+  const [courtResult, sessionsCountResult] = await Promise.all([courtPromise, sessionsCountPromise])
+
+  const { data, error } = courtResult
+  const activeSessionsCount = sessionsCountResult.count
+
+  if (error || !data) return null
 
   // Process Images
   const rawImages = (data.images && Array.isArray(data.images)) ? data.images : []

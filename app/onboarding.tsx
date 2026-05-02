@@ -55,6 +55,14 @@ const ONBOARDING_THEME = {
   white: '#FFFFFF',
 }
 
+function withAlpha(hex: string, alpha: number): string {
+  if (!hex || !hex.startsWith('#')) return hex
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
+}
+
 export default function OnboardingScreen() {
   const insets = useSafeAreaInsets()
   const { width } = useWindowDimensions()
@@ -495,6 +503,27 @@ export default function OnboardingScreen() {
                 }}
               >
                 {resultPreview.elo}
+              </Text>
+            </View>
+
+            {/* Placement Note Section */}
+            <View 
+              className="mt-4 rounded-2xl p-4" 
+              style={{ 
+                backgroundColor: withAlpha(PROFILE_THEME_COLORS.primary, 0.05),
+                borderWidth: 1,
+                borderColor: withAlpha(PROFILE_THEME_COLORS.primary, 0.1),
+                width: '100%'
+              }}
+            >
+              <View className="flex-row items-center mb-2">
+                <Timer size={14} color={PROFILE_THEME_COLORS.primary} />
+                <Text style={{ marginLeft: 6, color: PROFILE_THEME_COLORS.primary, fontSize: 11, fontFamily: SCREEN_FONTS.headline, textTransform: 'uppercase' }}>
+                  {STRINGS.onboarding.placement_title}
+                </Text>
+              </View>
+              <Text style={{ color: ONBOARDING_THEME.textMuted, fontSize: 12, lineHeight: 18, fontFamily: SCREEN_FONTS.body }}>
+                {STRINGS.onboarding.placement_note}
               </Text>
             </View>
 
