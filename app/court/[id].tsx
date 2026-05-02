@@ -33,6 +33,7 @@ import { PROFILE_THEME_COLORS, PROFILE_THEME_SEMANTIC } from '@/constants/profil
 import { SCREEN_FONTS } from '@/constants/typography'
 import { RADIUS } from '@/constants/screenLayout'
 import { fetchCourtDetailApi, CourtDetail, CourtReview } from '@/features/court/api'
+import { isCurrentlyOpen } from '@/lib/utils/court'
 import { AppLoading } from '@/components/design'
 import { Image } from 'expo-image'
 import Animated, { 
@@ -42,11 +43,12 @@ import Animated, {
   Extrapolate,
   useAnimatedScrollHandler,
   withSpring,
+  withTiming,
   runOnJS
 } from 'react-native-reanimated'
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler'
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window')
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
 
 function withAlpha(hex: string, alpha: number): string {
   if (!hex || !hex.startsWith('#')) return hex
@@ -69,18 +71,23 @@ export default function CourtDetailScreen() {
   const [viewerVisible, setViewerVisible] = useState(false)
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [reviewsVisible, setReviewsVisible] = useState(false)
-  const [activeGallery, setActiveGallery] = useState<'main' | 'reviews'>('main')
+  const [viewerImages, setViewerImages] = useState<string[]>([])
 
   // Reanimated values
   const scrollY = useSharedValue(0)
   const translateY = useSharedValue(0)
   const opacity = useSharedValue(1)
+  const reviewsProgress = useSharedValue(0)
 
   useEffect(() => {
     if (id) {
       loadCourtDetail()
     }
   }, [id])
+
+  useEffect(() => {
+    reviewsProgress.value = withTiming(reviewsVisible ? 1 : 0, { duration: 300 })
+  }, [reviewsVisible])
 
   async function loadCourtDetail(isRefresh = false) {
     try {
@@ -127,9 +134,9 @@ export default function CourtDetailScreen() {
     } as any)
   }
 
-  const openImageViewer = (index: number, gallery: 'main' | 'reviews' = 'main') => {
+  const openImageViewer = (index: number, images: string[]) => {
+    setViewerImages(images)
     setSelectedImageIndex(index)
-    setActiveGallery(gallery)
     translateY.value = 0
     opacity.value = 1
     setViewerVisible(true)
@@ -181,6 +188,12 @@ export default function CourtDetailScreen() {
     return { opacity: opacity.value }
   })
 
+  const reviewsAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateY: interpolate(reviewsProgress.value, [0, 1], [SCREEN_HEIGHT, 0]) }]
+    }
+  })
+
   if (loading) return <AppLoading fullScreen />
 
   if (!court) {
@@ -196,10 +209,7 @@ export default function CourtDetailScreen() {
     )
   }
 
-  const reviewImages = court.reviews.flatMap(r => r.images || []).filter(Boolean)
-  const currentImages = activeGallery === 'main' 
-    ? (court.images.length > 0 ? court.images : [court.thumbnail_url].filter(Boolean) as string[])
-    : reviewImages
+  // Images for the viewer are now passed directly to openImageViewer and stored in viewerImages state
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -237,7 +247,7 @@ export default function CourtDetailScreen() {
           <View>
             <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} style={{ width: SCREEN_WIDTH, height: 280 }}>
               {court.images.map((img, idx) => (
-                <TouchableOpacity key={idx} activeOpacity={0.9} onPress={() => openImageViewer(idx, 'main')} style={{ width: SCREEN_WIDTH, height: 280 }}>
+                <TouchableOpacity key={idx} activeOpacity={0.9} onPress={() => openImageViewer(idx, court.images)} style={{ width: SCREEN_WIDTH, height: 280 }}>
                   <Image source={{ uri: img }} style={{ width: '100%', height: '100%' }} contentFit="cover" />
                 </TouchableOpacity>
               ))}
@@ -252,20 +262,31 @@ export default function CourtDetailScreen() {
             <View style={{ marginBottom: 24 }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
                 <Text style={{ flex: 1, color: PROFILE_THEME_COLORS.onBackground, fontFamily: SCREEN_FONTS.headlineBlack, fontSize: 28, textTransform: 'uppercase', lineHeight: 32 }}>{court.name}</Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF9C4', paddingHorizontal: 8, paddingVertical: 4, borderRadius: RADIUS.md, borderWidth: 1, borderColor: '#FBC02D' }}>
-                  <Star size={14} color="#FBC02D" fill="#FBC02D" />
-                  <Text style={{ marginLeft: 4, fontFamily: SCREEN_FONTS.headline, fontSize: 14 }}>{court.rating.toFixed(1)}</Text>
-                </View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF9C4', paddingHorizontal: 8, paddingVertical: 4, borderRadius: RADIUS.md, borderWidth: 1, borderColor: '#FBC02D' }}>
+                <Star size={14} color="#FBC02D" fill="#FBC02D" />
+                <Text style={{ marginLeft: 4, fontFamily: SCREEN_FONTS.headline, fontSize: 14 }}>{court.rating.toFixed(1)}</Text>
+                <Text style={{ marginLeft: 4, fontFamily: SCREEN_FONTS.body, fontSize: 12, color: PROFILE_THEME_COLORS.onSurfaceVariant }}>({court.rating_count})</Text>
+              </View>
               </View>
 
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
                 <MapPin size={14} color={PROFILE_THEME_COLORS.onSurfaceVariant} />
                 <Text numberOfLines={2} style={{ flex: 1, marginLeft: 8, color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, fontSize: 14 }}>{court.address}</Text>
               </View>
-
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
                 <Clock size={14} color={PROFILE_THEME_COLORS.onSurfaceVariant} />
-                <Text style={{ marginLeft: 8, color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, fontSize: 14 }}>Giờ mở cửa: <Text style={{ fontFamily: SCREEN_FONTS.headline, color: PROFILE_THEME_COLORS.onSurface }}>05:30 - 22:00</Text></Text>
+                <Text style={{ marginLeft: 8, color: PROFILE_THEME_COLORS.onSurfaceVariant, fontFamily: SCREEN_FONTS.body, fontSize: 14 }}>
+                  Giờ mở cửa: <Text style={{ fontFamily: SCREEN_FONTS.headline, color: PROFILE_THEME_COLORS.onSurface }}>
+                    {court.hours_open && court.hours_close ? `${court.hours_open} - ${court.hours_close}` : '06:00 - 22:00'}
+                  </Text>
+                  {'  ·  '}
+                  <Text style={{ 
+                    fontFamily: SCREEN_FONTS.headline, 
+                    color: isCurrentlyOpen(court.hours_open, court.hours_close) ? PROFILE_THEME_COLORS.primary : PROFILE_THEME_COLORS.error 
+                  }}>
+                    {isCurrentlyOpen(court.hours_open, court.hours_close) ? 'ĐANG MỞ' : 'ĐÃ ĐÓNG'}
+                  </Text>
+                </Text>
               </View>
 
               {/* Sub-actions */}
@@ -332,7 +353,7 @@ export default function CourtDetailScreen() {
             >
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -24 }} contentContainerStyle={{ paddingHorizontal: 24, gap: 12 }}>
                 {court.reviews.slice(0, 5).map((rev, idx) => (
-                  <ReviewCard key={idx} review={rev} width={SCREEN_WIDTH * 0.7} compact onPhotoPress={(imgIdx) => openImageViewer(imgIdx, 'reviews')} />
+                  <ReviewCard key={idx} review={rev} width={SCREEN_WIDTH * 0.7} compact onPhotoPress={(imgIdx, imgs) => openImageViewer(imgIdx, imgs)} />
                 ))}
                 {court.reviews.length > 5 && (
                   <TouchableOpacity onPress={() => setReviewsVisible(true)} style={{ width: 100, height: 120, backgroundColor: PROFILE_THEME_COLORS.surfaceVariant, borderRadius: RADIUS.lg, alignItems: 'center', justifyContent: 'center', alignSelf: 'center' }}>
@@ -347,8 +368,27 @@ export default function CourtDetailScreen() {
           </View>
         </Animated.ScrollView>
 
+        {/* REVIEWS LIST - CUSTOM ANIMATED VIEW TO ALLOW MODAL OVERLAY */}
+        <Animated.View style={[{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#FFF', zIndex: 500 }, reviewsAnimatedStyle]}>
+          <View style={{ flex: 1 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 24, paddingTop: Math.max(insets.top, 16), paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: PROFILE_THEME_COLORS.outlineVariant }}>
+              <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 18 }}>Tất cả đánh giá ({court.reviews.length})</Text>
+              <TouchableOpacity onPress={() => setReviewsVisible(false)} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 22, backgroundColor: PROFILE_THEME_COLORS.surfaceVariant }}>
+                <X color={PROFILE_THEME_COLORS.onSurface} size={24} />
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={court.reviews}
+              keyExtractor={(_, idx) => idx.toString()}
+              contentContainerStyle={{ padding: 20, gap: 12, paddingBottom: insets.bottom + 40 }}
+              renderItem={({ item }) => <ReviewCard review={item} width="100%" compact onPhotoPress={(imgIdx, imgs) => openImageViewer(imgIdx, imgs)} />}
+              showsVerticalScrollIndicator={false}
+            />
+          </View>
+        </Animated.View>
+
         {/* 7. UPDATED CTA: CREATE SESSION */}
-        <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: 24, paddingTop: 16, paddingBottom: Math.max(insets.bottom, 16), backgroundColor: '#FFF', borderTopWidth: 1, borderTopColor: PROFILE_THEME_COLORS.outlineVariant }}>
+        <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: 24, paddingTop: 16, paddingBottom: Math.max(insets.bottom, 16), backgroundColor: '#FFF', borderTopWidth: 1, borderTopColor: PROFILE_THEME_COLORS.outlineVariant, zIndex: 10 }}>
           <TouchableOpacity 
             onPress={() => router.push({
               pathname: '/create-session',
@@ -364,11 +404,11 @@ export default function CourtDetailScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* MODALS */}
-        <Modal visible={viewerVisible} transparent animationType="fade" onRequestClose={closeViewer}>
+        {/* IMAGE VIEWER MODAL - Placed at the end to ensure it's on top of EVERYTHING */}
+        <Modal visible={viewerVisible} transparent animationType="fade" onRequestClose={closeViewer} statusBarTranslucent>
           <Animated.View style={[{ flex: 1, backgroundColor: '#000' }, animatedBackgroundStyle]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 24, paddingTop: Math.max(insets.top, 16), paddingBottom: 16, zIndex: 100 }}>
-              <Text style={{ color: '#FFF', fontFamily: SCREEN_FONTS.headline, fontSize: 16 }}>{selectedImageIndex + 1} / {currentImages.length}</Text>
+              <Text style={{ color: '#FFF', fontFamily: SCREEN_FONTS.headline, fontSize: 16 }}>{selectedImageIndex + 1} / {viewerImages.length}</Text>
               <TouchableOpacity onPress={closeViewer} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.2)' }}>
                 <X color="#FFF" size={26} />
               </TouchableOpacity>
@@ -376,7 +416,7 @@ export default function CourtDetailScreen() {
             <GestureDetector gesture={panGesture}>
               <Animated.View style={[{ flex: 1, justifyContent: 'center' }, animatedImageStyle]}>
                 <FlatList
-                  data={currentImages}
+                  data={viewerImages}
                   horizontal
                   pagingEnabled
                   initialScrollIndex={selectedImageIndex}
@@ -393,24 +433,6 @@ export default function CourtDetailScreen() {
               </Animated.View>
             </GestureDetector>
           </Animated.View>
-        </Modal>
-
-        <Modal visible={reviewsVisible} animationType="slide" onRequestClose={() => setReviewsVisible(false)}>
-          <View style={{ flex: 1, backgroundColor: '#FFF' }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 24, paddingTop: Math.max(insets.top, 16), paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: PROFILE_THEME_COLORS.outlineVariant }}>
-              <Text style={{ fontFamily: SCREEN_FONTS.headline, fontSize: 18 }}>Tất cả đánh giá ({court.reviews.length})</Text>
-              <TouchableOpacity onPress={() => setReviewsVisible(false)} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 22, backgroundColor: PROFILE_THEME_COLORS.surfaceVariant }}>
-                <X color={PROFILE_THEME_COLORS.onSurface} size={24} />
-              </TouchableOpacity>
-            </View>
-            <FlatList
-              data={court.reviews}
-              keyExtractor={(_, idx) => idx.toString()}
-              contentContainerStyle={{ padding: 20, gap: 12, paddingBottom: insets.bottom + 40 }}
-              renderItem={({ item }) => <ReviewCard review={item} width="100%" compact onPhotoPress={(imgIdx) => openImageViewer(imgIdx, 'reviews')} />}
-              showsVerticalScrollIndicator={false}
-            />
-          </View>
         </Modal>
         </View>
     </GestureHandlerRootView>
@@ -432,7 +454,7 @@ function Section({ title, children, rightSlot, icon }: { title: string, children
   )
 }
 
-function ReviewCard({ review, width, compact = false, onPhotoPress }: { review: CourtReview, width: any, compact?: boolean, onPhotoPress?: (idx: number) => void }) {
+function ReviewCard({ review, width, compact = false, onPhotoPress }: { review: CourtReview, width: any, compact?: boolean, onPhotoPress?: (idx: number, images: string[]) => void }) {
   return (
     <View style={{ width, padding: compact ? 12 : 16, backgroundColor: PROFILE_THEME_COLORS.surfaceContainerLowest, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: PROFILE_THEME_COLORS.outlineVariant }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: compact ? 6 : 10 }}>
@@ -460,7 +482,7 @@ function ReviewCard({ review, width, compact = false, onPhotoPress }: { review: 
       {review.images && review.images.length > 0 && (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 4 }} contentContainerStyle={{ gap: 6 }}>
           {review.images.map((img, idx) => (
-            <TouchableOpacity key={idx} onPress={() => onPhotoPress?.(idx)}>
+            <TouchableOpacity key={idx} onPress={() => onPhotoPress?.(idx, review.images || [])}>
               <Image source={{ uri: img }} style={{ width: 50, height: 50, borderRadius: RADIUS.md }} contentFit="cover" />
             </TouchableOpacity>
           ))}

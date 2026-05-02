@@ -122,11 +122,11 @@ function getCity(data) {
 const shopKeywords = ['store', 'shop', 'vợt', 'showroom', 'bán', 'giày', 'quần áo', 'phụ kiện']
 
 async function cleanImport() {
-  const filePath = path.resolve(process.cwd(), 'results_depth20_hq.json')
+  const filePath = path.resolve(process.cwd(), 'results_depth20_hq2.json')
   console.log(`Checking file at: ${filePath}`)
   if (!fs.existsSync(filePath)) {
     // Fallback to parent dir if running from different context
-    const fallbackPath = path.resolve(process.cwd(), '../results_depth20_hq.json')
+    const fallbackPath = path.resolve(process.cwd(), '../results_depth20_hq2.json')
     if (fs.existsSync(fallbackPath)) {
       console.log(`Using fallback path: ${fallbackPath}`)
     } else {
@@ -141,7 +141,7 @@ async function cleanImport() {
   let totalFiltered = 0
 
   console.log('Reading and cleaning JSON data...')
-  const streamPath = fs.existsSync(filePath) ? filePath : path.resolve(process.cwd(), '../results_depth20_hq.json')
+  const streamPath = fs.existsSync(filePath) ? filePath : path.resolve(process.cwd(), '../results_depth20_hq2.json')
   const fileStream = fs.createReadStream(streamPath)
   const rl = readline.createInterface({
     input: fileStream,
@@ -188,6 +188,39 @@ async function cleanImport() {
           bestThumbnail = realPhoto.image
         }
 
+        const parseTimeRange = (open_hours) => {
+          if (!open_hours) return { open: '06:00', close: '22:00' }
+          const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+          let rangeStr = ''
+          for (const day of days) {
+            if (open_hours[day] && open_hours[day][0]) {
+              rangeStr = open_hours[day][0]
+              break
+            }
+          }
+          if (!rangeStr) return { open: '06:00', close: '22:00' }
+
+          const parts = rangeStr.split(/[–-—]/) // Handle en-dash, hyphen, em-dash
+          if (parts.length !== 2) return { open: '06:00', close: '22:00' }
+
+          const parseTime = (s) => {
+            const match = s.match(/(\d+)(?::(\d+))?\s*(a\.m\.|p\.m\.|AM|PM)/i)
+            if (!match) return null
+            let h = parseInt(match[1])
+            let m = parseInt(match[2] || '0')
+            const ampm = match[3].toLowerCase()
+            if (ampm.includes('p') && h < 12) h += 12
+            if (ampm.includes('a') && h === 12) h = 0
+            return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`
+          }
+
+          const open = parseTime(parts[0])
+          const close = parseTime(parts[1])
+          return { open: open || '06:00', close: close || '22:00' }
+        }
+
+        const { open, close } = parseTimeRange(data.open_hours)
+
         const court = {
           name: data.title,
           address: cleanedAddr,
@@ -195,6 +228,8 @@ async function cleanImport() {
           district: district,
           lat: data.latitude,
           lng: data.longtitude,
+          hours_open: open,
+          hours_close: close,
           rating: data.review_rating || 0,
           rating_count: data.review_count || 0,
           phone: data.phone || null,

@@ -30,6 +30,8 @@ export type CourtDetail = {
   popular_times?: Record<string, Record<string, number>>
   lat?: number
   lng?: number
+  hours_open?: string | null
+  hours_close?: string | null
 }
 
 export async function fetchCourtDetailApi(courtId: string): Promise<CourtDetail | null> {
@@ -150,7 +152,9 @@ export async function fetchCourtDetailApi(courtId: string): Promise<CourtDetail 
     phone: data.phone,
     reviews,
     active_sessions_count: activeSessionsCount || 0,
-    popular_times: data.popular_times
+    popular_times: data.popular_times,
+    hours_open: data.hours_open,
+    hours_close: data.hours_close,
   }
 }
 
