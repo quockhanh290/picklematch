@@ -94,12 +94,10 @@ export function useFindSessionController() {
     setSmartQueueHydrated(true)
   }, [])
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchSessions()
-      void fetchPlayerProfile()
-    }, [fetchPlayerProfile, fetchSessions]),
-  )
+  useEffect(() => {
+    fetchSessions()
+    void fetchPlayerProfile()
+  }, [fetchPlayerProfile, fetchSessions])
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true)

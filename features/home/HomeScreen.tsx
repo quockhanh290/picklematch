@@ -172,7 +172,18 @@ export function HomeScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 160 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />}
+        refreshControl={
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={onRefresh} 
+            tintColor={PROFILE_THEME_COLORS.primary} 
+            colors={[PROFILE_THEME_COLORS.primary]}
+            title="Săn kèo mới..."
+            titleColor={PROFILE_THEME_COLORS.onSurfaceVariant}
+            progressViewOffset={20}
+          />
+        }
+        alwaysBounceVertical={true}
       >
         <HomeGreetingHeader name={profile?.name ?? 'Bạn'} statusPrompt={statusPrompt} />
 

@@ -287,8 +287,13 @@ export function FindSessionScreen() {
               refreshing={refreshing} 
               onRefresh={onRefresh} 
               tintColor={PROFILE_THEME_COLORS.primary} 
+              colors={[PROFILE_THEME_COLORS.primary]}
+              title="Săn kèo mới..."
+              titleColor={PROFILE_THEME_COLORS.onSurfaceVariant}
+              progressViewOffset={20}
             />
           }
+          alwaysBounceVertical={true}
           ListHeaderComponent={listHeader}
           ListFooterComponent={listFooter}
           renderItem={({ item }) => (

@@ -187,7 +187,18 @@ export function MySessionsScreen() {
             keyExtractor={(item) => ('type' in item ? `${activeTab}-${item.key}` : `${activeTab}-${item.id}`)}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingHorizontal: SPACING.xl, paddingTop: 0, paddingBottom: 160 }}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={PROFILE_THEME_COLORS.primary} />}
+            refreshControl={
+              <RefreshControl 
+                refreshing={refreshing} 
+                onRefresh={onRefresh} 
+                tintColor={PROFILE_THEME_COLORS.primary} 
+                colors={[PROFILE_THEME_COLORS.primary]}
+                title="Cập nhật lịch thi đấu..."
+                titleColor={PROFILE_THEME_COLORS.onSurfaceVariant}
+                progressViewOffset={20}
+              />
+            }
+            alwaysBounceVertical={true}
             stickyHeaderIndices={isHistoryTab ? [1] : undefined}
             onEndReached={loadMoreHistory}
             onEndReachedThreshold={0.25}

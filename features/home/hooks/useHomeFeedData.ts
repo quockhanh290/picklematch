@@ -1,4 +1,3 @@
-import { useFocusEffect } from 'expo-router'
 import { useCallback, useEffect, useState } from 'react'
 import { 
     type FamiliarCourt,
@@ -47,11 +46,6 @@ export function useHomeFeedData(userId?: string | null, isAuthLoading?: boolean)
     void fetchHomeData()
   }, [fetchHomeData])
 
-  useFocusEffect(
-    useCallback(() => {
-      void fetchHomeData()
-    }, [fetchHomeData]),
-  )
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true)

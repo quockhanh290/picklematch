@@ -25,7 +25,7 @@ import {
     UserCircle2
 } from 'lucide-react-native'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native'
+import { ActivityIndicator, RefreshControl, ScrollView, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { RADIUS, SPACING } from '@/constants/screenLayout'
 import { STRINGS } from '@/constants/strings'
@@ -162,11 +162,9 @@ export function ProfileScreen() {
     setChecking(false)
   }, [])
 
-  useFocusEffect(
-    useCallback(() => {
-      void init()
-    }, [init]),
-  )
+  useEffect(() => {
+    void init()
+  }, [init])
 
   async function logout() {
     setDialogConfig({
@@ -261,7 +259,21 @@ export function ProfileScreen() {
 
   return (
     <View className="flex-1" style={{ backgroundColor: PROFILE_PAGE_COLORS.background }}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 96 }} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        contentContainerStyle={{ paddingBottom: 96 }} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl 
+            refreshing={loading} 
+            onRefresh={init} 
+            tintColor={PROFILE_PAGE_COLORS.primary}
+            colors={[PROFILE_PAGE_COLORS.primary]}
+            title="Cập nhật hồ sơ..."
+            titleColor={PROFILE_PAGE_COLORS.onSurfaceVariant}
+          />
+        }
+        alwaysBounceVertical={true}
+      >
         <View style={{ paddingTop: insets.top + 20, paddingHorizontal: SPACING.xl }}>
           <View className="pt-4 pb-6">
             <View className="flex-row items-center justify-between">

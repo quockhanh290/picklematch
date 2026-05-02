@@ -77,7 +77,8 @@ export const SessionActionButtons: React.FC<SessionActionButtonsProps> = ({
   const isEven = confirmedPlayerCount % 2 === 0
   const isValidCount = confirmedPlayerCount >= 2 && isEven && confirmedPlayerCount <= maxPlayers
     
-  const isEnded = isAfterEnd || status === 'done' || status === 'pending_completion' || status === 'pending_results'
+  const sessionStatus = session?.status
+  const isEnded = isAfterEnd || sessionStatus === 'done' || sessionStatus === 'pending_completion' || sessionStatus === 'pending_results'
   const isInvalidPlayerCount = isEnded && !isValidCount
   const isPartialPlayerCount = isEnded && isValidCount && confirmedPlayerCount < maxPlayers
 

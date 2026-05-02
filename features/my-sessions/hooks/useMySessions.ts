@@ -178,12 +178,6 @@ export function useMySessions() {
     void init()
   }, [init])
 
-  useFocusEffect(
-    useCallback(() => {
-      if (!userId) return
-      void fetchMySessions(userId, { showLoader: false })
-    }, [fetchMySessions, userId]),
-  )
 
   const onRefresh = useCallback(async () => {
     if (!userId) return
